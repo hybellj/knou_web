@@ -7,15 +7,15 @@ import java.util.List;
 
 public interface MsgTmpltService {
 
-    ProcessResultVO<MsgTmpltVO> selectTmpltListPage(MsgTmpltVO vo);
+    ProcessResultVO<MsgTmpltVO> selectTmpltListPage(MsgTmpltVO vo) throws Exception;
 
     MsgTmpltVO selectTmplt(MsgTmpltVO vo);
 
-    int registTmplt(MsgTmpltVO vo);
+    int insertTmplt(MsgTmpltVO vo);
 
-    int modifyTmplt(MsgTmpltVO vo);
+    int updateTmplt(MsgTmpltVO vo);
 
-    int deleteTmplt(MsgTmpltVO vo, String userId, boolean isAdmin) throws Exception;
+    int deleteTmplt(MsgTmpltVO vo, String userId, boolean isAdmin);
 
     int deleteAllTmplt(MsgTmpltVO vo);
 

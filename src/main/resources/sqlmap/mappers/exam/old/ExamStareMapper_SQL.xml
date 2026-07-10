@@ -120,7 +120,7 @@
 		  		  	  AND DELYN = 'N')
   		  	  )
 	         </if>
-	        <include refid="CommonSQL.pageSubfix"/>
+	        <include refid="CommonSQL.pageSuffix"/>
 	        <if test='searchFrom != null and searchFrom != "" and searchFrom == "REEXAM"'>
 	         	AND (A.HSTRY_TYCD NOT IN ('COMPLETE', 'START', 'RESTORE')
 	         		OR (A.REEXAMYN= 'Y' AND A.HSTRY_TYCD NOT IN ('COMPLETE', 'START', 'RESTORE')))
@@ -1238,7 +1238,7 @@
             AND T.STD_ID IS NOT NULL
         </if>
           ORDER BY C.USERNM
-        <include refid="CommonSQL.pageSubfix"/>
+        <include refid="CommonSQL.pageSuffix"/>
     </select>	
 
     <select id="listExamStareStdCount" parameterType="examStareVO" resultType="int">
@@ -1907,7 +1907,7 @@
         FROM (
 			<include refid="reExamStdQuery" />
 		) A
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="listReExamConfigStatus" parameterType="examStareVO" resultType="egovMap">

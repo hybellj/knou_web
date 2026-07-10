@@ -6,49 +6,100 @@ import org.apache.ibatis.annotations.Param;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
-import knou.lms.common.dto.BaseParam;
-import knou.lms.subject.dto.SubjectParam;
-import knou.lms.subject.vo.LectureWknoScheduleVO;
+import knou.framework.common.PageInfo;
+import knou.lms.common.dto.CommonDTO;
+import knou.lms.crs.semester.vo.SmstrChrtVO;
+import knou.lms.lecture2.vo.LectureWknoScheduleVO;
+import knou.lms.subject.vo.SubjectOrgDTO;
 import knou.lms.subject.vo.SubjectVO;
 
+/**
+ * 과목정보 DAO
+ */
 @Mapper("subjectDAO")
 public interface SubjectDAO {
-   
-    public SubjectVO subjectSelect(BaseParam param) throws Exception;
 
-    public List<EgovMap> subjectLearningActvList(BaseParam param) throws Exception;
+    public SubjectVO subjectSelect(CommonDTO cmmnDto);
 
-    public EgovMap sbjctAdmSelect(BaseParam param) throws Exception;
+    public List<EgovMap> subjectLearningActvList(CommonDTO cmmnDto);
 
-    public List<EgovMap> sbjctAdmList(BaseParam param) throws Exception;
+    public EgovMap sbjctAdmSelect(CommonDTO cmmnDto);
 
-    public EgovMap middleLastExamSelect(BaseParam param) throws Exception;
+    public List<EgovMap> sbjctAdmList(CommonDTO cmmnDto);
 
-	public EgovMap subjectBbsIdsSelect(BaseParam param) throws Exception;
+    public EgovMap middleLastExamSelect(CommonDTO cmmnDto);
 
-	public List<EgovMap> subjectSummaryList(BaseParam param) throws Exception;
-	
-	public List<EgovMap> profSubjectSummaryList(BaseParam param) throws Exception;
-	
-	public List<EgovMap> stdntSubjectSummaryList(BaseParam param) throws Exception;
+	public EgovMap subjectBbsIdsSelect(CommonDTO cmmnDto);
 
-	public int stdntOrProfCountSelect(SubjectParam subjectParam) throws Exception;
+	public List<EgovMap> profSubjectSummaryList(CommonDTO cmmnDto);
 
-	public List<EgovMap> subjectUsersList(BaseParam param) throws Exception;
+	public List<EgovMap> stdntSubjectSummaryList(CommonDTO cmmnDto);
 
-	public LectureWknoScheduleVO currLctrWknoSchdlSelect(String sbjctId) throws Exception ;
+	public int stdntOrProfCountSelect(CommonDTO cmmnDto);
 
-	public int connectStdCntSelect(String userId) throws Exception ;
+	public LectureWknoScheduleVO currLctrWknoSchdlSelect(String sbjctId) ;
 
-	public int totalStdCntSelect(String userId) throws Exception ;
+	public int connectStdCntSelect(String userId) ;
 
-	public List<EgovMap> stdntSubjectConnectList(String sbjctId) throws Exception ;
+	public int totalStdCntSelect(String userId) ;
 
-	public int subjectConnectStdCntSelect(String sbjctId) throws Exception ;
+	public List<EgovMap> stdntSubjectConnectList(String sbjctId);
 
-	public int subjectTotalStdCntSelect(String sbjctId) throws Exception ;
+	public int subjectConnectStdCntSelect(String sbjctId);
 
-	public EgovMap lctrWknoAtndcrtSelect(@Param("sbjctId") String sbjctId, @Param("lctrWknoSchdlId") String lctrWknoSchdlId) throws Exception;
+	public int subjectTotalStdCntSelect(String sbjctId);
 
-	public List<EgovMap> subjectByUserOrgIdSelect(@Param("profIds") List<String> profIds, @Param("stdntIds") List<String> stdntIds) throws Exception;
+	public EgovMap lctrWknoAtndcrtSelect(@Param("sbjctId") String sbjctId, @Param("lctrWknoSchdlId") String lctrWknoSchdlId) ;
+
+	/**
+	 * 사용자 운영/수강 과목 기관 목록 조회
+	 * @param userId
+	 * @return List<SubjectOrgDTO>
+	 */
+	public List<SubjectOrgDTO> selectUserSubjectOrgList(String userId);
+
+	/**
+	 * 과목운영자권한조회
+	 * @param sbjctId
+	 * @param userId
+	 * @return String
+	 * @throws Exception
+	 */
+	public String subjectByAdmAuthSelect(@Param("sbjctId") String sbjctId, @Param("userId") String userId) throws Exception;
+
+	/**
+	 * 과목수강생권한조회
+	 * @param sbjctId
+	 * @param userId
+	 * @return String
+	 * @throws Exception
+	 */
+	public String subjectByStdntAuthSelect(@Param("sbjctId") String sbjctId, @Param("userId") String userId) throws Exception;
+
+	/**
+	 * 교수자 운영과목 전제 조회
+	 * @param userId
+	 * @return List<SubjectVO>
+	 * @throws Exception
+	 */
+	public List<SubjectVO> subjectListAllByProf(@Param("userId") String userId) throws Exception;
+
+	/**
+	 * 학생 수강과목 전체 조회
+	 * @param userId
+	 * @return List<SubjectVO>
+	 * @throws Exception
+	 */
+	public List<SubjectVO> subjectListAllByStdnt(@Param("userId") String userId) throws Exception;
+
+	public List<EgovMap> admByOrgByDeptSubjectSelect(PageInfo pageInfo);
+
+	/**
+	 * 사용자 운영/수강과목 학기 목록 조회
+	 * @param userId
+	 * @param orgId
+	 * @return List<SmstrChrtVO>
+	 * @throws Exception
+	 */
+	public List<SmstrChrtVO> selectUserSemesterList(@Param("userId") String userId, @Param("orgId") String orgId) throws Exception;
 }

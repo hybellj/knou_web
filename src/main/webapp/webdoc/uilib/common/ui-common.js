@@ -4,6 +4,10 @@
 
 // UI 초기화...
 $(function(){
+	if (typeof LANGUAGE !== 'undefined' && LANGUAGE !== null) {
+		UiComm.conf.lang = LANGUAGE;
+	}
+
 	// 자동완성 끄기
 	$("input[type=text]").attr("autocomplete","off");
 
@@ -41,6 +45,7 @@ let UiComm = {
 	 * @data	파라메터 데이터(Object)
 	 */
 	makeEncParams: function(data) {
+		//alert('ui-common.js>makeEncParams>data=' + data);
 		const bytes = new TextEncoder().encode(JSON.stringify(data));
 		let param = "";
 		for (const b of bytes) param += String.fromCharCode(b);

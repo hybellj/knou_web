@@ -13,4 +13,6 @@ public interface MsgAlimService {
     List<MsgAlimVO> selectShrtntList(MsgAlimVO vo);
 
     List<MsgAlimVO> selectMblSndngList(MsgAlimVO vo);
+
+    int updateAlimReadDttm(MsgAlimVO vo);
 }

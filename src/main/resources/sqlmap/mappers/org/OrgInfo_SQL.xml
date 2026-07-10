@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="knou.lms.org.dao.OrgInfoDAO">
-	
+
 	<select id="select" parameterType="orgInfoVO" resultType="orgInfoVO">
 		/*
              SQL ID : OrgInfoDAO.select
@@ -15,20 +15,25 @@
 			, A.RPRS_TELNO
 			, A.ORG_REG_NO
 			, A.DMNNM
+			, A.ORG_TYCD
 		FROM TB_LMS_ORG A
 		WHERE A.ORG_ID = #{orgId}
 	</select>
-	
+
 	<sql id="selectQuery">
 
 		SELECT
-			  ROW_NUMBER() OVER(ORDER BY A.ORG_ID) AS LINE_NO
+			  ROW_NUMBER() OVER(ORDER BY A.ORG_ID DESC) AS LINE_NO
 			, A.ORG_ID
 			, A.ORGNM
-			, A.DMNNM
-			, A.RPRS_TELNO
-			, A.ORG_REG_NO
-			, (
+			, A.ORG_SHRTNM
+            , A.ORG_TYCD
+            , A.CHRGRNM
+            , A.CHRGR_CNTCT
+            , A.CHRGR_EML
+            , COUNT(*) OVER() AS TOTAL_CNT
+			/*, A.ORG_REG_NO*/
+			/*, (
 				SELECT COUNT(1)
 				FROM TB_LMS_USER AA
 				WHERE AA.ORG_ID = A.ORG_ID
@@ -41,20 +46,21 @@
 					AND CC.AUTHRT_GRPCD = 'ADM'
 					AND CC.AUTHRT_CD = 'SYS_ADM'
 				)
-			) AS ADM_CNT
-			, CASE WHEN A.ORG_ID = 'LMSBASIC' THEN 1 ELSE 2 END AS ODR
+			) AS ADM_CNT*/
+			/*, CASE WHEN A.ORG_ID = 'LMSBASIC' THEN 1 ELSE 2 END AS ODR*/
 		FROM TB_LMS_ORG A
 		WHERE 1=1
-		AND USEYN = 'Y'
-		<if test="searchValue != null and searchValue != ''"> 
-		AND (
-			   A.ORGNM 	LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
-			OR A.ORG_REG_NO LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
-		)
+		    AND A.USEYN = 'Y'
+		<if test="searchValue != null and searchValue != ''">
+            AND (
+                   A.ORG_ID	LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR A.ORGNM LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR A.CHRGRNM LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
 		</if>
-		ORDER BY ODR, ORGNM 
+        ORDER BY A.ORG_ID DESC
 	</sql>
-	
+
 	<select id="count" parameterType="orgInfoVO" resultType="Integer">
 		/*
              SQL ID : OrgInfoDAO.count
@@ -64,7 +70,7 @@
 			<include refid="selectQuery" />
 		) Z
 	</select>
-	
+
 	<select id="list" parameterType="orgInfoVO" resultType="orgInfoVO">
 		/*
              SQL ID : OrgInfoDAO.list
@@ -72,39 +78,39 @@
          */
 		<include refid="selectQuery" />
 	</select>
-	
-	<select id="listPaging" parameterType="orgInfoVO" resultType="orgInfoVO">
+
+	<select id="listPaging" parameterType="orgInfoVO" resultType="egovMap">
 		/*
              SQL ID : OrgInfoDAO.listPaging
-             설  명 : 기관 정보 페이징 목록
+             설  명 : 기관 기본 정보 페이징 목록
          */
         <include refid="CommonSQL.pagePrefix"/>
 		<include refid="selectQuery" />
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
-	
+
 	<insert id="insert" parameterType="orgInfoVO" useGeneratedKeys="true">
 		/*
              SQL ID : OrgInfoDAO.insert
              설  명 : 기관 정보 등록
          */
 		INSERT INTO TB_LMS_ORG (
-			ORG_ID 
+			ORG_ID
 		  , ORGNM
-		  , ORG_SYS_TYCD 
+		  , ORG_SYS_TYCD
 		  , DMNNM
-		  <if test="rprstPhoneNo != null and rprstPhoneNo != ''"> 
+		  <if test="rprstPhoneNo != null and rprstPhoneNo != ''">
 		  , RPRS_TELNO
 		  </if>
 		  , ORG_NCNM
-		  <if test="rprstFaxNo != null and rprstFaxNo != ''"> 
+		  <if test="rprstFaxNo != null and rprstFaxNo != ''">
 		  , RPRS_FAX
 		  </if>
 		  , ORG_REG_NO
-		  <if test="orgPost != null and orgPost != ''"> 
+		  <if test="orgPost != null and orgPost != ''">
 		  , ORG_ZIP
 		  </if>
-		  <if test="orgAddr != null and orgAddr != ''"> 
+		  <if test="orgAddr != null and orgAddr != ''">
 		  , ORG_ADDR
 		  </if>
 		  , USEYN
@@ -112,21 +118,21 @@
 		  , FRST_INQ_DTTM
 		) VALUES (
 			#{orgId}
-		  , #{orgNm}							    			
+		  , #{orgNm}
 		  , 'UNI'
 		  , #{domainNm}
-		  <if test="rprstPhoneNo != null and rprstPhoneNo != ''"> 
+		  <if test="rprstPhoneNo != null and rprstPhoneNo != ''">
 		  , #{rprstPhoneNo}
 		  </if>
 		  , #{orgSnm}
-		  <if test="rprstFaxNo != null and rprstFaxNo != ''"> 
+		  <if test="rprstFaxNo != null and rprstFaxNo != ''">
 		  , #{rprstFaxNo}
 		  </if>
 		  , #{orgBizNo}
-		  <if test="orgPost != null and orgPost != ''"> 
+		  <if test="orgPost != null and orgPost != ''">
 		  , #{orgPost}
 		  </if>
-		  <if test="orgAddr != null and orgAddr != ''"> 
+		  <if test="orgAddr != null and orgAddr != ''">
 		  , #{orgAddr}
 		  </if>
 		  , #{dfltLangCd}
@@ -135,7 +141,7 @@
 		  , FN_DTTM()
 		)
 	</insert>
-	
+
 	<update id="update" parameterType="orgInfoVO">
 		/*
              SQL ID : OrgInfoDAO.update
@@ -167,7 +173,7 @@
 			, MOD_DTTM  		= FN_DTTM()
 		WHERE ORG_ID = #{orgId}
 	</update>
-	
+
 	<update id="updateUseN" parameterType="orgInfoVO">
 		/*
              SQL ID : OrgInfoDAO.updateUseN
@@ -177,7 +183,7 @@
 		SET USEYN = 'N'
 		WHERE ORG_ID = #{orgId}
 	</update>
-	
+
 	<select id="listOrgAdmUser" parameterType="orgInfoVO" resultType="egovMap">
 		/*
              SQL ID : OrgInfoDAO.listOrgAdmUser
@@ -211,7 +217,7 @@
              설  명 : 운영 기관 전체 조회
          */
 		<!-- SELECT * FROM (
-			SELECT 
+			SELECT
 				 *
 				, IF (ORG_ID = 'ORG0000001', 0, 1) ODR
 			FROM TB_LMS_ORG
@@ -219,13 +225,35 @@
 		) ORG
 		ORDER BY ODR, ORGNM -->
 		SELECT
-		    ORG.* 
+		    ORG.*
 		  FROM (
-		        SELECT 
+		        SELECT
 		             TOOI.*,
-		        CASE WHEN ORG_ID = 'ORG0000001' THEN 0 ELSE 1 END AS ODR 
+		        CASE WHEN ORG_ID = 'ORG0000001' THEN 0 ELSE 1 END AS ODR
 		        FROM TB_LMS_ORG TOOI
 		        WHERE USEYN = 'Y'
+		) ORG
+		ORDER BY ODR, ORGNM
+	</select>
+
+	<select id="listActiveOrgByUser" parameterType="String" resultType="orgInfoVO">
+		/*
+             SQL ID : OrgInfoDAO.listActiveOrgByUser
+             설  명 : 사용자에 연결된 운영 기관 조회
+         */
+		SELECT
+		    ORG.*
+		  FROM (
+		        SELECT
+                    O.*,
+		        CASE WHEN O.ORG_ID = 'ORG0000001' THEN 0 ELSE 1 END AS ODR
+		        FROM TB_LMS_ORG O
+		        INNER JOIN (
+		            SELECT DISTINCT ORG_ID
+		            FROM TB_LMS_USER_AUTHRT
+		            WHERE USER_ID = #{userId}
+		        ) UA ON UA.ORG_ID = O.ORG_ID
+		        WHERE O.USEYN = 'Y'
 		) ORG
 		ORDER BY ODR, ORGNM
 	</select>

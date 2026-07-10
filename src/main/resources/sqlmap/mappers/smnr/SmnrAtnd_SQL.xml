@@ -2,4 +2,516 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="knou.lms.smnr.dao.SmnrAtndDAO">
 
+	<select id="smnrAtndSelect" parameterType="smnrVO" resultType="smnrAtndVO">
+		/*
+             SQL ID : SmnrAtndDAO.smnrAtndSelect
+             설  명 : 세미나참석조회
+         */
+        SELECT
+        	*
+          FROM TB_LMS_SMNR_ATND
+         WHERE SMNR_ID = #{smnrId}
+           AND ATNDE_ID = #{userId}
+	</select>
+
+	<insert id="smnrAtndRegist" parameterType="smnrAtndVO">
+		/*
+             SQL ID : SmnrAtndDAO.smnrAtndRegist
+             설  명 : 세미나참석등록
+         */
+        INSERT INTO TB_LMS_SMNR_ATND (
+        	  SMNR_ATND_ID
+			, SMNR_ID
+			, ATNDE_ID
+			, ATNDE_IP
+			, ATND_SDTTM
+			, CNTN_DVC_TYCD
+			, ATND_EVL_SCR
+			, RGTR_ID
+			, REG_DTTM
+        ) VALUES (
+        	  #{smnrAtndId}
+			, #{smnrId}
+			, #{atndeId}
+			, #{atndeIp}
+			, #{atndSdttm}
+			, #{cntnDvcTycd}
+			, 0
+			, #{rgtrId}
+			, FN_DTTM()
+        )
+	</insert>
+
+	<update id="smnrAtndModify" parameterType="smnrAtndVO">
+		/*
+             SQL ID : SmnrAtndDAO.smnrAtndModify
+             설  명 : 세미나참석수정
+         */
+        UPDATE TB_LMS_SMNR_ATND SET
+        	  MDFR_ID = #{mdfrId}
+        	, MOD_DTTM = FN_DTTM()
+        	<if test="atndSdttm != null and atndSdttm != ''">
+        	, ATND_SDTTM = #{atndSdttm}
+        	</if>
+        	<if test="atndEdttm != null and atndEdttm != ''">
+			, ATND_EDTTM = #{atndEdttm}
+        	</if>
+        	<if test="atndScnds != null">
+			, ATND_SCNDS = #{atndScnds}
+        	</if>
+        	<if test="atndStscd != null and atndStscd != ''">
+			, ATND_STSCD = #{atndStscd}
+        	</if>
+        	<if test="cntnDvcTycd != null and cntnDvcTycd != ''">
+			, CNTN_DVC_TYCD = #{cntnDvcTycd}
+        	</if>
+        	<if test="smnrCntnGbncd != null and smnrCntnGbncd != ''">
+			, SMNR_CNTN_GBNCD = #{smnrCntnGbncd}
+        	</if>
+        	<if test="atndMemo != null and atndMemo != ''">
+			, ATND_MEMO = #{atndMemo}
+        	</if>
+        	<if test="atndeIp != null and atndeIp != ''">
+			, ATNDE_IP = #{atndeIp}
+        	</if>
+        	<if test="atndEvlScr != null">
+			, ATND_EVL_SCR = #{atndEvlScr}
+			, ATND_EVL_DTTM = FN_DTTM()
+        	</if>
+        	<if test="atndEvlyn != null and atndEvlyn != ''">
+			, ATND_EVLYN = #{atndEvlyn}
+        	</if>
+         WHERE SMNR_ATND_ID = #{smnrAtndId}
+	</update>
+
+	<select id="smnrAtndList" parameterType="map" resultType="egovMap">
+		/*
+             SQL ID : SmnrAtndDAO.smnrAtndList
+             설  명 : 세미나참석목록
+         */
+         SELECT
+         	  ROW_NUMBER() OVER(ORDER BY A.USERNM) AS LINE_NO
+         	, A.*
+         	, (SELECT FDBK_CTS FROM TB_LMS_SMNR_FDBK WHERE SMNR_ID = A.SMNR_ID AND USER_ID = A.USER_ID AND ROWNUM = 1) AS FDBK_CTS
+           FROM (
+           	 WITH SUB_SMNR AS (
+           	 	SELECT
+           	 		SMNR_ID
+           	 	  FROM TB_LMS_SMNR
+           	 	 WHERE DELYN = 'N'
+           	 	   AND (UP_SMNR_ID = #{smnrId} OR SMNR_ID = #{smnrId})
+           	 ), TEAM AS (
+				SELECT
+					  SMNR_TEAM.SMNR_ID
+					, TEAM.TEAM_ID
+					, TEAM.TEAMNM
+					, TEAM_MBR.USER_ID
+					, TEAM_MBR.LDRYN
+				  FROM TB_LMS_TEAM TEAM
+				  JOIN TB_LMS_SMNR_TEAM SMNR_TEAM
+				    ON TEAM.TEAM_ID = SMNR_TEAM.TEAM_ID
+				  JOIN TB_LMS_TEAM_MBR TEAM_MBR
+				    ON TEAM.TEAM_ID = TEAM_MBR.TEAM_ID
+				 WHERE TEAM.TEAM_CPST_CMPTNYN = 'Y'
+				   AND SMNR_TEAM.SMNR_ID IN (SELECT SMNR_ID FROM SUB_SMNR)
+			), ATND AS (
+				SELECT
+					  ATND.*
+				  FROM TB_LMS_SMNR_ATND ATND
+				 WHERE ATND.SMNR_ID IN (SELECT SMNR_ID FROM SUB_SMNR)
+			)
+			SELECT
+				  ATNDLC.SBJCT_ID
+				, TM.TEAM_ID
+				, TM.TEAMNM
+				, NVL((SELECT DEPTNM FROM TB_LMS_DEPT WHERE DEPT_ID = USR.DEPT_ID),'-') AS DEPTNM
+				, NVL(USR.STDNT_NO,'-') AS STDNT_NO
+				, (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'MBL_PHN' AND USER_ID = ATNDLC.USER_ID) AS MOBILE_NO
+				, (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'INDV_EML' AND USER_ID = ATNDLC.USER_ID) AS EMAIL
+				, ATNDLC.USER_ID
+				, USR.USERNM
+				, TM.LDRYN
+				, CASE WHEN TM.TEAM_ID IS NOT NULL THEN TM.SMNR_ID ELSE NVL(ATND_INDI.SMNR_ID, SMNR.SMNR_ID) END SMNR_ID
+			 	, CASE WHEN TM.TEAM_ID IS NOT NULL THEN ATND_TEAM.SMNR_ATND_ID ELSE ATND_INDI.SMNR_ATND_ID END AS SMNR_ATND_ID
+			    , NVL(CASE WHEN TM.TEAM_ID IS NOT NULL THEN ATND_TEAM.ATND_EVL_SCR ELSE ATND_INDI.ATND_EVL_SCR END, 0) AS ATND_EVL_SCR
+			    , CASE WHEN TM.TEAM_ID IS NOT NULL THEN ATND_TEAM.ATND_SDTTM ELSE ATND_INDI.ATND_SDTTM END AS ATND_SDTTM
+			    , NVL(CASE WHEN TM.TEAM_ID IS NOT NULL THEN ATND_TEAM.ATND_SCNDS ELSE ATND_INDI.ATND_SCNDS END, 0) AS ATND_SCNDS
+			    , NVL(CASE WHEN TM.TEAM_ID IS NOT NULL THEN ATND_TEAM.ATND_STSCD ELSE ATND_INDI.ATND_STSCD END,'ABSNT') AS ATND_STSCD
+			    , NVL(CASE WHEN TM.TEAM_ID IS NOT NULL THEN ATND_TEAM.ATND_EVLYN ELSE ATND_INDI.ATND_EVLYN END,'N') AS ATND_EVLYN
+			  FROM TB_LMS_ATNDLC ATNDLC
+			  JOIN TB_LMS_SMNR SMNR
+			    ON ATNDLC.SBJCT_ID = SMNR.SBJCT_ID
+			   AND SMNR.DELYN = 'N'
+			  JOIN TB_LMS_USER USR
+			    ON ATNDLC.USER_ID = USR.USER_ID
+			   AND USR.USER_ID_STSCD = 'APRV_CMPTN'
+			   AND USR.USER_TYCD = 'STDNT'
+			  LEFT JOIN TEAM TM
+			    ON TM.USER_ID = ATNDLC.USER_ID
+			  LEFT JOIN ATND ATND_TEAM
+			    ON ATND_TEAM.SMNR_ID = TM.SMNR_ID
+			   AND ATND_TEAM.ATNDE_ID = ATNDLC.USER_ID
+			  LEFT JOIN ATND ATND_INDI
+			    ON ATND_INDI.ATNDE_ID = ATNDLC.USER_ID
+			   AND ATND_INDI.SMNR_ID = SMNR.SMNR_ID
+			 WHERE ATNDLC.AUDITYN = 'N'
+			   AND ATNDLC.ATNDLC_STSCD = 'APPROVE'
+			   AND SMNR.SMNR_ID = #{smnrId}
+			   <if test="userId != null and userId != ''">
+			   		AND USR.USER_ID = #{userId}
+			   </if>
+           ) A
+         <where>
+         	<if test="atndStscd != null and atndStscd != '' and atndStscd != 'all'">
+         		AND A.ATND_STSCD = #{atndStscd}
+         	</if>
+         	<if test="atndEvlyn != null and atndEvlyn != '' and atndEvlyn != 'all'">
+         		AND A.ATND_EVLYN = #{atndEvlyn}
+         	</if>
+         	<if test="searchValue != null and searchValue != ''">
+         		AND (
+         			   LOWER(A.DEPTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+         			OR LOWER(A.STDNT_NO) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+         			OR LOWER(A.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+         		)
+         	</if>
+         </where>
+	</select>
+
+	<update id="userListEvlScrBulkModify" parameterType="java.util.List">
+		/*
+             SQL ID : SmnrAtndDAO.userListEvlScrBulkModify
+             설  명  : 사용자목록평가점수일괄수정
+         */
+        MERGE INTO TB_LMS_SMNR_ATND SMNR_ATND
+	    USING (
+	    	<foreach item="item" collection="list" separator="UNION ALL">
+	            SELECT
+		       		  #{item.smnrAtndId} AS SMNR_ATND_ID
+			       	, #{item.smnrId} AS SMNR_ID
+			       	, #{item.userId} AS ATNDE_ID
+			       	, TO_NUMBER(#{item.scr}) AS ATND_EVL_SCR
+			       	, #{item.scoreType} AS SCORE_TYPE
+			       	, #{item.rgtrId} AS RGTR_ID
+		         FROM DUAL
+	        </foreach>
+	    ) USR
+	    ON (
+	    	    SMNR_ATND.SMNR_ATND_ID = USR.SMNR_ATND_ID
+	     	AND SMNR_ATND.ATNDE_ID = USR.ATNDE_ID
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	        	  SMNR_ATND.ATND_EVL_SCR =
+	        	  		CASE WHEN USR.SCORE_TYPE = 'addition'
+	        	  			 THEN CASE WHEN NVL(SMNR_ATND.ATND_EVL_SCR, 0.0) + USR.ATND_EVL_SCR <![CDATA[ < ]]> 0.0 THEN 0.0
+	        	  			 		   WHEN NVL(SMNR_ATND.ATND_EVL_SCR, 0.0) + USR.ATND_EVL_SCR <![CDATA[ > ]]> 100.0 THEN 100.0
+	        	  			 		   ELSE NVL(SMNR_ATND.ATND_EVL_SCR, 0.0) + USR.ATND_EVL_SCR
+	        	  			 	  END
+	        	  			 ELSE USR.ATND_EVL_SCR
+	        	  		END
+	        	, SMNR_ATND.ATND_EVLYN = 'Y'
+	        	, SMNR_ATND.ATND_EVL_DTTM = FN_DTTM()
+	        	, SMNR_ATND.MDFR_ID = USR.RGTR_ID
+				, SMNR_ATND.MOD_DTTM = FN_DTTM()
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	        	  SMNR_ATND_ID
+				, SMNR_ID
+				, ATNDE_ID
+				, ATND_EVL_SCR
+				, ATND_EVLYN
+				, ATND_EVL_DTTM
+				, RGTR_ID
+				, REG_DTTM
+	        ) VALUES (
+	        	  USR.SMNR_ATND_ID
+				, USR.SMNR_ID
+				, USR.ATNDE_ID
+				, CASE WHEN USR.ATND_EVL_SCR <![CDATA[ < ]]> 0 THEN 0 ELSE USR.ATND_EVL_SCR END
+				, 'Y'
+				, FN_DTTM()
+				, USR.RGTR_ID
+				, FN_DTTM()
+	        )
+	</update>
+
+	<update id="userListAtndBulkModify" parameterType="java.util.List">
+		/*
+             SQL ID : SmnrAtndDAO.userListAtndBulkModify
+             설  명  : 사용자목록참석일괄수정
+         */
+        MERGE INTO TB_LMS_SMNR_ATND SMNR_ATND
+	    USING (
+	    	<foreach item="item" collection="list" separator="UNION ALL">
+	            SELECT
+		       		  #{item.smnrAtndId} AS SMNR_ATND_ID
+			       	, #{item.smnrId} AS SMNR_ID
+			       	, #{item.userId} AS ATNDE_ID
+			       	, #{item.atndStscd} AS ATND_STSCD
+			       	, #{item.rgtrId} AS RGTR_ID
+		         FROM DUAL
+	        </foreach>
+	    ) USR
+	    ON (
+	    	    SMNR_ATND.SMNR_ATND_ID = USR.SMNR_ATND_ID
+	     	AND SMNR_ATND.ATNDE_ID = USR.ATNDE_ID
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	        	  SMNR_ATND.ATND_STSCD = USR.ATND_STSCD
+	        	, SMNR_ATND.MDFR_ID = USR.RGTR_ID
+				, SMNR_ATND.MOD_DTTM = FN_DTTM()
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	        	  SMNR_ATND_ID
+				, SMNR_ID
+				, ATNDE_ID
+				, ATND_EVL_SCR
+				, ATND_STSCD
+				, RGTR_ID
+				, REG_DTTM
+	        ) VALUES (
+	        	  USR.SMNR_ATND_ID
+				, USR.SMNR_ID
+				, USR.ATNDE_ID
+				, 0
+				, USR.ATND_STSCD
+				, USR.RGTR_ID
+				, FN_DTTM()
+	        )
+	</update>
+
+	<select id="smnrAtndeSelect" parameterType="String" resultType="egovMap">
+		/*
+             SQL ID : SmnrAtndDAO.smnrAtndeSelect
+             설  명  : 세미나참석자조회
+         */
+         SELECT
+		 	  NVL((SELECT DEPTNM FROM TB_LMS_DEPT WHERE DEPT_ID = USR.DEPT_ID),'-') AS DEPTNM
+		 	, NVL(USR.STDNT_NO,'-') AS STDNT_NO
+		 	, USR.USERNM
+		 	, USR.USER_ID
+		 	, ATND.SMNR_ATND_ID
+		 	, ATND.ATND_MEMO
+		 	, NVL(ATND.ATND_EVL_SCR, 0) AS ATND_EVL_SCR
+		  FROM TB_LMS_USER USR
+		  LEFT JOIN TB_LMS_SMNR_ATND ATND
+		    ON USR.USER_ID = ATND.ATNDE_ID
+		   AND ATND.SMNR_ID = #{smnrId}
+		 WHERE USR.USER_ID = #{userId}
+	</select>
+
+	<update id="userListAtndMemoBulkModify" parameterType="java.util.List">
+		/*
+             SQL ID : SmnrAtndDAO.userListAtndMemoBulkModify
+             설  명  : 사용자목록참석메모일괄수정
+         */
+        MERGE INTO TB_LMS_SMNR_ATND SMNR_ATND
+	    USING (
+	    	<foreach item="item" collection="list" separator="UNION ALL">
+	            SELECT
+		       		  #{item.smnrAtndId} AS SMNR_ATND_ID
+			       	, #{item.smnrId} AS SMNR_ID
+			       	, #{item.userId} AS ATNDE_ID
+			       	, #{item.atndMemo} AS ATND_MEMO
+			       	, #{item.rgtrId} AS RGTR_ID
+		         FROM DUAL
+	        </foreach>
+	    ) USR
+	    ON (
+	    	    SMNR_ATND.SMNR_ATND_ID = USR.SMNR_ATND_ID
+	     	AND SMNR_ATND.ATNDE_ID = USR.ATNDE_ID
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	        	  SMNR_ATND.ATND_MEMO = USR.ATND_MEMO
+	        	, SMNR_ATND.MDFR_ID = USR.RGTR_ID
+				, SMNR_ATND.MOD_DTTM = FN_DTTM()
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	        	  SMNR_ATND_ID
+				, SMNR_ID
+				, ATNDE_ID
+				, ATND_EVL_SCR
+				, ATND_MEMO
+				, RGTR_ID
+				, REG_DTTM
+	        ) VALUES (
+	        	  USR.SMNR_ATND_ID
+				, USR.SMNR_ID
+				, USR.ATNDE_ID
+				, 0
+				, USR.ATND_MEMO
+				, USR.RGTR_ID
+				, FN_DTTM()
+	        )
+	</update>
+
+	<select id="smnrAtndListByEzGrader" parameterType="smnrVO" resultType="egovMap">
+    	/*
+             SQL ID : SmnrAtndDAO.smnrAtndListByEzGrader
+             설  명 : 세미나참석목록조회 ( Ez-Grader )
+         */
+        SELECT
+        	  A.*
+        	, ROW_NUMBER() OVER(PARTITION BY A.TEAM_ID
+	        	<if test="searchSort != null and searchSort == 'USER_ID'">
+		        	ORDER BY A.TEAM_ID, A.USER_ID
+		        </if>
+		        <if test="searchSort != null and searchSort == 'USER_NM'">
+		        	ORDER BY A.TEAM_ID, A.USERNM
+		        </if>
+		        <if test="searchSort != null and searchSort == 'ATND_DT'">
+		        	ORDER BY A.TEAM_ID, A.ATNDYN DESC, A.ATND_SDTTM
+		        </if>
+        	  ) AS TNUM
+          FROM (
+			SELECT
+				  SMNR.SMNR_ID
+				, ATNDLC.USER_ID
+				, USR.USERNM
+				, USR.STDNT_NO
+				, (SELECT DEPTNM FROM TB_LMS_DEPT WHERE DEPT_ID = USR.DEPT_ID) AS DEPTNM
+				, TEAM.SMNR_ID AS SUB_SMNR_ID
+				, ATND.SMNR_ATND_ID
+				, ATND.ATND_SDTTM
+				, NVL(ATND.ATND_EVL_SCR, 0) AS ATND_EVL_SCR
+				, ATND.ATND_MEMO
+				, CASE WHEN ATND.ATND_STSCD = 'ATND' THEN 'Y' ELSE 'N' END AS ATNDYN
+				, TEAM.TEAM_ID
+				, TEAM.TEAMNM
+				, CASE WHEN TEAM.TEAM_ID IS NOT NULL
+		               THEN 'SMNR_TEAM' ELSE 'SMNR' END AS SMNR_GBN
+			  FROM TB_LMS_SMNR SMNR
+			  JOIN TB_LMS_ATNDLC ATNDLC
+			    ON SMNR.SBJCT_ID = ATNDLC.SBJCT_ID
+			   AND ATNDLC.AUDITYN = 'N'
+			  JOIN TB_LMS_SBJCT SBJCT
+			    ON ATNDLC.SBJCT_ID = SBJCT.SBJCT_ID
+			  JOIN TB_LMS_USER USR
+			    ON ATNDLC.USER_ID = USR.USER_ID
+			   AND USR.USER_ID_STSCD = 'APRV_CMPTN'
+			  LEFT JOIN (
+			  	SELECT
+					  NVL(SMNR.UP_SMNR_ID, SMNR.SMNR_ID) AS SMNR_ID
+					, ATND.SMNR_ATND_ID
+					, ATND.ATNDE_ID
+					, ATND.ATND_SDTTM
+					, ATND.ATND_EVL_SCR
+					, ATND.ATND_MEMO
+					, ATND.ATND_STSCD
+				  FROM TB_LMS_SMNR_ATND ATND
+				  JOIN TB_LMS_SMNR SMNR
+				    ON SMNR.DELYN = 'N'
+				   AND (SMNR.SMNR_ID = #{smnrId} OR SMNR.UP_SMNR_ID = #{smnrId})
+				   AND ATND.SMNR_ID = SMNR.SMNR_ID
+			  ) ATND
+			    ON SMNR.SMNR_ID = ATND.SMNR_ID
+			   AND ATNDLC.USER_ID = ATND.ATNDE_ID
+			  LEFT JOIN (
+			  	SELECT
+					  SMNR.SMNR_ID
+					, SMNR_TEAM.TEAM_ID
+					, (SELECT TEAMNM FROM TB_LMS_TEAM WHERE TEAM_CPST_CMPTNYN = 'Y' AND TEAM_ID = SMNR_TEAM.TEAM_ID) AS TEAMNM
+					, MBR.USER_ID
+				  FROM TB_LMS_SMNR SMNR
+				  JOIN TB_LMS_SMNR_TEAM SMNR_TEAM
+				    ON SMNR.SMNR_ID = SMNR_TEAM.SMNR_ID
+				  JOIN TB_LMS_TEAM_MBR MBR
+				    ON SMNR_TEAM.TEAM_ID = MBR.TEAM_ID
+				 WHERE SMNR.DELYN = 'N'
+				   AND SMNR.UP_SMNR_ID = #{smnrId}
+			  ) TEAM
+			    ON ATNDLC.USER_ID = TEAM.USER_ID
+			 WHERE SMNR.DELYN = 'N'
+			   AND SMNR.SMNR_ID = #{smnrId}
+			   AND SMNR.SBJCT_ID = #{sbjctId}
+		) A
+		<if test="searchKey != null and searchKey != ''">
+	    	WHERE A.ATNDYN = #{searchKey}
+	    </if>
+    </select>
+
+    <select id="trgtrSmnrAtndListByEzGrader" parameterType="map" resultType="egovMap">
+    	/*
+             SQL ID : SmnrAtndDAO.trgtrSmnrAtndListByEzGrader
+             설  명 : 대상자세미나참석목록조회 ( Ez-Grader )
+         */
+        SELECT
+        	  A.*
+        	, ROW_NUMBER() OVER(PARTITION BY A.TEAM_ID
+	        	<if test="searchSort != null and searchSort == 'USER_ID'">
+		        	ORDER BY A.TEAM_ID, A.USER_ID
+		        </if>
+		        <if test="searchSort != null and searchSort == 'USER_NM'">
+		        	ORDER BY A.TEAM_ID, A.USERNM
+		        </if>
+		        <if test="searchSort != null and searchSort == 'ATND_DT'">
+		        	ORDER BY A.TEAM_ID, A.ATNDYN DESC, A.ATND_SDTTM
+		        </if>
+        	  ) AS TNUM
+          FROM (
+          	<foreach item="item" collection="list" separator="UNION ALL">
+				SELECT
+					  SMNR.SMNR_ID
+					, ATNDLC.USER_ID
+					, USR.USERNM
+					, (SELECT DEPTNM FROM TB_LMS_DEPT WHERE DEPT_ID = USR.DEPT_ID) AS DEPTNM
+					, TEAM.SMNR_ID AS SUB_SMNR_ID
+					, ATND.ATND_SDTTM
+					, NVL(ATND.ATND_SCNDS, 0) AS ATND_SCNDS
+					, CASE WHEN ATND.ATND_STSCD = 'ATND' THEN 'Y' ELSE 'N' END AS ATNDYN
+					, TEAM.TEAM_ID
+					, NVL(SMNR.UP_SMNR_ID, SMNR.SMNR_ID) AS UP_SMNR_ID
+					, (SELECT COUNT(SMNR_ATND_HSTRY_ID) FROM TB_LMS_SMNR_ATND_HSTRY WHERE SMNR_ID = SMNR.SMNR_ID AND ATNDE_ID = ATNDLC.USER_ID AND ATND_SDTTM IS NOT NULL) AS HSTRY_CNT
+				  FROM TB_LMS_SMNR SMNR
+				  JOIN TB_LMS_ATNDLC ATNDLC
+				    ON SMNR.SBJCT_ID = ATNDLC.SBJCT_ID
+				   AND ATNDLC.AUDITYN = 'N'
+				  JOIN TB_LMS_SBJCT SBJCT
+				    ON ATNDLC.SBJCT_ID = SBJCT.SBJCT_ID
+				  JOIN TB_LMS_USER USR
+				    ON ATNDLC.USER_ID = USR.USER_ID
+				   AND USR.USER_ID_STSCD = 'APRV_CMPTN'
+				  LEFT JOIN (
+				  	SELECT
+						  NVL(SMNR.UP_SMNR_ID, SMNR.SMNR_ID) AS SMNR_ID
+						, ATND.SMNR_ATND_ID
+						, ATND.ATNDE_ID
+						, ATND.ATND_SDTTM
+						, ATND.ATND_STSCD
+						, ATND.ATND_SCNDS
+					  FROM TB_LMS_SMNR_ATND ATND
+					  JOIN TB_LMS_SMNR SMNR
+					    ON SMNR.DELYN = 'N'
+					   AND ATND.SMNR_ID = SMNR.SMNR_ID
+					 WHERE (SMNR.SMNR_ID = #{item.smnrId} OR SMNR.UP_SMNR_ID = #{item.smnrId})
+					   AND ATND.ATNDE_ID = #{item.userId}
+				  ) ATND
+				    ON SMNR.SMNR_ID = ATND.SMNR_ID
+				   AND ATNDLC.USER_ID = ATND.ATNDE_ID
+				  LEFT JOIN (
+				  	SELECT
+						  SMNR.SMNR_ID
+						, SMNR_TEAM.TEAM_ID
+						, (SELECT TEAMNM FROM TB_LMS_TEAM WHERE TEAM_CPST_CMPTNYN = 'Y' AND TEAM_ID = SMNR_TEAM.TEAM_ID) AS TEAMNM
+						, MBR.USER_ID
+					  FROM TB_LMS_SMNR SMNR
+					  JOIN TB_LMS_SMNR_TEAM SMNR_TEAM
+					    ON SMNR.SMNR_ID = SMNR_TEAM.SMNR_ID
+					  JOIN TB_LMS_TEAM_MBR MBR
+					    ON SMNR_TEAM.TEAM_ID = MBR.TEAM_ID
+					 WHERE SMNR.DELYN = 'N'
+					   AND SMNR_TEAM.SMNR_ID = #{item.smnrId}
+					   AND MBR.USER_ID = #{item.userId}
+				  ) TEAM
+				    ON ATNDLC.USER_ID = TEAM.USER_ID
+				 WHERE SMNR.DELYN = 'N'
+				   AND SMNR.SMNR_ID = #{item.smnrId}
+				   AND ATNDLC.USER_ID = #{item.userId}
+          	</foreach>
+		) A
+    </select>
+
 </mapper>

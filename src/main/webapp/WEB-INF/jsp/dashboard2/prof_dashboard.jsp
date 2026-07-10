@@ -12,7 +12,7 @@
 	</jsp:include>
 </head>
 
-<body class="home colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="home ${uiex:getTheme()} "><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
         <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
@@ -27,13 +27,13 @@
 
             <!-- content -->
             <div id="content" class="content-wrap common">
-            
+
             	<!-- dashboard -->
                 <div class="dashboard">
 
 					<!-- grid inline -->
                     <div class="grid inline">
-                    
+
                         <!-- Today box -->
                         <div class="box">
                             <div class="box_title">
@@ -200,9 +200,9 @@
                         <!-- 강의Q&A -->
                         <div class="box">                            <div class="box_title">
                                 <i class="xi-arrows m_handle" aria-label="위젯 이동" role="button" tabindex="0" aria-grabbed="false"></i>
-                                <h3 class="h3">강의 Q&A 
+                                <h3 class="h3">강의 Q&A
                                 	<c:choose>
-                                		<c:when test="${dashVM.badge.qnaNoreplyCnt eq '0'}">                                			
+                                		<c:when test="${dashVM.badge.qnaNoreplyCnt eq '0'}">
                                 		</c:when>
                                 		<c:otherwise>
                                 			<small class="msg_num">${dashVM.badge.qnaNoreplyCnt}</small>
@@ -222,7 +222,7 @@
 	                                	<c:otherwise>
 		                                	<c:forEach var="item" items="${dashVM.profDashLctrQnaList}">
 		                                	<c:set var="cnt" value="0"/>
-												<c:if test="${item.topic eq 'PROF_DASH_LCTR_QNA' and cnt lt 3}">  
+												<c:if test="${item.topic eq 'PROF_DASH_LCTR_QNA' and cnt lt 3}">
 				                                    <li>
 				                                        <div class="user">
 				                                           <span class="${item.userThumbnail}"></span>
@@ -243,13 +243,13 @@
 											         				<label class="label check_reply">답변</label>
 											         			</c:otherwise>
 											         		</c:choose>
-											         	</div>		
+											         	</div>
 				                                    </li>
 				                                    <c:set var="cnt" value="${cnt + 1}"/>
 			                                    </c:if>
                                     		</c:forEach>
 									    </c:otherwise>
-									</c:choose>                                   
+									</c:choose>
                                 </ul>
 							</div>
                         </div>
@@ -258,9 +258,9 @@
                         <div class="box">
                             <div class="box_title">
                                 <i class="xi-arrows m_handle" aria-label="위젯 이동" role="button" tabindex="0" aria-grabbed="false"></i>
-                                <h3 class="h3">1:1 상담 
+                                <h3 class="h3">1:1 상담
                                 	<c:choose>
-                                		<c:when test="${dashVM.badge.oneOnOneNoreplyCnt eq '0'}">                                			
+                                		<c:when test="${dashVM.badge.oneOnOneNoreplyCnt eq '0'}">
                                 		</c:when>
                                 		<c:otherwise>
                                 			<small class="msg_num">${dashVM.badge.oneOnOneNoreplyCnt}</small>
@@ -271,17 +271,17 @@
                                     <a href="/bbs/bbsHome/bbsAtclList.do?bbsTycd=1ON1" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
                                 </div>
                             </div>
-                           
+
                             <div class="box_content">
                             	<ul class="dash_item_listA">
 		                            <c:choose>
 									    <c:when test="${empty dashVM.profDashOneOnOneList}">
 									        <li>1:1 상담이 없습니다</li>
 									    </c:when>
-									    <c:otherwise>		                                  
-		                                	<c:forEach var="item" items="${dashVM.profDashOneOnOneList}"> 
+									    <c:otherwise>
+		                                	<c:forEach var="item" items="${dashVM.profDashOneOnOneList}">
 		                                		<c:set var="cnt" value="0"/>
-												<c:if test="${item.topic eq 'PROF_DASH_1ON1' and cnt lt 3}">                                
+												<c:if test="${item.topic eq 'PROF_DASH_1ON1' and cnt lt 3}">
 				                                    <li>
 				                                        <div class="user">
 				                                           <span class="${item.userThumbnail}"><img src="<%=request.getContextPath()%>/webdoc/assets/img/common/photo_user_sample3.jpg" aria-hidden="true" alt="사진"></span>
@@ -306,24 +306,24 @@
 				                                    </li>
 				                                    <c:set var="cnt" value="${cnt + 1}"/>
 			                                    </c:if>
-			                                </c:forEach> 
+			                                </c:forEach>
 	                               		</c:otherwise>
 	                            	</c:choose>
 	                            </ul>
                             </div>
                         </div>
                         <!-- //1:1 상담 -->
-                        
-                    </div>                    
+
+                    </div>
                     <!-- //grid inline -->
 
 
 					<!-- grid divided 위젯 영역 1, 2 분할: group -->
                     <div class="grid divided">
-                    
+
                     	<!-- col-vertical -->
                         <div class="col-vertical">
-                            
+
                             <!-- 알림 -->
                             <div class="box alrim">
                                 <div class="box_title">
@@ -492,7 +492,7 @@
 							<!-- //알림 -->
 
                             <!-- 공지사항 -->
-                            <div class="box notice">                            
+                            <div class="box notice">
                                 <div class="box_title">
                                     <i class="xi-arrows m_handle" aria-label="위젯 이동" role="button" tabindex="0" aria-grabbed="false"></i>
                                     <h3 class="h3">공지사항</h3>
@@ -506,10 +506,10 @@
                                         <a href="/bbs/bbsHome/bbsAtclList.do?bbsTycd=NTC" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
                                     </div>
                                 </div>
-                                
+
                                 <!-- box_content -->
                                 <div class="box_content">
-                                                                
+
                                 	<!-- tab21 모든공지목록-->
                                     <div id="tab21" class="tab-content" style="display: block;">
                                         <ul class="dash_item_listA">
@@ -517,7 +517,7 @@
 											    <c:when test="${empty dashVM.profDashAllNoticeList}">
 											        <li>최신공지사항이 없습니다</li>
 											    </c:when>
-											    <c:otherwise>								        
+											    <c:otherwise>
 				                                	<c:forEach var="item" items="${dashVM.profDashAllNoticeList}">
 													    <!-- 3건만 출력 -->
 													    <c:set var="cnt" value="0"/>
@@ -534,7 +534,7 @@
 															            </c:otherwise>
 															    	</c:choose>
 													            </div>
-													
+
 													            <!-- 공지 링크 및 내용 -->
 													            <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}&${item.atclId}" class="item_txt">
 													                <p class="tit">${item.atclTtl}</p>
@@ -550,7 +550,7 @@
 													                    </c:choose>
 													                </p>
 													            </a>
-													            													
+
 													            <!-- 읽음/읽지않음 표시 -->
 													            <div class="state">
 													            	<c:choose>
@@ -560,18 +560,18 @@
 															            <c:otherwise>
 															            	<label class="label check_no">읽음</label>
 															            </c:otherwise>
-															    	</c:choose>  
+															    	</c:choose>
 													            </div>
 													        </li>
 													        <c:set var="cnt" value="${cnt + 1}"/>
 													    </c:if>
-													</c:forEach>	                                	
+													</c:forEach>
 											    </c:otherwise>
 											</c:choose>
-										</ul>                                        
+										</ul>
                                     </div>
-                                    <!-- //tab21 -->                                    
-                                    
+                                    <!-- //tab21 -->
+
                                     <!-- tab22 전체-->
                                     <div id="tab22" class="tab-content" style="display: none;">
                                         <ul class="dash_item_listA">
@@ -579,7 +579,7 @@
 											    <c:when test="${empty dashVM.dashCrsNoticeList}">
 											        <li>전체공지사항이 없습니다</li>
 											    </c:when>
-											    <c:otherwise>							        
+											    <c:otherwise>
 				                                	<!-- 3건만 출력 -->
 													<c:set var="cnt" value="0"/>
 													<c:forEach var="item" items="${dashVM.dashCrsNoticeList}">
@@ -590,7 +590,7 @@
 													            <div class="noti_label">
 													                <label class="labelA">전체</label>
 													            </div>
-													
+
 													            <!-- 공지 링크 및 내용 -->
 													            <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}&${item.atclId}" class="item_txt">
 													                <p class="tit">${item.atclTtl}</p>
@@ -598,7 +598,7 @@
 													                    <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
 													                </p>
 													            </a>
-													
+
 													            <!-- 읽음/읽지않음 표시 -->
 													           	<div class="state">
 														           		<c:choose>
@@ -609,18 +609,18 @@
 															            	<label class="label check_no">읽음</label>
 															            </c:otherwise>
 															    	</c:choose>
-															    </div>													    	
-													        </li>													
+															    </div>
+													        </li>
 													        <!-- 카운터 증가 -->
 													        <c:set var="cnt" value="${cnt + 1}" />
 													    </c:if>
-													</c:forEach>	                                	
+													</c:forEach>
 											    </c:otherwise>
 											</c:choose>
-										</ul>                                        
+										</ul>
                                     </div>
-                                    <!-- //tab22 -->                                    
-                                    
+                                    <!-- //tab22 -->
+
                                     <!-- tab23 과목-->
                                     <div id="tab23" class="tab-content" style="display: none;">
                                         <ul class="dash_item_listA">
@@ -628,7 +628,7 @@
 											    <c:when test="${empty dashVM.profDashSubjectNoticeList}">
 											        <li>과목공지사항이 없습니다</li>
 											    </c:when>
-											    <c:otherwise>								        
+											    <c:otherwise>
 	                                				<c:set var="cnt" value="0" />
 													<c:forEach var="item" items="${dashVM.profDashSubjectNoticeList}">
 													    <!-- 과목공지만 출력 -->
@@ -638,7 +638,7 @@
 													            <div class="noti_label">
 													                <label class="labelB">과목</label>
 													            </div>
-													
+
 													            <!-- 공지 링크/내용 -->
 													            <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}" class="item_txt">
 													                <p class="tit">${item.atclTtl}</p>
@@ -647,7 +647,7 @@
 				                                                <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
 													                </p>
 													            </a>
-													
+
 													            <!-- 읽음/읽지않음 -->
 													            <div class="state">
 														            <c:choose>
@@ -660,20 +660,20 @@
 															    	</c:choose>
 															    </div>
 													        </li>
-													
+
 													        <!-- 카운터 증가 -->
 													        <c:set var="cnt" value="${cnt + 1}" />
 													    </c:if>
-													</c:forEach>                                	
+													</c:forEach>
 											    </c:otherwise>
 											</c:choose>
-										</ul>                                        
+										</ul>
                                     </div>
                                     <!-- //tab23 -->
-                                    
+
                                 </div>
                                 <!-- //box_content -->
-                                
+
                             </div>
                             <!-- //공지사항 -->
 
@@ -734,9 +734,9 @@
                                 </div>
                             </div>
                             <!-- //학사일정 -->
-                            
+
                         </div>
-						<!-- //col-vertical -->						
+						<!-- //col-vertical -->
 
                         <!-- 강의과목목록 -->
                         <div class="box span-2 subject">
@@ -762,7 +762,7 @@
                             </div>
 
 							<!-- 강의과목카드형 -->
-                            <div id="tab30" class="box_content">
+                            <div id="tab30" class="box_content" style="display: none;">
                                 <div id="tab31" class="tab-content" style="display: block;">
                                     <!-- 전체강의목록 -->
                                     <ul class="lecture_list">
@@ -770,7 +770,7 @@
 										    <c:when test="${empty dashVM.lctrSbjctSummaryList}">
 										        <li>[카드형]강의과목이 없습니다</li>
 										    </c:when>
-										    <c:otherwise>										    
+										    <c:otherwise>
 										    	<c:set var="cnt" value="0" />
 												<c:forEach var="item" items="${dashVM.lctrSbjctSummaryList}">
 												    <!-- 과목공지만 출력 -->
@@ -831,9 +831,9 @@
 				                                                        	<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.ntcBbsId}">공지<span>${item.ntcCnt}</span></a>
 				                                                        </c:if>
 				                                                        <c:if test="${empty item.ntcBbsId}">
-				                                                        	<a href="#" style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">공지<span>0</span></a>	
+				                                                        	<a href="#" style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">공지<span>0</span></a>
 				                                                        </c:if>
-				                                                        
+
 			                                                        	<c:if test="${not empty item.qnaBbsId}">
 			                                                        		<c:if test="${item.qnaCnt != 0}">
 			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.qnaBbsId}">Q&A<span style="color:red;">${item.qnaCnt}</span></a>
@@ -841,11 +841,11 @@
 			                                                        		<c:if test="${item.qnaCnt == 0}">
 			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.qnaBbsId}">Q&A<span style="color:#007bff;">${item.qnaCnt}</span></a>
 			                                                        		</c:if>
-			                                                        	</c:if>				                                                        	
+			                                                        	</c:if>
 			                                                        	<c:if test="${empty item.qnaBbsId}">
 			                                                        		<a style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">Q&A<span>0</span></a>
 			                                                        	</c:if>
-			                                                        	
+
 			                                                        	<c:if test="${not empty item.oneononeBbsId}">
 			                                                        		<c:if test="${item.qnaCnt != 0}">
 			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.oneononeBbsId}">1 : 1<span style="color:red;">${item.oneononeCnt}</span></a>
@@ -853,11 +853,11 @@
 			                                                        		<c:if test="${item.qnaCnt == 0}">
 			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.oneononeBbsId}">1 : 1<span style="color:#007bff;">${item.oneononeCnt}</span></a>
 			                                                        		</c:if>
-			                                                        	</c:if>				                                                        	
+			                                                        	</c:if>
 			                                                        	<c:if test="${empty item.oneononeBbsId}">
 			                                                        		<a style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">1 : 1<span>0</span></a>
-			                                                        	</c:if>			                                                        	
-				                                                       	
+			                                                        	</c:if>
+
 				                                                        <a href="/asmt2/profAsmtListView.do?sbjctId=${item.sbjctId}">과제<span>${item.asmtCnt}</span></a>
 				                                                        <a href="/forum2/forumLect/profForumListView.do?sbjctId=${item.sbjctId}">토론<span>${item.dscsCnt}</span></a>
 				                                                        <a href="/smnr/profSmnrListView.do?sbjctId=${item.sbjctId}">세미나<span>${item.smnrCnt}</span></a>
@@ -869,9 +869,9 @@
 				                                            </div>
 				                                        </li>
 				                                 </c:forEach>
-				                                 
+
 		                                     </c:otherwise>
-		                                     
+
 		                                 </c:choose>
                                     </ul>
                                     <!-- //강의목록 -->
@@ -896,9 +896,9 @@
                                 </div>
                             </div>
                             <!-- //강의과목카드형 -->
-                            
+
                             <!-- 강의과목목록형 -->
-                            <div id="tab40" class="box_content" style="display: none;">
+                            <div id="tab40" class="box_content">
                                 <div id="tab31" class="tab-content" style="display: block;">
                                     <!-- 전체강의목록 -->
                                     <ul class="lecture_list2">
@@ -906,7 +906,7 @@
 											    <c:when test="${empty dashVM.lctrSbjctSummaryList}">
 											        <li>강의과목이 없습니다</li>
 											    </c:when>
-											    <c:otherwise>										    
+											    <c:otherwise>
 											    	<c:set var="cnt" value="0" />
 													<c:forEach var="item" items="${dashVM.lctrSbjctSummaryList}">
 				                                        <li>
@@ -958,19 +958,19 @@
 				                                                                <span>${item.lstExamMnts}분</span>
 				                                                            </p>
 				                                                        </div>
-				
+
 				                                                    </div>
 				                                                </div>
-				
+
 				                                                <div class="bottom_button">
 				                                                   <div class="card_btns">
 				                                                        <c:if test="${not empty item.ntcBbsId}">
 				                                                        	<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.ntcBbsId}">공지<span>${item.ntcCnt}</span></a>
 				                                                        </c:if>
 				                                                        <c:if test="${empty item.ntcBbsId}">
-				                                                        	<a href="#" style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">공지<span>0</span></a>	
+				                                                        	<a href="#" style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">공지<span>0</span></a>
 				                                                        </c:if>
-				                                                        
+
 			                                                        	<c:if test="${not empty item.qnaBbsId}">
 			                                                        		<c:if test="${item.qnaCnt != 0}">
 			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.qnaBbsId}">Q&A<span style="color:red;">${item.qnaCnt}</span></a>
@@ -978,11 +978,11 @@
 			                                                        		<c:if test="${item.qnaCnt == 0}">
 			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.qnaBbsId}">Q&A<span style="color:#007bff;">${item.qnaCnt}</span></a>
 			                                                        		</c:if>
-			                                                        	</c:if>				                                                        	
+			                                                        	</c:if>
 			                                                        	<c:if test="${empty item.qnaBbsId}">
 			                                                        		<a style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">Q&A<span>0</span></a>
 			                                                        	</c:if>
-			                                                        	
+
 			                                                        	<c:if test="${not empty item.oneononeBbsId}">
 			                                                        		<c:if test="${item.qnaCnt != 0}">
 			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.oneononeBbsId}">1 : 1<span style="color:red;">${item.oneononeCnt}</span></a>
@@ -990,11 +990,11 @@
 			                                                        		<c:if test="${item.qnaCnt == 0}">
 			                                                        			<a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.oneononeBbsId}">1 : 1<span style="color:#007bff;">${item.oneononeCnt}</span></a>
 			                                                        		</c:if>
-			                                                        	</c:if>				                                                        	
+			                                                        	</c:if>
 			                                                        	<c:if test="${empty item.oneononeBbsId}">
 			                                                        		<a style="pointer-events:none; color:333333; font-size:14px; padding:9px 2px; font-weight:bold;">1 : 1<span>0</span></a>
-			                                                        	</c:if>			                                                        	
-				                                                       	
+			                                                        	</c:if>
+
 				                                                        <a href="/asmt2/profAsmtListView.do?sbjctId=${item.sbjctId}">과제<span>${item.asmtCnt}</span></a>
 				                                                        <a href="/forum2/forumLect/profForumListView.do?sbjctId=${item.sbjctId}">토론<span>${item.dscsCnt}</span></a>
 				                                                        <a href="/smnr/profSmnrListView.do?sbjctId=${item.sbjctId}">세미나<span>${item.smnrCnt}</span></a>
@@ -1005,8 +1005,8 @@
 				                                                </div>
 				                                            </div>
 				                                        </li>
-			                                	</c:forEach>			                                 
-	                                     	</c:otherwise>	                                     
+			                                	</c:forEach>
+	                                     	</c:otherwise>
 	                                 	</c:choose>
                                    	</ul>
                                    	<!-- //전체강의목록 -->
@@ -1033,14 +1033,14 @@
                             <!-- //강의과목목록형 -->
 
                         </div>
-                        <!-- //강의과목 -->                        
-                        
-                    </div>                    
-                    <!-- //grid divided 위젯 영역 1, 2 분할: group -->                    
+                        <!-- //강의과목 -->
+
+                    </div>
+                    <!-- //grid divided 위젯 영역 1, 2 분할: group -->
 
                 </div>
                 <!-- //dashboard -->
-                
+
             </div>
             <!-- //content -->
 

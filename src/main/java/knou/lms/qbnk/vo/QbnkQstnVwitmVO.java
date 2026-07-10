@@ -50,5 +50,4 @@ public class QbnkQstnVwitmVO extends DefaultVO {
 	public void setEdtrUseyn(String edtrUseyn) {
 		this.edtrUseyn = edtrUseyn;
 	}
-
 }

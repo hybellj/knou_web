@@ -1,22 +1,27 @@
 package knou.lms.log2.user.web;
 
-import knou.framework.common.ControllerBase;
-import knou.framework.common.SessionInfo;
-import knou.framework.util.LocaleUtil;
-import knou.lms.common.vo.ProcessResultVO;
-import knou.lms.lesson.web.LessonHomeController;
-import knou.lms.log2.user.service.LogUserActvService;
-import knou.lms.log2.user.vo.LectCntnInfoVO;
+import java.util.Locale;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import java.util.Locale;
+import knou.framework.common.ControllerBase;
+import knou.framework.common.PageInfo;
+import knou.framework.common.SessionInfo;
+import knou.framework.util.LocaleUtil;
+import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.log2.user.service.LogUserActvService;
+import knou.lms.log2.user.vo.LectCntnInfoVO;
+import knou.lms.log2.user.vo.LogUserActvVO;
 
 @Controller
 @RequestMapping(value= {"/log2"})
@@ -67,4 +72,32 @@ public class LogUserActvController extends ControllerBase {
         return resultVO;
     }
 
+    /**
+     * [관리자] 사용자 접속 현황 조회
+     * @param vo
+     * @return
+     */
+    @GetMapping("/admUsrCntnStsListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> admUsrCntnStsListAjax(LogUserActvVO vo) {
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
+
+        resultVO.setReturnList(logUserActvService.userCntnStsList(vo)); // 사용자 접속 목록
+        resultVO.setReturnListSub(logUserActvService.userCntnCntSummary(vo));   // 사용자 접속 인원수 통계
+        resultVO.setResultSuccess();
+
+        return resultVO;
+    }
+    
+    
+    /**
+     * 관리자접속로그목록조회페이징
+     * @param 	PageInfo
+     * @return	ProcessResultVO<EgovMap>
+     */
+    @GetMapping("/admCntnLogListPaging.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> admCntnLogListPaging(PageInfo pageInfo) throws Exception {
+        return logUserActvService.admCntnLogListPaging(pageInfo).setResultSuccess();
+    }
 }

@@ -731,13 +731,13 @@
                     var stareCnt = 0;
                     var labelsArray = new Array();
                     var dataArray = new Array();
-                    var colorArray = new Array();
+                    var ${uiex:getTheme()}rray = new Array();
 
                     list.forEach(function (v, i) {
                         stareCnt += Number(v.cnt);
                         labelsArray.push(v.label);
                         dataArray.push(v.cnt);
-                        colorArray.push('rgba(54, 162, 235, .6)');
+                        ${uiex:getTheme()}rray.push('rgba(54, 162, 235, .6)');
                     });
                     var ctx = document.getElementById("horiBarChart");
                     var myChart = new Chart(ctx, {
@@ -745,7 +745,7 @@
                         data: {
                             labels: labelsArray,
                             datasets: [{
-                                backgroundColor: colorArray,
+                                backgroundColor: ${uiex:getTheme()}rray,
                                 borderWidth: 1,
                                 data: dataArray
                             }]

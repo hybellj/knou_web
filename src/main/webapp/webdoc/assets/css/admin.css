@@ -1,6 +1,13 @@
 @charset "utf-8";
 
 /* =======================================================================================
+Variables
+======================================================================================= */
+:root {
+    --primary: #1C3E70; /* 프로젝트 메인 컬러 정의 */
+}
+
+/* =======================================================================================
 classroom - layout, common
 ======================================================================================= */
 html {height: 100vh;}
@@ -9,7 +16,7 @@ html {height: 100vh;}
 .admin main.common {display: flex; flex-direction: row; flex: 1; /*padding-top: 70px;*/ min-height:auto;}
 .admin .sub-content {border-radius: 0; padding: 0;}
 .admin h1.logo a {justify-content:flex-start; margin-left: 12px;}
-@media (max-width: 660px) {	
+@media (max-width: 660px) {
     .admin header.common .logo { width: 270px; }
     .admin header.common h1.logo a img { content: url(../img/logo_w.png); }
 }
@@ -23,7 +30,6 @@ header.admin ul.util > li.alrim.on [data-medi-ui] { background-color: hsl(0, 0%,
 header.admin ul.util>li>a {color:hsl(0, 0%, 100%, .8) ; font-size: inherit;}
 header.admin ul.util>li>a:hover {color: #fff;}
 header.admin ul.util>li.user .user_img {display: block; width: 38px; height: 38px; border-radius: 100%; vertical-align: middle; background:hsl(0, 0%, 0%, .2) url(../img/user_no_img.png) center center no-repeat; overflow: hidden; }
-/* header.admin ul.util>li.user .user_img img {object-fit: cover;} */
 header.admin .logo {max-width: 270px;}
 
 
@@ -40,53 +46,13 @@ header.admin .logo {max-width: 270px;}
 .topmenu .submenu { opacity: 0; visibility: hidden; max-height: 0; overflow: hidden; position: absolute; left: -2rem; top: 70px; z-index: 20; min-width: 160px; background-color: #1C3E70; border-radius: 0 0 1rem 1rem; box-shadow: 0 2rem 2rem rgba(0,0,0,0.12); transition: opacity .25s ease, max-height .25s ease; }
 .topmenu .depth1:hover .submenu, .topmenu .depth1.active .submenu { opacity: 1; visibility: visible; max-height: 100rem; }
 .topmenu .depth2 { margin: 1.2rem 1.2rem 2rem 1.6rem; display: flex; flex-direction: column; flex-wrap: wrap; max-height: 40rem; }
-/* .topmenu .depth2 > li { margin-bottom: .5rem; } */
 .topmenu .depth2 > li:last-child { margin-bottom: 0; }
-.topmenu .depth2 > li > a { display: block; padding: .6rem .5rem; font-size: 1.5rem; line-height: 1.3; color: hsl(0,0%,100%,.6); font-weight: 500; }
-.topmenu .depth2 > li > a:hover { color: var(--primary); transition: .25s; }
+.topmenu .depth2 > li > a { display: block; padding: .6rem .5rem; font-size: 1.5rem; line-height: 1.3; color: hsl(0,0%,100%,.6); font-weight: 500; white-space: nowrap;}
+.topmenu .depth2 > li > a:hover { /*color: var(--primary);*/ color: #fff;  transition: .25s; }
 
 
 
-/* .lnb { width: 280px;  color: #fff; position: relative; font-family: sans-serif; }
-ul.navList { list-style: none; margin: 0; padding: 0; border-top: 1px solid hsl(0, 0%, 0%, .5);}
-ul.navList > li { position: relative; border-bottom: 1px solid hsl(0, 0%, 0%, .5);}
-ul.navList > li a { display: flex; align-items: center; font-size: 1.7rem; padding: 1.3rem 2.5rem 1.3rem 3.5rem; color: hsla(0, 0%, 100%, 0.6); text-decoration: none; transition: background 0.2s, color 0.2s; position: relative; }
-ul.navList > li:hover > a { background: hsla(0, 0%, 100%, 0.1); }
-ul.navList > li.on::after { content: ''; position: absolute; left: 0; top: 0; width: 6px; height: 100%; background: #039be5; border-radius: 0 0.2rem 0.2rem 0; z-index: 10; }
-ul.navList > li a i { position: absolute; right: 2rem; transition: transform 0.3s; width: 20px; height: 20px;}
-ul.navList > li.on > a {color: hsla(0, 0%, 100%, 1); font-weight: 600; background: hsla(0, 0%, 100%, 0.1); }
-ul.navList > li.on > a i { transform: rotate(90deg); }
-ul.navList li ul.sub { list-style: none; margin: 0; padding-left: 3rem; max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease, opacity 0.4s ease; background: transparent; border-radius: 0.8rem 0 0 1rem; }
-ul.navList li ul.sub_depth { list-style: none; margin: 0; padding-left: 1rem; padding-bottom: 1rem; max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease, opacity 0.4s ease; background: transparent; border-radius: 0.8rem 0 0 1rem; }
-ul.navList li ul.sub > li a { position: relative; font-size: 1.5rem; font-weight: 500; padding: 0.4rem 1rem 0.4rem 2.2rem; color: #BCBFC6; transition: color 0.2s; }
-ul.navList li ul.sub > li a::before {
-    position: absolute;
-    left: 8px;
-    top: 4px;
-    display: inline-block;
-    content: '-';
-    margin-right: 12px;
-}
-ul.navList li ul.sub_depth li a {position: relative; padding: 0.2rem 0 0.2rem 2.4rem; font-weight: 400; color: #97A2B5; transition: color 0.2s; }
-ul.navList li ul.sub_depth li a::before {
-    position: absolute;
-    left: 13px;
-    top: 12px;
-    display: inline-block;
-    content: '';
-    width: 4px;
-    height: 4px;
-    background-color: #97A2B5;
-    border-radius: 50%;
-    margin-right: 12px;
-}
-ul.navList li ul.sub li a:hover {background-color: hsl(0, 0%, 13%, .3); color: #039be5; border-radius: 8px 0 0 8px;}
-ul.navList li ul.sub_depth li a:hover { color: #039be5; }
-ul.navList li ul.sub li.active > a { color: #ffffff; font-weight: 600; background-color: hsl(0, 0%, 13%, .3); border-radius: 8px 0 0 8px;}
-ul.navList li ul.sub_depth li.active > a { color: #039be5; font-weight: 600; background-color: hsl(0, 0%, 13%, .3); border-radius: 8px 0 0 8px;}
-ul.navList li.on > ul.sub { max-height: 1000px; opacity: 1; padding-bottom: 1rem;}
-ul.navList li.has-sub.on > ul.sub_depth { max-height: 2000px; opacity: 1; } */
-/* 기본 디자인 (당신이 사용하던 스타일 그대로 유지) */
+/* 기본 디자인 (스타일 그대로 유지) */
 .lnb { width: 280px; color: #fff; font-family: sans-serif; position: relative; }
 
 
@@ -112,9 +78,10 @@ ul.sub li.active > a {  color: #fff; font-weight: 600; background-color: hsl(0,0
 ul.sub_depth li.active > a { color: #039be5; font-weight: 600; background-color: hsl(0,0%,13%,0.3); }
 ul.sub li a:hover, ul.sub_depth li a:hover { color: #039be5; background-color: hsl(0,0%,13%,0.3); }
 ul.navList li a i { position: absolute; right: 2rem; width: 20px; height: 20px; transition: transform 0.3s ease; }
-ul.navList li ul.sub_depth.open { padding: 0px 0 5px 0; padding-left: 1rem; background-color: hsl(0,0%,13%,0.3); margin-bottom: 5px; }
-ul.navList li.has-sub.on .sub.open { margin-top: 10px; margin-bottom: 10px; }
+ul.navList li ul.sub_depth.open { padding: 0px 0 5px 0; padding-left: 1rem; background-color: hsl(0,0%,13%,0.3); margin-bottom: 5px; height: auto; }
+ul.navList li.has-sub.on .sub.open { margin-top: 10px; margin-bottom: 10px; height: auto;}
 ul.navList li.has-sub.on .sub.open li i { top: 7px; width: 16px; height: 16px; }
+ul.navList li.on i { transform: rotate(90deg); };
 ul.navList li ul.sub > li a::before {
     position: absolute;
     left: 8px;
@@ -138,13 +105,6 @@ ul.navList li ul.sub_depth li a::before {
 
 
 /* ===== LNB 메뉴접기 ===== */
-/* aside.menu.collapsed ul.navList > li > a { padding-left: 1rem; padding-right: 1rem; }
-aside.menu.collapsed ul.navList > li > a span, aside.menu.collapsed ul.navList > li > a .menu-text { display: none; }
-aside.menu.collapsed ul.navList li a i { display: none; }
-aside.menu.collapsed ul.sub, aside.menu.collapsed ul.sub_depth { display: none !important; }
-aside.menu.collapsed .on, aside.menu.collapsed .active { background: none !important; }
-aside.menu.collapsed .ctrl-lnb .title { max-width: 0 !important; padding-left: 0 !important; } */
-
 aside.menu.collapsed { width: 50px; transition: width .3s ease; }
 aside.menu.collapsed .admin_user {display: none;}
 aside.menu.collapsed ul.navList {display: none;}
@@ -178,6 +138,7 @@ admin - sub common
 .admin_sub_top {display: flex; border-bottom: 1px solid #E0E0E0;}
 .admin_sub_top .date_info {display: flex; align-items: center; gap: 1rem; padding: 14px 40px 13px 40px; font-weight: 600; color: #1C3E70;}
 
+.admin_sub .board_top h3,
 .admin_sub h3.board-title {font-size: 2rem;}
 .admin_sub h3.board-title::before {
     content: "";
@@ -202,11 +163,6 @@ admin - sub common
 .admin_sub .row-grid .box {padding: 0 0 0 0 ;}
 .admin_sub .row-grid .box + .box {margin-top: 0;}
 
-
-/* Link Styles */
-/* a.link { display: inline-block; position: relative; z-index: 0; -webkit-transition: color 0.2s; transition: color 0.2s; outline: none; color: var(--blue-600); text-decoration: none; }
-.link::after { content: ""; position: absolute; left: 0; bottom: -2px; width: 100%; height: 1px; background-color: currentColor; transform: scaleX(0); transform-origin: left; transition: transform 0.25s ease-out; }
-.link:hover::after { transform: scaleX(1); } */
 
 
 /*  dashboard 접속현황 */
@@ -246,7 +202,7 @@ admin - sub common
 .admin_sub .box .dash_item_listA li .item_txt { display: flex; flex: 1; flex-direction: column; }
 .admin_sub .box .dash_item_listA li .item_txt .desc { display: flex; width: 100%; color: #666; margin-top: 3px; }
 .admin_sub .box .dash_item_listA li .item_txt .desc .name {max-width: calc( 100% - 74px); font-size: 1.3rem; color: var(--txt_04); font-weight: 500; text-overflow: ellipsis; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;}
-.admin_sub .box .dash_item_listA li .item_txt .desc .date {width: 74px; font-size: 1.2rem; color: var(--txt_04); font-weight: 400; line-height: 1.3;}
+.admin_sub .box .dash_item_listA li .item_txt .desc .date {width: 75px; font-size: 1.2rem; color: var(--txt_04); font-weight: 400; line-height: 1.3;}
 .admin_sub .box .dash_item_listA li .item_txt .desc .name + .date::before { float: none; content: ''; display: inline-block; width: 1px; height: calc(1em - 4px); background-color: var(--dark-300); transform: rotate(18deg); margin: 0 8px 0 4px; padding: 0; }
 .admin_sub .box .dash_item_listA li .item_txt .tit { font-weight: 400; font-size: 1.5rem; color: #33434d; text-overflow: ellipsis; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
 .admin_sub .box .dash_item_listA li .item_txt .tit span {color: #0C4485; }
@@ -256,7 +212,6 @@ admin - sub common
 
 
 /*  dashboard table */
-/* .admin_sub .table-wrap {overflow-x: auto;} */
 .admin_sub .table-wrap .link { color: var(--blue-600); }
 .admin_sub .table-type2 tbody tr td {color: #33434d;}
 .admin_sub .table-type2 thead th .table_ingrid {margin-top: 2px;}
@@ -266,9 +221,6 @@ admin - sub common
 .admin_sub .table_ingrid p {display: flex; align-items: center; justify-content: center;  border: 1px solid #e1e4e8; border-right: 0; font-weight: 600; height: 3rem;}
 .admin_sub .table_ingrid p:nth-child(7n) { border-right: 1px solid #e1e4e8; }
 .admin_sub .table_ingrid p:nth-child(n + 8) {border-top: 0;}
-/* .admin_sub .table_ingrid .state_ok {color:var(--blue-600) ;}
-.admin_sub .table_ingrid .state_late {color:#F4B600;}
-.admin_sub .table_ingrid .state_no {color:#DC3939 ;} */
 
 .admin_sub .table-type5 thead tr > * { background-color: var(--table-th-bg); }
 .admin_sub .table-type5 tbody tr th {background-color: #f0f2f6; }
@@ -280,7 +232,7 @@ admin - sub common
 
 /* 컬러설정 */
 .admin_sub .dropdown { position: relative; display: inline-block; }
-.admin_sub .dropdown .option-wrap { position: absolute; top: calc(100% + 2px); right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); overflow: hidden; 
+.admin_sub .dropdown .option-wrap { position: absolute; top: calc(100% + 2px); right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); overflow: hidden;
   max-height: 0; opacity: 0; transition: all 0.25s ease; pointer-events: none; z-index: 10;}
 .admin_sub .dropdown .option-wrap.show { max-height: 250px; opacity: 1; pointer-events: auto; }
 .admin_sub .dropdown .option-wrap .tit { font-weight: 400; font-size: 1.3rem; color: #fff; padding: 5px 7px 5px 7px; background-color: #455973; border-radius: 6px 6px 0 0; }
@@ -302,3 +254,100 @@ admin - sub common
 .haksa_option .haksa_btn {display: flex; justify-content: space-between; min-width: 16rem;}
 .haksa_option .haksa_btn .icon-svg-yes {color: #007BFF;}
 .haksa_option .haksa_btn .icon-svg-no {color: #DC3939;}
+
+/* 과목 개설 */
+.step-process-wrap .board_card_list {
+	grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+}
+.step-process-wrap .board_card_list .card_item {
+    flex-direction:row;
+    align-items: center;
+    font-weight: bold;
+    justify-content: center;
+    position:relative;
+    padding:0;
+    overflow:hidden
+}
+
+.step-process-wrap .board_card_list .card_item a {
+    padding:2rem 2.5rem;
+    display: flex;
+    align-items: center;
+    background-color: #F4F4F4;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    gap: 1.5rem;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.step-process-wrap .board_card_list .card_item .step-num {
+    background-color: #BBBBBB;
+    font-size: 1.2rem;
+    color: var(--bc-white);
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    border-radius: 100%;
+    text-align: center;
+    display:inline-block;
+    transition: background-color 0.3s ease;
+}
+
+.step-process-wrap .board_card_list .card_item.active a,
+.step-process-wrap .board_card_list .card_item a:hover{
+    background-color: #F4F6FB;
+    color:var(--dark1)
+}
+
+.step-process-wrap .board_card_list .card_item a:hover .step-num,
+.step-process-wrap .board_card_list .card_item.active .step-num {
+    background-color:#0A4F9E;
+    color:var(--bc-white)
+}
+
+/* ==========================================================================
+   [어드민 전용] 모바일 해상도(800px 이하)에서 테이블 깨짐(반응형) 방지 및 PC 버전 고정
+   ========================================================================== */
+@media (max-width: 800px) {
+    
+    /* 1. 테이블 전체 구조를 블록에서 다시 원래 테이블(PC) 구조로 복구 */
+    .table-type5 { 
+        font-size: 1.4rem !important; /* 원래 PC 버전 폰트 크기로 지정 */
+        display: table !important; 
+        width: 100% !important; 
+        border-top: none !important; /* 모바일용 테두리 제거 */
+    }
+    
+    /* 2. 숨겨졌던 테이블 헤더와 열 너비 지정 레이아웃을 다시 노출 */
+    .table-type5 > colgroup { 
+        display: table-column-group !important; 
+    }
+    .table-type5 > thead { 
+        display: table-header-group !important; 
+    }
+    .table-type5 > tbody { 
+        display: table-row-group !important; 
+    }
+    
+    /* 3. 행(tr)과 셀(th, td)의 블록 처리를 취소하고 원래 테이블 셀 형태로 복구 */
+    .table-type5 > tbody > tr { 
+        display: table-row !important; 
+    }
+    .table-type5 > tbody > tr > th, 
+    .table-type5 > tbody > tr > td { 
+        display: table-cell !important; 
+        width: auto !important; /* 가로폭을 브라우저가 자동 계산하도록 복구 */
+        padding: 10px 12px !important; /* 원래 PC 버전 패딩값으로 지정 */
+    }
+    
+    /* 4. 모바일용으로 바꼈던 th 배경색 및 상단 보더 초기화 */
+    .table-type5 > tbody > tr + tr > th { 
+        border-top: 1px solid #e9e9e9 !important; /* 원래 PC 테이블 보더색으로 지정 */
+    }
+    .table-type5 > tbody > tr > th {
+        font-size: 1.4rem !important; 
+        border-bottom: 1px solid #e9e9e9 !important; 
+        background-color: #f9f9f9 !important; /* 원래 PC th 배경색으로 지정 */
+    }
+}

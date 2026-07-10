@@ -8,19 +8,19 @@ import java.util.List;
 
 public interface MsgShrtntService {
 
-    ProcessResultVO<MsgShrtntVO> selectShrtntRcvnListPage(MsgShrtntVO vo);
+    ProcessResultVO<MsgShrtntVO> selectShrtntRcvnListPage(MsgShrtntVO vo) throws Exception;
 
-    MsgShrtntVO selectShrtntRcvnDetail(MsgShrtntVO vo);
+    MsgShrtntVO selectShrtntRcvnDtl(MsgShrtntVO vo);
 
     int updateShrtntReadDttm(MsgShrtntVO vo);
 
     int updateShrtntRcvrDelyn(MsgShrtntVO vo);
 
-    ProcessResultVO<MsgShrtntVO> selectShrtntSndngListPage(MsgShrtntVO vo);
+    ProcessResultVO<MsgShrtntVO> selectShrtntSndngListPage(MsgShrtntVO vo) throws Exception;
 
-    MsgShrtntVO selectShrtntSndngDetail(MsgShrtntVO vo);
+    MsgShrtntVO selectShrtntSndngDtl(MsgShrtntVO vo);
 
-    ProcessResultVO<MsgShrtntVO> selectShrtntSndngRcvrListPage(MsgShrtntVO vo);
+    ProcessResultVO<MsgShrtntVO> selectShrtntSndngRcvrListPage(MsgShrtntVO vo) throws Exception;
 
     int updateShrtntSndngrDelyn(MsgShrtntVO vo);
 
@@ -32,17 +32,11 @@ public interface MsgShrtntService {
 
     int updateMsgRsrvCncl(MsgShrtntVO vo);
 
-    ProcessResultVO<MsgShrtntVO> selectShrtntRcvrSearchListPage(MsgShrtntVO vo);
 
     List<MsgShrtntVO> selectMsgRcvTrgtrList(MsgShrtntVO vo);
 
-    List<MsgShrtntVO> selectShrtntYrList(MsgShrtntVO vo);
 
-    List<EgovMap> selectShrtntSmstrList(MsgShrtntVO vo);
 
-    List<MsgShrtntVO> selectShrtntDeptList(MsgShrtntVO vo);
 
-    List<MsgShrtntVO> selectShrtntSbjctList(MsgShrtntVO vo);
 
-    List<MsgShrtntVO> selectShrtntRcvrByUserIds(MsgShrtntVO vo);
 }

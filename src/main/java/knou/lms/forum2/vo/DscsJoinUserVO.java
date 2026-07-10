@@ -5,72 +5,58 @@ import java.util.List;
 import knou.lms.common.vo.DefaultVO;
 
 public class DscsJoinUserVO extends DefaultVO {
-	private static final long serialVersionUID = 2877017439237698606L;
+    private static final long serialVersionUID = 2877017439237698606L;
 
-	private String  sbjctId;
-    private String  stdId;          // 수강생 번호
-    private String  stdntNo;        // 학번.
-    private String  stdIds;         // ajax 등 데이처 처리용.stdIdList 와 같이 사용
-    private List<String> stdIdList;
-    
-    private String  dscsId;         // 토론 코드
-    private String  teamId;         // 팀 ID
-    private Double  score;          // 점수
-    private String  scoreNull;
-    private String  leaderYn;       // 팀장 여부
-    private String  evalYn;         // 평가 여부
-    private String  delYn;          // 삭제 여부
-    private String  profMemo;       // 교수 메모
-    private String  fdbkCts;        // 피드백
-    private String  oknokGbnCd;     // 찬반구분코드 원시값 (OK/NOTOK/-)
+    private String sbjctId; // 과목아이디
+    private String stdId; // 사용자아이디
+    private String stdntNo; // 학번
+    private String stdIds; // 사용자아이디 목록
+    private String ptcpTargets; // 참여자 처리 대상 목록
+    private List<String> stdIdList; // 사용자아이디 목록
 
-    private String  dscsTtl;        // 토론제목
-    private String  dscsSdttm;      // 토론시작일시
-    private String  dscsEdttm;      // 토론 종료일시
-    
-    private String  scoreType;
-    private String  joinStatus;
-    
-    private Integer actlCnt;
-    private Integer cmntCnt;
-    private String  mutEvalYn;
-    private String  evalRsltOpenYn;	// 평가결과공개여부
-    private String  evalStartDttm;	// 평가시작일시
-    private String  evalEndDttm;	// 평가종료일시
-    
-    private String  dscsFdbkId;     // 피드백 ID
-    private Integer dscsAtclCnt;    //게시글 갯수
-    private Integer dscsCmntCnt;    //댓글 갯수
-    private Integer dscsMyAtclCnt;  //내가 쓴 게시글 갯수
-    private Integer dscsMyCmntCnt;  //내가 쓴 댓글 갯수
-    
-    private String	scoreArr;
-    private String	scoreList;
-    
-    private String  conditionType;
-    
-    private String	deptNm;
-    private String	teamNm;          // 팀명
-    private String	memberRole;      // 역할
-    private String	dscsUnitTycd;    // 팀 토론 여부
+    private String dscsId; // 토론아이디
+    private String teamId; // 팀아이디
+    private Double scr; // 점수
+    private String scrNull; // 점수 표시값
+    private String leaderYn; // 리더여부
+    private String evlyn; // 평가여부
+    private String profMemo; // 교수메모
+    private String dscsFdbkCts; // 토론피드백내용
+    private String oknokGbnCd; // 찬성반대구분코드
 
-    private int		mutCnt;			// 참여 인원
-    private int		mutAvg;			// 평균 별점
-    private String	mutSn;			// 상호평가 참여 고유번호
-    
-    private String	mobileNo;
-    private String	email;
-    
-    private Long	ctsLen;			// 글자수
-    private String	chkCmnt;		// 댓글 포함 여부
-    private String	grscDegrCorsGbn;
-    private String	grscDegrCorsGbnNm;
+    private String scoreType; // 점수처리유형
+    private String joinStatus; // 참여상태
 
-    private String  dscsPtcpId;         // 토론참여 PK (TB_LMS_DSCS_PTCP.DSCS_PTCP_ID)
+    private Integer actlCnt; // 게시글 수
+    private Integer cmntCnt; // 댓글 수
+
+    private String dscsFdbkId; // 토론피드백아이디
+    private Integer dscsFdbkCnt; // 토론피드백 수
+    private Integer dscsAtclCnt; // 게시글 수
+    private Integer dscsCmntCnt; // 댓글 수
+    private Integer dscsMyAtclCnt; // 내 게시글 수
+    private Integer dscsMyCmntCnt; // 내 댓글 수
+
+    private String scoreArr; // 개별 점수 목록
+    private String conditionType; // 점수처리 조건유형
+
+    private String deptNm; // 학과부서명
+    private String teamnm; // 팀명
+    private String memberRole; // 역할
+    private String dscsUnitTycd; // 토론단위유형코드
+
+    private String mobileNo; // 휴대전화번호
+    private String email; // 이메일
+
+    private Long ctsLen; // 글자수
+    private String chkCmnt; // 댓글포함여부
+
+    private String dscsPtcpId; // 토론참여아이디
 
     public String getDscsPtcpId() {
         return dscsPtcpId;
     }
+
     public void setDscsPtcpId(String dscsPtcpId) {
         this.dscsPtcpId = dscsPtcpId;
     }
@@ -78,6 +64,7 @@ public class DscsJoinUserVO extends DefaultVO {
     public String getStdId() {
         return stdId;
     }
+
     public void setStdId(String stdId) {
         this.stdId = stdId;
     }
@@ -93,272 +80,264 @@ public class DscsJoinUserVO extends DefaultVO {
     public String getDscsId() {
         return dscsId;
     }
+
     public void setDscsId(String dscsId) {
         this.dscsId = dscsId;
     }
+
     public String getTeamId() {
         return teamId;
     }
+
     public void setTeamId(String teamId) {
         this.teamId = teamId;
     }
-    public Double getScore() {
-        return score;
+
+    public Double getScr() {
+        return scr;
     }
-    public void setScore(Double score) {
-        this.score = score;
+
+    public void setScr(Double scr) {
+        this.scr = scr;
     }
-    public String getEvalYn() {
-        return evalYn;
+
+    public String getEvlyn() {
+        return evlyn;
     }
-    public void setEvalYn(String evalYn) {
-        this.evalYn = evalYn;
+
+    public void setEvlyn(String evlyn) {
+        this.evlyn = evlyn;
     }
-    public String getDelYn() {
-        return delYn;
-    }
-    public void setDelYn(String delYn) {
-        this.delYn = delYn;
-    }
+
     public String getSbjctId() {
         return sbjctId;
     }
+
     public void setSbjctId(String sbjctId) {
         this.sbjctId = sbjctId;
     }
+
     public String getStdIds() {
         return stdIds;
     }
+
     public void setStdIds(String stdIds) {
         this.stdIds = stdIds;
     }
+
+    public String getPtcpTargets() {
+        return ptcpTargets;
+    }
+
+    public void setPtcpTargets(String ptcpTargets) {
+        this.ptcpTargets = ptcpTargets;
+    }
+
     public String getScoreType() {
         return scoreType;
     }
+
     public void setScoreType(String scoreType) {
         this.scoreType = scoreType;
     }
+
     public String getJoinStatus() {
         return joinStatus;
     }
+
     public void setJoinStatus(String joinStatus) {
         this.joinStatus = joinStatus;
     }
+
     public Integer getActlCnt() {
         return actlCnt;
     }
+
     public void setActlCnt(Integer actlCnt) {
         this.actlCnt = actlCnt;
     }
+
     public Integer getCmntCnt() {
         return cmntCnt;
     }
+
     public void setCmntCnt(Integer cmntCnt) {
         this.cmntCnt = cmntCnt;
     }
+
     public List<String> getStdIdList() {
         return stdIdList;
     }
+
     public void setStdIdList(List<String> stdIdList) {
         this.stdIdList = stdIdList;
     }
+
     public String getScoreArr() {
         return scoreArr;
     }
+
     public void setScoreArr(String scoreArr) {
         this.scoreArr = scoreArr;
     }
+
     public String getConditionType() {
         return conditionType;
     }
+
     public void setConditionType(String conditionType) {
         this.conditionType = conditionType;
     }
+
     public String getDeptNm() {
         return deptNm;
     }
+
     public void setDeptNm(String deptNm) {
         this.deptNm = deptNm;
     }
-    public String getScoreList() {
-        return scoreList;
-    }
-    public void setScoreList(String scoreList) {
-        this.scoreList = scoreList;
-    }
+
     public String getProfMemo() {
         return profMemo;
     }
+
     public void setProfMemo(String profMemo) {
         this.profMemo = profMemo;
     }
-    public String getDscsTtl() {
-        return dscsTtl;
+
+    public String getDscsFdbkCts() {
+        return dscsFdbkCts;
     }
-    public void setDscsTtl(String dscsTtl) {
-        this.dscsTtl = dscsTtl;
+
+    public void setDscsFdbkCts(String dscsFdbkCts) {
+        this.dscsFdbkCts = dscsFdbkCts;
     }
-    public String getDscsSdttm() {
-        return dscsSdttm;
-    }
-    public void setDscsSdttm(String dscsSdttm) {
-        this.dscsSdttm = dscsSdttm;
-    }
-    public String getDscsEdttm() {
-        return dscsEdttm;
-    }
-    public void setDscsEdttm(String dscsEdttm) {
-        this.dscsEdttm = dscsEdttm;
-    }
-    public String getFdbkCts() {
-        return fdbkCts;
-    }
-    public void setFdbkCts(String fdbkCts) {
-        this.fdbkCts = fdbkCts;
-    }
+
     public String getOknokGbnCd() {
         return oknokGbnCd;
     }
+
     public void setOknokGbnCd(String oknokGbnCd) {
         this.oknokGbnCd = oknokGbnCd;
     }
-    public String getTeamNm() {
-        return teamNm;
+
+    public String getTeamnm() {
+        return teamnm;
     }
-    public void setTeamNm(String teamNm) {
-        this.teamNm = teamNm;
+
+    public void setTeamnm(String teamnm) {
+        this.teamnm = teamnm;
     }
+
     public String getMemberRole() {
         return memberRole;
     }
+
     public void setMemberRole(String memberRole) {
         this.memberRole = memberRole;
     }
-    public int getMutCnt() {
-        return mutCnt;
-    }
-    public void setMutCnt(int mutCnt) {
-        this.mutCnt = mutCnt;
-    }
-    public int getMutAvg() {
-        return mutAvg;
-    }
-    public void setMutAvg(int mutAvg) {
-        this.mutAvg = mutAvg;
-    }
-    public String getMutSn() {
-        return mutSn;
-    }
-    public void setMutSn(String mutSn) {
-        this.mutSn = mutSn;
-    }
+
     public String getLeaderYn() {
         return leaderYn;
     }
+
     public void setLeaderYn(String leaderYn) {
         this.leaderYn = leaderYn;
     }
+
     public String getDscsUnitTycd() {
         return dscsUnitTycd;
     }
+
     public void setDscsUnitTycd(String dscsUnitTycd) {
         this.dscsUnitTycd = dscsUnitTycd;
     }
+
     public String getMobileNo() {
         return mobileNo;
     }
+
     public void setMobileNo(String mobileNo) {
         this.mobileNo = mobileNo;
     }
+
     public String getEmail() {
         return email;
     }
+
     public void setEmail(String email) {
         this.email = email;
     }
+
     public Long getCtsLen() {
         return ctsLen;
     }
+
     public void setCtsLen(Long ctsLen) {
         this.ctsLen = ctsLen;
     }
+
     public String getChkCmnt() {
         return chkCmnt;
     }
+
     public void setChkCmnt(String chkCmnt) {
         this.chkCmnt = chkCmnt;
     }
-	public String getDscsFdbkId() {
-		return dscsFdbkId;
-	}
-	public void setDscsFdbkId(String dscsFdbkId) {
-		this.dscsFdbkId = dscsFdbkId;
-	}
-	public Integer getDscsAtclCnt() {
-		return dscsAtclCnt;
-	}
-	public void setDscsAtclCnt(Integer dscsAtclCnt) {
-		this.dscsAtclCnt = dscsAtclCnt;
-	}
-	public Integer getDscsCmntCnt() {
-		return dscsCmntCnt;
-	}
-	public void setDscsCmntCnt(Integer dscsCmntCnt) {
-		this.dscsCmntCnt = dscsCmntCnt;
-	}
-	public Integer getDscsMyAtclCnt() {
-		return dscsMyAtclCnt;
-	}
-	public void setDscsMyAtclCnt(Integer dscsMyAtclCnt) {
-		this.dscsMyAtclCnt = dscsMyAtclCnt;
-	}
-	public Integer getDscsMyCmntCnt() {
-		return dscsMyCmntCnt;
-	}
-	public void setDscsMyCmntCnt(Integer dscsMyCmntCnt) {
-		this.dscsMyCmntCnt = dscsMyCmntCnt;
-	}
-	public String getMutEvalYn() {
-		return mutEvalYn;
-	}
-	public void setMutEvalYn(String mutEvalYn) {
-		this.mutEvalYn = mutEvalYn;
-	}
-	public String getEvalRsltOpenYn() {
-		return evalRsltOpenYn;
-	}
-	public void setEvalRsltOpenYn(String evalRsltOpenYn) {
-		this.evalRsltOpenYn = evalRsltOpenYn;
-	}
-	public String getEvalStartDttm() {
-		return evalStartDttm;
-	}
-	public void setEvalStartDttm(String evalStartDttm) {
-		this.evalStartDttm = evalStartDttm;
-	}
-	public String getEvalEndDttm() {
-		return evalEndDttm;
-	}
-	public void setEvalEndDttm(String evalEndDttm) {
-		this.evalEndDttm = evalEndDttm;
-	}
-	public String getScoreNull() {
-		return scoreNull;
-	}
-	public void setScoreNull(String scoreNull) {
-		this.scoreNull = scoreNull;
-	}
-    public String getGrscDegrCorsGbn() {
-        return grscDegrCorsGbn;
-    }
-    public void setGrscDegrCorsGbn(String grscDegrCorsGbn) {
-        this.grscDegrCorsGbn = grscDegrCorsGbn;
-    }
-    public String getGrscDegrCorsGbnNm() {
-        return grscDegrCorsGbnNm;
-    }
-    public void setGrscDegrCorsGbnNm(String grscDegrCorsGbnNm) {
-        this.grscDegrCorsGbnNm = grscDegrCorsGbnNm;
+
+    public String getDscsFdbkId() {
+        return dscsFdbkId;
     }
 
+    public void setDscsFdbkId(String dscsFdbkId) {
+        this.dscsFdbkId = dscsFdbkId;
+    }
+
+    public Integer getDscsFdbkCnt() {
+        return dscsFdbkCnt;
+    }
+
+    public void setDscsFdbkCnt(Integer dscsFdbkCnt) {
+        this.dscsFdbkCnt = dscsFdbkCnt;
+    }
+
+    public Integer getDscsAtclCnt() {
+        return dscsAtclCnt;
+    }
+
+    public void setDscsAtclCnt(Integer dscsAtclCnt) {
+        this.dscsAtclCnt = dscsAtclCnt;
+    }
+
+    public Integer getDscsCmntCnt() {
+        return dscsCmntCnt;
+    }
+
+    public void setDscsCmntCnt(Integer dscsCmntCnt) {
+        this.dscsCmntCnt = dscsCmntCnt;
+    }
+
+    public Integer getDscsMyAtclCnt() {
+        return dscsMyAtclCnt;
+    }
+
+    public void setDscsMyAtclCnt(Integer dscsMyAtclCnt) {
+        this.dscsMyAtclCnt = dscsMyAtclCnt;
+    }
+
+    public Integer getDscsMyCmntCnt() {
+        return dscsMyCmntCnt;
+    }
+
+    public void setDscsMyCmntCnt(Integer dscsMyCmntCnt) {
+        this.dscsMyCmntCnt = dscsMyCmntCnt;
+    }
+
+    public String getScrNull() {
+        return scrNull;
+    }
+
+    public void setScrNull(String scrNull) {
+        this.scrNull = scrNull;
+    }
 }

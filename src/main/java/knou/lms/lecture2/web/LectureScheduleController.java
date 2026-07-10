@@ -23,6 +23,7 @@ import knou.framework.context2.UserContext;
 import knou.framework.util.StringUtil;
 import knou.lms.asmt.service.AsmtProService;
 import knou.lms.bbs.service.BbsAtclService;
+import knou.lms.common.dto.SubjectDTO;
 import knou.lms.common.service.SysFileService;
 import knou.lms.crs.crecrs.service.CrecrsService;
 import knou.lms.crs.home.service.CrsHomeMenuService;
@@ -43,9 +44,9 @@ import knou.lms.log2.user.service.LogUserActvService;
 import knou.lms.resh.service.ReshService;
 import knou.lms.score.service.ScoreConfService;
 import knou.lms.std.service.StdService;
-import knou.lms.subject.dto.SubjectParam;
 import knou.lms.subject.service.SubjectService;
 import knou.lms.sys.service.SysJobSchService;
+import knou.lms.user.CurrentUser;
 
 @Controller
 public class LectureScheduleController extends ControllerBase {
@@ -170,22 +171,22 @@ public class LectureScheduleController extends ControllerBase {
      * @throws 	Exception
      */
     @RequestMapping(value="/profLectureScheduleList.do")
-    public 	String 	profLectureScheduleList(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+    public 	String 	profLectureScheduleList(@CurrentUser UserContext userCtx, HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_COR_HOME);
 
-    	UserContext userCtx = (UserContext) request.getSession().getAttribute("USER_CONTEXT");
-        String sbjctId = request.getParameter("sbjctId");
+        String sbjctId = request.getParameter("sbjctId");        
         
-        
-        String	userId = userCtx.getUserId();        
-        String	deptId = userCtx.getDeptId();
+        String	userId = userCtx.getLoginUser().getUserId();     
+        String	deptId = userCtx.getLoginUser().getDeptId();
         
         String	seminarAttendAuthYn = "N";
         String	lcdmsLinkYn = "Y"; // TODO 임의처리 
+        
+        SubjectDTO 	sbjctDto = new SubjectDTO(userCtx, sbjctId);
 
         //	강의일정목록조회
-        List<EgovMap> lectureScheduleList = lectureScheduleService.profLectureScheduleList(new SubjectParam(sbjctId));
+        List<EgovMap> lectureScheduleList = lectureScheduleService.profLectureScheduleList(sbjctDto);
         
         // 수업지원팀(20042), 교육플랫폼혁신팀(20134)
         if("20042".equals(deptId) || "20134".equals(deptId)) {

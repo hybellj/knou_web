@@ -8,15 +8,12 @@ import java.util.List;
 
 public interface MsgRcptnAgreService {
 
-    ProcessResultVO<MsgRcptnAgreVO> selectRcptnAgreListPage(MsgRcptnAgreVO vo);
+    ProcessResultVO<MsgRcptnAgreVO> selectRcptnAgreListPage(MsgRcptnAgreVO vo) throws Exception;
 
     List<MsgRcptnAgreVO> selectRcptnAgreExcelList(MsgRcptnAgreVO vo);
 
-    List<MsgRcptnAgreVO> selectRcptnAgreYrList(MsgRcptnAgreVO vo);
+    ProcessResultVO<MsgRcptnAgreVO> selectAdminRcptnAgreListPage(MsgRcptnAgreVO vo) throws Exception;
 
-    List<EgovMap> selectRcptnAgreSmstrList(MsgRcptnAgreVO vo);
+    List<MsgRcptnAgreVO> selectAdminRcptnAgreExcelList(MsgRcptnAgreVO vo);
 
-    List<MsgRcptnAgreVO> selectRcptnAgreDeptList(MsgRcptnAgreVO vo);
-
-    List<MsgRcptnAgreVO> selectRcptnAgreSbjctList(MsgRcptnAgreVO vo);
 }

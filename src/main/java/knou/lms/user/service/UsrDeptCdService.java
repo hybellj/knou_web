@@ -3,6 +3,10 @@ package knou.lms.user.service;
 import java.util.List;
 import java.util.Map;
 
+import knou.framework.context2.UserContext;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+
+import knou.framework.common.PageInfo;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.user.vo.UsrDeptCdVO;
 
@@ -22,7 +26,10 @@ public interface UsrDeptCdService {
      * @return List<UsrDeptCdVO>
      * @throws Exception
      ******************************************************/
-    public List<UsrDeptCdVO> list(UsrDeptCdVO vo) throws Exception;
+    public List<UsrDeptCdVO> list(UsrDeptCdVO vo);
+    
+    // 기관별부서목록조회
+//    public List<EgovMap> admByOrgDeptList(PageInfo pageInfo);
     
     /*****************************************************
      * 학과(부서) 목록
@@ -74,4 +81,6 @@ public interface UsrDeptCdService {
      * @throws Exception
      ******************************************************/
     public List<UsrDeptCdVO> listDeptByStdHaksaTerm(UsrDeptCdVO vo) throws Exception;
+
+//    public List<EgovMap> deptListByAuthrt(UserContext userContext);
 }

@@ -12,7 +12,7 @@ import java.lang.reflect.Field;
  */
 public class CommConst {
 
-	public static final String USER_CONTEXT = "USER_CONTEXT";
+    public static final String USER_CONTEXT = "USER_CONTEXT";
 
     // framework.properties 로드
     public static final Configuration framework = ConfigurationFactory.getConfiguration(CommConst.FRAMEWORK);
@@ -39,6 +39,30 @@ public class CommConst {
     // Characterset
     public static final String CHAR_SET = "UTF-8";
 
+    public static final String	AUTHRT_GRPCD_PROF = "PROF";
+    public static final String	AUTHRT_GRPCD_STDNT = "STDNT";
+    public static final String	AUTHRT_GRPCD_ADM = "ADM";
+
+    public static final String	AUTHRT_CD_PROF = "PROF";
+    public static final String	AUTHRT_CD_OBSERVER = "OBSVR";
+    public static final String	AUTHRT_CD_TUT = "TUT";
+    public static final String	AUTHRT_CD_ASSI = "ASSI";
+
+    public static final String	AUTHRT_CD_STDNT = "STDNT";
+    public static final String	AUTHRT_CD_GUEST = "GUEST";
+    public static final String	AUTHRT_CD_AUDIT = "AUDIT";
+
+    public static final String	AUTHRT_CD_ADM = "SYSADM";
+    public static final String	AUTHRT_CD_ORGOP = "ORGOP";
+    public static final String	AUTHRT_CD_SBJCTOP = "SBJCTOP";
+    public static final String	AUTHRT_CD_CONTSOP = "CONTSOP";
+
+    public static final String	SBJCT_ADM_TYCD_PROF = "PROF";
+    public static final String	SBJCT_ADM_TYCD_COPROF = "COPROF";
+    public static final String	SBJCT_ADM_TYCD_TUT = "TUT";
+    public static final String	SBJCT_ADM_TYCD_ASSI = "ASSI";
+
+
     // 화면 동작 모드(actionMode)
     public static final String MODE_CREATE = "create";  // 생성
     public static final String MODE_MODIFY = "modify";  // 수정
@@ -59,7 +83,7 @@ public class CommConst {
     public static final String EDITORDATA_PATH = framework.getString("framework.fileupload.rootPath"); // webdata path
 
     // 에디터 파일 경로
-    public static final String EDITOR_DATA_PATH = WEBDATA_PATH + framework.getString("framework.editor.uploadPath");	// 에디터파일 업로드 경로
+    public static final String EDITOR_DATA_PATH = WEBDATA_PATH + framework.getString("framework.editor.uploadPath");    // 에디터파일 업로드 경로
     public static final String EDITOR_CONTEXT = framework.getString("framework.editor.context"); // 에디터파일 Context
     public static final String EDITOR_FILE_TYPES[] = {"jpg", "jpeg", "gif", "png", "webp", "tif", "tiff", "bmp", "svg"}; // 에디터 업로드 가능 파일 확장명
 
@@ -73,11 +97,10 @@ public class CommConst {
     public static final int AUTH_READ = 1;  // 읽기
     public static final int AUTH_WRITE = 2; // 쓰기
 
-    // 사용자구분
-    public static final String USER_ADMIN = "admin";        // 관리자
-    public static final String USER_STAFF = "staff";        // 스태프
-    public static final String USER_GUEST = "guest";        // 게스트
-
+    // 사용자구분 : 주석처
+    //public static final String USER_ADMIN = "admin";        // 관리자
+    //public static final String USER_STAFF = "staff";        // 스태프
+    //public static final String USER_GUEST = "guest";        // 게스트
 
     // 파일저장 디렉토리
     public static final String DIR_BOARD = "/board";        // 게시판
@@ -130,8 +153,9 @@ public class CommConst {
     public static final String MSG_CHNL_SHRTNT = "SHRTNT";
     public static final String MSG_CHNL_PUSH = "PUSH";
     public static final String MSG_CHNL_SMS = "SMS";
+    public static final String MSG_CHNL_LMS = "LMS";
     public static final String MSG_CHNL_ALIM_TALK = "ALIM_TALK";
-    public static final String[] MSG_VALID_CHNL_CDS = {MSG_CHNL_SHRTNT, MSG_CHNL_PUSH, MSG_CHNL_SMS, MSG_CHNL_ALIM_TALK};
+    public static final String[] MSG_VALID_CHNL_CDS = {MSG_CHNL_SHRTNT, MSG_CHNL_PUSH, MSG_CHNL_SMS, MSG_CHNL_LMS, MSG_CHNL_ALIM_TALK};
 
     // 메시지 표시 관련 설정
     public final static String MSG_SMS_ADDR = framework.getString("framework.message.sms.addr");
@@ -368,12 +392,12 @@ public class CommConst {
     public static final String SYSTEM_LOCALEKEY = "LOCALEKEY";                                                  // 언어셋
 
     // 메뉴 관련 변수명 정의
-    public static final String   MENU_GBN_MAIN			= "MAIN";	// 메인메뉴(대시보드)
-    public static final String   MENU_GBN_LECT			= "LECT";	// 강의실메뉴
-    public static final String   MENU_GBN_ADM			= "ADM";	// 관리자메뉴
-    public static final String   MENU_AUTH_ADM			= "ADM";	// 관리자 권한
-    public static final String   MENU_AUTH_PROF			= "PROF";	// 교수자 권한
-    public static final String   MENU_AUTH_STDNT		= "STDNT";	// 학습자 권한
+    public static final String MENU_GBN_MAIN = "MAIN";    // 메인메뉴(대시보드)
+    public static final String MENU_GBN_LECT = "LECT";    // 강의실메뉴
+    public static final String MENU_GBN_ADM = "ADM";    // 관리자메뉴
+    public static final String MENU_AUTH_ADM = "ADM";    // 관리자 권한
+    public static final String MENU_AUTH_PROF = "PROF";    // 교수자 권한
+    public static final String MENU_AUTH_STDNT = "STDNT";    // 학습자 권한
 
 
     //TODO 아래 변수명들은 사용여부 체크하여 삭제...........
@@ -575,6 +599,9 @@ public class CommConst {
     public final static String ZOOM_OAUTH_REST_REFRESH_TOKEN_EXPIRES_IN = framework.getString("framework.zoom.oauth.rest.refresh.token.expires.in");
     public final static Boolean ZOOM_OAUTH_REST_TOKEN_HEADER_AUTHORIZATION_ENABLE = framework.getBoolean("framework.zoom.oauth.rest.token.header.authorization.enable");
 
+    // 통합메시지발송 API
+    public final static String SMS_API_BASE_URL = framework.getString("sms.api.base.url");
+
     // 사용자 접속상황 작업위치
     public static final String CONN_HOME = "HOME";
     public static final String CONN_COR_HOME = "COR_HOME";
@@ -592,10 +619,10 @@ public class CommConst {
     public static final String CONN_LCTR_PLANDOC = "LCTR_PLANDOC";
 
     // 사용자 접속체크 시간
-    public static final int 		CONN_USER_CHECK_TIME = framework.getInt("framework.connuser.check.time");
+    public static final int CONN_USER_CHECK_TIME = framework.getInt("framework.connuser.check.time");
 
-	// 개인정보 Mask 사용 여부
-	public static final String	USERINFO_MASK_YN = "Y";
+    // 개인정보 Mask 사용 여부
+    public static final String USERINFO_MASK_YN = "Y";
 
     // 강의실 활동로그 코드 (TB_ORG_CODE 테이블의 ACTN_HSTY_CD)
     public static final String ACTN_HSTY_LECTURE_HOME = "LECTURE_HOME";
@@ -692,38 +719,45 @@ public class CommConst {
     public static final String OBJECT_STORAGE_UPLOAD_PREFIX = framework.getString("framework.object.storage.upload.prefix");
 
     // 파일유형
-    public static final String   FILE_TYPE_IMG			= "IMG";	// 이미지
-    public static final String   FILE_TYPE_VIDEO		= "VDO";	// 비디오
-    public static final String   FILE_TYPE_AUDIO		= "ADO";	// 오디오
-    public static final String   FILE_TYPE_DOC			= "DOC";	// 문서
-    public static final String   FILE_TYPE_TXT			= "TXT";	// 텍스트
-    public static final String[] FILE_TYPE_IMG_EXT		= {"jpg", "jpeg", "gif", "png", "webp", "tif", "tiff", "bmp", "svg"};
-    public static final String[] FILE_TYPE_VIDEO_EXT	= {"mp4", "avi", "wmv", "mov", "mkv", "webm"};
-    public static final String[] FILE_TYPE_AUDIO_EXT	= {"mp3", "m4a", "ogg", "wav", "aiff"};
-    public static final String[] FILE_TYPE_DOC_EXT		= {"doc", "docx", "xls", "xlsx", "ppt", "pptx", "hwp", "hwpx", "rtf", "pdf"};
-    public static final String[] FILE_TYPE_TXT_EXT		= {"txt", "htm", "html", "css", "js", "xml", "csv", "log", "json"};
+    public static final String FILE_TYPE_IMG = "IMG";    // 이미지
+    public static final String FILE_TYPE_VIDEO = "VDO";    // 비디오
+    public static final String FILE_TYPE_AUDIO = "ADO";    // 오디오
+    public static final String FILE_TYPE_DOC = "DOC";    // 문서
+    public static final String FILE_TYPE_TXT = "TXT";    // 텍스트
+    public static final String[] FILE_TYPE_IMG_EXT = {"jpg", "jpeg", "gif", "png", "webp", "tif", "tiff", "bmp", "svg"};
+    public static final String[] FILE_TYPE_VIDEO_EXT = {"mp4", "avi", "wmv", "mov", "mkv", "webm"};
+    public static final String[] FILE_TYPE_AUDIO_EXT = {"mp3", "m4a", "ogg", "wav", "aiff"};
+    public static final String[] FILE_TYPE_DOC_EXT = {"doc", "docx", "xls", "xlsx", "ppt", "pptx", "hwp", "hwpx", "rtf", "pdf"};
+    public static final String[] FILE_TYPE_TXT_EXT = {"txt", "htm", "html", "css", "js", "xml", "csv", "log", "json"};
 
     // 파일저장소아이디
-    public static final String   REPO_BBS				= "BBS";	// 게시판
-    public static final String   REPO_DSCS				= "DSCS";	// 토론
-    public static final String   REPO_ASMT				= "ASMT";	// 과제
-    public static final String   REPO_EXAM				= "EXAM";	// 시험
-    public static final String   REPO_SMNR				= "SMNR";	// 세미나
-    public static final String   REPO_SRVY				= "SRVY";	// 설문
-    public static final String   REPO_CONTS				= "CONTS";	// 강의콘텐츠
-    public static final String   REPO_MSG				= "MSG";	// 메시지
-    public static final String   REPO_USER				= "USER";	// 사용자
+    public static final String REPO_BBS = "BBS";    // 게시판
+    public static final String REPO_DSCS = "DSCS";    // 토론
+    public static final String REPO_ASMT = "ASMT";    // 과제
+    public static final String REPO_EXAM = "EXAM";    // 시험
+    public static final String REPO_SMNR = "SMNR";    // 세미나
+    public static final String REPO_SRVY = "SRVY";    // 설문
+    public static final String REPO_CONTS = "CONTS";    // 강의콘텐츠
+    public static final String REPO_MSG = "MSG";    // 메시지
+    public static final String REPO_USER = "USER";    // 사용자
+    public static final String REPO_OBJCT = "OBJCT";  // 이의신청
+    public static final String REPO_LOGO = "LOGO";   // 기관로고
+    public static final String REPO_PLANDOC = "PLANDOC";   // 강의계획서
+    public static final String REPO_SBJCT = "SBJCT";   // 과목
 
-
+    /** 사이냅 문서뷰어 URL */
+    public static final String SYNAP_VIEWER_URL = framework.getString("framework.synap.doc.viewer.url");
+    /** 사이냅 문서뷰어 컨텍스트 */
+    public static final String SYNAP_VIEWER_CONTEXT = framework.getString("framework.synap.doc.viewer.context");
 
     // 사용자 접속상태 체크값
     public static final String[][] CONN_CHECK_LIST = {
-    		{"/lctr/plandoc/profLctrPlandocView.do", CONN_LCTR_PLANDOC},
-    		{"/userIndex.do", CONN_HOME},
-    		{"/dashboard/dashboard.do", CONN_HOME},
-    		{"/dashboard/main.do", CONN_HOME},
-    		{"/dashboard/profDashboard.do", CONN_HOME},
-    		{"/dashboard/stuDashboard.do", CONN_HOME},
+            {"/lctr/plandoc/profLctrPlandocView.do", CONN_LCTR_PLANDOC},
+            {"/userIndex.do", CONN_HOME},
+            {"/dashboard/dashboard.do", CONN_HOME},
+            {"/dashboard/main.do", CONN_HOME},
+            {"/dashboard/profDashboard.do", CONN_HOME},
+            {"/dashboard/stuDashboard.do", CONN_HOME},
             {"/dashboard/widgetStngChange.do", CONN_HOME},
             {"/dashboard/widgetStngPopView.do", CONN_HOME},
             {"/dashboard/widgetStngSelect.do", CONN_HOME},
@@ -1006,8 +1040,6 @@ public class CommConst {
             {"/teamMgr", CONN_ETC},
             {"/teamMgr", CONN_ETC}
     };
-
-
 
 
     private CommConst() {

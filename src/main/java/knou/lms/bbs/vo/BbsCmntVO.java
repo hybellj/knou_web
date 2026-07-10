@@ -33,6 +33,9 @@ public class BbsCmntVO extends DefaultVO {
     private String		atclCmntCts;
     private int         emticnNo;
 
+    private String      bbsTycd;
+    private int         atclCmntLv;
+
     public String getCmntId() {
         return cmntId;
     }
@@ -219,6 +222,22 @@ public class BbsCmntVO extends DefaultVO {
 
 	public void setEmticnNo(int emticnNo) {
 		this.emticnNo = emticnNo;
+	}
+
+	public String getBbsTycd() {
+		return bbsTycd;
+	}
+
+	public void setBbsTycd(String bbsTycd) {
+		this.bbsTycd = bbsTycd;
+	}
+
+	public int getAtclCmntLv() {
+		return atclCmntLv;
+	}
+
+	public void setAtclCmntLv(int atclCmntLv) {
+		this.atclCmntLv = atclCmntLv;
 	}
 
 }

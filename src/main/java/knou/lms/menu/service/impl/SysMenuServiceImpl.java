@@ -6,10 +6,14 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import knou.framework.common.SessionInfo;
 import org.egovframe.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
+import knou.framework.common.PageInfo;
+import knou.framework.context2.UserContext;
 import knou.framework.util.StringUtil;
 import knou.framework.util.ValidationUtils;
 import knou.lms.common.vo.ProcessResultVO;
@@ -24,6 +28,12 @@ import knou.lms.menu.vo.SysAuthGrpLangVO;
 import knou.lms.menu.vo.SysAuthGrpMenuVO;
 import knou.lms.menu.vo.SysAuthGrpVO;
 import knou.lms.menu.vo.SysMenuVO;
+import knou.lms.org.service.OrgInfoService;
+import knou.lms.org.vo.OrgInfoVO;
+import knou.lms.user.service.UserService;
+import knou.lms.user.service.UsrDeptCdService;
+import knou.lms.user.vo.UserVO;
+import knou.lms.user.vo.UsrDeptCdVO;
 
 /**
  *  시스템 권한 메뉴 관리 Service
@@ -47,6 +57,18 @@ public class SysMenuServiceImpl
 
     @Resource(name="sysMenuDAO")
     private SysMenuDAO sysMenuDAO;
+
+    @Resource(name="orgInfoService")
+	private OrgInfoService orgInfoService;
+
+	@Resource(name="usrDeptCdService")
+	private UsrDeptCdService usrDeptCdService;
+
+	@Resource(name="sysMenuService")
+	private SysMenuService sysMenuService;
+
+	@Resource(name="userService")
+	private UserService userService;
 
     /**
      *  권한/메뉴관리의 권한목록을 조회한다.
@@ -74,6 +96,48 @@ public class SysMenuServiceImpl
     public List<MgrSysMenuVO> selectSysMenulist(SysMenuVO vo) throws Exception {
         List<MgrSysMenuVO> result =  sysMenuDAO.selectSysMenulist(vo);
         return result;
+    }
+
+    /**
+     *  권한에 대한 메뉴 리스트를 조회한다.
+     * @param SysMenuVO
+     * @return List<MgrSysMenuVO>
+     * @throws Exception
+     */
+    @Override
+    public ProcessResultVO<SysAuthGrpVO> admAuthMngListViewAjax(SysAuthGrpVO vo) throws Exception {
+    	ProcessResultVO<SysAuthGrpVO> processResultVO = new ProcessResultVO<>();
+
+    	PageInfo pageInfo = new PageInfo(vo);
+
+        List<SysAuthGrpVO> resultList = sysMenuDAO.admAuthMngListViewAjax(vo);
+        pageInfo.setTotalRecord(resultList);
+
+        processResultVO.setReturnList(resultList);
+        processResultVO.setPageInfo(pageInfo);
+
+        return processResultVO;
+    }
+
+    /**
+     *  권한에 대한 메뉴 리스트를 조회한다. (팝업)
+     * @param SysMenuVO
+     * @return List<MgrSysMenuVO>
+     * @throws Exception
+     */
+    @Override
+    public ProcessResultVO<SysAuthGrpVO> admAuthMngPopViewAjax(SysAuthGrpVO vo) throws Exception {
+    	ProcessResultVO<SysAuthGrpVO> processResultVO = new ProcessResultVO<>();
+
+    	PageInfo pageInfo = new PageInfo(vo);
+        List<SysAuthGrpVO> resultList = sysMenuDAO.admAuthMngPopViewAjax(vo);
+
+        pageInfo.setTotalRecord(resultList);
+
+        processResultVO.setReturnList(resultList);
+        processResultVO.setPageInfo(pageInfo);
+
+        return processResultVO;
     }
 
     /**
@@ -601,7 +665,37 @@ public class SysMenuServiceImpl
      * 메인메뉴 기관 사용 전체 목록 조회
      */
     public List<MenuUseOrgVO> selectMainMenuUseOrgAll(MenuUseOrgVO vo) throws Exception {
-        return sysMenuDAO.selectMainMenuUseOrgAll(vo);
+    	List<MenuUseOrgVO> menuUseList = null;
+
+    	if (vo.getOrgId() != null && !"".equals(vo.getOrgId())) {
+    		menuUseList = sysMenuDAO.selectMainMenuUseOrgAll(vo);
+    	}
+
+        return menuUseList;
+    }
+
+    /**
+     * 기관 메인메뉴 목록 조회
+     * @param vo
+     * @return List<MenuVO>
+     * @throws Exception
+     */
+    public List<MenuVO> selectOrgMainMenuList(MenuVO vo) throws Exception {
+    	List<MenuVO> menuList = null;
+
+    	if (vo.getOrgId() != null && !"".equals(vo.getOrgId())) {
+    		menuList = sysMenuDAO.selectOrgMainMenuList(vo);
+    		System.out.println("menuList1====>"+menuList);
+    		if (menuList == null || menuList.size() == 0) {
+    			// 기관의 메뉴가 없으면 기본 생성
+    			sysMenuDAO.insertOrgDefaultMenu(vo);
+
+    			menuList = sysMenuDAO.selectOrgMainMenuList(vo);
+    			System.out.println("menuList2====>"+menuList);
+    		}
+    	}
+
+        return menuList;
     }
 
     /**
@@ -610,6 +704,135 @@ public class SysMenuServiceImpl
      * @throws Exception
      */
     public List<MenuVO> selectLectMenuList(MenuVO vo) throws Exception {
-    	return sysMenuDAO.selectLectMenuList(vo);
+    	List<MenuVO> menuList = sysMenuDAO.selectLectMenuList(vo);
+    	// 강의실 메뉴가 없는경우 기본 메뉴 생성
+    	if ((menuList == null || menuList.size() == 0)
+    			&& vo.getOrgId() != null && !"".equals(vo.getOrgId())
+    			&& vo.getSbjctId() != null && !"".equals(vo.getSbjctId())) {
+    		// 메뉴생성
+    		sysMenuDAO.insertLectDefaultMenu(vo);
+    		// 메뉴조회
+    		menuList = sysMenuDAO.selectLectMenuList(vo);
+    	}
+
+    	return menuList;
+    }
+
+    /**
+     * 기관 기본 메뉴 생성
+     * @param vo
+     * @throws Exception
+     */
+    public void insertOrgDefaultMenu(MenuVO vo) throws Exception {
+        sysMenuDAO.insertOrgDefaultMenu(vo);
+    }
+
+    /**
+     * 기관 기본 메뉴 생성
+     * @param vo
+     * @throws Exception
+     */
+    // ServiceImpl
+    @Override
+    public void admAuthSave(List<SysAuthGrpVO> admList) {
+        for (SysAuthGrpVO vo : admList) {
+        	sysMenuDAO.admAuthSave(vo);  // 권한 변경
+        	sysMenuDAO.admAuthChgHstryRegist(vo); // 권한 변경 이력 등록
+        }
+    }
+
+    /*****************************************************
+     * 게시글 삭제
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public void admAuthDelete(SysAuthGrpVO vo) throws Exception {
+    	sysMenuDAO.admAuthDelete(vo);
+    }
+
+    @Override
+	public EgovMap loadFilterOptions(UserContext userCtx) throws Exception {
+
+		EgovMap filterOptions = new EgovMap();
+
+		String orgId = userCtx.getOrgId();
+		filterOptions.put("orgId", orgId);
+
+		// 기관 목록 조회
+		OrgInfoVO orgInfoVO = new OrgInfoVO();
+        orgInfoVO.setOrgId(orgId);
+        filterOptions.put("orgList", orgInfoService.list(orgInfoVO));
+
+        // 기관에 따른 학과 조회
+        UsrDeptCdVO usrDeptCdVO = new UsrDeptCdVO();
+        usrDeptCdVO.setOrgId(orgId);
+        filterOptions.put("deptList", usrDeptCdService.list(usrDeptCdVO));
+
+        // 관리자 조회
+        SysAuthGrpVO sysAuthGrpVO = new SysAuthGrpVO();
+        sysAuthGrpVO.setOrgId(orgId);
+        filterOptions.put("admGbnList", sysAuthGrpDAO.admGbnList(sysAuthGrpVO));
+
+        // 사용자 유형 조회
+        UserVO userVO = new UserVO();
+        userVO.setOrgId(orgId);
+        filterOptions.put("userTycdList", userService.userTycdList(userVO));
+
+		return filterOptions;
+	}
+
+	@Override
+	public List<MenuVO> adminMenuList(MenuVO vo) {
+
+        List<MenuVO> menuList = null;
+
+        if (StringUtil.isNotNull(vo.getOrgId())) {
+            menuList = sysMenuDAO.adminMenuList(vo);
+            System.out.println("admMenuList ====>"+menuList);
+            if (menuList == null || menuList.size() == 0) {
+                // 기관의 메뉴가 없으면 기본 생성
+                sysMenuDAO.insertOrgDefaultMenu(vo);
+
+                menuList = sysMenuDAO.adminMenuList(vo);
+                System.out.println("생성후 불러온 admMenuList ====>"+menuList);
+            }
+        }
+
+        return menuList;
+//		return sysMenuDAO.adminMenuList(vo);
+	}
+
+	@Override
+    public List<SysAuthGrpVO> admAuthrtTabList(SysAuthGrpVO vo) throws Exception {
+        List<SysAuthGrpVO> result = sysMenuDAO.admAuthrtTabList(vo);
+        return result;
+    }
+
+	/**
+     *  기관 메뉴 사용여부 변경
+     * @param vo
+     */
+    @Override
+    public void admMenuUseynModify(SysAuthGrpVO vo) {
+    	sysMenuDAO.admMenuUseynModify(vo);
+    }
+
+    @Override
+    public void admMenuWriteynChgHstry(SysAuthGrpVO vo) {
+    	sysMenuDAO.admMenuWriteynModify(vo);
+    	sysMenuDAO.admMenuWriteynChgHstry(vo);
+    }
+
+    /**
+     * 메뉴 구분과 메뉴 권한에 따른 메뉴 계층 조회
+     *
+     * @param vo
+     * @return
+     */
+    @Override
+    public List<EgovMap> admMenuList(MenuVO vo) {
+
+        return sysMenuDAO.admMenuList(vo);
     }
 }

@@ -27,7 +27,7 @@
 				, VWITM_GBNCD
 				, VWITM_CTS
 				, VWITM_SEQNO
-				, MVMN_SRVY_QSTN_ID
+				, MVMN_SRVYPPR_ID
 				, ETC_INPTYN
 				, RGTR_ID
 				, REG_DTTM
@@ -37,7 +37,7 @@
 				, #{item.vwitmGbncd}
 				, #{item.vwitmCts}
 				, #{item.vwitmSeqno}
-				, #{item.mvmnSrvyQstnId}
+				, #{item.mvmnSrvypprId}
 				, #{item.etcInptyn}
 				, #{item.rgtrId}
 				, FN_DTTM()
@@ -83,11 +83,7 @@
         	, REG_DTTM
         )
         SELECT
-        	  'SRVW0'
-					  || TO_CHAR(SYSDATE, 'YYMMDDHH24MISS')
-					  || LPAD(MOD(EXTRACT(SECOND FROM SYSTIMESTAMP) * 1000, 1000), 3, '0')
-					  || LOWER(SUBSTR(RAWTOHEX(SYS_GUID()), 1, 7))
-					  || LPAD(ROW_NUMBER() OVER(ORDER BY NULL), 3, '0') AS SRVY_VWITM_ID
+        	  FN_NEW_ID('SRVW') AS SRVY_VWITM_ID
 			, A.*
 		  FROM (
 	        <foreach item="item" collection="list" separator="UNION ALL">
@@ -150,6 +146,7 @@
 				  JOIN TB_LMS_SRVY SRVY
 				    ON SRVYPPR.SRVY_ID = SRVY.SRVY_ID
 				 WHERE SRVY.SRVY_ID = #{srvyId}
+				    OR SRVY.UP_SRVY_ID = #{srvyId}
 	    	)
 	</delete>
 
@@ -160,8 +157,8 @@
          */
         UPDATE (
 		    SELECT
-		    	  VWITM.MVMN_SRVY_QSTN_ID AS MVMN_SRVY_QSTN_ID
-		     	, 'NEXT' AS NEW_MVMN_SRVY_QSTN_ID
+		    	  VWITM.MVMN_SRVYPPR_ID AS MVMN_SRVYPPR_ID
+		     	, 'NEXT' AS NEW_MVMN_SRVYPPR_ID
 		    FROM TB_LMS_SRVY_VWITM VWITM
 		    JOIN (
 		    	SELECT
@@ -170,8 +167,8 @@
 					SELECT
 						  VWITM.SRVY_VWITM_ID
 						, SRVYPPR.SRVY_SEQNO
-						, (SELECT SRVY_SEQNO FROM TB_LMS_SRVYPPR WHERE SRVYPPR_ID = VWITM.MVMN_SRVY_QSTN_ID) AS MVMN_SRVY_SEQNO
-						, NVL((SELECT 'N' FROM TB_LMS_SRVYPPR WHERE SRVYPPR_ID = VWITM.MVMN_SRVY_QSTN_ID), 'Y') AS SRVY_DELYN
+						, (SELECT SRVY_SEQNO FROM TB_LMS_SRVYPPR WHERE SRVYPPR_ID = VWITM.MVMN_SRVYPPR_ID) AS MVMN_SRVY_SEQNO
+						, NVL((SELECT 'N' FROM TB_LMS_SRVYPPR WHERE SRVYPPR_ID = VWITM.MVMN_SRVYPPR_ID), 'Y') AS SRVY_DELYN
 					  FROM TB_LMS_SRVYPPR SRVYPPR
 					  JOIN TB_LMS_SRVY_QSTN QSTN
 					    ON SRVYPPR.SRVYPPR_ID = QSTN.SRVYPPR_ID
@@ -180,14 +177,14 @@
 					  JOIN TB_LMS_SRVY_VWITM VWITM
 					    ON QSTN.SRVY_QSTN_ID = VWITM.SRVY_QSTN_ID
 					 WHERE SRVYPPR.SRVY_ID = #{srvyId}
-					   AND VWITM.MVMN_SRVY_QSTN_ID NOT IN ('NEXT', 'END')
+					   AND VWITM.MVMN_SRVYPPR_ID NOT IN ('NEXT', 'END')
 				) A
 				WHERE A.SRVY_SEQNO > A.MVMN_SRVY_SEQNO
 				   OR A.SRVY_DELYN = 'Y'
 		    ) A
 		      ON VWITM.SRVY_VWITM_ID = A.SRVY_VWITM_ID
 		)
-		SET MVMN_SRVY_QSTN_ID = NEW_MVMN_SRVY_QSTN_ID
+		SET MVMN_SRVYPPR_ID = NEW_MVMN_SRVYPPR_ID
 	</update>
 
 </mapper>

@@ -13,64 +13,25 @@ import knou.lms.srvy.vo.SrvyVO;
 @Mapper("srvyQstnVwitmLvlDAO")
 public interface SrvyQstnVwitmLvlDAO {
 
-	/**
-	 * 설문문항목록보기항목레벨삭제
-	 *
-	 * @param List<SrvyQstnVO>
-	 * @throws Exception
-	 */
-	public void srvyQstnListVwitmLvlDelete(List<SrvyQstnVO> list) throws Exception;
+	// 설문문항목록보기항목레벨삭제
+	public void srvyQstnListVwitmLvlDelete(List<SrvyQstnVO> list);
 
-	/**
-	 * 설문문항보기항목레벨일괄등록
-	 *
-	 * @param SrvyVwitmVO
-	 * @throws Exception
-	 */
-	public void srvyQstnVwitmLvlBulkRegist(List<SrvyQstnVwitmLvlVO> list) throws Exception;
+	// 설문문항보기항목레벨일괄등록
+	public void srvyQstnVwitmLvlBulkRegist(List<SrvyQstnVwitmLvlVO> list);
 
-	/**
-	 * 설문문항보기항목레벨삭제
-	 *
-	 * @param srvyQstnId 설문문항아이디
-	 * @throws Exception
-	 */
-	public void srvyQstnVwitmLvlDelete(@Param("srvyQstnId") String srvyQstnId) throws Exception;
+	// 설문문항보기항목레벨삭제
+	public void srvyQstnVwitmLvlDelete(@Param("srvyQstnId") String srvyQstnId);
 
-	/**
-	 * 설문문항보기항목레벨목록조회
-	 *
-	 * @param srvyQstnId 설문문항아이디
-	 * return 설문문항보기항목레벨목록
-	 * @throws Exception
-	 */
-	public List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlList(@Param("srvyQstnId") String srvyQstnId) throws Exception;
+	// 설문문항보기항목레벨목록조회
+	public List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlList(@Param("srvyQstnId") String srvyQstnId);
 
-	/**
-	 * 설문보기항목가져오기
-	 *
-	 * @param copySrvyQstnId 	복사설문문항아이디
-	 * @param srvyQstnId 		설문문항아이디
-	 * @throws Exception
-	 */
-	public void srvyQstnVwitmLvlCopy(List<Map<String, Object>> list) throws Exception;
+	// 설문보기항목가져오기
+	public void srvyQstnVwitmLvlCopy(List<Map<String, Object>> list);
 
-	/**
-	 * 설문문항보기항목레벨일괄조회
-	 *
-	 * @param srvyId 		설문아이디
-	 * @param searchType 	조회유형
-	 * return 설문문항보기항목레벨일괄목록
-	 * @throws Exception
-	 */
-	public List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlBulkList(@Param("srvyId") String srvyId, @Param("searchType") String searchType) throws Exception;
+	// 설문문항보기항목레벨일괄조회
+	public List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlBulkList(@Param("srvyId") String srvyId, @Param("searchType") String searchType);
 
-	/**
-	 * 설문문항목록보기항목레벨전체삭제
-	 *
-	 * @param SrvyVO
-	 * @throws Exception
-	 */
-	public void srvyQstnListVwitmLvlAllDelete(SrvyVO vo) throws Exception;
+	// 설문문항목록보기항목레벨전체삭제
+	public void srvyQstnListVwitmLvlAllDelete(SrvyVO vo);
 
 }

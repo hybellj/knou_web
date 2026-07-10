@@ -1,16 +1,23 @@
 package knou.lms.dashboard.service;
 
-import knou.lms.common.dto.BaseParam;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+
+import knou.framework.context2.UserContext;
+import knou.lms.common.dto.CommonDTO;
+import knou.lms.common.dto.SubjectDTO;
 import knou.lms.dashboard.web.view.DashboardViewModel;
-import knou.lms.user.vo.UserVO;
 
 public interface DashboardFacadeService {
 
-	public DashboardViewModel cmmonDashboardViewModel(BaseParam param) throws Exception ;
+    EgovMap loadFilterOptions(UserContext userCtx);
+
+	public DashboardViewModel cmmonDashboardViewModel(SubjectDTO sbjctDto);
 	
-	public DashboardViewModel stdntDashboardViewModel(BaseParam param) throws Exception ;
+	public DashboardViewModel stdntDashboardViewModel(SubjectDTO sbjctDto);
 	
-	public DashboardViewModel profDashboardViewModel(BaseParam param) throws Exception ;
+	public DashboardViewModel profDashboardViewModel(SubjectDTO sbjctDto);
+
+    public DashboardViewModel admDashboardViewModel(int limitTop);
 	
-	public DashboardViewModel getDashboardResponse(UserVO selectedUser, BaseParam param) throws Exception ;
+	public DashboardViewModel getDashboardResponse(UserContext userCtx);
 }

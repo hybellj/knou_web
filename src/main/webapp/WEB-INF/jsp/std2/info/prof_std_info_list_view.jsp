@@ -9,7 +9,7 @@
     </jsp:include>
 </head>
 
-<body class="class colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="class ${uiex:getTheme()} "><!-- 컬러선택시 클래스변경 -->
 <div id="wrap" class="main">
     <!-- common header -->
     <jsp:include page="/WEB-INF/jsp/common_new/class_header.jsp"/>
@@ -24,8 +24,15 @@
 
         <!-- content -->
         <div id="content" class="content-wrap common">
-            <jsp:include page="/WEB-INF/jsp/common_new/navi_bar_prof.jsp"/>
+            <!-- class_sub_top -->
+            <jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+            <!-- //class_sub_top -->
+
             <div class="class_sub">
+                <!-- class_info -->
+                <jsp:include page="/WEB-INF/jsp/common_new/class_info.jsp"/>
+                <!-- //class_info -->
+
                 <div class="sub-content">
                     <div class="page-info">
                         <h2 class="page-title">수강생정보</h2>
@@ -53,7 +60,7 @@
 
                     <div id="stdInfoListArea">
                         <div class="board_top">
-                            <h3 class="board-title">수강생</h3>
+                            <h3 class="board-title"><spring:message code="std.label.learner" /><!-- 수강생 --></h3>
                             <div class="right-area">
                                 <button type="button" class="btn type2">발신하기</button>
                                 <button type="button" class="btn basic" onclick="downExcel();return false;"><spring:message code="common.button.excel_down" /><!-- 엑셀 다운로드 --></button>
@@ -79,7 +86,7 @@
                             <div class="card-body">
                                 <div class="desc">
                                     <p><label>학과</label><strong>#[deptnm]</strong></p>
-                                    <p><label>대표아이디</label><strong>#[userRprsId]</strong></p>
+                                    <p><label>대표아이디</label><strong>#[userId]</strong></p>
                                     <p><label>학번</label><strong>#[stdntNo]</strong></p>
                                     <p><label>이름</label><strong>#[usernm]</strong></p>
                                     <p><label>구분</label><strong>#[cmcrsGbncd]</strong></p>
@@ -109,6 +116,7 @@
     let LIST_SCALE = '<c:out value="${atndlcVO.listScale}" />';
     const SBJCT_ID = '<c:out value="${atndlcVO.sbjctId}" />';
     let stdInfoListTable;
+    let stdntUserIds = [];
 
     $(function () {
         $("#searchValue").on("keyup", function (e) {
@@ -128,31 +136,31 @@
                 }, // No
                 {
                     title: "학과", field: "deptnm", headerHozAlign: "center", hozAlign: "center",
-                    width: 200, minWidth: 120
+                    width: 0, minWidth: 300
                 }, // 학과
                 {
-                    title: "대표아이디", field: "userRprsId", headerHozAlign: "center", hozAlign: "center",
-                    width: 140, minWidth: 120
+                    title: "대표아이디", field: "userId", headerHozAlign: "center", hozAlign: "center",
+                    width: 0, minWidth: 200
                 }, // 대표아이디
                 {
                     title: "학번", field: "stdntNo", headerHozAlign: "center", hozAlign: "center",
-                    width: 170, minWidth: 110
+                    width: 0, minWidth: 200
                 }, // 학번
                 {
                     title: "이름", field: "usernm", headerHozAlign: "center", hozAlign: "center",
-                    width: 120, minWidth: 100
+                    width: 0, minWidth: 200
                 }, // 이름
                 {
                     title: "구분", field: "stdGbnnm", headerHozAlign: "center", hozAlign: "center",
-                    width: 160, minWidth: 110
+                    width: 0, minWidth: 150
                 }, // 구분(코드명)
                 {
                     title: "학년", field: "scyr", headerHozAlign: "center", hozAlign: "center",
-                    width: 80, minWidth: 70
+                    width: 100, minWidth: 100
                 }, // 학년
                 {
                     title: "관리", field: "mgmt", headerHozAlign: "center", hozAlign: "center",
-                    width: 0, minWidth: 110
+                    width: 110, minWidth: 110
                 }  // 관리(학습현황 버튼)
             ],
             selectRow: "checkbox",
@@ -180,6 +188,11 @@
         ajaxCall(url, param, function (data) {
             if (data.result > 0) {
                 let returnList = data.returnList || [];
+                stdntUserIds = returnList.map(function (v) {
+                    return v.userId;
+                }).filter(function (id) {
+                    return !!id;
+                });
 
                 // 테이블 데이터 설정
                 let dataList = createStdInfoListHTML(returnList, data.pageInfo);
@@ -187,9 +200,11 @@
                 stdInfoListTable.replaceData(dataList);
                 stdInfoListTable.setPageInfo(data.pageInfo);
             } else {
+                stdntUserIds = [];
                 UiComm.showMessage(data.message, "error");
             }
         }, function (xhr, status, error) {
+            stdntUserIds = [];
             UiComm.showMessage("<spring:message code="fail.common.msg" />", "error");
         }, true);
 
@@ -228,7 +243,7 @@
             dataList.push({
                 no: lineNo,
                 deptnm: v.deptnm,
-                userRprsId: v.userRprsId,
+                userId: v.userId,
                 stdntNo: v.stdntNo,
                 usernm: v.usernm,
                 stdGbnnm: stdGbnnm,
@@ -251,9 +266,13 @@
             return;
         }
 
-        const url = "/cls/selectStdntWkPopupView.do"
+        const popupStdntUserIds = (stdntUserIds || []).filter(function (id) {
+            return !!id;
+        });
+        const url = "/clssts/selectClsStsClassStdntWkPopupView.do"
             + "?sbjctId=" + encodeURIComponent(SBJCT_ID)
-            + "&userId=" + encodeURIComponent(userId);
+            + "&userId=" + encodeURIComponent(userId)
+            + "&userIds=" + encodeURIComponent(popupStdntUserIds.join(","));
 
         const stdLrnStatDialog = UiDialog("stdLrnStatDialog", {
             title: "수강생 학습현황"
@@ -281,7 +300,7 @@
             colModel: [
                 {label: '<spring:message code="main.common.number.no" />', name: 'lineNo', align: 'right', width: '1000'}
                 , {label: '<spring:message code="std.label.dept" />', name: 'deptnm', align: 'left', width: '5000'}
-                , {label: '대표아이디', name: 'userRprsId', align: 'center', width: '5000'}
+                , {label: '대표아이디', name: 'userId', align: 'center', width: '5000'}
                 , {label: '학번', name: 'stdntNo', align: 'center', width: '5000'}
                 , {label: '<spring:message code="std.label.name" />', name: 'usernm', align: 'left', width: '5000'}
                 , {label: '<spring:message code="std.label.type" />', name: 'stdGbnnm', align: 'left', width: '5000'}

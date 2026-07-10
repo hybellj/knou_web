@@ -22,8 +22,6 @@ public class PopupNtcVO extends DefaultVO {
 
     private String[] popupNtcIds;
 
-    private String orgNm;
-
     public String getPopupNtcId() {
         return popupNtcId;
     }
@@ -134,13 +132,5 @@ public class PopupNtcVO extends DefaultVO {
 
     public void setPopupNtcIds(String[] popupNtcIds) {
         this.popupNtcIds = popupNtcIds;
-    }
-
-    public String getOrgNm() {
-        return orgNm;
-    }
-
-    public void setOrgNm(String orgNm) {
-        this.orgNm = orgNm;
     }
 }

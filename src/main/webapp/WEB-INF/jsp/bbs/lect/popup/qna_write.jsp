@@ -63,7 +63,7 @@
 	<div id="wrap">
 		<form id="atclWriteForm" method="POST">
 			<input type="hidden" name="crsCreCd" value="${vo.crsCreCd }" />
-			<input type="hidden" name="bbsId"	value="${bbsInfoVO.bbsId }" />
+			<input type="hidden" name="bbsId"	value="${bbsVO.bbsId }" />
 			<div class="ui form">
 				<ul class="tbl-simple">
 					<li>
@@ -79,7 +79,7 @@
 									<textarea name="atclCts" id="atclCts"></textarea>
 									<script>
 								       	// html 에디터 생성
-								  	  	var editor = HtmlEditor('atclCts', THEME_MODE, "/bbs/${bbsInfoVO.bbsId}");
+								  	  	var editor = HtmlEditor('atclCts', THEME_MODE, "/bbs/${bbsVO.bbsId}");
 								       	var weekStr = ('<spring:message code="lesson.label.schedule"/>' || "").toLowerCase();
 								       	var html = '<spring:message code="lesson.label.schedule"/> : ${lessonVO.lessonScheduleOrder} ' + weekStr + '<br><spring:message code="lesson.label.cnts.nm"/> : ${lessonVO.lessonCntsNm}<br>------------------------------------------------------------------<br><br>';
 								       	editor.insertHTML(html);

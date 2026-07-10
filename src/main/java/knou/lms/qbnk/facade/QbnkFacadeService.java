@@ -4,18 +4,42 @@ import knou.framework.context2.UserContext;
 import knou.lms.qbnk.vo.QbnkCtgrVO;
 import knou.lms.qbnk.vo.QbnkQstnVO;
 import knou.lms.qbnk.web.view.QbnkMainView;
+import knou.lms.qbnk.web.view.QbnkPageInfo;
 
 public interface QbnkFacadeService {
 
-	public QbnkMainView loadProfQbnkListView(QbnkCtgrVO vo) throws Exception;
+	QbnkMainView loadProfQbnkListView(QbnkCtgrVO vo);
 
-	public QbnkMainView loadProfQbnkQstnViewPopup(QbnkQstnVO vo) throws Exception;
+	QbnkMainView getProfQbnkCtgrList(QbnkCtgrVO vo);
 
-	public QbnkMainView loadProfQbnkQstnRegistView(QbnkCtgrVO vo, UserContext userCtx) throws Exception;
+	QbnkMainView getProfQbnkQstnList(QbnkPageInfo pageInfo);
 
-	public QbnkMainView loadProfQbnkQstnModifyView(QbnkQstnVO vo, UserContext userCtx) throws Exception;
+	QbnkMainView loadProfQbnkQstnViewPopup(QbnkQstnVO vo);
 
-	public QbnkMainView loadProfQbnkCtgrMngView(QbnkCtgrVO vo) throws Exception;
+	QbnkMainView loadProfQbnkQstnRegistView(QbnkCtgrVO vo, UserContext userCtx);
 
+	void qbnkQstnRegist(QbnkQstnVO vo, String qstnsStr);
+
+	QbnkMainView loadProfQbnkQstnModifyView(QbnkQstnVO vo, UserContext userCtx);
+
+	void qbnkQstnModify(QbnkQstnVO vo, String qstnsStr);
+
+	void qbnkQstnDelete(QbnkQstnVO vo);
+
+	QbnkMainView loadProfQbnkCtgrMngView(QbnkCtgrVO vo);
+
+	QbnkMainView getProfQbnkCtgrAllList(QbnkPageInfo pageInfo);
+
+	Integer getQbnkNextCtgrSeqnoSelect(QbnkCtgrVO vo);
+
+	void qbnkCtgrRegist(QbnkCtgrVO vo);
+
+	QbnkMainView getQbnkCtgrSelect(QbnkCtgrVO vo);
+
+	QbnkMainView getQbnkCtgrUseCntSelect(QbnkCtgrVO vo);
+
+	void qbnkCtgrDelete(QbnkCtgrVO vo);
+
+	QbnkMainView getProfQstnCopyQbnkQstnList(QbnkQstnVO vo);
 
 }

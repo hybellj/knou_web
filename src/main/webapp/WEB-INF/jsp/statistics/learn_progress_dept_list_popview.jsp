@@ -4,6 +4,7 @@
 <html lang="ko">
 <head>
     <jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+        <jsp:param name="style" value="classroom"/>
         <jsp:param name="style" value="table"/>
     </jsp:include>
 
@@ -11,53 +12,16 @@
         $(function() {
 			listLrnPrgrtBydept();
 
-            $("#sbjctYr").on("change", function() {changeSmstrChrt();});
-            $("#deptId").on("change", function() {changeSbjctList();});
+            $("#yrSmstr").on("change", function() {listLrnPrgrtBydept();});
 		});
 		
-		// 학기기수 세팅 변경
-		function changeSmstrChrt() {
-			var $sbjctSmstr = $('#sbjctSmstr');
-
-            // 기존 옵션 초기화
-            $sbjctSmstr.empty();
-
-			$.ajax({
-				url  : "/crs/termMgr/smstrListByDgrsYr.do",
-				data : {
-					dgrsYr 	: $("#sbjctYr").val()
-				<%--	,orgId	: $("#orgId").val() --%>
-				},
-				type : "GET",
-				success: function(data) {
-					if (data.result > 0) {
-						let resultList = data.returnList;
-
-                        $sbjctSmstr.append(`<option value='ALL'><spring:message code="crs.label.open.term" /></option>`);
-
-                        $.each(resultList, function(i, smstrChrtVO) {
-                            $sbjctSmstr.append(`<option value="\${smstrChrtVO.smstrChrtId}">\${smstrChrtVO.smstrChrtnm}</option>`);
-                        })
-                        $sbjctSmstr.trigger("chosen:updated");
-
-                        listLrnPrgrtBydept();
-					}else {
-						alert(data.message);
-					}
-				},
-				error: function(xhr, status, error) {
-					alert('<spring:message code="fail.common.msg" />'); // 에러가 발생했습니다!
-				}
-			});
-		}
-		   
 		// 학과별 전체통계 목록 조회
 		function listLrnPrgrtBydept () {
 			let url	 = "/stats/lrnPrgrtListByDeptAjax.do";
 			let data = {
 				orgId	: $("#orgId").val(),
-				sbjctYr	: $("#sbjctYr").val(),
-				smstrChrtId : $("#sbjctSmstr").val()
+				yrSmstr	: $("#yrSmstr").val(),
+                smstrChrtGbncd : $("#yrSmstr option:selected").data("type") || "",
 			};
 			
 			$.ajax({
@@ -74,12 +38,12 @@
                                 html +=`
                                     <tr>
                                         <td>\${v.lineNo}</td>
-                                        <td>\${v.sbjctYr}</td>
-                                        <td>\${v.sbjctSmstr}</td>
+                                        <td>\${v.dgrsYr}</td>
+                                        <td>\${v.dgrsSmstr}</td>
                                         <td>\${v.orgnm}</td>
                                         <td>\${v.deptnm}</td>
-                                        <td>\${v.allUserCnt}</td>
-                                        <td>\${v.avgPrgrtByDept}</td>
+                                        <td>\${v.totStdCnt}</td>
+                                        <td>\${v.avgPrgrt}</td>
                                     </tr>
 							    `;
                             });
@@ -102,27 +66,19 @@
 	</script>
 </head>
 
-<body class="home colorA "  style="">
-	<div id="wrap" class="main">
-        <main class="common">
+<body class="modal-page">
+	<div id="wrap">
             <div class="board_top">
-                <select class="form-select" id="sbjctYr">
-                    <option value=""><spring:message code="crs.label.open.year" /></option><!-- 개설년도 -->
-                    <c:forEach var="item" items="${filterOptions.yearList }">
-                        <option value="${item }" ${item eq filterOptions.curYear ? 'selected' : '' }>${item }</option>
-                    </c:forEach>
-                </select>
-                <select class="form-select" id="sbjctSmstr"><!-- 개설학기 -->
-                    <option value=""><spring:message code="crs.label.open.term" /></option>
-                    <c:forEach var="list" items="${filterOptions.smstrChrtList }">
-                        <%-- <option value="${list.smstrChrtId }" ${list.dgrsSmstrChrt eq curSmstrChrtVO.dgrsSmstrChrt ? 'selected' : '' }>${list.smstrChrtnm }</option> --%>
-                        <option value="${list.smstrChrtId }">${list.smstrChrtnm }</option>
-                    </c:forEach>
-                </select>
                 <select class="form-select" id="orgId" disabled><!-- 기관 -->
                     <option value="">기관</option>
                     <c:forEach var="list" items="${filterOptions.orgList }">
                         <option value="${list.orgId }" ${list.orgId eq filterOptions.orgId ? 'selected' : '' }>${list.orgnm }</option>
+                    </c:forEach>
+                </select>
+                <select class="form-select" id="yrSmstr">
+                    <option value=""><spring:message code="msg.common.label.yearSmstr" /></option>
+                    <c:forEach var="item" items="${filterOptions.yrSmstrList }" varStatus="i">
+                        <option value="${item.dgrsYr}${item.dgrsSmstrChrt}" <%--${i.index eq 0 ? 'selected' : '' }--%> data-type="${item.smstrChrtGbncd}">${item.yrSmstrnm}</option>
                     </c:forEach>
                 </select>
             </div>
@@ -158,7 +114,6 @@
                     </div>&lt;%&ndash;//sub-content&ndash;%&gt;
                 </div>&lt;%&ndash;//dashboard_sub&ndash;%&gt;
             </div>&lt;%&ndash;//content&ndash;%&gt;--%>
-        </main>
 	</div>
 	
 </body>

@@ -86,7 +86,7 @@
 						
 						setScore(totScore, scoreGrade, finalScore);
 						setChart(avgScore, getScore);
-						//setChart2(chartScoreList);
+						setChart2(chartScoreList);
 						
 						$("#totRed").html(totScore);
 			        } else {
@@ -192,17 +192,16 @@
             });
 		}
 		
-		/*
 		function setChart2(chartScoreList) {
 			var chartScoreInfo = chartScoreList && chartScoreList[0];
-			
+
 			var score100 = chartScoreInfo && chartScoreInfo.score100 || 0;
 			var score90 = chartScoreInfo && chartScoreInfo.score90 || 0;
 			var score80 = chartScoreInfo && chartScoreInfo.score80 || 0;
 			var score70 = chartScoreInfo && chartScoreInfo.score70 || 0;
 			var score60 = chartScoreInfo && chartScoreInfo.score60 || 0;
 			var score50 = chartScoreInfo && chartScoreInfo.score50 || 0;
-			
+
 			var ctx = document.getElementById("levelChart");
             var myChart = new Chart(ctx, {
                 type: 'doughnut',
@@ -285,8 +284,7 @@
                 }
             });
 		}
-		*/
-		
+
 		// 강의평가 완료체크
 		function checkLectEvalApi() {
 			var deferred = $.Deferred();
@@ -322,7 +320,7 @@
                 }
             });
            
-            return deferred.promise();
+            return deferred.promise();ㄹㄹ
 		}
 	</script>
 </head>
@@ -347,7 +345,7 @@
 							});
 							</script>
                             <h2 class="page-title flex-item flex-wrap gap4 columngap16 mra">
-								<spring:message code="common.check.grades" /><!-- 성적조회 -->
+
                             </h2>
                             <div class="button-area">
                             	<div class="ui info message mr10" id='scoreObjtDiv' style="display: none;">

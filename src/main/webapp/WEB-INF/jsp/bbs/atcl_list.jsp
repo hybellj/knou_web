@@ -241,7 +241,7 @@
 			if(atclList.length == 0) {
 				return listData;
 			} else {
-				var bbsTycd = '<c:out value="${bbsInfoVO.bbsTycd}" />';
+				var bbsTycd = '<c:out value="${bbsVO.bbsTycd}" />';
 				atclList.forEach(function(v, i) {
 					console.log(pageInfo.totalRecordCount+", "+i+", "+v.lineNo);
 
@@ -361,7 +361,7 @@
 	</script>
 </head>
 
-<body class="home colorA "  style=""><!-- 컬러선택시 클래스변경 -->
+<body class="home ${uiex:getTheme()} "  style=""><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
         <%@ include file="/WEB-INF/jsp/common_new/home_header.jsp" %>

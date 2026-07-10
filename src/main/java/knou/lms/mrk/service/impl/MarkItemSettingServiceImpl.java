@@ -13,10 +13,11 @@ import java.util.List;
 public class MarkItemSettingServiceImpl implements MarkItemSettingService {
 
     @Resource(name="markItemSettingDAO")
-    private MarkItemSettingDAO markItemSettingDAO;
+    private MarkItemSettingDAO markItemSettingDAO; 
+    
 
     @Override
-    public List<EgovMap> mrkItmStngList(MarkItemSettingVO vo) throws Exception {
+    public List<EgovMap> mrkItmStngList(MarkItemSettingVO vo) {
         return markItemSettingDAO.mrkItmStngList(vo);
     }
 }

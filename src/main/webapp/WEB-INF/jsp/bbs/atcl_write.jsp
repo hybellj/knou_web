@@ -45,10 +45,10 @@
 
 	$(document).ready(function() {
 		var crsCreCd = $("#crsCreCd").val();
-		var bbsId = '<c:out value="${bbsInfoVO.bbsId}" />';
-		var bbsCd = '<c:out value="${bbsInfoVO.bbsCd}" />';
-		var sysUseYn = '<c:out value="${bbsInfoVO.sysUseYn}" />';
-		var sysDefaultYn = '<c:out value="${bbsInfoVO.sysDefaultYn}" />';
+		var bbsId = '<c:out value="${bbsVO.bbsId}" />';
+		var bbsCd = '<c:out value="${bbsVO.bbsCd}" />';
+		var sysUseYn = '<c:out value="${bbsVO.sysUseYn}" />';
+		var sysDefaultYn = '<c:out value="${bbsVO.sysDefaultYn}" />';
 		var alarmBbsInfo = {
 			  NOTICE: true
 			, QNA: true
@@ -224,7 +224,7 @@
 		// 부가 옵션 HTML 생성
 		createEtcOptionHtml: function() {
 			var html = '';
-			var cmntUseYnChecked = (!this.isEdit || '<c:out value="${bbsAtclVO.cmntUseYn}" />' == "Y") || '<c:out value="${bbsInfoVO.bbsCd}" />' == "TEAM" ? "checked" : "";
+			var cmntUseYnChecked = (!this.isEdit || '<c:out value="${bbsAtclVO.cmntUseYn}" />' == "Y") || '<c:out value="${bbsVO.bbsCd}" />' == "TEAM" ? "checked" : "";
 			var goodUseYnChecked = '<c:out value="${bbsAtclVO.goodUseYn}" />' == "Y" ? "checked" : "";
 			var bbsCd = this.bbsInfo.bbsCd;
 			html += '<dl>';
@@ -1472,7 +1472,7 @@
 
 								var bbsSubTitle;
 								var bbsCd = '<c:out value="${param.bbsCd}" />';
-								var bbsNm = '<c:out value="${bbsInfoVO.bbsNm}" />';
+								var bbsNm = '<c:out value="${bbsVO.bbsNm}" />';
 								var tab = '<c:out value="${param.tab}" />';
 
 								if(bbsCd == "TEAM") {
@@ -1521,7 +1521,7 @@
 	                            				<spring:message code="bbs.label.alarm.bbs" /><!-- 통합게시판 -->
 	                            			</c:when>
 	                            			<c:otherwise>
-	                            				<c:out value="${bbsInfoVO.bbsNm}" />
+	                            				<c:out value="${bbsVO.bbsNm}" />
 	                            			</c:otherwise>
 	                            		</c:choose>
 	                            	</c:when>
@@ -1554,12 +1554,12 @@
 		                <!-- 영역1 -->
                         <div class="row">
                             <div class="col">
-                           	<c:if test="${templateUrl eq 'bbsLect' and bbsInfoVO.bbsCd eq 'QNA' and STUDENT_YN eq 'Y'}">
+                           	<c:if test="${templateUrl eq 'bbsLect' and bbsVO.bbsCd eq 'QNA' and STUDENT_YN eq 'Y'}">
 								<div class="ui message bcLYellow">
 		                        	<b class=""><spring:message code="bbs.label.qna.guide" /><!-- ※강의 관련 문의사항을 등록하는 게시판입니다. 수강생 전체에게 내용이 공유됩니다. --></b>
 								</div>
 							</c:if>
-							<c:if test="${templateUrl eq 'bbsLect' and bbsInfoVO.bbsCd eq 'SECRET' and STUDENT_YN eq 'Y'}">
+							<c:if test="${templateUrl eq 'bbsLect' and bbsVO.bbsCd eq 'SECRET' and STUDENT_YN eq 'Y'}">
 								<div class="ui message bcLYellow">
 		                        	<b class=""><spring:message code="bbs.label.secret.guide" /><!-- ※교수자와 1:1로 상담을 요청하는 게시판입니다. 작성자와 답변자만 내용을 볼 수 있습니다. 강의 및 행정 관련 문의는 강의 Q&A에 올려주시기 바랍니다. --></b>
 								</div>
@@ -1585,7 +1585,7 @@
 
 									<div class="ui segment">
 										<ul class="tbl border-top-grey">
-										<c:if test="${bbsInfoVO.bbsId eq BBS_ID_SYSTEM_NOTICE}">
+										<c:if test="${bbsVO.bbsId eq BBS_ID_SYSTEM_NOTICE}">
 											<li>
 												<dl>
 													<dt>
@@ -1624,9 +1624,9 @@
 														<div class="fields">
 															<div class="field">
 																<div class="ui radio checkbox">
-																	<input type="radio" id="bbsCd_1" value="<c:out value="${bbsInfoVO.bbsCd}" />" checked="checked" disabled="disabled" />
+																	<input type="radio" id="bbsCd_1" value="<c:out value="${bbsVO.bbsCd}" />" checked="checked" disabled="disabled" />
 																	<label for="bbsCd_1">
-																		<c:out value="${bbsInfoVO.bbsNm}" />
+																		<c:out value="${bbsVO.bbsNm}" />
 																	</label>
 																</div>
 															</div>
@@ -1639,7 +1639,7 @@
 											<li id="termOptionLi" style="display: none;"></li>
 											<li id="secretOptionLi" style="display: none;"></li>
 											<li id="teamSelectOptionLi" style="display: none;"></li>
-											<li class="displayOptionLi" ${bbsInfoVO.bbsCd eq 'TEAM' && empty bbsAtclVO.atclId ? 'style="display:none;"' : '' }>
+											<li class="displayOptionLi" ${bbsVO.bbsCd eq 'TEAM' && empty bbsAtclVO.atclId ? 'style="display:none;"' : '' }>
 												<dl>
 													<dt>
 														<label for="atclTitle" class="req"><spring:message code="bbs.label.form_title" /></label><!-- 제목 -->
@@ -1651,7 +1651,7 @@
 													</dd>
 												</dl>
 											</li>
-											<li class="editor-responsive displayOptionLi" ${bbsInfoVO.bbsCd eq 'TEAM' && empty bbsAtclVO.atclId ? 'style="display:none;"' : '' }>
+											<li class="editor-responsive displayOptionLi" ${bbsVO.bbsCd eq 'TEAM' && empty bbsAtclVO.atclId ? 'style="display:none;"' : '' }>
 												<dl>
 													<dd style="height:400px">
 														<div style="height:100%">
@@ -1661,7 +1661,7 @@
 															</textarea>
 															<script>
 																// html 에디터 생성
-																var editor = HtmlEditor('contentTextArea', THEME_MODE, "/bbs/${bbsInfoVO.bbsId}");
+																var editor = HtmlEditor('contentTextArea', THEME_MODE, "/bbs/${bbsVO.bbsId}");
 															</script>
 														</div>
 													</dd>
@@ -1677,10 +1677,10 @@
 													<dd>
 														<uiex:dextuploader
 															id="upload1"
-															path="/bbs/${bbsInfoVO.bbsId}"
+															path="/bbs/${bbsVO.bbsId}"
 															limitCount="10"
-															limitSize="${bbsInfoVO.atchFileSizeLimit}"
-															oneLimitSize="${bbsInfoVO.atchFileSizeLimit}"
+															limitSize="${bbsVO.atchFileSizeLimit}"
+															oneLimitSize="${bbsVO.atchFileSizeLimit}"
 															listSize="3"
 															fileList="${bbsAtclVO.fileList}"
 															finishFunc="finishUpload()"

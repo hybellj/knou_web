@@ -9,35 +9,6 @@
 	<short-name>uiex</short-name>
 	<uri>http://uiextension/tags</uri>
 
-
-	<!-- 텍스트 데이터 출력 -->
-	<!-- <tag>
-		<name>outText</name>
-		<tag-class>knou.framework.taglib.OutTextTag</tag-class>
-		<body-content>empty</body-content>
-		<attribute>
-			<name>value</name>
-			<required>true</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<name>htmlYn</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<name>enterYn</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<name>scriptYn</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-	</tag> -->
-
-
 	<!-- 날짜/시간을 지정된 포맷으로 출력 -->
 	<tag>
 		<name>formatDate</name>
@@ -54,69 +25,6 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 	</tag>
-
-	<!-- 버튼 표시 -->
-	<!-- <tag>
-		<name>button</name>
-		<tag-class>knou.framework.taglib.ButtonTag</tag-class>
-		<body-content>empty</body-content>
-		<attribute>
-			<name>id</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<name>value</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<name>href</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<name>onclick</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<name>submit</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<name>target</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<name>icon</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<name>type</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<name>style</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<name>disabled</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<name>title</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-	</tag> -->
-
 
 	<!-- 페이징 표시 -->
 	<tag>
@@ -474,5 +382,59 @@
 		<function-signature>java.lang.String maskIpAddress(java.lang.String)</function-signature>
 	</function>
 
+	<!-- 사용자아이디 마스킹 -->
+	<function>
+		<name>maskUserId</name>
+		<function-class>knou.framework.taglib.CommFunctionTag</function-class>
+		<function-signature>java.lang.String maskUserId(java.lang.String)</function-signature>
+	</function>
 
+	<!-- 강의실 과목명 가져오기 -->
+	<function>
+		<name>getClassSbjctnm</name>
+		<function-class>knou.framework.taglib.CommFunctionTag</function-class>
+		<function-signature>java.lang.String getClassSbjctnm()</function-signature>
+	</function>
+
+	<!-- 강의실 기관명 가져오기 -->
+	<function>
+		<name>getClassOrgnm</name>
+		<function-class>knou.framework.taglib.CommFunctionTag</function-class>
+		<function-signature>java.lang.String getClassOrgnm()</function-signature>
+	</function>
+
+	<!-- 과목 권한 가져오기 -->
+	<function>
+		<name>getSubjectAuth</name>
+		<function-class>knou.framework.taglib.CommFunctionTag</function-class>
+		<function-signature>java.lang.String getSubjectAuth()</function-signature>
+	</function>
+
+	<!-- 현재 메뉴명 가져오기 -->
+	<function>
+		<name>getCurMenunm</name>
+		<function-class>knou.framework.taglib.CommFunctionTag</function-class>
+		<function-signature>java.lang.String getCurMenunm()</function-signature>
+	</function>
+
+	<!-- 디자인 테마 가져오기 -->
+	<function>
+		<name>getTheme</name>
+		<function-class>knou.framework.taglib.CommFunctionTag</function-class>
+		<function-signature>java.lang.String getTheme()</function-signature>
+	</function>
+
+	<!-- 언어 가져오기 -->
+	<function>
+		<name>getLangCd</name>
+		<function-class>knou.framework.taglib.CommFunctionTag</function-class>
+		<function-signature>java.lang.String getLangCd()</function-signature>
+	</function>
+
+	<!-- 사용자 사진 출력 -->
+	<function>
+		<name>userPhoto</name>
+		<function-class>knou.framework.taglib.CommFunctionTag</function-class>
+		<function-signature>java.lang.String userPhoto()</function-signature>
+	</function>
 </taglib>

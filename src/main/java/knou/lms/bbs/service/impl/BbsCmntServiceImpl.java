@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
 import knou.framework.common.IdPrefixType;
 import knou.framework.common.ServiceBase;
+import knou.framework.exception.MediopiaDefineException;
 import knou.framework.util.IdGenUtil;
 import knou.framework.util.IdGenerator;
 import knou.framework.util.StringUtil;
@@ -21,7 +22,7 @@ import knou.lms.bbs.service.BbsAtclService;
 import knou.lms.bbs.service.BbsCmntService;
 import knou.lms.bbs.vo.BbsAtclVO;
 import knou.lms.bbs.vo.BbsCmntVO;
-import knou.lms.bbs.vo.BbsInfoVO;
+import knou.lms.bbs.vo.BbsVO;
 import knou.lms.bbs.web.util.BbsAuthUtil;
 import knou.lms.common.vo.ProcessResultVO;
 
@@ -97,20 +98,20 @@ public class BbsCmntServiceImpl extends ServiceBase implements BbsCmntService {
     /*****************************************************
      * 댓글 목록 페이징 (수정, 삭제 권한 체크)
      * @param request
-     * @param bbsInfoVO
+     * @param bbsVO
      * @param bbsAtclVO
      * @param vo
      * @return ProcessResultVO<BbsCmntVO>
      * @throws Exception
      ******************************************************/
-    public ProcessResultVO<BbsCmntVO> listBbsCmntPagingWithAuth(HttpServletRequest request, BbsInfoVO bbsInfoVO, BbsAtclVO bbsAtclVO, BbsCmntVO vo) throws Exception {
+    public ProcessResultVO<BbsCmntVO> listBbsCmntPagingWithAuth(HttpServletRequest request, BbsVO bbsVO, BbsAtclVO bbsAtclVO, BbsCmntVO vo) throws Exception {
         ProcessResultVO<BbsCmntVO> processResultVO = this.listBbsCmntPaging(vo);
 
         List<BbsCmntVO> resultList = processResultVO.getReturnList();
 
         for(BbsCmntVO bbsCmntVO : resultList) {
-            bbsCmntVO.setEditAuthYn(BbsAuthUtil.getCommentEditAuth(request, bbsInfoVO, bbsAtclVO, bbsCmntVO));
-            bbsCmntVO.setDeleteAuthYn(BbsAuthUtil.getCommentDeleteAuth(request, bbsInfoVO, bbsAtclVO, bbsCmntVO));
+            bbsCmntVO.setEditAuthYn(BbsAuthUtil.getCommentEditAuth(request, bbsVO, bbsAtclVO, bbsCmntVO));
+            bbsCmntVO.setDeleteAuthYn(BbsAuthUtil.getCommentDeleteAuth(request, bbsVO, bbsAtclVO, bbsCmntVO));
         }
 
         return processResultVO;
@@ -243,8 +244,29 @@ public class BbsCmntServiceImpl extends ServiceBase implements BbsCmntService {
             // 데이터가 있으면 업데이트
         	bbsCmntDAO.bbsAtclCmntModify(vo);
         } else {
-            // 데이터가 없으면 신규 등록
-        	vo.setAtclCmntId(IdGenUtil.genNewId(IdPrefixType.BBCMT));
+        	// ── 신규 등록: 댓글 레벨 계산 및 최대 3레벨 제한 ──
+            int atclCmntLv = 1; // 기본: 최상위 댓글
+
+            if (!ValidationUtils.isEmpty(vo.getUpAtclCmntId())
+                    && !"0".equals(vo.getUpAtclCmntId())) {
+                // 부모 댓글 레벨 조회
+                Integer parentLv = bbsCmntDAO.selectBbsAtclCmntLv(vo.getUpAtclCmntId());
+                if (parentLv == null) {
+                    parentLv = 1;
+                }
+                atclCmntLv = parentLv + 1;
+
+                // 최대 3레벨 제한 (대댓글의 댓글까지)
+                if (atclCmntLv > 3) {
+                    throw new MediopiaDefineException("더 이상 답글을 작성할 수 없습니다.");
+                }
+            } else {
+                // 최상위 댓글은 부모 없음
+                vo.setUpAtclCmntId(null);
+            }
+
+            vo.setAtclCmntLv(atclCmntLv);   // int 그대로 세팅
+            vo.setAtclCmntId(IdGenUtil.genNewId(IdPrefixType.BBCMT));
 
             bbsCmntDAO.bbsAtclCmntRegist(vo);
         }

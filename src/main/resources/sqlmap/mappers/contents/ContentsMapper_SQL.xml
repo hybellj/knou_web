@@ -274,7 +274,7 @@
 					</if>
 	               ) AA
 	         ORDER BY LINE_NO
-	    <include refid="CommonSQL.pageSubfix"/>
+	    <include refid="CommonSQL.pageSuffix"/>
 	</select>
 	
 	<select id="countCntsUsage" parameterType="contentsVO" resultType="Integer">

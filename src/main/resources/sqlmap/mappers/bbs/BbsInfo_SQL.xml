@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="knou.lms.bbs.dao.BbsInfoDAO">
 
-	<select id="selectBbsInfo" parameterType="bbsInfoVO" resultType="bbsInfoVO">
+	<select id="selectBbsInfo" parameterType="bbsVO" resultType="bbsVO">
 		/*
              SQL ID : BbsInfoDAO.selectBbsInfo
              설  명 : 게시판 정보
@@ -65,6 +65,7 @@
 		    , (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE ORG_ID = A.ORG_ID AND UP_CD = 'BBS_TYCD' AND CD = A.BBS_TYCD) AS BBS_TYPE_NM
 		    , A.BBS_ADDYN
 		    , B.BBS_OPTNNM
+		    , A.USEYN
 		FROM TB_LMS_BBS A
 		LEFT JOIN (
 		    SELECT
@@ -106,7 +107,7 @@
 		</if> -->
 	</sql>
 
-	<select id="countBbsInfo" parameterType="bbsInfoVO" resultType="Integer">
+	<select id="countBbsInfo" parameterType="bbsVO" resultType="Integer">
 		/*
              SQL ID : BbsInfoDAO.countBbsInfo
              설  명 : 게시판 목록 수
@@ -116,7 +117,7 @@
 		) Z
 	</select>
 
-	<select id="listBbsInfo" parameterType="bbsInfoVO" resultType="bbsInfoVO">
+	<select id="listBbsInfo" parameterType="bbsVO" resultType="bbsVO">
 		/*
              SQL ID : BbsInfoDAO.listBbsInfo
              설  명 : 게시판 목록
@@ -124,17 +125,17 @@
 		<include refid="listQuery" />
 	</select>
 
-	<select id="listBbsInfoPaging" parameterType="bbsInfoVO" resultType="bbsInfoVO">
+	<select id="listBbsInfoPaging" parameterType="bbsVO" resultType="bbsVO">
 		/*
              SQL ID : BbsInfoDAO.listBbsInfoPaging
              설  명 : 게시판 목록 페이징
          */
 		<include refid="CommonSQL.pagePrefix" />
 		<include refid="listQuery" />
-		<include refid="CommonSQL.pageSubfix" />
+		<include refid="CommonSQL.pageSuffix" />
 	</select>
 
-	<insert id="insertBbsInfo" parameterType="bbsInfoVO">
+	<insert id="insertBbsInfo" parameterType="bbsVO">
 		/*
              SQL ID : BbsInfoDAO.insertBbsInfo
              설  명 : 게시판 정보 저장
@@ -232,7 +233,7 @@
 	        , RGTR_ID
 	        , REG_DTTM
 	    ) VALUES (
-	          #{bbsId}
+	          TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
 	        , #{orgId}
 	        , #{sbjctId}
 	        , #{bbsRefTypeId}
@@ -255,7 +256,7 @@
 	    )
 	</insert>
 
-	<update id="updateBbsInfo" parameterType="bbsInfoVO">
+	<update id="updateBbsInfo" parameterType="bbsVO">
 		/*
              SQL ID : BbsInfoDAO.updateBbsInfo
              설  명 : 게시판 수정
@@ -298,7 +299,7 @@
 		WHERE BBS_ID = #{bbsId}
 	</update>
 
-	<delete id="deleteBbsInfo" parameterType="bbsInfoVO">
+	<delete id="deleteBbsInfo" parameterType="bbsVO">
 		/*
              SQL ID : BbsInfoDAO.deleteBbsInfo
              설  명 : 게시판 삭제
@@ -307,7 +308,7 @@
 		WHERE BBS_ID = #{bbsId}
 	</delete>
 
-	<update id="updateBbsInfoStdViewYn" parameterType="bbsInfoVO">
+	<update id="updateBbsInfoStdViewYn" parameterType="bbsVO">
 		/*
              SQL ID : BbsInfoDAO.updateBbsInfoStdViewYn
              설  명 : 게시판 학생 공개 여부 수정
@@ -320,7 +321,7 @@
 		WHERE BBS_ID = #{bbsId}
 	</update>
 
-	<update id="updateBbsInfoUseYn" parameterType="bbsInfoVO">
+	<update id="updateBbsInfoUseYn" parameterType="bbsVO">
 		/*
              SQL ID : BbsInfoDAO.updateBbsInfoUseYn
              설  명 : 게시판 사용여부 수정
@@ -753,7 +754,7 @@
 		) A
 	</select>
 
-	<select id="listBbsInfoCouncelProf" parameterType="bbsInfoVO" resultType="egovMap">
+	<select id="listBbsInfoCouncelProf" parameterType="bbsVO" resultType="egovMap">
 		/*
              SQL ID : BbsInfoDAO.listBbsInfoCouncelProf
              설  명 : 게시판 상담교수 목록
@@ -775,7 +776,7 @@
 		  AND B.PROF_TYCD = 'PROFESSOR'
 	</select>
 
-	<select id="listBbsInfoDecls" parameterType="bbsInfoVO" resultType="egovMap">
+	<select id="listBbsInfoDecls" parameterType="bbsVO" resultType="egovMap">
 		/*
              SQL ID : BbsInfoDAO.listBbsInfoDecls
              설  명 : 게시판 분반 목록
@@ -843,7 +844,7 @@
 		ORDER BY A.ODR, A.DVCLAS_NO
 	</select>
 
-	<select id="listQnaSecretCountByLsnOdr" parameterType="bbsInfoVO" resultType="egovMap">
+	<select id="listQnaSecretCountByLsnOdr" parameterType="bbsVO" resultType="egovMap">
 		/*
              SQL ID : BbsInfoDAO.listQnaSecretCountByLsnOdr
              설  명 : 게시판 문의, 상담 현황 목록
@@ -922,7 +923,7 @@
 		ORDER BY A.GROUP_SEQ
 	</select>
 
-	<select id="listBbsInfoTeamCtgr" parameterType="bbsInfoVO" resultType="bbsInfoVO">
+	<select id="listBbsInfoTeamCtgr" parameterType="bbsVO" resultType="bbsVO">
 		/*
              SQL ID : BbsInfoDAO.listBbsInfoTeamCtgr
              설  명 : 게시판 팀 카테고리 목록
@@ -955,7 +956,7 @@
 	</if>
 	</select>
 
-	<select id="listTeamBbsId" parameterType="bbsInfoVO" resultType="bbsInfoVO">
+	<select id="listTeamBbsId" parameterType="bbsVO" resultType="bbsVO">
 		/*
              SQL ID : BbsInfoDAO.listTeamBbsId
              설  명 : 게시판 팀 목록
@@ -997,7 +998,7 @@
 		</where>
 	</select>
 
-	<select id="selectTeamBbsInfo" parameterType="bbsInfoVO" resultType="bbsInfoVO">
+	<select id="selectTeamBbsInfo" parameterType="bbsVO" resultType="bbsVO">
 		/*
              SQL ID : BbsInfoDAO.selectTeamBbsInfo
              설  명 : 팀 게시판 조회
@@ -1058,7 +1059,7 @@
 		)
 	</select>
 
-	<select id="selectBbsInfoByOldRegDttm" parameterType="bbsInfoVO" resultType="bbsInfoVO">
+	<select id="selectBbsInfoByOldRegDttm" parameterType="bbsVO" resultType="bbsVO">
 		/*
              SQL ID : BbsInfoDAO.selectBbsInfoByOldRegDttm
              	설  명 : 게시판 코드별 생성일 빠른 게시판 조회
@@ -1111,11 +1112,11 @@
 	<select id="selectBbs" parameterType="bbsVO" resultType="bbsVO">
 		/*
 			SQL ID : BbsDAO.selectBbs
-			설 명 : 게시판 정보 조회
+			설 명 : 게시판 정보 조회 대시보드
 		*/
 		SELECT
-			  A.BBS_ID
-			, A.ORG_ID
+			A.ORG_ID
+			, A.BBS_ID
 			, A.SBJCT_ID
 			, A.BBS_REF_TYPE_ID
 			, A.BBS_REF_TYCD
@@ -1131,15 +1132,13 @@
 			, A.ATFL_MAXSZ
 			, A.ATFL_USEYN
 			, A.BBS_WRITE_USEYN
-			, A.BBS_USEYN
 			, A.DELYN
 			, A.RGTR_ID
 			, A.REG_DTTM
 			, A.MDFR_ID
 			, A.MOD_DTTM
 			, A.USEYN
-			, MAX(CASE WHEN B.OPTN_CD = 'NTC' THEN 'Y' ELSE 'N' END) AS OPTN_CD_NTC
-			, MAX(CASE WHEN B.OPTN_CD = 'RSPNS' THEN 'Y' ELSE 'N' END) AS OPTN_CD_RSPNS
+			, MAX(CASE WHEN B.OPTN_CD = 'RSPNS' THEN 'Y' ELSE 'N' END) AS RSPNS_USEYN
 		FROM TB_LMS_BBS A
 		LEFT OUTER JOIN TB_LMS_BBS_OPTN B ON A.BBS_ID = B.BBS_ID
 		WHERE 1=1
@@ -1163,7 +1162,7 @@
 				   , A.ATFL_MAXSZ
 				   , A.ATFL_USEYN
 				   , A.BBS_WRITE_USEYN
-				   , A.BBS_USEYN
+				   , A.USEYN
 				   , A.DELYN
 				   , A.RGTR_ID
 				   , A.REG_DTTM
@@ -1174,8 +1173,8 @@
 
 	<select id="selectBbsLect" parameterType="bbsVO" resultType="bbsVO">
 		/*
-			SQL ID : BbsDAO.selectBbsLect
-			설 명 : 게시판 정보 조회
+			SQL ID : BbsInfoDAO.selectBbsLect
+			설 명 : 게시판 정보 조회 강의
 		*/
 		SELECT
 			  A.BBS_ID
@@ -1194,22 +1193,27 @@
 			, A.ATFL_MAX_CNT
 			, A.ATFL_MAXSZ
 			, A.ATFL_USEYN
+			, A.BBS_WRITE_USEYN
 			, A.DELYN
 			, A.RGTR_ID
 			, A.REG_DTTM
 			, A.MDFR_ID
 			, A.MOD_DTTM
 			, A.USEYN
-			, MAX(CASE WHEN B.OPTN_CD = 'NTC' THEN 'Y' ELSE 'N' END) AS OPTN_CD_NTC
-			, MAX(CASE WHEN B.OPTN_CD = 'RSPNS' THEN 'Y' ELSE 'N' END) AS OPTN_CD_RSPNS
+			, MAX(CASE WHEN B.OPTN_CD = 'RSPNS' THEN 'Y' ELSE 'N' END) AS RSPNS_USEYN
 		FROM TB_LMS_BBS A
-		LEFT OUTER JOIN TB_LMS_BBS_OPTN B ON A.BBS_ID = B.BBS_ID
+		LEFT JOIN TB_LMS_BBS_OPTN B ON A.BBS_ID = B.BBS_ID
 		WHERE 1=1
 			AND A.ORG_ID = #{orgId}
 			AND A.BBS_TYCD = #{bbsTycd}
-	        AND A.SBJCT_ID = #{sbjctId}
+			<if test="sbjctId != null and sbjctId != ''">
+	        	AND A.SBJCT_ID = #{sbjctId}
+	        </if>
 	        <if test="bbsId != null and bbsId != ''">
 	          	AND A.BBS_ID = #{bbsId}
+	        </if>
+	        <if test="bbsRefTycd != null and bbsRefTycd != ''">
+	          	AND A.BBS_REF_TYCD = #{bbsRefTycd}
 	        </if>
 	        <if test="bbsIdList != null and bbsIdList.size() > 0">
 		        AND A.BBS_ID NOT IN
@@ -1234,7 +1238,6 @@
 				   , A.ATFL_MAXSZ
 				   , A.ATFL_USEYN
 				   , A.BBS_WRITE_USEYN
-				   , A.BBS_USEYN
 				   , A.DELYN
 				   , A.RGTR_ID
 				   , A.REG_DTTM
@@ -1268,14 +1271,15 @@
 			, DELYN
 			, USEYN
 			, BBS_ADDYN
+			, BBS_WRITE_USEYN
 			, RGTR_ID
 			, REG_DTTM
 		) VALUES (
-			#{bbsId}
+			TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
 			, #{orgId}
 			, #{sbjctId}
 			, NULL
-			, NULL
+			, #{bbsRefTycd}
 			, #{bbsNm}
 			, #{bbsEnnm}
 			, #{bbsExpln}
@@ -1290,6 +1294,7 @@
 			, 'N'
 			, 'Y'
 			, 'N'
+			, 'Y'
 			, #{userId}
 	        , FN_DTTM()
 		)
@@ -1330,6 +1335,7 @@
 		WHERE 1=1
 			AND A.SBJCT_ID = #{sbjctId}
 			AND A.BBS_ADDYN = 'Y'
+			AND A.USEYN = 'Y'
 		ORDER BY A.BBS_ID
 	</select>
 
@@ -1340,7 +1346,7 @@
          */
 		<include refid="CommonSQL.pagePrefix" />
 		<include refid="listQuery" />
-		<include refid="CommonSQL.pageSubfix" />
+		<include refid="CommonSQL.pageSuffix" />
 	</select>
 
 	<insert id="bbsMngInfoRegist" parameterType="bbsVO">
@@ -1368,9 +1374,9 @@
 		        , #{atflMaxsz}     AS ATFL_MAXSZ
 		        , #{atflUseyn}     AS ATFL_USEYN
 		        , #{bbsWriteUseyn} AS BBS_WRITE_USEYN
-		        , #{bbsUseyn}      AS BBS_USEYN
 		        , 'N'              AS DELYN
 		        , 'Y'              AS BBS_ADDYN
+		        , #{useyn}         AS USEYN
 		        , #{rgtrId}        AS RGTR_ID
 		    FROM DUAL
 		) S
@@ -1393,9 +1399,9 @@
 		        , T.ATFL_MAXSZ      = S.ATFL_MAXSZ
 		        , T.ATFL_USEYN      = S.ATFL_USEYN
 		        , T.BBS_WRITE_USEYN = S.BBS_WRITE_USEYN
-		        , T.BBS_USEYN       = S.BBS_USEYN
 		        , T.DELYN           = S.DELYN
 		        , T.BBS_ADDYN       = S.BBS_ADDYN
+		        , T.USEYN           = S.USEYN
 		        , T.MDFR_ID         = S.RGTR_ID
 		        , T.MOD_DTTM        = FN_DTTM()
 		WHEN NOT MATCHED THEN
@@ -1403,12 +1409,12 @@
 		          BBS_ID, ORG_ID, SBJCT_ID, BBS_REF_TYPE_ID, BBS_REF_TYCD
 		        , BBSNM, BBS_ENNM, BBS_EXPLN, BBS_TYCD, BBS_LANG_CD
 		        , MENU_ID, MN_IMG_FILE_ID, LIST_CNT, ATFL_MAX_CNT, ATFL_MAXSZ
-		        , ATFL_USEYN, BBS_WRITE_USEYN, BBS_USEYN, DELYN, BBS_ADDYN, RGTR_ID, REG_DTTM
+		        , ATFL_USEYN, BBS_WRITE_USEYN, DELYN, BBS_ADDYN, USEYN, RGTR_ID, REG_DTTM
 		    ) VALUES (
 		          S.BBS_ID, S.ORG_ID, S.SBJCT_ID, S.BBS_REF_TYPE_ID, S.BBS_REF_TYCD
 		        , S.BBSNM, S.BBS_ENNM, S.BBS_EXPLN, S.BBS_TYCD, S.BBS_LANG_CD
 		        , S.MENU_ID, S.MN_IMG_FILE_ID, S.LIST_CNT, S.ATFL_MAX_CNT, S.ATFL_MAXSZ
-		        , S.ATFL_USEYN, S.BBS_WRITE_USEYN, S.BBS_USEYN, S.DELYN, S.BBS_ADDYN, S.RGTR_ID, FN_DTTM()
+		        , S.ATFL_USEYN, S.BBS_WRITE_USEYN, S.DELYN, S.BBS_ADDYN, 'Y', S.RGTR_ID, FN_DTTM()
 		    )
 	</insert>
 
@@ -1417,23 +1423,6 @@
              SQL ID : BbsInfoDAO.bbsMngInfoOptnRegist
              설  명 : 게시판 정보 저장
          */
-		<!-- INSERT INTO TB_LMS_BBS_OPTN (
-			BBS_OPTN_ID
-			, BBS_ID
-			, OPTN_CD
-			, OPTNNM
-			, OPTN_USEYN
-			, RGTR_ID
-			, REG_DTTM
-		) VALUES(
-			#{bbsOptnId}
-			, #{bbsId}
-			, #{optnCd}
-			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'BBS_NTC_OPTN_TYCD' AND CD = #{optnCd})
-			, 'Y'
-			, #{userId}
-			, FN_DTTM()
-		) -->
 		MERGE INTO TB_LMS_BBS_OPTN T
 		USING (
 		    SELECT
@@ -1499,5 +1488,152 @@
 		 WHERE ORG_ID = #{orgId}
 		   AND SBJCT_ID = #{sbjctId}
 		   AND BBS_TYCD = #{bbsTycd}
+		   AND BBS_ID = #{bbsId}
 	</select>
+
+	<update id="modifyBbsUseyn" parameterType="bbsVO">
+        /*
+            SQL ID : BbsInfoDAO.modifyBbsUseyn
+            설명 : 게시판 사용여부
+        */
+        UPDATE TB_LMS_BBS
+        SET USEYN = #{useyn}
+          , MDFR_ID = NVL(#{mdfrId}, #{rgtrId})
+          , MOD_DTTM = FN_DTTM()
+        WHERE BBS_ID = #{bbsId}
+          AND DELYN = 'N'
+    </update>
+
+    <delete id="bbsMngInfoOptnDelete" parameterType="bbsVO">
+		/*
+             SQL ID : BbsInfoDAO.bbsMngInfoOptnDelete
+             설  명 : 게시판 정보 > 게시판 옵션 삭제
+         */
+		DELETE FROM TB_LMS_BBS_OPTN
+		WHERE BBS_ID = #{bbsId}
+	</delete>
+
+	<select id="listTeamGrp" parameterType="bbsVO" resultType="bbsVO">
+		/*
+             SQL ID : BbsInfoDAO.listLrnGrp
+             설  명 : 학습그룹 목록 조회
+         */
+		WITH SBJCT_USER AS (
+			SELECT
+				SBJCT_ID,
+				USER_ID
+			  FROM TB_LMS_ATNDLC
+			 WHERE AUDITYN = 'N'
+			   AND ATNDLC_STSCD = 'APPROVE'
+		), CMPTNY_TEAM_GRP AS (
+			SELECT
+				TEAM_GRP_ID
+			  FROM TB_LMS_TEAM
+			 GROUP BY TEAM_GRP_ID
+			 HAVING MIN(TEAM_CPST_CMPTNYN) = 'Y'
+			   AND MAX(TEAM_CPST_CMPTNYN) = 'Y'
+		)
+		SELECT
+			  TEAM_GRP.TEAM_GRP_ID
+			, TEAM_GRP.TEAM_GRPNM
+			, TEAM_GRP.SBJCT_ID
+		FROM TB_LMS_TEAM_GRP TEAM_GRP
+		WHERE 1=1
+		  AND TEAM_GRP.DELYN = 'N'
+		  AND TEAM_GRP.USEYN = 'Y'
+		AND (SELECT COUNT(USER_ID) FROM SBJCT_USER WHERE SBJCT_ID = TEAM_GRP.SBJCT_ID)
+			= (SELECT COUNT(TEAM_MBR.USER_ID) FROM TB_LMS_TEAM_MBR TEAM_MBR JOIN TB_LMS_TEAM TEAM ON TEAM_MBR.TEAM_ID = TEAM.TEAM_ID WHERE TEAM.TEAM_GRP_ID = TEAM_GRP.TEAM_GRP_ID)
+		AND TEAM_GRP.TEAM_GRP_ID IN (SELECT TEAM_GRP_ID FROM CMPTNY_TEAM_GRP)
+	</select>
+
+	<select id="listLrnTeam" parameterType="bbsVO" resultType="bbsVO">
+		/*
+             SQL ID : BbsInfoDAO.listLrnTeam
+             설  명 : 학습그룹 팀 목록 조회
+         */
+		SELECT
+			  TEAM_ID AS LRN_TEAM_ID
+			, TEAM_GRP_ID
+			, TEAMNM AS LRN_TEAMNM
+		FROM TB_LMS_TEAM
+	</select>
+
+	<select id="listLrnElemtList" parameterType="bbsVO" resultType="bbsVO">
+		/*
+             SQL ID : BbsInfoDAO.listLrnElemtList
+             설  명 : 과제 목록 조회
+         */
+         SELECT
+			CD AS LRN_ELEMT_ID
+			, CDNM AS LRN_ELEMTNM
+		  FROM TB_LMS_CMMN_CD
+		 WHERE UP_CD = 'EVL_ITM_TYCD'
+	</select>
+
+	<select id="listWkno" parameterType="bbsAtclVO" resultType="bbsAtclVO">
+		/*
+             SQL ID : BbsInfoDAO.listWkno
+             설  명 : 주차 목록 조회
+         */
+         SELECT
+			LCTR_WKNO_SCHDL_ID
+			, LCTR_WKNONM
+		  FROM TB_LMS_LCTR_WKNO_SCHDL
+		 WHERE SBJCT_ID = #{sbjctId}
+	</select>
+
+	<select id="selectBbsOrgList" parameterType="bbsVO" resultType="bbsVO">
+        SELECT DISTINCT
+              O.ORG_ID AS orgId
+            , O.ORGNM AS orgnm
+        <include refid="clsListVisibleFrom"/>
+        JOIN TB_LMS_ORG O
+          ON O.ORG_ID = SC.ORG_ID
+        WHERE NVL(A.DELYN,'N') = 'N'
+          AND A.SBJCT_YR = #{searchYr}
+        ORDER BY O.ORGNM
+    </select>
+
+        <select id="selectBbsTermList" parameterType="bbsVO" resultType="bbsVO">
+        SELECT
+              SC.DGRS_SMSTR_CHRT AS dgrsSmstrChrt
+            , MAX(SC.SMSTR_CHRTNM) AS smstrChrtnm
+        <include refid="clsListVisibleFrom"/>
+        WHERE NVL(A.DELYN,'N') = 'N'
+          AND A.SBJCT_YR = #{searchYr}
+        GROUP BY SC.DGRS_SMSTR_CHRT
+        ORDER BY SC.DGRS_SMSTR_CHRT DESC
+    </select>
+
+    <select id="selectBbsSubjectList" parameterType="bbsVO" resultType="bbsVO">
+        SELECT
+        A.SBJCT_ID AS sbjctId
+        , A.SBJCTNM AS sbjctnm
+        , A.CRCLMN_NO AS crclmnNo
+        , A.DVCLAS_NO AS dvclasNo
+        <include refid="clsListVisibleFrom"/>
+        <include refid="clsListVisibleWhere"/>
+        ORDER BY A.SBJCTNM ASC, A.DVCLAS_NO ASC
+    </select>
+
+    <sql id="clsListVisibleFrom">
+        FROM TB_LMS_SBJCT A
+          JOIN TB_LMS_SBJCT_ADM ADM
+            ON ADM.SBJCT_ID = A.SBJCT_ID
+           AND ADM.USER_ID = #{userId}
+           AND ADM.SBJCT_ADM_TYCD = 'PROF'
+          JOIN TB_LMS_SMSTR_CHRT SC
+            ON SC.SMSTR_CHRT_ID = A.SMSTR_CHRT_ID
+    </sql>
+
+        <sql id="clsListVisibleWhere">
+        WHERE NVL(A.DELYN,'N') = 'N'
+        AND A.SBJCT_YR = #{searchYr}
+        <if test="searchSmstrCd != null and searchSmstrCd != ''">
+            AND SC.DGRS_SMSTR_CHRT = #{searchSmstrCd}
+        </if>
+        <if test="searchOrgId != null and searchOrgId != ''">
+            AND SC.ORG_ID = #{searchOrgId}
+        </if>
+    </sql>
 </mapper>

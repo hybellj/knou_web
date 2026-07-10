@@ -13,7 +13,7 @@ public class ExamBscVO extends DefaultVO {
     private String 	lctrWknoSchdlId;			// 강의주차일정아이디
     private String 	examGrpId;					// 시험그룹아이디
     private String 	examTycd;					// 시험유형코드 ( EXAM : 시험, QUIZ : 퀴즈 )
-    private String 	examGbncd;					// 시험구분코드 ( EXAM_MID : 중간고사, EXAM_LST : 기말고사, QUIZ : 퀴즈, QUIZ_TEAM : 퀴즈 팀, QUIZ_EXAM_MID : 퀴즈 중간고사, QUIZ_EXAM_LST : 퀴즈 기말고사, QUIZ_SBST_EXAM_MID : 퀴즈 중간고사 대체, QUIZ_SBST_EXAM_LST : 퀴즈 기말고사 대체 )
+    private String 	examGbncd;					// 시험구분코드 ( EXAM_MID : 중간고사, EXAM_LST : 기말고사, QUIZ : 퀴즈, QUIZ_TEAM : 퀴즈 팀, QUIZ_EXAM_MID : 퀴즈 중간고사, QUIZ_EXAM_LST : 퀴즈 기말고사, EXAM_MID_SBST_QUIZ : 중간고사 대체 퀴즈, EXAM_LST_SBST_QUIZ : 기말고사 대체 퀴즈 )
     private String 	examTtl;					// 시험제목
     private String 	examCts;					// 시험내용
     private String 	tkexamMthdCd;				// 시험응시방법코드 ( OFLN : 오프라인시험, ONLN : 온라인시험, RLTM : 실시간시험, ETC : 기타 )
@@ -21,7 +21,7 @@ public class ExamBscVO extends DefaultVO {
     private String 	exampprOyn;					// 시험지공개여부
     private String 	avgMrkOyn;					// 평균성적공개여부
     private String 	mrkOpenSdttm;				// 성적공개시작일시
-    private String 	pushNotiyn;					// 푸시알림여부
+    private String 	pushAlimyn;					// 푸시알림여부
     private String 	secCertCd;					// SEC인증코드
     private String 	imdtAnswShtInqyn;			// 즉시답안조회여부
     private Integer maxTkexamCnt;				// 최대응시횟수
@@ -39,7 +39,7 @@ public class ExamBscVO extends DefaultVO {
     private Integer	mrkRfltrt;					// 성적반영비율
     private String 	examtmAllocGbncd;			// 시험시간배정구분코드 ( REMAINDER : 남은시간배정, WHOLE : 전체시간배정 )
     private String 	examtmExpsrTycd;			// 시험시간노출유형코드 ( LEFT : 왼쪽, TOP : 상단, BOTTOM : 하단, RIGHT : 오른쪽, PRGR_BAR : 프로그레스바 )
-    private String  lrnGrpSubasmtStngyn;		// 학습그룹부과제설정여부
+    private String  teamGrpSubasmtStngyn;		// 학습그룹부과제설정여부
 
     private String  examGbnnm;					// 시험구분코드명
     private Integer examExamneeCnt;				// 시험응시자수
@@ -52,12 +52,10 @@ public class ExamBscVO extends DefaultVO {
     private String  parExamPsblEdttm;			// 상위시험 종료일시
     private String  sbjctnm;					// 과목명
     private String  dvclasNo;					// 분반번호
-    private List<String> sbjctIds;     			// 분반 같이 등록용 과목아이디 목록
-    private List<String> lrnGrpIds;				// 팀 퀴즈 등록용 학습그룹아이디:개설과목아이디 목록
-    private List<String> lrnGrpSubasmtStngyns;	// 학습그룹부과제설정여부용 여부:개설과목아이디 목록
-    private String  lrnGrpId;					// 학습그룹아이디
-    private String  lrnGrpnm;					// 학습그룹명
     private String  byteamSubrexamUseyn;        // 팀시험여부
+    private String  teamGrpId;					// 팀그룹아이디
+    private String  teamGrpnm;					// 팀그룹명
+    private List<String> teamGrpIds;			// 팀 퀴즈 등록용 팀그룹아이디:개설과목아이디 목록
 
     private ExamDtlVO examDtlVO;				// 시험상세정보VO
 
@@ -109,8 +107,8 @@ public class ExamBscVO extends DefaultVO {
 		return mrkOpenSdttm;
 	}
 
-	public String getPushNotiyn() {
-		return pushNotiyn;
+	public String getPushAlimyn() {
+		return pushAlimyn;
 	}
 
 	public String getSecCertCd() {
@@ -225,10 +223,6 @@ public class ExamBscVO extends DefaultVO {
 		return dvclasNo;
 	}
 
-	public List<String> getSbjctIds() {
-		return sbjctIds;
-	}
-
 	public ExamDtlVO getExamDtlVO() {
 		return examDtlVO;
 	}
@@ -281,8 +275,8 @@ public class ExamBscVO extends DefaultVO {
 		this.mrkOpenSdttm = mrkOpenSdttm;
 	}
 
-	public void setPushNotiyn(String pushNotiyn) {
-		this.pushNotiyn = pushNotiyn;
+	public void setPushAlimyn(String pushAlimyn) {
+		this.pushAlimyn = pushAlimyn;
 	}
 
 	public void setSecCertCd(String secCertCd) {
@@ -397,52 +391,16 @@ public class ExamBscVO extends DefaultVO {
 		this.dvclasNo = dvclasNo;
 	}
 
-	public void setSbjctIds(List<String> sbjctIds) {
-		this.sbjctIds = sbjctIds;
-	}
-
 	public void setExamDtlVO(ExamDtlVO examDtlVO) {
 		this.examDtlVO = examDtlVO;
 	}
 
-	public List<String> getLrnGrpIds() {
-		return lrnGrpIds;
+	public String getTeamGrpSubasmtStngyn() {
+		return teamGrpSubasmtStngyn;
 	}
 
-	public void setLrnGrpIds(List<String> lrnGrpIds) {
-		this.lrnGrpIds = lrnGrpIds;
-	}
-
-	public String getLrnGrpId() {
-		return lrnGrpId;
-	}
-
-	public String getLrnGrpnm() {
-		return lrnGrpnm;
-	}
-
-	public void setLrnGrpId(String lrnGrpId) {
-		this.lrnGrpId = lrnGrpId;
-	}
-
-	public void setLrnGrpnm(String lrnGrpnm) {
-		this.lrnGrpnm = lrnGrpnm;
-	}
-
-	public String getLrnGrpSubasmtStngyn() {
-		return lrnGrpSubasmtStngyn;
-	}
-
-	public void setLrnGrpSubasmtStngyn(String lrnGrpSubasmtStngyn) {
-		this.lrnGrpSubasmtStngyn = lrnGrpSubasmtStngyn;
-	}
-
-	public List<String> getLrnGrpSubasmtStngyns() {
-		return lrnGrpSubasmtStngyns;
-	}
-
-	public void setLrnGrpSubasmtStngyns(List<String> lrnGrpSubasmtStngyns) {
-		this.lrnGrpSubasmtStngyns = lrnGrpSubasmtStngyns;
+	public void setTeamGrpSubasmtStngyn(String teamGrpSubasmtStngyn) {
+		this.teamGrpSubasmtStngyn = teamGrpSubasmtStngyn;
 	}
 
     public String getByteamSubrexamUseyn() {
@@ -451,4 +409,28 @@ public class ExamBscVO extends DefaultVO {
     public void setByteamSubrexamUseyn(String byteamSubrexamUseyn) {
         this.byteamSubrexamUseyn = byteamSubrexamUseyn;
     }
+
+	public String getTeamGrpId() {
+		return teamGrpId;
+	}
+
+	public String getTeamGrpnm() {
+		return teamGrpnm;
+	}
+
+	public List<String> getTeamGrpIds() {
+		return teamGrpIds;
+	}
+
+	public void setTeamGrpId(String teamGrpId) {
+		this.teamGrpId = teamGrpId;
+	}
+
+	public void setTeamGrpnm(String teamGrpnm) {
+		this.teamGrpnm = teamGrpnm;
+	}
+
+	public void setTeamGrpIds(List<String> teamGrpIds) {
+		this.teamGrpIds = teamGrpIds;
+	}
 }

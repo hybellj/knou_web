@@ -1,24 +1,24 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="../common/common_inc.jsp" %><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+	<jsp:include page="../common/common_head.jsp">
 		<jsp:param name="style" value="dashboard"/>
 	</jsp:include>
 </head>
 
-<body class="home colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="home "><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
-        <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
+        <jsp:include page="../common/home_header.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
         <!-- //common header -->
 
         <!-- dashboard -->
         <main class="common">
 
             <!-- gnb -->
-			<jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
+			<jsp:include page="../common/home_gnb_prof.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
             <!-- //gnb -->
 
             <!-- content -->
@@ -55,25 +55,19 @@
                         <!-- search typeA -->
                         <div class="search-typeA">
                             <div class="item">
-                                <span class="item_tit"><label for="selectDate">학사년도/학기</label></span>
+                                <span class="item_tit"><label for="selectDate">기관/학기</label></span>
                                 <div class="itemList">
-                                    <select class="form-select" id="selectDate1">
-                                        <option value="2025년">2025년</option>
-                                        <option value="2024년">2024년</option>
+                                    <select class="form-select chosen" id="selectDate1">
+                                        <option value="전체">전체</option>
                                     </select>
-                                    <select class="form-select" id="selectDate2">
-                                        <option value="2학기">2학기</option>
-                                        <option value="1학기">1학기</option>
+                                    <select class="form-select chosen" id="selectDate2">
+                                        <option value="년도/학기">년도/학기</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="item">
                                 <span class="item_tit"><label for="selectCourse">운영과목</label></span>
                                 <div class="itemList">
-                                    <select class="form-select" id="selectCourse">
-                                        <option value="대학원">대학원</option>
-                                        <option value="평생교육">평생교육</option>
-                                    </select>
                                     <select class="form-select wide" id="selectSubject">
                                         <option value="">운영과목 선택</option>
                                         <option value="운영과목1">운영과목1</option>
@@ -552,7 +546,7 @@
 
 
             <!-- common footer -->
-            <jsp:include page="/WEB-INF/jsp/common_new/home_footer.jsp"/>
+            <jsp:include page="../common/home_footer.jsp"/>
             <!-- //common footer -->
 
         </main>

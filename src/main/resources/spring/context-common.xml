@@ -3,7 +3,7 @@
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
-        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd 
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd">
 
     <context:component-scan base-package="knou">
@@ -15,16 +15,20 @@
 		<property name="basenames">
 			<list>
 				<value>classpath:/config/server</value>
-				
-				<value>classpath:/message/message-asmnt</value>
+
+				<value>classpath:/message/message-asmnt</value><!--구 과제(제거예정)-->
+				<value>classpath:/message/message-asmt</value>
 				<value>classpath:/message/message-bbs</value>
 				<value>classpath:/message/message-button</value>
 				<value>classpath:/message/message-common</value>
 				<value>classpath:/message/message-contents</value>
-				<value>classpath:/message/message-crs</value>
+                <value>classpath:/message/message-crs</value>
+                <value>classpath:/message/message-cls</value>
 				<value>classpath:/message/message-exam</value>
+				<value>classpath:/message/message-quiz</value>
 				<value>classpath:/message/message-file</value>
 				<value>classpath:/message/message-forum</value>
+				<value>classpath:/message/message-srvy</value>
 				<value>classpath:/message/message-resh</value>
 				<value>classpath:/message/message-team</value>
 				<value>classpath:/message/message-dashboard</value>
@@ -42,13 +46,13 @@
 		</property>
 		<property name="cacheSeconds" value="60"/>
 	</bean>
-	
+
 	<!-- ============================================================= FileDownload through customView-->
-	<bean id="fileDownloadView" class="knou.lms.common.web.view.FileDownloadView" />	
-	
+	<bean id="fileDownloadView" class="knou.lms.common.web.view.FileDownloadView" />
+
 	<!-- ============================================================= Mimetype file through customView -->
 	<bean id="fileMimetypeView" class="knou.lms.common.web.view.FileMimeView" />
-		    	
+
 	<bean id="leaveaTrace" class="org.egovframe.rte.fdl.cmmn.trace.LeaveaTrace">
 		<property name="traceHandlerServices">
 			<list>
@@ -70,8 +74,8 @@
 			</list>
 		</property>
 	</bean>
-	
+
 	<bean id="antPathMater" class="org.springframework.util.AntPathMatcher" />
 	<bean id="defaultTraceHandler" class="org.egovframe.rte.fdl.cmmn.trace.handler.DefaultTraceHandler" />
-		
+
 </beans>

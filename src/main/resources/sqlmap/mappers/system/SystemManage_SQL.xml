@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.system.manage.dao.SystemManageDAO">
+
+	<sql id="listQuery">
+		SELECT
+			ROW_NUMBER() OVER(ORDER BY TO_DATE(A.REG_DTTM, 'YYYYMMDDHH24MISS') DESC)	AS "LINE_NO"		/* Row Number */
+			, D.ORGNM 																	AS "ORGNM"			/* 기관 I */
+			, B.ORG_ID 																	AS "ORG_ID"			/* 기관 I ID (HIDDEN) */
+			, C.DEPTNM 																	AS "DEPTNM"			/* 학과 I */
+			, B.DEPT_ID																	AS "DEPT_ID"		/* 학과 I ID (HIDDEN) */
+		    , SMSTR.SMSTR_CHRT_ID                                                                           /* 학기/기수 ID */
+		    , SMSTR.DGRS_YR                                                                                 /* 학위연도 */
+		    , SMSTR.DGRS_SMSTR_CHRT                                                                         /* 학기/기수 */
+            , SBJ.SBJCTNM || ' (' || SBJ.DVCLAS_NO || '반)' AS SBJCTNM
+			, TO_CHAR(TO_DATE(A.REG_DTTM, 'YYYYMMDDHH24MISS'), 'YYYY.MM.DD HH24:MI')	AS "REG_DTTM"		/* 일시 */
+			, B.STDNT_NO																AS "STDNT_NO"		/* 학번/사번 */
+			, B.USERNM 																	AS "USERNM"			/* 등록자 명 */
+			, A.RGTR_ID 																AS "RGTR_ID"		/* 등록자 ID (HIDDEN) */
+			, A.SYS_ERR_PAGENM 															AS "SYS_ERR_PAGENM"	/* 오류페이지 */
+			, A.SYS_ERR_MSG_ID															AS "SYS_ERR_MSG_ID"	/* 에러메시지 ID (HIDDEN) */
+		FROM
+			TB_LMS_SYS_ERR_MSG A
+			JOIN TB_LMS_USER B 				ON A.RGTR_ID = B.USER_ID
+			JOIN TB_LMS_DEPT C				ON B.DEPT_ID = C.DEPT_ID 
+			JOIN TB_LMS_ORG  D				ON B.ORG_ID = D.ORG_ID
+		    JOIN TB_LMS_SBJCT SBJ			ON A.SBJCT_ID = SBJ.SBJCT_ID
+	        JOIN TB_LMS_SMSTR_CHRT SMSTR	ON SBJ.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+		WHERE
+			1=1		
+		<if test="orgId != null and orgId != ''" >
+			AND B.ORG_ID = #{orgId}
+		</if>
+		<if test="deptId != null and deptId != ''" >
+			AND B.DEPT_ID = #{deptId}
+		</if>
+		<if test="stdntNo != null and stdntNo != ''" >
+			AND B.STDNT_NO = #{stdntNo}
+		</if>
+		<if test="dgrsYr != null and dgrsYr != ''">
+            AND SMSTR.DGRS_YR = #{dgrsYr}
+        </if>
+        <if test="dgrsSmstrChrt != null and dgrsSmstrChrt != ''">
+            AND SMSTR.DGRS_SMSTR_CHRT = #{dgrsSmstrChrt}
+        </if>
+		<if test="usernm != null and usernm != ''" >
+			AND B.USERNM LIKE '%' || #{usernm} || '%'
+		</if>
+		<if test="searchFrom != null and searchFrom !=''">
+            <![CDATA[
+            AND #{searchFrom} < A.REG_DTTM
+            ]]>
+        </if>
+        <if test="searchTo != null and searchTo !=''">
+            <![CDATA[
+            AND A.REG_DTTM < #{searchTo}
+            ]]>
+        </if>
+		<if test="searchValue != null and searchValue !=''">
+            AND (B.USERNM LIKE '%'||#{searchValue}||'%'	OR SBJ.SBJCTNM LIKE '%'||#{searchValue}||'%' )
+        </if>
+	</sql>
+	
+	<sql id="listQuerySYSERR">
+        SELECT	SE.*
+            , ROW_NUMBER() OVER(ORDER BY TO_DATE(SE.REG_DTTM, 'YYYYMMDDHH24MISS') DESC)	AS "LINE_NO"		/* Row Number */
+            , O.ORGNM
+            , O.ORG_ID
+            , D.DEPTNM
+            , U.DEPT_ID
+            , SMSTR.SMSTR_CHRT_ID
+            , SMSTR.DGRS_YR
+            , SMSTR.DGRS_SMSTR_CHRT
+            , CASE WHEN S.SBJCTNM IS NOT NULL THEN S.SBJCTNM || ' (' || S.DVCLAS_NO || '반)' END AS SBJCTNM
+            , STD.STDNT_NO
+            , U.USERNM
+        FROM TB_LMS_SYS_ERR SE
+        JOIN TB_LMS_USER U 				ON SE.RGTR_ID = U.USER_ID
+        LEFT JOIN TB_LMS_SBJCT S		ON SE.SBJCT_ID = S.SBJCT_ID
+        LEFT JOIN TB_LMS_DEPT D				ON S.DEPT_ID = D.DEPT_ID
+        LEFT JOIN TB_LMS_SMSTR_CHRT SMSTR	ON S.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+        LEFT JOIN TB_LMS_ORG  O				ON SMSTR.ORG_ID = O.ORG_ID
+        --    학생
+        LEFT JOIN TB_LMS_ATNDLC STD ON U.USER_ID = STD.USER_ID AND S.SBJCT_ID = STD.SBJCT_ID
+        --    교사
+        LEFT JOIN TB_LMS_SBJCT_ADM PROF ON U.USER_ID = PROF.USER_ID AND S.SBJCT_ID = PROF.SBJCT_ID
+		WHERE
+			1 = 1		
+		<if test="orgId != null and orgId != ''" >
+			AND O.ORG_ID = #{orgId}
+		</if>
+		<if test="deptId != null and deptId != ''" >
+			AND S.DEPT_ID = #{deptId}
+		</if>
+		<if test="stdntNo != null and stdntNo != ''" >
+			AND STD.STDNT_NO LIKE '%'|| #{stdntNo} ||'%'
+		</if>
+		<if test="dgrsYr != null and dgrsYr != ''">
+            AND SMSTR.DGRS_YR = #{dgrsYr}
+        </if>
+        <if test="dgrsSmstrChrt != null and dgrsSmstrChrt != ''">
+            AND SMSTR.DGRS_SMSTR_CHRT = #{dgrsSmstrChrt}
+        </if>
+		<if test="usernm != null and usernm != ''" >
+			AND U.USERNM LIKE '%' || #{usernm} || '%'
+		</if>
+		<if test="searchFrom != null and searchFrom !=''">
+            <![CDATA[
+            AND #{searchFrom} < SE.REG_DTTM
+            ]]>
+        </if>
+        <if test="searchTo != null and searchTo !=''">
+            <![CDATA[
+            AND SE.REG_DTTM < #{searchTo}
+            ]]>
+        </if>
+		<if test="searchValue != null and searchValue !=''">
+            AND ( U.USERNM LIKE '%'||#{searchValue}||'%' OR S.SBJCTNM LIKE '%'||#{searchValue}||'%' )
+        </if>
+	</sql>		
+	
+	<select id="admExceptionCnt" parameterType="pageInfo" resultType="Integer">
+		/*	설명 : 관리자오류수 	*/		
+		SELECT	COUNT(1) AS TOTAL_CNT
+		FROM
+			(<include refid="listQuerySYSERR"/>) Z
+	</select>
+
+	<select id="admExceptionListPaging" parameterType="pageInfo" resultType="egovMap">
+		/*	설명 	: 관리자오류목록조회페이징  */		
+		<include refid="CommonSQL.pagePrefix2" />
+		<include refid="listQuerySYSERR"/>
+		<include refid="CommonSQL.pageSuffix2" />
+	</select>
+	
+	<!-- 관리자오류현황상세 -->
+	<select id="admExceptionDtl" parameterType="sysErrVO" resultType="sysErrVO">
+		/*	설명 : 시스템 오류현황 상세 조회	*/
+		SELECT	*
+		FROM	TB_LMS_SYS_ERR SE
+		WHERE	1 = 1
+				AND 	SE.SYS_ERR_ID = #{sysErrId}
+	</select>	
+	
+
+	<select id="exceptionList" parameterType="sysMgrErrVO" resultType="sysMgrErrVO">	
+		/*	설명 : 오류목록조회 	*/		
+		<include refid="listQuerySYSERR"/>		
+	</select>
+	
+</mapper>

@@ -1,38 +1,30 @@
 package knou.lms.smnr.pltfrm.dao;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Param;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import knou.lms.smnr.pltfrm.vo.OnlnPltfrmAuthrtVO;
+import knou.lms.smnr.pltfrm.vo.OnlnPltfrmStngVO;
 
 @Mapper("onlnPltfrmAuthrtDAO")
 public interface OnlnPltfrmAuthrtDAO {
 
-	/**
-	 * 온라인플랫폼권한조회
-	 *
-	 * @param onlnPltfrmStngId 	온라인플랫폼설정아이디
-	 * @return OnlnPltfrmAuthrtVO
-	 * @throws Exception
-	 */
-	public OnlnPltfrmAuthrtVO onlnPltfrmAuthrtSelect(@Param("onlnPltfrmStngId") String onlnPltfrmStngId) throws Exception;
+	// 온라인플랫폼권한조회
+	public OnlnPltfrmAuthrtVO onlnPltfrmAuthrtSelect(@Param("onlnPltfrmStngId") String onlnPltfrmStngId);
 
-	/**
-	 * 온라인플랫폼권한아이디조회
-	 *
-	 * @param onlnPltfrmStngId 	온라인플랫폼설정아이디
-	 * @param authrtEml 			권한이메일
-	 * @return String
-	 * @throws Exception
-	 */
-	public String onlnPltfrmAuthrtIdSelect(@Param("onlnPltfrmStngId") String onlnPltfrmStngId, @Param("authrtEml") String authrtEml) throws Exception;
+	// 온라인플랫폼권한아이디조회
+	public String onlnPltfrmAuthrtIdSelect(@Param("onlnPltfrmStngId") String onlnPltfrmStngId, @Param("authrtEml") String authrtEml);
 
-	/**
-	 * 온라인플랫폼권한등록
-	 *
-	 * @param OnlnPltfrmAuthrtVO
-	 * @throws Exception
-	 */
-	public void onlnPltfrmAuthrtRegist(OnlnPltfrmAuthrtVO vo) throws Exception;
+	// 온라인플랫폼권한등록
+	public void onlnPltfrmAuthrtRegist(OnlnPltfrmAuthrtVO vo);
+
+	// 온라인플랫폼권한목록
+	public List<EgovMap> onlnPltfrmAuthrtList(OnlnPltfrmStngVO vo);
+
+	// 온라인플랫폼권한일괄삭제
+	public void onlnPltfrmAuthrtBulkDelete(@Param("onlnPltfrmStngId") String onlnPltfrmStngId);
 
 }

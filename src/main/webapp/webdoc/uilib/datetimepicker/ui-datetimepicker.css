@@ -8,6 +8,7 @@
 
 .ui-datepicker {
     width: 15em;
+    z-index: 100 !important;
 }
 .ui-datepicker th {
     padding: .5em .3em;

@@ -7,7 +7,6 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang.SerializationUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -17,236 +16,22 @@ import knou.framework.util.SessionUtil;
 import knou.framework.util.StringUtil;
 import knou.lms.bbs.service.BbsInfoService;
 import knou.lms.bbs.vo.BbsVO;
-import knou.lms.crs.home.service.CrsHomeMenuService;
-import knou.lms.crs.home.vo.CrsHomeBbsMenuVO;
-import knou.lms.crs.home.vo.CrsHomeMenuVO;
 import knou.lms.menu.service.SysMenuService;
-import knou.lms.menu.vo.MenuUseOrgVO;
 import knou.lms.menu.vo.MenuVO;
-import knou.lms.menu.vo.SysMenuVO;
 
 /**
  * 메뉴 정보
  */
 public class MenuInfo {
 
-    private static HashMap<String, SysMenuVO> MENU_MAP = null;
-
-    // 새버전 메뉴 정보 맵
     private static Map<String, List<MenuVO>> MENU_INFO_MAP = null;
+    private static Map<String, MenuVO> MENU_BASE_MAP = null;
     private static String BBS_SBJCT_MENU = "/bbs/bbsLect/bbsAtclListView.do";
 
     public static HashMap<String, Integer> COURSE_BBS_VERSION_MAP = null;
     public static String COURSE_BBS_SID_PREFIX = "MNBBS:";
 
-    /**
-     * 메뉴 정보 가져오기  ----- 삭제예정
-     * @param request
-     * @param sysMenuVO
-     * @return
-     * @throws Exception
-     */
-    public static SysMenuVO getMenuInfo(HttpServletRequest request, SysMenuVO sysMenuVO) throws Exception {
-
-    	String authrtGrpcd = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-    	String orgId = sysMenuVO.getOrgId();
-        if ("".equals(StringUtil.nvl(orgId))) {
-        	orgId = "LMSBASIC";
-        }
-
-        String menuKey = orgId+":"+sysMenuVO.getAuthrtGrpcd()+":"+SessionInfo.getLocaleKey(request);
-        SysMenuVO menuInfo = null;
-
-        /*if (MENU_MAP == null) {*/
-            loadMenuInfo(request, sysMenuVO);
-		/* } */
-
-        menuInfo = MENU_MAP.get(menuKey);
-        if (!"".equals(StringUtil.nvl(sysMenuVO.getCrsCreCd()))) {
-            String bbsSid = COURSE_BBS_SID_PREFIX + sysMenuVO.getCrsCreCd();
-
-            // 게시판 메뉴 초기화여부
-            if(CommConst.REDIS_USE) {
-                try {
-                    if(COURSE_BBS_VERSION_MAP == null) {
-                        COURSE_BBS_VERSION_MAP = new HashMap<>();
-                    }
-
-                    if(RedisUtil.exists(bbsSid)) {
-                        String sVersion = RedisUtil.getValue(bbsSid);
-                        int version = 1;
-
-                        if(COURSE_BBS_VERSION_MAP.containsKey(bbsSid)) {
-                            version = COURSE_BBS_VERSION_MAP.get(bbsSid);
-                        }
-
-                        if(version < Integer.valueOf(sVersion)) {
-                            COURSE_BBS_VERSION_MAP.put(bbsSid, Integer.valueOf(sVersion));
-                            SessionUtil.setSessionValue(request, bbsSid, null);
-                        } else if(version > Integer.valueOf(sVersion)) {
-                            COURSE_BBS_VERSION_MAP.put(bbsSid, version);
-                            SessionUtil.setSessionValue(request, bbsSid, null);
-                        }
-                    } else {
-                        COURSE_BBS_VERSION_MAP.put(bbsSid, 1);
-                        SessionUtil.setSessionValue(request, bbsSid, null);
-                        RedisUtil.setValue(bbsSid, String.valueOf(1));
-                    }
-                } catch (Exception e) {
-
-                }
-            }
-
-            @SuppressWarnings("unchecked")
-            List<CrsHomeBbsMenuVO> bbsList = (List<CrsHomeBbsMenuVO>)SessionUtil.getSessionValue(request, bbsSid);
-
-            if (bbsList == null) {
-                ApplicationContext applicationContext = WebApplicationContextUtils.getWebApplicationContext(request.getSession().getServletContext());
-                CrsHomeMenuService crsHomeMenuService = (CrsHomeMenuService)applicationContext.getBean("crsHomeMenuService");
-
-                CrsHomeMenuVO homeMenuVO = new CrsHomeMenuVO();
-                homeMenuVO.setOrgId(orgId);
-                homeMenuVO.setCrsCreCd(sysMenuVO.getCrsCreCd());
-
-                if(authrtGrpcd.contains("PROF")) {
-                    homeMenuVO.setAuthrtGrpcd("PROF");
-                } else if(authrtGrpcd.contains("USR")) {
-                    homeMenuVO.setAuthrtGrpcd("USR");
-                }
-
-                bbsList = crsHomeMenuService.selectCrsHomeBbslist(homeMenuVO);
-
-                if (bbsList != null) {
-                    SessionUtil.setSessionValue(request, bbsSid, bbsList);
-                }
-            }
-
-            if (bbsList != null && !"ko".equals(SessionInfo.getLocaleKey(request))) {
-                for (CrsHomeBbsMenuVO bbsVO : bbsList) {
-                    bbsVO.setBbsNm(bbsVO.getBbsNmEn());
-                }
-            }
-
-            if (menuInfo != null) {
-            	menuInfo.setBbsList(bbsList);
-            }
-        }
-
-        return menuInfo;
-    }
-
-    /**
-     * 메뉴정보 로딩  ---- 삭제 예정
-     * @param request
-     * @throws Exception
-     */
-    private static void loadMenuInfo(HttpServletRequest request, SysMenuVO sysMenuVO) throws Exception {
-        MENU_MAP = new HashMap<>();
-        List<SysMenuVO> menuList = new ArrayList<>();
-        List<SysMenuVO> menuListEn = new ArrayList<>();
-
-        ApplicationContext applicationContext = WebApplicationContextUtils.getWebApplicationContext(request.getSession().getServletContext());
-        SysMenuService sysMenuService = (SysMenuService)applicationContext.getBean("sysMenuService");
-        List<SysMenuVO> serviceMenuList = sysMenuService.selectServiceMenuAll(sysMenuVO);
-
-        for(SysMenuVO menuVO : serviceMenuList) {
-            SysMenuVO enVO = (SysMenuVO)SerializationUtils.clone(menuVO);
-            enVO.setMenuNm(enVO.getMenuNmEn());
-			/*
-			 * if ("PRO0000000001".equals(menuVO.getMenuCd()) ||
-			 * "STU0000000001".equals(menuVO.getMenuCd())) { continue; }
-			 */
-            if (!"".equals(StringUtil.nvl(menuVO.getUpMenuId()))) {
-                if (menuList.size() > 0) {
-                	for (SysMenuVO mvo : menuList) { // 레벨 1 메뉴 리스트 순회 (최상위)
-
-                	    // 1. mvo (L1) 아래에 menuVO (L2) 추가 시도
-                	    if (mvo.getOrgId().equals(menuVO.getOrgId()) && mvo.getMenuId().equals(menuVO.getUpMenuId())) {
-
-                	        List<SysMenuVO> subList = mvo.getSubList();
-                	        if (subList == null) {
-                	            subList = new ArrayList<>();
-                	        }
-                	        subList.add(menuVO);
-                	        mvo.setSubList(subList);
-                	        break;
-
-                	    } else {
-
-                	        // mvo (L1)의 자식 리스트(L2) 순회 시도
-                	        List<SysMenuVO> subList = mvo.getSubList();
-                	        if (subList != null) {
-
-                	            for(SysMenuVO subVO : subList) { // 레벨 2 메뉴 리스트 순회
-
-                	                // 2. subVO (L2) 아래에 menuVO (L3) 추가 시도
-                	                if (subVO.getOrgId().equals(menuVO.getOrgId()) && subVO.getMenuId().equals(menuVO.getUpMenuId())) {
-
-                	                    List<SysMenuVO> msubList = subVO.getSubList();
-                	                    if (msubList == null) {
-                	                        msubList = new ArrayList<>();
-                	                    }
-                	                    msubList.add(menuVO);
-                	                    subVO.setSubList(msubList);
-                	                    break;
-
-                	                } else {
-
-                	                    // subVO (L2)의 자식 리스트(L3) 순회 시도 <-- **추가된 핵심 로직**
-                	                    List<SysMenuVO> level3List = subVO.getSubList();
-                	                    if (level3List != null) {
-
-                	                        // 3. level3VO (L3) 아래에 menuVO (L4) 추가 시도
-                	                        for(SysMenuVO level3VO : level3List) { // 레벨 3 메뉴 리스트 순회
-                	                            if (level3VO.getOrgId().equals(menuVO.getOrgId()) && level3VO.getMenuId().equals(menuVO.getUpMenuId())) {
-
-                	                                List<SysMenuVO> level4List = level3VO.getSubList();
-                	                                if (level4List == null) {
-                	                                    level4List = new ArrayList<>();
-                	                                }
-                	                                level4List.add(menuVO);
-                	                                level3VO.setSubList(level4List);
-                	                                break; // 레벨 4 추가 성공 후 루프 탈출
-                	                            }
-                	                        }
-                	                    }
-                	                }
-                	            }
-                	        }
-                	    }
-                	}
-
-					/*
-					 * for(SysMenuVO mvo : menuListEn) { if
-					 * (mvo.getOrgId().equals(menuVO.getOrgId()) &&
-					 * mvo.getMenuCd().equals(menuVO.getParMenuCd())) { List<SysMenuVO> subList =
-					 * mvo.getSubList(); if (subList == null) { subList = new ArrayList<>(); }
-					 * subList.add(enVO); mvo.setSubList(subList); break; } else { List<SysMenuVO>
-					 * subList = mvo.getSubList(); if (subList != null) { for(SysMenuVO subVO :
-					 * subList) { if (subVO.getOrgId().equals(menuVO.getOrgId()) &&
-					 * subVO.getMenuCd().equals(menuVO.getParMenuCd())) { List<SysMenuVO> msubList =
-					 * subVO.getSubList(); if (msubList == null) { msubList = new ArrayList<>(); }
-					 * msubList.add(enVO); subVO.setSubList(msubList); break; } } } } }
-					 */
-                } else {
-                    menuList.add(menuVO);
-                    menuListEn.add(enVO);
-                }
-            } else {
-                menuList.add(menuVO);
-                menuListEn.add(enVO);
-            }
-        }
-
-        for(SysMenuVO menuVO : menuList) {
-            MENU_MAP.put(menuVO.getOrgId()+":"+menuVO.getMenuTycd()+":ko", menuVO);
-        }
-
-        for(SysMenuVO menuVO : menuListEn) {
-            MENU_MAP.put(menuVO.getOrgId()+":"+menuVO.getMenuTycd()+":en", menuVO);
-        }
-    }
-
+    @Deprecated
     public static void increaseCourseBbsVersion(String crsCreCd) {
         String bbsSid = MenuInfo.COURSE_BBS_SID_PREFIX + crsCreCd;
 
@@ -264,41 +49,87 @@ public class MenuInfo {
         }
     }
 
-
-
-    /*
-	새버전 작업..........................
-	*/
-
-
     /**
      * 메뉴 정보 가져오기
      * @param request
      * @param menuVO
-     * @return
+     * @return List<MenuVO>
      * @throws Exception
      */
     public static List<MenuVO> getMenuInfo(HttpServletRequest request, MenuVO menuVO) throws Exception {
-    	String orgId = menuVO.getOrgId();
-        if ("".equals(StringUtil.nvl(orgId))) {
-        	orgId = "LMSBASIC";
-        }
 
-        String authrtGrpcd = menuVO.getAuthrtGrpcd();
-        if (authrtGrpcd == null || "".equals(authrtGrpcd)) {
+    	String orgId = StringUtil.nvl(menuVO.getOrgId());
+        String authrtGrpcd = StringUtil.nvl(menuVO.getAuthrtGrpcd());
+
+        if ("".equals(authrtGrpcd)) {
         	authrtGrpcd = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         }
 
-        String menuKey = orgId+":"+authrtGrpcd+":"+menuVO.getMenuGbncd();
-        List<MenuVO> menuList = null;
+        if (authrtGrpcd.indexOf(CommConst.AUTHRT_GRPCD_ADM) > -1) {
+        	authrtGrpcd = CommConst.AUTHRT_GRPCD_ADM;
+        }
 
-        if (MENU_INFO_MAP == null || MENU_INFO_MAP.isEmpty()) {
-            loadMainMenuInfo(request, menuVO);
+        if ("".equals(orgId) || "".equals(authrtGrpcd)) {
+        	return null;
+        }
+
+        String menuKey = orgId + ":" + authrtGrpcd + ":" + menuVO.getMenuGbncd();
+        List<MenuVO> menuList = new ArrayList<>();
+
+        if (MENU_INFO_MAP != null && !MENU_INFO_MAP.isEmpty()) {
+        	menuList = MENU_INFO_MAP.get(menuKey);
 		}
 
-        menuList = MENU_INFO_MAP.get(menuKey);
+        if (menuList == null || menuList.size() == 0) {
+        	loadMainMenuInfo(request, menuVO);
+        	menuList = MENU_INFO_MAP.get(menuKey);
+        }
 
         return menuList;
+    }
+
+    /**
+     * 서브메뉴 정보 가져오기
+     * @param request
+     * @param menuVO
+     * @return List<MenuVO>
+     * @throws Exception
+     */
+    public static List<MenuVO> getSubMenuInfo(HttpServletRequest request, MenuVO menuVO) throws Exception {
+
+    	String orgId = StringUtil.nvl(menuVO.getOrgId());
+        String authrtGrpcd = StringUtil.nvl(menuVO.getAuthrtGrpcd());
+
+        if ("".equals(authrtGrpcd)) {
+        	authrtGrpcd = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        }
+
+        if (authrtGrpcd.indexOf(CommConst.AUTHRT_GRPCD_ADM) > -1) {
+        	authrtGrpcd = CommConst.AUTHRT_GRPCD_ADM;
+        }
+
+        if ("".equals(orgId) || "".equals(authrtGrpcd)) {
+        	return null;
+        }
+
+        String menuKey = orgId + ":" + authrtGrpcd + ":" + menuVO.getMenuGbncd();
+        List<MenuVO> menuList = null;
+        List<MenuVO> subMenuList = null;
+
+        if ( MENU_INFO_MAP != null && !MENU_INFO_MAP.isEmpty()) {
+        	menuList = MENU_INFO_MAP.get(menuKey);
+		}
+
+        if (menuList != null && menuList.size() > 0) {
+        	for (MenuVO menu : menuList) {
+        		if (menu.getMenuId().equals(menuVO.getMenuId())) {
+        			subMenuList = new ArrayList<>(menu.getSubMenuList());
+        			break;
+        		}
+        	}
+        }
+
+        return subMenuList;
     }
 
 
@@ -306,7 +137,7 @@ public class MenuInfo {
      * 강의실 메뉴 정보 가져오기
      * @param request
      * @param menuVO
-     * @return
+     * @return List<MenuVO>
      * @throws Exception
      */
     @SuppressWarnings("unchecked")
@@ -337,6 +168,129 @@ public class MenuInfo {
         return menuList;
     }
 
+    /**
+     * 메뉴 가져오기 (단일정보)
+     * @param menuId
+     * @return MenuVO
+     * @throws Exception
+     */
+    public static MenuVO getMenuVO(String menuId) throws Exception {
+    	MenuVO menuVO = null;
+
+    	if (null != MENU_BASE_MAP && MENU_BASE_MAP.containsKey(menuId)) {
+    		menuVO = MENU_BASE_MAP.get(menuId);
+    	}
+
+    	return menuVO;
+    }
+
+    /**
+     * 현재 메뉴명 리스트 가져오기(현재 메뉴명과 상위메뉴명)
+     */
+    public static List<String> getCurMenunmList(HttpServletRequest request) throws Exception {
+    	List<String> menunmList = new ArrayList<>();
+    	String menuId = ParamInfo.getParamValue(request, "menuId");
+    	MenuVO menuVO = MenuInfo.getMenuVO(menuId);
+
+    	if (menuVO != null && menuVO.getUpMenuIds() != null) {
+			String[] menuIds = menuVO.getUpMenuIds().split(",");
+
+			for (String mid : menuIds) {
+				MenuVO mvo = MenuInfo.getMenuVO(mid);
+				if (mvo != null) {
+					menunmList.add(mvo.getMenunm());
+				}
+			}
+    	}
+
+    	return menunmList;
+    }
+
+    /**
+     * 메뉴 네비게이션 정보 가져오기
+     * @param request
+     * @return
+     * @throws Exception
+     */
+    public static List<String> getMenuNaviInfo(HttpServletRequest request) throws Exception {
+        String authrtGrpcd	= SessionInfo.getAuthrtGrpcd(request);
+        String upMenuId		= ParamInfo.getParamValue(request, "upMenuId");
+        String menuId		= ParamInfo.getParamValue(request, "menuId");
+        String sbjctId		= ParamInfo.getParamValue(request, "sbjctId");
+    	String orgId 		= ParamInfo.getParamValue(request, "orgId");
+
+    	if (orgId == null || "".equals(orgId)) {
+        	orgId = SessionInfo.getOrgId(request);
+        }
+
+        return getMenuNaviInfo(request, orgId, authrtGrpcd, upMenuId, menuId, sbjctId);
+    }
+
+    /**
+     * 메뉴 네비게이션 정보 가져오기
+     * @param request
+     * @return
+     * @throws Exception
+     */
+    public static List<String> getMenuNaviInfo(HttpServletRequest request, String orgId, String authrtGrpcd,
+    		String upMenuId, String menuId, String sbjctId) throws Exception {
+    	List<String> menuNmList = new ArrayList<>();
+
+        String type = "main";
+        if (sbjctId != null && !"".equals(sbjctId)) {
+        	type = "lect";
+        }
+
+        if (menuId != null && !"".equals(menuId)) {
+            MenuVO menuVO = new MenuVO();
+            menuVO.setOrgId(orgId);
+            menuVO.setMenuTycd(authrtGrpcd);
+            menuVO.setMenuGbncd(type.toUpperCase());
+
+            List<MenuVO> menuList = null;
+            if ("main".equalsIgnoreCase(type)) {
+            	menuList = MenuInfo.getMenuInfo(request, menuVO);
+            }
+            else if ("lect".equalsIgnoreCase(type)) {
+            	menuVO.setSbjctId(sbjctId);
+            	menuList = MenuInfo.getLectMenuInfo(request, menuVO);
+            }
+            else if ("admin".equalsIgnoreCase(type)) {
+            	List<String> menunmList = MenuInfo.getCurMenunmList(request);
+            	if (menunmList != null && !menunmList.isEmpty()) {
+            		for (String menunm : menunmList) {
+            			menuNmList.add(menunm);
+            		}
+            	}
+
+            	MenuVO mvo = MenuInfo.getMenuVO(menuId);
+            	menuNmList.add(mvo.getMenunm());
+            }
+
+            if (menuList != null && !menuList.isEmpty()) {
+	            for (MenuVO vo : menuList) {
+	            	if (!"ROOT".equals(upMenuId) && vo.getMenuId().equals(upMenuId)) {
+	            		menuNmList.add(vo.getMenunm());
+
+	            		List<MenuVO> subList = vo.getSubMenuList();
+	            		for (MenuVO subVO : subList) {
+	            			if (subVO.getMenuId().equals(menuId)) {
+	            				menuNmList.add(subVO.getMenunm());
+	            				break;
+	            			}
+	            		}
+	            		break;
+	            	}
+	            	else if (vo.getMenuId().equals(menuId)) {
+	            		menuNmList.add(vo.getMenunm());
+	            		break;
+	            	}
+	            }
+            }
+        }
+
+    	return menuNmList;
+    }
 
     /**
      * 메인 메뉴정보 로딩
@@ -344,90 +298,74 @@ public class MenuInfo {
      * @throws Exception
      */
     private static void loadMainMenuInfo(HttpServletRequest request, MenuVO vo) throws Exception {
-    	MENU_INFO_MAP = new HashMap<>();
+    	ApplicationContext applicationContext = WebApplicationContextUtils.getWebApplicationContext(request.getSession().getServletContext());
+    	SysMenuService sysMenuService = (SysMenuService)applicationContext.getBean("sysMenuService");
 
-        ApplicationContext applicationContext = WebApplicationContextUtils.getWebApplicationContext(request.getSession().getServletContext());
-        SysMenuService sysMenuService = (SysMenuService)applicationContext.getBean("sysMenuService");
+    	// 기관 메인메뉴 전체 목록 조회
+    	List<MenuVO> mainMenuList = sysMenuService.selectOrgMainMenuList(vo);
 
-        // 기관 메뉴 사용 목록 조회
-        MenuUseOrgVO menuUseOrgVO = new MenuUseOrgVO();
-        List<MenuUseOrgVO> menuUseOrgList = sysMenuService.selectMainMenuUseOrgAll(menuUseOrgVO);
-        Map<String, String> menuUseMap = new HashMap<>();
+    	if (mainMenuList != null && mainMenuList.size() > 0) {
+    		if (MENU_INFO_MAP == null) {
+    			MENU_INFO_MAP = new HashMap<>();
+    		}
 
-        List<String> menuOrgList = new ArrayList<>();
-        String useOrgId = "";
+    		if (MENU_BASE_MAP == null) {
+    			MENU_BASE_MAP = new HashMap<>();
+    		}
 
-        for (MenuUseOrgVO useVO : menuUseOrgList) {
-        	String key = useVO.getOrgId()+":"+useVO.getMenuAuthTycd()+":"+useVO.getMenuGbncd()+":"+useVO.getMenuId();
+    		Map<String, MenuVO> menuMap = new HashMap<>();
 
-        	if ("Y".equals(useVO.getUseyn())) {
-        		menuUseMap.put(key, useVO.getUseyn());
+    		for(MenuVO menuVO : mainMenuList) {
+    			menuMap.put(menuVO.getMenuId(), menuVO);
 
-        		if (!useOrgId.equals(useVO.getOrgId())) {
-        			menuOrgList.add(useVO.getOrgId());
-        		}
+    			if (!MENU_BASE_MAP.containsKey(menuVO.getMenuId())) {
+    				MENU_BASE_MAP.put(menuVO.getMenuId(), menuVO);
+    			}
+    		}
 
-        		useOrgId = useVO.getOrgId();
-        	}
-        }
+    		for(MenuVO menuVO : mainMenuList) {
 
-        // 메인메뉴 전체 목록 조회
-        List<MenuVO> mainMenuList = sysMenuService.selectMainMenuAll(vo);
-        Map<String, MenuVO> tmpMap = new HashMap<>();
-        List<MenuVO> tmpList = new ArrayList<>();
+    			String key = vo.getOrgId() + ":" + menuVO.getMenuAuthTycd() + ":" + menuVO.getMenuGbncd();
 
-        for(MenuVO menuVO : mainMenuList) {
-        	menuVO.setSubMenuList(new ArrayList<>());
-        	tmpMap.put(menuVO.getMenuId(), menuVO);
-        }
+    			//System.out.println("menu key=" + key);
 
-        for(MenuVO menuVO : mainMenuList) {
-        	if ("ROOT".equals(StringUtil.nvl(menuVO.getUpMenuId(),"ROOT"))) {
-        		tmpList.add(menuVO);
-        	}
-        	else {
-        		MenuVO parent = tmpMap.get(menuVO.getUpMenuId());
-        		if (parent != null) {
-        			parent.getSubMenuList().add(menuVO);
-        		}
-        	}
-        }
+    			// ROOT는 상단 TOP 메뉴
+    			if ("ROOT".equals(menuVO.getUpMenuId())) {
+    				if (MENU_INFO_MAP.containsKey(key)) {
+    					MENU_INFO_MAP.get(key).add(menuVO);
+    				}
+    				else {
+    					List<MenuVO> list = new ArrayList<>();
+    					list.add(menuVO);
+    					MENU_INFO_MAP.put(key, list);
+    				}
 
-        // 기관별 메뉴
-        for(String orgId : menuOrgList) {
-        	for(MenuVO menuVO : tmpList) {
-        		String key = orgId+":"+menuVO.getMenuAuthTycd()+":"+menuVO.getMenuGbncd()+":"+menuVO.getMenuId();
+    			} else {
 
-        		if (menuUseMap.containsKey(key) && "Y".equals(menuUseMap.get(key))) {
-        			String menuKey = orgId+":"+menuVO.getMenuAuthTycd()+":"+menuVO.getMenuGbncd();
+    				MenuVO upMenu = menuMap.get(menuVO.getUpMenuId());
 
-        			// 서브메뉴
-        			if (menuVO.getSubMenuList() != null && !menuVO.getSubMenuList().isEmpty()) {
-        				List<MenuVO> newSubList = new ArrayList<>();
-        				List<MenuVO> subList = menuVO.getSubMenuList();
+    				if (upMenu != null) {
+    					if (upMenu.getSubMenuList() == null) {
+    						upMenu.setSubMenuList(new ArrayList<>());
+    					}
 
-        				for (MenuVO svo : subList) {
-        					String skey = orgId+":"+svo.getMenuAuthTycd()+":"+svo.getMenuGbncd()+":"+svo.getMenuId();
-        					if (menuUseMap.containsKey(skey) && "Y".equals(menuUseMap.get(skey))) {
-        						newSubList.add(svo);
-        					}
-        				}
-        				menuVO.setSubMenuList(newSubList);
-        			}
+    					String upMenuIds = upMenu.getUpMenuIds();
+    					if (upMenuIds != null) {
+    						upMenuIds += ",";
+    					}
+    					else {
+    						upMenuIds = "";
+    					}
+    					upMenuIds += upMenu.getMenuId();
 
-        			// 메뉴맵에 저장
-        			if (MENU_INFO_MAP.containsKey(menuKey)) {
-        				MENU_INFO_MAP.get(menuKey).add(menuVO);
-        			}
-        			else {
-        				List<MenuVO> list = new ArrayList<>();
-        				list.add(menuVO);
-        				MENU_INFO_MAP.put(menuKey, list);
-        			}
-        		}
-        	}
-        }
+    					menuVO.setUpMenuIds(upMenuIds);
+    					upMenu.getSubMenuList().add(menuVO);
+    				}
+    			}
+    		}
+    	}
     }
+
 
     /**
      * 강의실 메뉴정보 로딩

@@ -48,22 +48,29 @@
     </bean>
 
     <mvc:interceptors>
+    	<ref bean="localeChangeInterceptor"/>
+    	<ref bean="adminInterceptor"/>
+
         <mvc:interceptor>
             <mvc:mapping path="/**" />
+            <mvc:exclude-mapping path="/preLogin.do" />
             <mvc:exclude-mapping path="/login.do" />
             <mvc:exclude-mapping path="/loginProc.do" />
             <mvc:exclude-mapping path="/loginProcTOBE.do" />
             <mvc:exclude-mapping path="/sso/*" />
             <bean class="knou.framework.interceptor.AuthenticInterceptor"/>
         </mvc:interceptor>
+
         <mvc:interceptor>
             <mvc:mapping path="/**" />
             <bean class="knou.framework.interceptor.CrsInterceptor"/>
         </mvc:interceptor>
+
         <mvc:interceptor>
             <mvc:mapping path="/**" />
             <bean class="knou.framework.interceptor.ControllerInitInterceptor"/>
         </mvc:interceptor>
+
     </mvc:interceptors>
 
     <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
@@ -74,6 +81,10 @@
         </property>
     </bean>
 
+    <bean id="adminInterceptor"	class="knou.framework.interceptor.AdminInterceptor">
+    	<property name="messageSource" ref="messageSource"/>
+	</bean>
+
     <bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver">
         <property name="defaultLocale" value="ko"/>
     </bean>
@@ -82,18 +93,20 @@
         <property name="paramName" value="language" />
     </bean>
 
-    <mvc:interceptors>
-        <ref bean="localeChangeInterceptor"/>
-    </mvc:interceptors>
-
-    <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+    <!--<bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">-->
+    <bean id="exceptionResolver" class="knou.framework.exception.MediSimpleExceptionResolver">
         <property name="defaultErrorView" value="common/error"/>
         <property name="exceptionMappings">
             <props>
+            	<!-- 트랜잭션 생성 실패 -->
+	        	<prop key="org.springframework.transaction.CannotCreateTransactionException">common/dbConnectError</prop>
+	            <!-- JDBC 연결 실패 -->
+	            <prop key="org.springframework.jdbc.CannotGetJdbcConnectionException">common/dbConnectError</prop>
+	            <prop key="org.springframework.transaction.TransactionException">common/error</prop>
                 <prop key="org.springframework.dao.DataAccessException">common/error</prop>
-                <prop key="org.springframework.transaction.TransactionException">common/error</prop>
                 <prop key="org.egovframe.rte.fdl.cmmn.exception.EgovBizException">common/error</prop>
                 <prop key="org.springframework.security.AccessDeniedException">common/error</prop>
+                <prop key="knou.framework.exception.AccessDeniedException">common/error</prop>
             </props>
         </property>
     </bean>
@@ -130,5 +143,5 @@
 
     <bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean" />
 	<mvc:annotation-driven validator="validator" />
-	
+
 </beans>

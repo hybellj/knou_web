@@ -5,6 +5,7 @@ import java.io.Serializable;
 /**
  * 접속자 메타 정보 파라미터 객체
  */
+@Deprecated
 public class UserMetaParam implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -15,6 +16,10 @@ public class UserMetaParam implements Serializable {
     private String browser;      // 브라우저 종류 (Chrome, Edge 등)
     private String os;           // 운영체제 (Windows10, Android 등)
     private String deviceType;   // 기기 구분 (PC, mobile)
+    private	String url;
+    private String menuCode;
+    private String sbjctId;
+    private String reqTycd;
 
     // 기본 생성자
     public UserMetaParam() {}
@@ -36,9 +41,41 @@ public class UserMetaParam implements Serializable {
     public void setOs(String os) { this.os = os; }
 
     public String getDeviceType() { return deviceType; }
-    public void setDeviceType(String deviceType) { this.deviceType = deviceType; }
+    public void setDeviceType(String deviceType) { this.deviceType = deviceType; } 
 
-    // 디버깅을 위한 toString 오버라이드
+    public String getReqTycd() {
+		return reqTycd;
+	}
+
+	public void setReqTycd(String reqTycd) {
+		this.reqTycd = reqTycd;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	public String getMenuCode() {
+		return menuCode;
+	}
+
+	public void setMenuCode(String menuCode) {
+		this.menuCode = menuCode;
+	}
+
+	public String getSbjctId() {
+		return sbjctId;
+	}
+
+	public void setSbjctId(String sbjctId) {
+		this.sbjctId = sbjctId;
+	}
+
+	// 디버깅을 위한 toString 오버라이드
     @Override
     public String toString() {
         return "UserMetaParam [ip=" + ip + ", browser=" + browser + ", os=" + os + 

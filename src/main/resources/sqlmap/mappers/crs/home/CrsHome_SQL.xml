@@ -331,7 +331,7 @@
          */
 		<include refid="CommonSQL.pagePrefix"/>
 		<include refid="listQueryEvalCriteria" />
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 	
 	<select id="listEvalCriteriaScoreAppyY" parameterType="knou.lms.common.vo.DefaultVO" resultType="egovMap">

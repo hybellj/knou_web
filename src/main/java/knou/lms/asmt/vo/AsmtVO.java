@@ -69,6 +69,7 @@ public class AsmtVO extends DefaultVO {
 
     private String mrkInqSdttm;            //성적조회시작일시
     private String mrkInqEdttm;            //성적조회종료일시
+    private String mrkInqPsblYn;           //성적조회가능여부
 
     private String evlUseyn;               // 평가사용여부
     private String evlScrTycd;              //평가점수유형코드
@@ -561,6 +562,14 @@ public class AsmtVO extends DefaultVO {
 
     public void setMrkInqEdttm(String mrkInqEdttm) {
         this.mrkInqEdttm = mrkInqEdttm;
+    }
+
+    public String getMrkInqPsblYn() {
+        return mrkInqPsblYn;
+    }
+
+    public void setMrkInqPsblYn(String mrkInqPsblYn) {
+        this.mrkInqPsblYn = mrkInqPsblYn;
     }
 
     public String getEvlScrTycd() {

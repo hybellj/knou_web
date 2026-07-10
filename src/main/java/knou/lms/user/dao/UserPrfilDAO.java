@@ -19,7 +19,7 @@ public interface UserPrfilDAO {
      * @since 1.0
      */
 
-    public UserPrfilVO userPrfilSelect(UserPrfilVO vo) throws Exception;
+    public UserPrfilVO userPrfilSelect(UserPrfilVO vo);
 
     /**
      * 사용자 알림수신여부 변경
@@ -55,6 +55,8 @@ public interface UserPrfilDAO {
      * @throws Exception
      */
     List<UserPrfilVO> nowSmstrLectOrgList(UserPrfilVO vo) throws Exception;
+
+    List<UserPrfilVO> nowSmstrAtndlcOrgList(UserPrfilVO vo) throws Exception;
 
     int isPswdMtch(UserPrfilVO vo) throws Exception;
 

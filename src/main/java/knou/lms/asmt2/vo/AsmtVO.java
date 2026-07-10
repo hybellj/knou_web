@@ -17,10 +17,9 @@ public class AsmtVO extends DefaultVO {
     private String asmtTtl; //과제제목
     private String asmtCts; //과제내용
     private String sbasmtTycd; //제출과제유형코드
-    private String rublicId;           // 루브릭아이디
+    private String rubricId;           // 루브릭아이디
     private String delyn; //삭제 여부
     private String sbjctNm;                //과목명
-    private String dgrsSmstrChrt;          //학기기수차트
     private String smstrChrtId; //학기기수아이디
     private String asmtSbmsnSdttm;         //과제제출시작일시
     private String asmtSbmsnEdttm;         //과제제출종료일시
@@ -30,9 +29,10 @@ public class AsmtVO extends DefaultVO {
     private String extdSbmsnPrmyn;         //연장제출허용여부
     private String extdSbmsnSdttm;         //연장제출시작일시
     private String extdSbmsnEdttm;         //연장제출종료일시
+    private Integer extdSbmsnMrkRfltrt;    //연장제출성적반영비율
     private String teamAsmtStngyn;         //팀과제설정여부
-    private String lrnGrpId;               //학습그룹아이디
-    private String lrnGrpNm;               //학습그룹명
+    private String teamGrpId;               //팀그룹아이디
+    private String teamGrpNm;               //팀그룹명
     private String asmtGrpId;              //과제그룹아이디
     private String asmtGrpnm;              //과제그룹명
     private String tmbrIndivSbmsnPrmyn;          //팀원제출허용여부
@@ -41,6 +41,7 @@ public class AsmtVO extends DefaultVO {
     private String mrkOyn;                 //성적공개여부
     private String mrkInqSdttm;            //성적조회시작일시
     private String mrkInqEdttm;            //성적조회종료일시
+    private String mrkInqPsblYn;           //성적조회가능여부
     private String evlUseyn;               // 평가사용여부
     private String evlScrTycd;              //평가점수유형코드
     private String evlRsltOyn;              //평가결과공개여부
@@ -62,14 +63,32 @@ public class AsmtVO extends DefaultVO {
     private String byteamAsmtUseyn;     // 팀별과제사용여부
 
 
+    public AsmtVO() {
+    }
+
+    public AsmtVO(String sbjctId, String orgId) {
+        this.setSbjctId(sbjctId);
+        this.setOrgId(orgId);
+    }
+
     /*
      * 내부 로직 용
      */
     private String indvAsmtList;    // 개별과제 목록
+    private String userIds;    // 사용자아이디 목록
+    private String asmtSbmsnIds;    // 과제제출아이디 목록
+    private String[] userIdArray;     // 사용자아이디 목록
     private String[] dvclasListArr; // 분반선택목록
-    private String[] lrnGrpIds; // 학습그룹ID 목록
+    private String[] teamGrpIds; // 팀그룹ID 목록
     private String[] byteamAsmtUseyns;     // 팀별과제사용여부 목록
     private List<AsmtVO> dvclasInfoList;   // 분반정보목록
+    private String teamId;  // 팀아이디
+
+    /*
+     * 검색용
+     */
+    private String sbmsnStscd;   // 제출상태코드
+    private String evlYn;   // 평가여부
 
     private List<AsmtSubDtlVO> subAsmtDtlList; // 팀별 부과제 상세목록
 
@@ -145,12 +164,12 @@ public class AsmtVO extends DefaultVO {
         this.sbasmtTycd = sbasmtTycd;
     }
 
-    public String getRublicId() {
-        return rublicId;
+    public String getRubricId() {
+        return rubricId;
     }
 
-    public void setRublicId(String rublicId) {
-        this.rublicId = rublicId;
+    public void setRubricId(String rubricId) {
+        this.rubricId = rubricId;
     }
 
     public String getDelyn() {
@@ -167,16 +186,6 @@ public class AsmtVO extends DefaultVO {
 
     public void setSbjctNm(String sbjctNm) {
         this.sbjctNm = sbjctNm;
-    }
-
-    @Override
-    public String getDgrsSmstrChrt() {
-        return dgrsSmstrChrt;
-    }
-
-    @Override
-    public void setDgrsSmstrChrt(String dgrsSmstrChrt) {
-        this.dgrsSmstrChrt = dgrsSmstrChrt;
     }
 
     public String getSmstrChrtId() {
@@ -251,6 +260,14 @@ public class AsmtVO extends DefaultVO {
         this.extdSbmsnEdttm = extdSbmsnEdttm;
     }
 
+    public Integer getExtdSbmsnMrkRfltrt() {
+        return extdSbmsnMrkRfltrt;
+    }
+
+    public void setExtdSbmsnMrkRfltrt(Integer extdSbmsnMrkRfltrt) {
+        this.extdSbmsnMrkRfltrt = extdSbmsnMrkRfltrt;
+    }
+
     public String getTeamAsmtStngyn() {
         return teamAsmtStngyn;
     }
@@ -259,20 +276,20 @@ public class AsmtVO extends DefaultVO {
         this.teamAsmtStngyn = teamAsmtStngyn;
     }
 
-    public String getLrnGrpId() {
-        return lrnGrpId;
+    public String getTeamGrpId() {
+        return teamGrpId;
     }
 
-    public void setLrnGrpId(String lrnGrpId) {
-        this.lrnGrpId = lrnGrpId;
+    public void setTeamGrpId(String teamGrpId) {
+        this.teamGrpId = teamGrpId;
     }
 
-    public String getLrnGrpNm() {
-        return lrnGrpNm;
+    public String getTeamGrpNm() {
+        return teamGrpNm;
     }
 
-    public void setLrnGrpNm(String lrnGrpNm) {
-        this.lrnGrpNm = lrnGrpNm;
+    public void setTeamGrpNm(String teamGrpNm) {
+        this.teamGrpNm = teamGrpNm;
     }
 
     public String getAsmtGrpId() {
@@ -337,6 +354,14 @@ public class AsmtVO extends DefaultVO {
 
     public void setMrkInqEdttm(String mrkInqEdttm) {
         this.mrkInqEdttm = mrkInqEdttm;
+    }
+
+    public String getMrkInqPsblYn() {
+        return mrkInqPsblYn;
+    }
+
+    public void setMrkInqPsblYn(String mrkInqPsblYn) {
+        this.mrkInqPsblYn = mrkInqPsblYn;
     }
 
     public String getEvlUseyn() {
@@ -499,6 +524,22 @@ public class AsmtVO extends DefaultVO {
         this.indvAsmtList = indvAsmtList;
     }
 
+    public String getUserIds() {
+        return userIds;
+    }
+
+    public void setUserIds(String userIds) {
+        this.userIds = userIds;
+    }
+
+    public String getAsmtSbmsnIds() {
+        return asmtSbmsnIds;
+    }
+
+    public void setAsmtSbmsnIds(String asmtSbmsnIds) {
+        this.asmtSbmsnIds = asmtSbmsnIds;
+    }
+
     public List<AsmtSubDtlVO> getSubAsmtDtlList() {
         return subAsmtDtlList;
     }
@@ -515,12 +556,12 @@ public class AsmtVO extends DefaultVO {
         this.dvclasListArr = dvclasListArr;
     }
 
-    public String[] getLrnGrpIds() {
-        return lrnGrpIds;
+    public String[] getTeamGrpIds() {
+        return teamGrpIds;
     }
 
-    public void setLrnGrpIds(String[] lrnGrpIds) {
-        this.lrnGrpIds = lrnGrpIds;
+    public void setTeamGrpIds(String[] teamGrpIds) {
+        this.teamGrpIds = teamGrpIds;
     }
 
     public String getDvclasNo() {
@@ -554,4 +595,38 @@ public class AsmtVO extends DefaultVO {
     public void setDvclasInfoList(List<AsmtVO> dvclasInfoList) {
         this.dvclasInfoList = dvclasInfoList;
     }
+
+    public String getSbmsnStscd() {
+        return sbmsnStscd;
+    }
+
+    public void setSbmsnStscd(String sbmsnStscd) {
+        this.sbmsnStscd = sbmsnStscd;
+    }
+
+    public String getEvlYn() {
+        return evlYn;
+    }
+
+    public void setEvlYn(String evlYn) {
+        this.evlYn = evlYn;
+    }
+
+    public String[] getUserIdArray() {
+        return userIdArray;
+    }
+
+    public void setUserIdArray(String[] userIdArray) {
+        this.userIdArray = userIdArray;
+    }
+
+    public String getTeamId() {
+        return teamId;
+    }
+
+    public void setTeamId(String teamId) {
+        this.teamId = teamId;
+    }
+
+   
 }

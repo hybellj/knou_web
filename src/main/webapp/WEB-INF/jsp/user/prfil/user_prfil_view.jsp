@@ -8,7 +8,7 @@
         <jsp:param name="style" value="dashboard"/>
     </jsp:include>
 </head>
-<body class="home colorA ${bodyClass}"><!-- 컬러선택시 클래스변경 -->
+<body class="home ${uiex:getTheme()} ${bodyClass}"><!-- 컬러선택시 클래스변경 -->
 <div id="wrap" class="main">
     <!-- common header -->
     <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
@@ -18,8 +18,16 @@
     <main class="common">
 
         <!-- gnb -->
-        <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
+        <c:choose>
+            <c:when test="${fn:contains(vo.authrtGrpcd, 'PROF')}">
+                <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
+            </c:when>
+            <c:otherwise>
+                <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_stu.jsp"/>
+            </c:otherwise>
+        </c:choose>
         <!-- //gnb -->
+
 
         <!-- content -->
         <div id="content" class="content-wrap common">
@@ -78,18 +86,26 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th><label for="name_label">교번</label></th>
+                                    <th>
+                                        <label for="id_label">
+                                            <c:choose>
+                                                <c:when test="${fn:contains(vo.authrtGrpcd, 'PROF')}">교번</c:when>
+                                                <c:otherwise>학번</c:otherwise>
+                                            </c:choose>
+                                        </label>
+                                    </th>
                                     <td>
                                         <div class="form-row">
                                             ${vo.stdntNo}
                                         </div>
                                     </td>
                                 </tr>
+
                                 <tr>
                                     <th><label for="id_label">아이디</label></th>
                                     <td>
                                         <div class="form-inline">
-                                            ${vo.userRprsId}
+                                            ${vo.userId}
                                         </div>
                                     </td>
                                 </tr>
@@ -111,110 +127,102 @@
                                                 ${vo.indvEml} (개인이메일)
                                             </c:when>
                                         </c:choose>
-                                        <div class="form-row">
-                                            <small class="note2">! 다른 이메일을 사용하시려면 “등록/수정”에서 개인 이메일 등록하고 사용설정 하시면
-                                                됩니다.</small>
-                                        </div>
                                     </td>
                                 </tr>
 
                                 </tbody>
 
                             </table>
+                            <small class="note2">! 다른 이메일을 사용하시려면 “등록/수정”에서 개인 이메일 등록하고 사용설정 하시면 됩니다.</small>
                         </div>
+
                         <!--//table-type5-->
-                    </div>
-
-                    <div class="board_top margin-top-4">
-                        <div class="right-area">
-                        <span class="custom-input">
-                            <input type="checkbox" id="alimAgree">
-                            <label for="alimAgree">알림 수신 유의사항 읽음</label>
-                        </span>
-                        </div>
-                    </div>
-
-                    <div class="table-wrap">
-                        <div class="board_top">
-                            <h3 class="board-title">알림수신 동의 설정</h3>
-                        </div>
-                        <table class="table-type5">
-                            <colgroup>
-                                <col class="width-15per"/>
-                                <col class=""/>
-                            </colgroup>
-                            <tbody>
-
-                            <tr>
-                                <th><label for="pushRcv">PUSH</label></th>
-                                <td>
-                                    <div class="form-inline">
-                                        <div class="form-row alim-setting">
-                                            <input id="pushRcv" type="checkbox" class="switch onoff"
-                                            ${vo.pushRcvyn eq 'Y' ? 'checked' : ''} disabled>
-                                        </div>
-                                        <span class="mb15">PUSH 수신동의 합니다.</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th><label for="shrtntAlimRcv">쪽지</label></th>
-                                <td>
-                                    <div class="form-inline">
-                                        <div class="form-row alim-setting">
-                                            <input id="shrtntAlimRcv" type="checkbox" class="switch onoff"
-                                            ${vo.shrtntAlimRcvyn eq 'Y' ? 'checked' : ''} disabled>
-                                        </div>
-                                        <span class="mb15">쪽지 수신동의 합니다.</span>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <th><label for="emlAlimRcv">이메일</label></th>
-                                <td>
-                                    <div class="form-inline">
-                                        <div class="form-row alim-setting">
-                                            <input id="emlAlimRcv" type="checkbox" class="switch onoff"
-                                            ${vo.emlAlimRcvyn eq 'Y' ? 'checked' : ''} disabled>
-                                        </div>
-                                        <span class="mb15">이메일 수신동의 합니다.</span>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <th><label for="alimTalkRcv">알림톡</label></th>
-                                <td>
-                                    <div class="form-inline">
-                                        <div class="form-row alim-setting">
-                                            <input id="alimTalkRcv" type="checkbox" class="switch onoff"
-                                            ${vo.alimTalkRcvyn eq 'Y' ? 'checked' : ''} disabled>
-                                            <span class="mb15">알림톡 수신동의 합니다.</span>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th><label for="smsRcv">문자</label></th>
-                                <td>
-                                    <div class="form-inline">
-                                        <div class="form-row alim-setting">
-                                            <input id="smsRcv" type="checkbox" class="switch onoff"
-                                            ${vo.smsRcvyn eq 'Y' ? 'checked' : ''} disabled>
-                                        </div>
-                                        <span class="mb15">문자 수신동의 합니다.</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                        <small class="note2">! 공지 / 강의Q&A / 1:1상담에 대한 알림은 동의여부와 상관없이 발송됩니다.</small>
-
                     </div>
 
                     <div class="btns">
                         <button type="button" class="btn type1" id="btn_modify">수정</button>
+                    </div>
+
+
+                    <div class="notify-consent-wrap">
+                        <%--<div class="board_top">
+                            <h4 class="sub-title">알림수신 동의 설정</h4>
+                            <div class="right-area">
+                    			<span class="custom-input">
+                    				<input type="checkbox" id="alimAgree">
+                    				<label for="alimAgree">알림수신 유의사항 읽음</label>
+                    			</span>
+                            </div>
+                        </div>--%>
+
+                        <div class="board_top">
+                            <h4 class="sub-title">알림수신 동의 설정</h4>
+                            <div class="right-area">
+                                <input type="checkbox" id="alimAgree" class="blind">
+                                <div class="tab_btn">
+                                    <a href="#_" id="btnAlimAgree" class="">알림수신 유의사항 동의</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table_list">
+                            <ul class="list">
+                                <li class="head"><label for="pushRcv">PUSH</label></li>
+                                <li>
+                                    <div class="form-row alim-setting">
+                                        <input id="pushRcv" type="checkbox" class="switch yesno"
+                                        ${vo.pushRcvyn eq 'Y' ? 'checked' : ''} disabled>
+                                    </div>
+                                    PUSH 수신 동의 합니다.
+                                </li>
+                            </ul>
+
+                            <ul class="list">
+                                <li class="head"><label for="shrtntAlimRcv">쪽지</label></li>
+                                <li>
+                                    <div class="form-row alim-setting">
+                                        <input id="shrtntAlimRcv" type="checkbox" class="switch yesno"
+                                        ${vo.shrtntAlimRcvyn eq 'Y' ? 'checked' : ''} disabled>
+                                    </div>
+                                    쪽지 수신 동의 합니다.
+                                </li>
+                            </ul>
+
+                            <ul class="list">
+                                <li class="head"><label for="emlAlimRcv">이메일</label></li>
+                                <li>
+                                    <div class="form-row alim-setting">
+                                        <input id="emlAlimRcv" type="checkbox" class="switch yesno"
+                                        ${vo.emlAlimRcvyn eq 'Y' ? 'checked' : ''} disabled>
+                                    </div>
+                                    이메일 수신 동의 합니다.
+                                </li>
+                            </ul>
+
+                            <ul class="list">
+                                <li class="head"><label for="alimTalkRcv">알림톡</label></li>
+                                <li>
+                                    <div class="form-row alim-setting">
+                                        <input id="alimTalkRcv" type="checkbox" class="switch yesno"
+                                        ${vo.alimTalkRcvyn eq 'Y' ? 'checked' : ''} disabled>
+                                    </div>
+                                    알림톡 수신 동의 합니다.
+                                </li>
+                            </ul>
+
+                            <ul class="list">
+                                <li class="head"><label for="smsRcv">문자</label></li>
+                                <li>
+                                    <div class="form-row alim-setting">
+                                        <input id="smsRcv" type="checkbox" class="switch yesno"
+                                        ${vo.smsRcvyn eq 'Y' ? 'checked' : ''} disabled>
+                                    </div>
+                                    문자 수신 동의 합니다.
+                                </li>
+                            </ul>
+                        </div>
+
+                        <small class="note2">! 공지 / 강의Q&A / 1:1상담에 대한 알림은 동의여부와 상관없이 발송됩니다.</small>
                     </div>
 
                 </div>
@@ -241,24 +249,22 @@
     $(function () {
         setAlimToggleEnabled(false);
 
-        $('#alimAgree').on('change', function () {
+        $('#btnAlimAgree').on('click', function (e) {
+            e.preventDefault();
 
-            if ($(this).is(':checked')) {
-                $(this).prop('checked', false);
-                alimAgreeOk = false;
-                setAlimToggleEnabled(false);
-                openAlimNoticeDialog();
-            } else {
-                alimAgreeOk = true;
-                setAlimToggleEnabled(false);
+            if (alimAgreeOk) {
+                return false;
             }
+
+            openAlimNoticeDialog();
         });
+
     });
 
 
     function setAlimToggleEnabled(enabled) {
         $('.alim-setting input[type=checkbox]').each(function () {
-            var id = this.id;
+            const id = this.id;
             $(this).prop('disabled', !enabled);
 
             $('#sw_' + id).toggleClass('disabled', !enabled);
@@ -281,6 +287,7 @@
     // 모달에서 '확인' 눌렀을 때 호출됨
     function onAlimNoticeConfirm() {
         $('#alimAgree').prop('checked', true);
+        $('#btnAlimAgree').addClass('current');
         setAlimToggleEnabled(true);
         alimAgreeOk = true;
 
@@ -292,6 +299,8 @@
     // 모달에서 '취소' 눌렀을 때 호출됨
     function onAlimNoticeCancel() {
         $('#alimAgree').prop('checked', false);
+        $('#btnAlimAgree').removeClass('current');
+
         setAlimToggleEnabled(false);
         alimAgreeOk = false;
         if (alimNoticeDialog) {

@@ -1,24 +1,25 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="../common/common_inc.jsp" %><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+	<jsp:include page="../common/common_head.jsp">
 		<jsp:param name="style" value="dashboard"/>
+        <jsp:param name="module" value="editor,fileuploader"/>
 	</jsp:include>
 </head>
 
-<body class="home colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="home "><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
-        <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
+        <jsp:include page="../common/home_header.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
         <!-- //common header -->
 
         <!-- dashboard -->
         <main class="common">
 
             <!-- gnb -->
-			<jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
+			<jsp:include page="../common/home_gnb_prof.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
             <!-- //gnb -->
 
             <!-- content -->
@@ -26,7 +27,7 @@
                 <div class="dashboard_sub">
 
                     <!-- page_tab -->
-                    <jsp:include page="/WEB-INF/jsp/common_new/home_page_tab.jsp"/>
+                    <jsp:include page="../common/home_page_tab.jsp"/>
                     <!-- //page_tab -->
 
                     <div class="sub-content">
@@ -62,17 +63,15 @@
 								</colgroup>
 								<tbody>
                                     <tr>
-										<th><label for="univ_label" class="req">학사년도/학기</label></th>
+										<th><label for="univ_label" class="req">기관/학기</label></th>
 										<td>
-											<div class="form-inline">
-                                                <select class="form-select" id="selectDate1">
-                                                    <option value="2025년">2025년</option>
-                                                    <option value="2024년">2024년</option>    
+                                            <div class="itemList">
+                                                <select class="form-select chosen" id="selectDate1">
+                                                    <option value="전체">전체</option>
                                                 </select>
-                                                <select class="form-select" id="selectDate2">
-                                                    <option value="2학기">2학기</option>
-                                                    <option value="1학기">1학기</option>        
-                                                </select>												
+                                                <select class="form-select chosen" id="selectDate2">
+                                                    <option value="년도/학기">년도/학기</option>
+                                                </select>
                                             </div>
                                         </td>
                                     </tr>
@@ -80,13 +79,6 @@
 										<th><label for="univ_label">운영과목</label></th>
 										<td>
 											<div class="form-inline">
-                                                <select class="form-select" id="selectCourse">
-                                                    <option value="대학원">대학원</option> 
-                                                    <option value="평생교육">평생교육</option>                                       
-                                                </select>
-                                                <select class="form-select" id="selectDepartment">
-                                                    <option value="학과">학과</option>                                                                    
-                                                </select>
                                                 <select class="form-select width-50per" id="selectSubject">
                                                     <option value="">운영과목</option>
                                                     <option value="운영과목1">운영과목1</option>
@@ -94,6 +86,22 @@
                                                 </select>       											
                                             </div>
                                         </td>
+                                    </tr>
+                                    <tr>
+										<th><label for="univ_label">이메일</label></th>
+										<td>
+											<div class="form-inline">
+												<input class="form-control mr5" type="text" name="name" value="" id="inputEmail1">
+												<span class="mr5">@</span>
+												<input class="form-control mr5" type="text" name="name" id="inputEmail2" value=""  title="이메일 주소 뒷자리" placeholder="">
+												<select class="form-select" id="selectEmail2">
+													<option value="-">직접입력</option>
+													<option value="-">naver.com</option>
+													<option value="-">daum.net</option>
+												</select>
+												<button type="button" class="btn gray1">중복확인</button>
+											</div>
+										</td>
                                     </tr>
                                     <tr>
 										<th><label for="name_label" class="req">제목</label></th>
@@ -105,9 +113,38 @@
 									</tr>									
 									<tr>
 										<th><label for="contTextarea" class="req">내용</label></th>
-										<td data-th="입력">
+										<td data-th="내용">
 											<textarea rows="4" class="form-control width-100per"  maxLenCheck="byte,2000,true,true"></textarea>                                          
 										</td>
+									</tr>									
+									<tr>
+										<th><label for="contTextarea" class="req">첨부파일</label></th>
+										<td data-th="첨부파일">
+											<div id="fileUploader-container" class="dext5-container" style="width:100%;height:180px;"></div>
+											<div id="fileUploader-btn-area" class="dext5-btn-area" style=""><button type="button" id="fileUploader_btn-add" style="" title="파일선택">파일선택</button><button type="button" id="fileUploader_btn-delete" disabled='true' style="" title="삭제">삭제</button><button type="button" id="fileUploader_btn-reset" style="display:none" title="초기화" onclick="resetDextFiles('fileUploader')"><i class='xi-refresh'></i></button></div>
+											<script>
+											UiFileUploader({
+												id:"fileUploader",
+												parentId:"fileUploader-container",
+												btnFile:"fileUploader_btn-add",
+												btnDelete:"fileUploader_btn-delete",
+												lang:"ko",
+												uploadMode:"ORAF",
+												maxTotalSize:100,
+												maxFileSize:100,
+												extensionFilter:"*",
+												noExtension:"exe,com,bat,cmd,jsp,msi,html,htm,js,scr,asp,aspx,php,php3,php4,ocx,jar,war,py",
+												finishFunc:"finishUpload()",
+												uploadUrl:"https://localhost/dext/uploadFileDext.up?type=",
+												path:"/bbs",
+												fileCount:5,
+												oldFiles:[],
+												useFileBox:false,
+												style:"list",
+												uiMode:"normal"
+											});
+											</script>
+                                        </td>
 									</tr>
                                     <tr>
 										<th><label for="sendDateTime" class="req">발신일시</label></th>
@@ -283,7 +320,7 @@
 
 
             <!-- common footer -->
-            <jsp:include page="/WEB-INF/jsp/common_new/home_footer.jsp"/>
+            <jsp:include page="../common/home_footer.jsp"/>
             <!-- //common footer -->
 
         </main>

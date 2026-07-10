@@ -49,11 +49,15 @@ function UiEditor(option) {
 		text = targetObj.html();
 	}
 
-	/*
-	if (theme == "dark") {
+	// 테마 설정 (THEME_MODE: 전역 javascript 변수)
+	if (typeof THEME_MODE !== 'undefined' && THEME_MODE === "darkmode") {
 		synapEditorConfig["editor.ui.theme"] = "dark-gray";
 	}
-	*/
+
+	// 언어 설정 (LANGUAGE: 전역 javascript 변수)
+	if (typeof LANGUAGE !== 'undefined' && LANGUAGE !== null && LANGUAGE !== "") {
+		synapEditorConfig["editor.lang"] = LANGUAGE;
+	}
 
 	if (option.uploadPath == null) {
 		option.uploadPath = "";
@@ -70,11 +74,6 @@ function UiEditor(option) {
 	// 업로드 MAX 사이즈 설정
 	let uploadMaxSize = (option.uploadMaxSize === undefined || !option.uploadMaxSize) ? 5 : parseInt(option.uploadMaxSize);
 	synapEditorConfig["editor.upload.maxSize"] = uploadMaxSize * 1024 * 1024;
-
-	// 언어 설정
-	if (UiComm.conf.lang != undefined) {
-		synapEditorConfig["editor.lang"] = UiComm.conf.lang;
-	}
 
 	synapEditorConfig["editor.size.width"] = (option.width === undefined || !option.width) ? "100%" : option.width;
 	synapEditorConfig["editor.size.height"] = (option.height === undefined || !option.height) ? "400px" : option.height;

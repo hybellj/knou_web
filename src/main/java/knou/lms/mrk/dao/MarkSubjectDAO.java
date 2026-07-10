@@ -1,64 +1,91 @@
 package knou.lms.mrk.dao;
 
-import knou.lms.mrk.vo.MarkSubjectDetailVO;
+import knou.framework.common.PageInfo;
+import knou.lms.mrk.vo.MrkProcExcpProcVO;
+import knou.lms.mrk.vo.SubjectMarkDetailVO;
 import knou.lms.mrk.vo.MarkSubjectVO;
 import org.apache.ibatis.annotations.Param;
-import org.apache.xmlbeans.impl.xb.xsdschema.Public;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import java.util.List;
-import java.util.Map;
 
 @Mapper("markSubjectDAO")
 public interface MarkSubjectDAO {
 
-    public List<MarkSubjectVO> mrkSbjctList(String sbjctId)throws Exception;
+    public EgovMap stdMrkSbjctDtlSelect(@Param("sbjctId")String sbjctId, @Param("userId")String userId);
 
-    public List<MarkSubjectDetailVO> mrkSbjctDtlList(String sbjctId)throws Exception;
+    public List<MarkSubjectVO> mrkSbjctList(@Param("sbjctId") String sbjctId, @Param("targetUserIdArr") String[] targetUserIdArr);
 
-    public List<EgovMap> stdMrkList(EgovMap searchMap)throws Exception;
+    public List<SubjectMarkDetailVO> mrkSbjctDtlList(@Param("sbjctId")String sbjctId, @Param("targetUserIdArr")String[] targetUserIdArr);
 
-    public int stdMrkListCntSelect(String sbjctId)throws Exception;
+    public List<EgovMap> stdSbjctMrkList(EgovMap searchMap);
 
-    public int invalidMrkRfltrtSumAsmtSelect(String sbjctId)throws Exception;
+    public int stdMrkListCntSelect(String sbjctId);
 
-    public int invalidMrkRfltrtSumQuizSelect(String sbjctId)throws Exception;
+    public List<String> nonEvlStdList(String sbjctId);
 
-    public int invalidMrkRfltrtSumDscsSelect(String sbjctId)throws Exception;
+    public int nonEvlStdCnt(String sbjctId);
 
-    public int invalidMrkRfltrtSumSmnrSelect(String sbjctId)throws Exception;
+    public int invalidMrkRfltrtSumAsmtSelect(String sbjctId);
 
-    public int invalidMrkRfltrtSumSrvySelect(String sbjctId)throws Exception;
+    public int invalidMrkRfltrtSumExamSelect(String sbjctId);
 
-    public void allStdMrkSbjctDelete(String sbjctId)throws Exception;
+    public int invalidMrkRfltrtSumQuizSelect(String sbjctId);
 
-    public void allStdMrkSbjctDtlDelete(String sbjctId)throws Exception;
+    public int invalidMrkRfltrtSumDscsSelect(String sbjctId);
+ 
+    public int invalidMrkRfltrtSumSmnrSelect(String sbjctId);
 
-    public List<MarkSubjectVO> stdMrkSbjctList(String sbjctId)throws Exception;
+    public int invalidMrkRfltrtSumSrvySelect(String sbjctId);
 
-    public List<EgovMap> stdAttdSummaryByWeekSelect(String sbjctId)throws Exception;
+    public void allStdMrkSbjctDelete(String sbjctId) ;
 
-    public List<EgovMap> examEvlScoreList(@Param("sbjctId")String sbjctId, @Param("searchKey")String searchKey)throws Exception;
+    public void allStdMrkSbjctDtlDelete(String sbjctId);
 
-    public List<EgovMap> smnrEvlScoreList(String sbjctId)throws Exception;
+    public List<MarkSubjectVO> stdMrkSbjctList(String sbjctId);
 
-    public List<EgovMap> asmtEvlScoreList(String sbjctId)throws Exception;
+    public List<EgovMap> stdAttdSummaryByWeekSelect(String sbjctId);
 
-    public List<EgovMap> dscsEvlScoreList(String sbjctId)throws Exception;
+    public List<SubjectMarkDetailVO> normalExamEvlScoreList(String sbjctId);
 
-    public List<EgovMap> quizEvlScoreList(String sbjctId)throws Exception;
+    public List<SubjectMarkDetailVO> examEvlScoreList(@Param("sbjctId")String sbjctId, @Param("searchKey")String searchKey);
 
-    public List<EgovMap> srvyEvlScoreList(String sbjctId)throws Exception;
+    public List<SubjectMarkDetailVO> prgScoreList(String sbjctId);
 
-    public List<EgovMap> adtnScoreList(String sbjctId)throws Exception;
+    public List<SubjectMarkDetailVO> exrcsQstnScoreList(String sbjctId);
 
-    public int mrkSbjctBatchInsert(List<MarkSubjectVO> mrksbjctList)throws Exception;
+    public List<SubjectMarkDetailVO> smnrEvlScoreList(String sbjctId);
 
-    public int mrkSbjctDtlBatchInsert(List<MarkSubjectDetailVO> mrksbjctDtlList)throws Exception;
+    public List<SubjectMarkDetailVO> asmtEvlScoreList(String sbjctId);
 
-    public int mrkSbjctBatchUpdate(List<MarkSubjectVO> mrksbjctList)throws Exception;
+    public List<SubjectMarkDetailVO> dscsEvlScoreList(String sbjctId);
 
-    public int mrkSbjctDtlBatchUpdate(List<MarkSubjectDetailVO> mrksbjctList)throws Exception;
+    public List<SubjectMarkDetailVO> quizEvlScoreList(String sbjctId);
 
+    public List<SubjectMarkDetailVO> srvyEvlScoreList(String sbjctId);
+
+    public List<MarkSubjectVO> adtnScoreList(String sbjctId);
+
+    public int mrkSbjctBatchInsert(List<MarkSubjectVO> mrksbjctList);
+
+    public int mrkSbjctDtlBatchInsert(List<SubjectMarkDetailVO> mrksbjctDtlList);
+
+    public int mrkSbjctBatchUpdate(List<MarkSubjectVO> mrksbjctList);
+
+    public int mrkSbjctDtlBatchUpdate(List<SubjectMarkDetailVO> mrksbjctList);
+
+    public void scrCnvsStsModify(MarkSubjectVO vo);
+
+    public List<EgovMap> AvgScrInfoByMrkItmSelect(String sbjctId);
+
+    public EgovMap mrkRangeStatusSelect(@Param("sbjctId")String sbjctId);
+
+    public List<EgovMap> mrkProcExcpProcListPaging(PageInfo pageInfo);
+
+    public List<EgovMap> allMrkProcExcpProcListPaging(PageInfo pageInfo);
+
+    public void mrkProcExcpProcListBatchInsert(List<MrkProcExcpProcVO> list);
+
+    public void mrkProcExcpProcListBatchDelete(List<MrkProcExcpProcVO> list);
 }

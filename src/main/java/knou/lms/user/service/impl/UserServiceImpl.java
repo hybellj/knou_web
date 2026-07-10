@@ -19,7 +19,7 @@ public class UserServiceImpl  extends ServiceBase implements UserService{
 
 	@Resource(name="userDAO")
     private UserDAO userDAO;
-	
+
 	@Override
 	public UserVO userSelect(String userId) throws Exception {
 		return userDAO.userSelect(userId);
@@ -39,4 +39,20 @@ public class UserServiceImpl  extends ServiceBase implements UserService{
 	public EgovMap existUserIdWithPswd(LoginParam param) throws Exception {
 		return userDAO.existUserIdWithPswd(param);
 	}
+
+	@Override
+    public List<UserVO> userTycdList(UserVO vo) throws Exception {
+        return userDAO.userTycdList(vo);
+    }
+
+	/**
+     * 사용자설정수정
+     * @param  UserVO
+     * @return void
+     * @throws Exception
+     */
+	@Override
+    public void userStngModify(UserVO vo) throws Exception {
+    	userDAO.userStngModify(vo);
+    }
 }

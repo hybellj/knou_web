@@ -1,5 +1,6 @@
 package knou.lms.bbs.service.impl;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -7,11 +8,13 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -19,6 +22,7 @@ import knou.framework.common.CommConst;
 import knou.framework.common.IdPrefixType;
 import knou.framework.common.PageInfo;
 import knou.framework.common.ServiceBase;
+import knou.framework.common.SessionInfo;
 import knou.framework.exception.ServiceProcessException;
 import knou.framework.util.FileUtil;
 import knou.framework.util.IdGenUtil;
@@ -32,7 +36,7 @@ import knou.lms.bbs.dao.BbsInfoDAO;
 import knou.lms.bbs.dao.BbsViewDAO;
 import knou.lms.bbs.service.BbsAtclService;
 import knou.lms.bbs.vo.BbsAtclVO;
-import knou.lms.bbs.vo.BbsInfoVO;
+import knou.lms.bbs.vo.BbsVO;
 import knou.lms.common.service.SysFileService;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.file.dao.AttachFileDAO;
@@ -138,6 +142,8 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
     @Override
     public void insertBbsAtcl(BbsAtclVO vo) throws Exception {
         String bbsId = vo.getBbsId();
+        String bbsTycd = vo.getBbsTycd();
+        String bbsRefTycd = vo.getBbsRefTycd();
         String atclOptnId = vo.getAtclOptnId();
         String rgtrId = vo.getRgtrId();
 
@@ -152,51 +158,17 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
         }
 
         // 일대일 상담 여부
-        if(!"SECRET".equals(StringUtil.nvl(bbsId))) {
+        if(!"1ON1".equals(StringUtil.nvl(bbsId))) {
             vo.setDscsnProfId(null);
         }
 
-        if(ValidationUtils.isNotEmpty(vo.getUpAtclId()) && ("QNA".equals(bbsId) || "SECRET".equals(bbsId))) {
+        if(ValidationUtils.isNotEmpty(vo.getUpAtclId()) && ("QNA".equals(bbsTycd) || "1ON1".equals(bbsTycd))) {
             vo.setCmntUseYn("Y"); // 댓글 사용
-        }
-
-        LOGGER.debug("bbsId     : " + vo.getBbsId());
-        LOGGER.debug("atclId    : " + vo.getAtclId());
-
-        if("NOTICE".equals(bbsId)) {
-            LOGGER.debug("중요글           : " + vo.getImptYn());
-            LOGGER.debug("고정글           : " + vo.getNoticeYn());
-            LOGGER.debug("atclTitle : " + vo.getAtclTtl());
-            LOGGER.debug("atclCts   : " + vo.getAtclCts());
-            LOGGER.debug("댓글사용        : " + vo.getCmntUseYn());
-            LOGGER.debug("분반List   : " + vo.getDeclsList());
-            LOGGER.debug("비공개여부     : " + vo.getLockYn());
-        } else if("QNA".equals(bbsId) || "SECRET".equals(bbsId)) {
-            LOGGER.debug("상담교수        : " + vo.getDscsnProfId());
-            LOGGER.debug("atclTitle : " + vo.getAtclTtl());
-            LOGGER.debug("atclCts   : " + vo.getAtclCts());
-            LOGGER.debug("댓글사용        : " + vo.getCmntUseYn());
-            LOGGER.debug("비공개여부     : " + vo.getLockYn());
-        } else if("PDS".equals(bbsId)) {
-            LOGGER.debug("중요글           : " + vo.getImptYn());
-            LOGGER.debug("고정글           : " + vo.getNoticeYn());
-            LOGGER.debug("atclTitle : " + vo.getAtclTtl());
-            LOGGER.debug("atclCts   : " + vo.getAtclCts());
-            LOGGER.debug("댓글사용        : " + vo.getCmntUseYn());
-            LOGGER.debug("좋아요사용     : " + vo.getGoodUseYn());
-            LOGGER.debug("분반List   : " + vo.getDeclsList());
-            LOGGER.debug("등록예약        : " + vo.getRsrvUseYn());
-            LOGGER.debug("예약일시        : " + vo.getRsrvDttm());
-            LOGGER.debug("비공개여부     : " + vo.getLockYn());
         }
 
         String uploadPath = vo.getUploadPath();
         String uploadFiles = vo.getUploadFiles();
         String copyFiles = vo.getCopyFiles();
-
-        LOGGER.debug("파일 업로드 경로 : " + uploadPath);
-        LOGGER.debug("파일 업로드        : " + uploadFiles);
-        LOGGER.debug("파일함 복사        : " + copyFiles);
 
         List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
         Map<String, List<AtflVO>> declsCopyFileListMap = new HashMap<>();
@@ -214,13 +186,8 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
                 vo.setRgtrnm(usrUserInfoVO.getUserNm());
             }
 
-         // 저장
-            //String newAtclId = IdGenerator.getNewId("ATCL");
-            //vo.setAtclId(newAtclId);
-
             // 스크립트 태그 제거
             vo.setAtclTtl(StringUtil.removeScript(vo.getAtclTtl()));
-            //vo.setAtclCts(StringUtil.removeScript(vo.getAtclCts()));
 
             // TODO 임시맵핑
             if(CommConst.BBS_ID_SYSTEM_NOTICE.equals(bbsId)) {
@@ -235,9 +202,6 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
                 }
             }
 
-            // 게시글 저장
-			/* bbsAtclDAO.insertBbsAtcl(vo); */
-
             String atclId = vo.getAtclId();
             String newAtclId = "";
 
@@ -249,18 +213,22 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
         		vo.setAtclId(atclId);
         	}
 
-        	bbsAtclDAO.insertBbsAtcl(vo);
+        	if (atclOptnId == null || atclOptnId.trim().isEmpty()) {
+        		vo.setAtclOptnId(IdGenUtil.genNewId(IdPrefixType.BBOPT));
+        	}
 
-        	/*
-			 * if (atclOptnId == null || atclOptnId.trim().isEmpty()) {
-			 * vo.setAtclOptnId(IdGenUtil.genNewId(IdPrefixType.BBOPT)); }
-			 */
+        	if("SYS_NTC".equals(bbsTycd)) {
+        		vo.setOrgId("SYSTEM_DEFAULT");
+        		vo.setBbsId("SYS_NTC");
+        	}
 
-            // TB_LMS_BBS_ATCL
-			/* bbsAtclDAO.bbsAtclSbjctRegist(vo); */
+        	// TB_LMS_BBS_ATCL
+    		bbsAtclDAO.bbsAtclRegist(vo);
 
         	// TB_LMS_BBS_ATCL_OPTN
-			/* bbsAtclDAO.bbsAtclOptnRegist(vo); */
+			if("NTC".equals(bbsTycd) && "SBJCT".equals(bbsRefTycd)) {
+				bbsAtclDAO.bbsAtclOptnRegist(vo);
+			}
 
             // 첨부파일
             if (uploadFileList.size() > 0) {
@@ -289,22 +257,22 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
 
                         LOGGER.debug("분반  강의실 코드 : " + crsCreCd);
 
-                        BbsInfoVO bbsInfoVO = new BbsInfoVO();
-                        bbsInfoVO.setOrgId(vo.getOrgId());
-                        bbsInfoVO.setCrsCreCd(crsCreCd);
-                        bbsInfoVO.setSysDefaultYn("Y");
-                        bbsInfoVO.setSysUseYn("N");
-                        bbsInfoVO.setBbsId(bbsId);
-                        bbsInfoVO = bbsInfoDAO.selectBbsInfo(bbsInfoVO);
+                        BbsVO bbsVO = new BbsVO();
+                        bbsVO.setOrgId(vo.getOrgId());
+                        bbsVO.setCrsCreCd(crsCreCd);
+                        bbsVO.setSysDefaultYn("Y");
+                        bbsVO.setSysUseYn("N");
+                        bbsVO.setBbsId(bbsId);
+                        bbsVO = bbsInfoDAO.selectBbsInfo(bbsVO);
 
-                        if(bbsInfoVO == null) {
+                        if(bbsVO == null) {
                             throw new ServiceProcessException("분반 강의실 게시판 정보를 찾을 수 없어 저장에 실패하였습니다.");
                         }
 
                         // 저장
                         String atclId = IdGenerator.getNewId("ATCL");
                         vo.setCrsCreCd(crsCreCd);
-                        vo.setBbsId(bbsInfoVO.getBbsId());
+                        vo.setBbsId(bbsVO.getBbsId());
                         vo.setAtclId(atclId);
                         bbsAtclDAO.insertBbsAtcl(vo);
 
@@ -483,15 +451,15 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
         }
 
         // 게시판 사용여부 체크
-        BbsInfoVO bbsInfoVO = new BbsInfoVO();
-        bbsInfoVO.setOrgId(orgId);
-        bbsInfoVO.setCrsCreCd(crsCreCd);
-        bbsInfoVO.setBbsId(bbsId);
-        bbsInfoVO.setSysDefaultYn("Y");
-        bbsInfoVO.setUseYn("Y");
-        bbsInfoVO = bbsInfoDAO.selectBbsInfo(bbsInfoVO);
+        BbsVO bbsVO = new BbsVO();
+        bbsVO.setOrgId(orgId);
+        bbsVO.setCrsCreCd(crsCreCd);
+        bbsVO.setBbsId(bbsId);
+        bbsVO.setSysDefaultYn("Y");
+        bbsVO.setUseYn("Y");
+        bbsVO = bbsInfoDAO.selectBbsInfo(bbsVO);
 
-        if(bbsInfoVO != null) {
+        if(bbsVO != null) {
 
             BbsAtclVO copyAtclVO = new BbsAtclVO();
             copyAtclVO.setOrgId(orgId);
@@ -606,29 +574,7 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
         // 페이지 정보 설정
         PageInfo pageInfo = new PageInfo(vo);
         // 목록 조회
-        List<BbsAtclVO> atclList;
-
-        switch (vo.getBbsTycd()) {
-	        case "QNA":
-	            atclList = bbsAtclDAO.selectBbsLctrQnaList(vo);
-	            break;
-
-	        case "1ON1":
-	            atclList = bbsAtclDAO.selectBbsDscsnList(vo);
-	            break;
-
-	        case "NTC":
-	        	if("ORG".equals(vo.getBbsRefTycd())) {
-	        		atclList = bbsAtclDAO.selectBbsAtclList(vo);
-	        	} else {
-	        		atclList = bbsAtclDAO.selectBbsSbjctList(vo);
-	        	}
-	            break;
-
-	        default:
-	            atclList = bbsAtclDAO.selectBbsAtclList(vo);
-	            break;
-	    }
+        List<BbsAtclVO> atclList = bbsAtclDAO.selectBbsAtclList(vo);
 
         // 페이지 전체 건수정보 설정
        	pageInfo.setTotalRecord(atclList);
@@ -648,14 +594,21 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
      ******************************************************/
     @Override
     public BbsAtclVO selectBbsAtcl(BbsAtclVO bbsAtclVO) throws Exception {
-    	ProcessResultVO<BbsAtclVO> processResultVO = new ProcessResultVO<>();
+        ProcessResultVO<BbsAtclVO> processResultVO = new ProcessResultVO<>();
+        String userId = bbsAtclVO.getUserId();
+        String orgId = bbsAtclVO.getOrgId();
 
-    	// 게시글조회
+        // 게시글조회
         bbsAtclVO = bbsAtclDAO.selectBbsAtcl(bbsAtclVO);
-
         if(bbsAtclVO != null) {
-        	// 이전글/다음글
-            BbsAtclVO prevNextAtclVO = bbsAtclDAO.selecBbsAtclPrevNext(bbsAtclVO);
+            // 이전글/다음글 조회는 별도 객체로 처리 (원본 bbsAtclVO.orgId를 덮어쓰지 않도록)
+            BbsAtclVO prevNextSearchVO = new BbsAtclVO();
+            prevNextSearchVO.setAtclId(bbsAtclVO.getAtclId());
+            prevNextSearchVO.setBbsId(bbsAtclVO.getBbsId());
+            prevNextSearchVO.setOrgId(orgId);
+            // 이전 코드가 prevNext 조회에 필요로 했던 다른 필드가 있다면 여기 추가로 세팅
+
+            BbsAtclVO prevNextAtclVO = bbsAtclDAO.selecBbsAtclPrevNext(prevNextSearchVO);
             if(prevNextAtclVO != null) {
                 bbsAtclVO.setPrevAtclId(prevNextAtclVO.getPrevAtclId());
                 bbsAtclVO.setPrevAtclTtl(prevNextAtclVO.getPrevAtclTtl());
@@ -672,12 +625,21 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
                 bbsAtclVO.setFileList(fileList);
             }
 
-            bbsAtclDAO.bbsAtclHitsModify(bbsAtclVO);
+            bbsAtclVO.setUserId(userId);
+            try {
+                bbsAtclDAO.bbsAtclHitsUserLog(bbsAtclVO);
+                bbsAtclDAO.bbsAtclHitsModify(bbsAtclVO);
+            } catch (DuplicateKeyException e) {
+                // 중복 조회 - 무시
+            } catch (SQLIntegrityConstraintViolationException e) {
+                // Oracle 중복 키 - 무시
+            } catch (Exception e) {
+                // 기타 예외 - 무시
+            }
         }
 
         return bbsAtclVO;
     }
-
 
     /*****************************************************
      * 게시판게시글 수정
@@ -687,10 +649,12 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
     @Override
     public void updateBbsAtcl(BbsAtclVO vo) throws Exception {
         String bbsId = vo.getBbsId();
+        String bbsTycd = vo.getBbsTycd();
+        String atclOptnId = vo.getAtclOptnId();
 
         // 비공개여부
-        if(ValidationUtils.isEmpty(vo.getLockYn())) {
-            vo.setLockYn("N");
+        if(ValidationUtils.isEmpty(vo.getOyn())) {
+            vo.setOyn("N");
         }
 
         // 등록예약
@@ -699,14 +663,14 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
         }
 
         // 일대일 상담 여부
-        if(!"SECRET".equals(StringUtil.nvl(bbsId))) {
+        if(!"1ON1".equals(StringUtil.nvl(bbsId))) {
             vo.setDscsnProfId(null);
         }
 
         LOGGER.debug("bbsId     : " + vo.getBbsId());
         LOGGER.debug("atclId    : " + vo.getAtclId());
 
-        if("NOTICE".equals(bbsId)) {
+        if("NTC".equals(bbsId)) {
             LOGGER.debug("중요글           : " + vo.getImptYn());
             LOGGER.debug("고정글           : " + vo.getNoticeYn());
             LOGGER.debug("atclTitle : " + vo.getAtclTtl());
@@ -720,7 +684,7 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
             LOGGER.debug("atclCts   : " + vo.getAtclCts());
             LOGGER.debug("댓글사용        : " + vo.getCmntUseYn());
             LOGGER.debug("비공개여부     : " + vo.getLockYn());
-        } else if("PDS".equals(bbsId)) {
+        } else if("DATARM".equals(bbsId)) {
             LOGGER.debug("중요글           : " + vo.getImptYn());
             LOGGER.debug("고정글           : " + vo.getNoticeYn());
             LOGGER.debug("atclTitle : " + vo.getAtclTtl());
@@ -745,10 +709,16 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
             // TODO -->> 내용은 저장할때 태그 제거하지 않고 내용 조회할때 태그제거하도록 변경해야함...
             //vo.setAtclCts(StringUtil.removeScript(vo.getAtclCts()));
 
+            if (atclOptnId == null || atclOptnId.trim().isEmpty()) {
+        		vo.setAtclOptnId(IdGenUtil.genNewId(IdPrefixType.BBOPT));
+        	}
+
             // 수정 - 게시글
             bbsAtclDAO.updateBbsAtcl(vo);
             // 수정 - 게시글 옵션
-            bbsAtclDAO.bbsAtclOptnRegist(vo);
+            if("NTC".equals(bbsTycd)) {
+            	bbsAtclDAO.bbsAtclOptnRegist(vo);
+            }
 
             // 첨부파일
             if (uploadFileList.size() > 0) {
@@ -898,7 +868,7 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
     }
 
     /*****************************************************
-     * 메뉴 > 글로벌메뉴 > 과목공지 저장
+     * 메뉴 > 글로벌메뉴 > 게시판 저장
      * @param vo
      * @throws Exception
      ******************************************************/
@@ -907,22 +877,29 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
 
     	String atclId = vo.getAtclId();
     	String atclOptnId = vo.getAtclOptnId();
+    	String bbsTycd = vo.getBbsTycd();
 
 
     	// 데이터가 없으면 신규 등록
     	if (atclId == null || atclId.trim().isEmpty()) {
     	    vo.setAtclId(IdGenUtil.genNewId(IdPrefixType.BBATC));
     	}
-
+    	System.out.println("atclOptnId=========>"+atclOptnId);
     	if (atclOptnId == null || atclOptnId.trim().isEmpty()) {
     		vo.setAtclOptnId(IdGenUtil.genNewId(IdPrefixType.BBOPT));
     	}
 
     	// TB_LMS_BBS_ATCL
+    	if("NTC".equals(bbsTycd)) {
+    		vo.setNtcGbncd("SBJCT");
+    	}
+
     	bbsAtclDAO.bbsAtclSbjctRegist(vo);
 
     	// TB_LMS_BBS_ATCL_OPTN
-    	bbsAtclDAO.bbsAtclOptnRegist(vo);
+    	if(!"DATARM".equals(bbsTycd) && !"QNA".equals(bbsTycd) && !"1ON1".equals(bbsTycd) && !"FREE".equals(bbsTycd) && !"ALBUM".equals(bbsTycd) && !"TEAM".equals(bbsTycd)) {
+    		bbsAtclDAO.bbsAtclOptnRegist(vo);
+    	}
 
     	List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
         Map<String, List<AtflVO>> declsCopyFileListMap = new HashMap<>();
@@ -1047,5 +1024,96 @@ public class BbsAtclServiceImpl extends ServiceBase implements BbsAtclService {
         processResultVO.setPageInfo(pageInfo);
 
         return processResultVO;
+    }
+
+    /*****************************************************
+     * 게시판게시글 목록
+     * @param vo
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ProcessResultVO<EgovMap> stdInfoListPaging(BbsAtclVO bbsAtclVO) throws Exception {
+        ProcessResultVO<EgovMap> processResultVO = new ProcessResultVO<>();
+        // 페이지 정보 설정
+        PageInfo pageInfo = new PageInfo(bbsAtclVO);
+
+        List<EgovMap> stdInfoList = bbsAtclDAO.stdInfoListPaging(bbsAtclVO);
+
+        // 페이지 전체 건수정보 설정
+        pageInfo.setTotalRecord(stdInfoList);
+
+        processResultVO.setReturnList(stdInfoList);
+        processResultVO.setPageInfo(pageInfo);
+
+        return processResultVO;
+    }
+
+    /*****************************************************
+     * 메뉴 > 글로벌메뉴 > 과목공지 저장
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public void bbsGrpNtcRegist(BbsAtclVO vo) throws Exception {
+
+    	bbsAtclDAO.bbsGrpNtcRegist(vo);
+    }
+
+    /*****************************************************
+     * 게시판게시글 목록
+     * @param vo
+     * @return ProcessResultVO<BbsAtclVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public ProcessResultVO<BbsAtclVO> bbsTeamMbrListView(BbsAtclVO vo) throws Exception {
+        ProcessResultVO<BbsAtclVO> processResultVO = new ProcessResultVO<>();
+
+        // 페이지 정보 설정
+        PageInfo pageInfo = new PageInfo(vo);
+
+        // 목록 조회
+        List<BbsAtclVO> atclList;
+
+	    atclList = bbsAtclDAO.bbsTeamMbrListView(vo);
+
+        // 페이지 전체 건수정보 설정
+       	pageInfo.setTotalRecord(atclList);
+
+        processResultVO.setReturnList(atclList);
+        processResultVO.setPageInfo(pageInfo);
+
+        return processResultVO;
+    }
+
+    @Override
+    public ProcessResultVO<EgovMap> bbsGrpNtcStdntList(BbsAtclVO vo) throws Exception {
+        ProcessResultVO<EgovMap> processResultVO = new ProcessResultVO<>();
+        // 페이지 정보 설정
+        PageInfo pageInfo = new PageInfo(vo);
+        List<EgovMap> stdInfoList = null;
+
+        String searchType = vo.getSearchType();
+
+        if("ATND".equals(searchType)) {
+        	stdInfoList = bbsAtclDAO.bbsGrpNtcStdntAtndList(vo);
+        } else if("LRN".equals(searchType)) {
+        	stdInfoList = bbsAtclDAO.bbsGrpNtcStdntLrnList(vo);
+        } else {
+        	stdInfoList = bbsAtclDAO.bbsGrpNtcStdntTeamList(vo);
+        }
+        // 페이지 전체 건수정보 설정
+        pageInfo.setTotalRecord(stdInfoList);
+
+        processResultVO.setReturnList(stdInfoList);
+        processResultVO.setPageInfo(pageInfo);
+
+        return processResultVO;
+    }
+
+    @Override
+    public void deleteBbsGrpNtcTrgtr(BbsAtclVO vo) throws Exception {
+        bbsAtclDAO.deleteBbsGrpNtcTrgtr(vo);
     }
 }

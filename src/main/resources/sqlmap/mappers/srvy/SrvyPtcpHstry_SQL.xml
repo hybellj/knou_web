@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.srvy.dao.SrvyPtcpHstryDAO">
+
+	<insert id="srvyPtcpHstryRegist" parameterType="srvyPtcpHstryVO">
+		/*
+             SQL ID : SrvyPtcpHstryDAO.srvyPtcpHstryRegist
+             설  명  : 설문참여이력등록
+         */
+        INSERT INTO TB_LMS_SRVY_PTCP_HSTRY (
+        	  SRVY_PTCP_HSTRY_ID
+			, USER_ID
+			, SRVY_ID
+			, SRVY_HSTRY_GBNCD
+			, PTCP_SDTTM
+			, PTCP_EDTTM
+			, CNTN_IP
+			, RGTR_ID
+			, REG_DTTM
+        ) VALUES (
+        	  #{srvyPtcpHstryId}
+			, #{userId}
+			, #{srvyId}
+			, #{srvyHstryGbncd}
+			, NVL(#{ptcpSdttm}, FN_DTTM())
+			, #{ptcpEdttm}
+			, #{cntnIp}
+			, #{rgtrId}
+			, FN_DTTM()
+        )
+	</insert>
+
+	<select id="userSrvyPtcpInfoSelect" parameterType="map" resultType="srvyPtcpHstryVO">
+		/*
+             SQL ID : SrvyPtcpHstryDAO.userSrvyPtcpInfoSelect
+             설  명  : 사용자설문참여정보조회
+         */
+        SELECT
+			  PTCP.USER_ID
+			, PTCP.SRVY_ID
+			, GREATEST(PTCP.PTCP_SDTTM, HSTRY.REG_DTTM) AS PTCP_SDTTM
+			, NVL(PTCP.PTCP_EDTTM, FN_DTTM()) AS PTCP_EDTTM
+			, HSTRY.CNTN_IP
+		  FROM TB_LMS_SRVY_PTCP PTCP
+		  LEFT JOIN (
+			SELECT
+				  USER_ID
+				, SRVY_ID
+				, CNTN_IP
+				, REG_DTTM
+				, ROW_NUMBER() OVER(PARTITION BY USER_ID, SRVY_ID ORDER BY REG_DTTM DESC) AS RNUM
+			  FROM TB_LMS_SRVY_PTCP_HSTRY
+		  ) HSTRY
+		    ON PTCP.SRVY_ID = HSTRY.SRVY_ID
+		   AND PTCP.USER_ID = HSTRY.USER_ID
+		   AND HSTRY.RNUM = 1
+		 WHERE PTCP.SRVY_PTCP_ID = #{srvyPtcpId}
+		   AND PTCP.SRVY_ID = #{srvyId}
+		   AND PTCP.USER_ID = #{userId}
+     </select>
+
+     <select id="srvyPtcpHstryList" parameterType="srvyPtcpHstryVO" resultType="egovMap">
+		/*
+             SQL ID : SrvyPtcpHstryDAO.srvyPtcpHstryList
+             설  명  : 설문참여이력목록조회
+         */
+         SELECT
+			  HSTRY.*
+			, CMMN.CDNM AS HSTRY_GBNNM
+			, ROW_NUMBER() OVER(ORDER BY HSTRY.REG_DTTM) AS LINE_NO
+		  FROM TB_LMS_SRVY_PTCP_HSTRY HSTRY
+		  LEFT JOIN TB_LMS_CMMN_CD CMMN
+		    ON HSTRY.SRVY_HSTRY_GBNCD = CMMN.CD
+		   AND CMMN.UP_CD = 'SRVY_HSTRY_GBNCD'
+		   AND CMMN.USEYN = 'Y'
+		 WHERE HSTRY.SRVY_ID = #{srvyId}
+		   AND HSTRY.USER_ID = #{userId}
+	</select>
+
+</mapper>

@@ -26,5 +26,4 @@ public class RecordingsVO extends PagenationVO implements Serializable {
     public List getObjects() {
         return recordings;
     }
-
 }

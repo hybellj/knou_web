@@ -104,9 +104,9 @@
 			var url;
 			
 			if(popupNtcId) {
-				url = '/sch/schMgr/updatePopupNotice.do';
+				url = '/schedule/updatePopupNotice.do';
 			} else {
-				url = '/sch/schMgr/insertPopupNotice.do';
+				url = '/schedule/insertPopupNotice.do';
 			}
 			
 			var data = $("#writeForm").serialize();

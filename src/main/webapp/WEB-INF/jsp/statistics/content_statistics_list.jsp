@@ -185,7 +185,7 @@
 		
 		// 주차별 목록 조회
 		function listTab1(pageIndex) {
-			var url = "/statistics/statisticsMgr/listContentStatistics.do";
+			var url = "/statistics/listContentStatistics.do";
 			var param = {
 			      creYear 		: $("#haksaYear1").val()
 			    , creTerm 		: $("#haksaTerm1").val()
@@ -282,7 +282,7 @@
 	            ]
 			};
 			
-			var url  = "/statistics/statisticsMgr/downExcelContentStatistics.do";
+			var url  = "/statistics/downExcelContentStatistics.do";
 			var form = $("<form></form>");
 			form.attr("method", "POST");
 			form.attr("name", "excelForm");
@@ -302,7 +302,7 @@
 		
 		// 과목별 목록 조회
 		function listTab2(pageIndex) {
-			var url = "/statistics/statisticsMgr/listContentStatistics.do";
+			var url = "/statistics/listContentStatistics.do";
 			var param = {
 			      creYear 		: $("#haksaYear2").val()
 			    , creTerm 		: $("#haksaTerm2").val()
@@ -405,7 +405,7 @@
 	            ]
 			};
 			
-			var url  = "/statistics/statisticsMgr/downExcelContentStatistics.do";
+			var url  = "/statistics/downExcelContentStatistics.do";
 			var form = $("<form></form>");
 			form.attr("method", "POST");
 			form.attr("name", "excelForm");
@@ -427,7 +427,7 @@
 		
 		// 전체누계 목록 조회
 		function listTab3(pageIndex) {
-			var url = "/statistics/statisticsMgr/listContentStatistics.do";
+			var url = "/statistics/listContentStatistics.do";
 			var param = {
 			      creYear 		: $("#haksaYear3").val()
 			    , creTerm 		: $("#haksaTerm3").val()
@@ -522,7 +522,7 @@
 	            ]
 			};
 			
-			var url  = "/statistics/statisticsMgr/downExcelContentStatistics.do";
+			var url  = "/statistics/downExcelContentStatistics.do";
 			var form = $("<form></form>");
 			form.attr("method", "POST");
 			form.attr("name", "excelForm");

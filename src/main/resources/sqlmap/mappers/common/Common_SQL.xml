@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
 <mapper namespace="CommonSQL">
 
 	<!-- Page Prefix -->
@@ -8,12 +9,24 @@
     </sql>
 
 	<!-- Page Subfix -->
-	<sql id="pageSubfix">
+	<sql id="pageSuffix">
 		<!-- LIMIT #{firstIndex}, #{listScale} -->
 		) A
 		WHERE 1=1
 		  <!-- AND ROWNUM <![CDATA[>]]> #{firstIndex} AND ROWNUM <![CDATA[<=]]> #{listScale} -->
 		  AND LINE_NO BETWEEN #{firstIndex} +1 AND #{firstIndex} + #{listScale}
+    </sql>
+    
+    <!-- Page Prefix -->
+	<sql id="pagePrefix2">
+		SELECT * FROM (
+    </sql>
+
+	<!-- Page Subfix -->
+	<sql id="pageSuffix2">
+		) A
+		WHERE 1=1
+		  AND LINE_NO BETWEEN #{firstRecordIndex} +1 AND #{lastRecordIndex}
     </sql>
     
 </mapper>

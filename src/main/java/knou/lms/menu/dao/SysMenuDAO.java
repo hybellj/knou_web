@@ -3,11 +3,13 @@ package knou.lms.menu.dao;
 import java.util.List;
 
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import knou.lms.menu.vo.MenuUseOrgVO;
 import knou.lms.menu.vo.MenuVO;
 import knou.lms.menu.vo.MgrSysMenuVO;
 import knou.lms.menu.vo.SysAuthGrpMenuVO;
+import knou.lms.menu.vo.SysAuthGrpVO;
 import knou.lms.menu.vo.SysMenuVO;
 
 /**
@@ -25,6 +27,22 @@ public interface SysMenuDAO{
      * @throws Exception
      */
     public List<MgrSysMenuVO> selectSysMenulist(SysMenuVO vo) throws Exception;
+
+    /**
+     *  권한에 대한 메뉴 리스트를 조회한다.
+     * @param SysMenuVO
+     * @return List<MgrSysMenuVO>
+     * @throws Exception
+     */
+    public List<SysAuthGrpVO> admAuthMngListViewAjax(SysAuthGrpVO vo) throws Exception;
+
+    /**
+     *  권한에 대한 메뉴 리스트를 조회한다.
+     * @param SysMenuVO
+     * @return List<MgrSysMenuVO>
+     * @throws Exception
+     */
+    public List<SysAuthGrpVO> admAuthMngPopViewAjax(SysAuthGrpVO vo) throws Exception;
 
     /**
      *  관리자 메뉴 사용 유무 저장
@@ -174,9 +192,84 @@ public interface SysMenuDAO{
     public List<MenuUseOrgVO> selectMainMenuUseOrgAll(MenuUseOrgVO vo) throws Exception;
 
     /**
+     * 기관 메인메뉴 목록 조회
+     * @return List<MenuVO>
+     * @throws Exception
+     */
+    public List<MenuVO> selectOrgMainMenuList(MenuVO vo) throws Exception;
+
+    /**
      * 강의실 메뉴 목록 조회
      * @return List<MenuVO>
      * @throws Exception
      */
     public List<MenuVO> selectLectMenuList(MenuVO vo) throws Exception;
+
+    /**
+     * 강의실 기본 메뉴 생성
+     * @throws Exception
+     */
+    public void insertLectDefaultMenu(MenuVO vo) throws Exception;
+
+    /**
+     * 기관 기본 메뉴 생성
+     * @throws Exception
+     */
+    public void insertOrgDefaultMenu(MenuVO vo);
+
+    /**
+     * 권한 변경/등록
+     * @throws Exception
+     */
+    public void admAuthSave(SysAuthGrpVO vo);
+
+    /**
+     * 권한 변경/등록 이력
+     * @throws Exception
+     */
+    public void admAuthChgHstryRegist(SysAuthGrpVO vo);
+
+    /*****************************************************
+     * 게시글 삭제
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void admAuthDelete(SysAuthGrpVO vo) throws Exception;
+
+    /*****************************************************
+     * 관리자 메뉴 목록 조회
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+	public List<MenuVO> adminMenuList(MenuVO vo);
+
+	/*****************************************************
+     * 권한에 따른 메뉴 목록 조회
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+	public List<SysAuthGrpVO> admAuthrtTabList(SysAuthGrpVO vo) throws Exception;
+
+	/*****************************************************
+     * 관리자 메뉴관리 > 사용 여부 변경
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+	public void admMenuUseynModify(SysAuthGrpVO vo);
+
+	/*****************************************************
+     * 관리자 메뉴관리 > 쓰기 허용 변경
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+	public void admMenuWriteynModify(SysAuthGrpVO vo);
+
+	/*****************************************************
+    * 관리자 메뉴 쓰기 허용 여부 R: 읽기 / W: 쓰기 변경 이력 조회
+    * @param vo
+    * @throws Exception
+    ******************************************************/
+	public void admMenuWriteynChgHstry(SysAuthGrpVO vo);
+
+	public List<EgovMap> admMenuList(MenuVO vo);
 }

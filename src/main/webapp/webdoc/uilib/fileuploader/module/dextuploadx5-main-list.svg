@@ -4,11 +4,17 @@
 	xmlns="http://www.w3.org/2000/svg"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	version="1.1"
+	lang="en"
+	xml:lang="en"
 	id="UIC-DEXTUPLOADX5-MAIN"
 	onload="onLoadHandler(evt)"
 	width="100%" height="100%">
     <script type="application/ecmascript" xlink:href="aes.js"/>
-    <script type="application/ecmascript" xlink:href="dextuploadx5-common.js"/>
+    <script type="application/ecmascript" xlink:href="dextuploadx5-svg-common.js"/>
+    <script type="application/ecmascript" xlink:href="dextuploadx5-svg-dom-common.js"/>
+    <script type="application/ecmascript" xlink:href="dextuploadx5-svg-format.js"/>
+    <script type="application/ecmascript" xlink:href="dextuploadx5-net-common.js"/>
+    <script type="application/ecmascript" xlink:href="dextuploadx5-main-common.js"/>
     <script type="application/ecmascript" xlink:href="dextuploadx5-engine.js"/>
     <script type="application/ecmascript" xlink:href="dextuploadx5-application-common.js"/>
     <script type="application/ecmascript" xlink:href="dextuploadx5-application-ui.js"/>
@@ -39,9 +45,11 @@
         .css-item.selected use[xlink|href="#UIS-UPDONE"] { fill: #fff; }
 
         #UIC-HEADER { -webkit-user-select: none;  user-select: none; }
-        #UIC-FILE-AREA { -webkit-user-select: none;  user-select: none; }
+        #UIC-FILE-AREA { -webkit-user-select: none;  user-select: none; outline: none; }
+        #UIC-FILE-AREA:focus + #UIC-FILE-AREA-FOCUS { display: block; }
         #UIC-FOOTER { -webkit-user-select: none;  user-select: none; }
         #UIC-SCROLLBAR-HANDLE { cursor: pointer; }
+        .css-file-area-focus { display: none; pointer-events: none; }
     </style>
     <style id="UIS-ITEM-CHECKER-COLOR" type="text/css">.css-item .css-item-checker { fill: #fff; }</style>
     <style id="UIS-ITEM-BACK-NORMAL-COLOR" type="text/css">.css-item .css-item-back { fill: #fff }</style>
@@ -132,22 +140,11 @@
     </foreignObject>
     <svg id="UIC-MAIN-AREA" x="0" y="0" width="100%" height="100%">
         <rect id="UIC-BACKGROUND" x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
-        <!-- file container -->
-        <svg id="UIC-FILE-AREA" x="0" layout-dx5="y:{headerHeight}; width:100%-{vscrollbarWidth}; height:100%-{headerHeight}-{footerHeight};">
-            <image id="UIC-BACKGROUND-IMG" disableCacheExpression="disabled"/>
-        </svg>
-        <!-- scrollbar -->
-        <svg id="UIC-FILE-SCROLL-SECTION" layout-dx5="x:100%-{vscrollbarWidth}; y:{headerHeight}; width:{vscrollbarWidth}; height:100%-{headerHeight}-{footerHeight}">
-            <rect id="UIC-SCROLLBAR-RAIL" x="0" y="0" width="100%" height="100%" fill="#f7f7f7"/>
-            <rect id="UIC-SCROLLBAR-HANDLE" x="2" y="0" rx="5" ry="5" width="11" height="0" fill="#d8d8d8"/>
-        </svg>
-        <!-- header (IE에서 svg 아이콘이 헤더 위를 침범하는 버그 문제로 헤더를 푸터 아래로 선언함) -->
+		<!-- header -->
         <svg id="UIC-HEADER" x="0" y="0" width="100%" layout-dx5="height:{headerHeight}" fill="#f7f7f7">
             <rect x="0" y="0" height="100%" layout-dx5="width:{checkerWidth};"/>
-            <g id="UIC-HEADER-CHECKER">
-                <use id="UIC-HEADER-CHECKER-NOT" x="7" width="16" height="16" layout-dx5="y:50%-8px" xlink:href="#UIS-CHECKER"/>
-                <use id="UIC-HEADER-CHECKER-CHK" x="7" width="16" height="16" layout-dx5="y:50%-8px" xlink:href="#UIS-CHECKER-CHKED" style="display:none;"/>
-            </g>
+			<use id="UIC-HEADER-CHECKER" x="7" width="16" height="16" layout-dx5="y:50%-8px" xlink:href="#UIS-CHECKER"
+				role="checkbox" tabindex="0" aria-label="Check all files" />
             <g id="UIC-HEADER-NAME">
                 <rect id="UIC-HEADER-BK-NAME" y="0" height="100%" layout-dx5="x:{checkerWidth};width:100%-{opWidth}-{sizeColumnWidth}-{checkerWidth}-{vscrollbarWidth};"/>
                 <text id="UIC-HEADER-TXT-FILE" class="css-header-font-name css-header-font-color" layout-dx5="x:18px+{checkerWidth};y:{headerTextBaseline}" font-size="12px" font-weight="bold">File</text>
@@ -167,6 +164,21 @@
             </g>
             <rect id="UIC-HEADER-BK-EMPTY" y="0" height="100%" layout-dx5="x:100%-{vscrollbarWidth}; width:{vscrollbarWidth};"/>
             <line id="UIC-HEADER-LN-BOTTOM" x1="0" y1="100%" x2="100%" y2="100%" stroke="#8c969c" stroke-width="1.5"/>
+        </svg>
+        <!-- file container -->
+        <svg id="UIC-FILE-AREA" x="0" layout-dx5="y:{headerHeight}; width:100%-{vscrollbarWidth}; height:100%-{headerHeight}-{footerHeight};"
+			tabindex="0" focusable="true" role="listbox" aria-label="File" aria-describedby="UIC-A11Y-STATUS" aria-multiselectable="true">
+            <image id="UIC-BACKGROUND-IMG" disableCacheExpression="disabled"/>
+        </svg>
+        <svg id="UIC-FILE-AREA-FOCUS" class="css-file-area-focus" x="0" layout-dx5="y:{headerHeight}; width:100%-{vscrollbarWidth}; height:100%-{headerHeight}-{footerHeight};">
+            <rect x="2" y="2" layout-dx5="width:100%-4px; height:100%-4px;" rx="2" ry="2" fill="none" stroke="#dff4ff" stroke-width="2.5" opacity="0.95"/>
+            <rect x="4" y="4" layout-dx5="width:100%-8px; height:100%-8px;" rx="1.5" ry="1.5" fill="none" stroke="#7fd6ff" stroke-width="1.25" opacity="0.8"/>
+        </svg>
+        <text id="UIC-A11Y-STATUS" x="-9999" y="-9999" role="status" aria-live="polite" aria-atomic="true"></text>
+        <!-- scrollbar -->
+        <svg id="UIC-FILE-SCROLL-SECTION" layout-dx5="x:100%-{vscrollbarWidth}; y:{headerHeight}; width:{vscrollbarWidth}; height:100%-{headerHeight}-{footerHeight}">
+            <rect id="UIC-SCROLLBAR-RAIL" x="0" y="0" width="100%" height="100%" fill="#f7f7f7"/>
+            <rect id="UIC-SCROLLBAR-HANDLE" x="2" y="0" rx="5" ry="5" width="11" height="0" fill="#d8d8d8"/>
         </svg>
         <!-- footer -->
         <svg id="UIC-FOOTER" x="0" width="100%" layout-dx5="y:100%-{footerHeight}; height:{footerHeight}" fill="#f7f7f7">

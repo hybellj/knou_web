@@ -16,4 +16,6 @@ public interface MsgAlimDAO {
 
     List<MsgAlimVO> selectMblSndngList(MsgAlimVO vo);
 
+    int updateAlimReadDttm(MsgAlimVO vo);
+
 }

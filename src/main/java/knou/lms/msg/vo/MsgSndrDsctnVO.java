@@ -8,18 +8,18 @@ public class MsgSndrDsctnVO extends DefaultVO {
     // 검색 조건
     private String sbjctYr;
     private String sbjctSmstr;
-    private String deptId;
     private String sndngSdttm;
     private String sndngEdttm;
     private String sndngGbncd;
     private String rsltGbncd;
+    private String sndngStscd;
     private String[] sndngGbncds;
 
     // 목록 결과
     private String msgId;
+    private String sndngrId;
     private int rnum;
     private String orgnm;
-    private String deptnm;
     private String dvclasNo;
     private String rcvrnm;
     private String rcvrTelno;
@@ -34,6 +34,9 @@ public class MsgSndrDsctnVO extends DefaultVO {
     private int shrtntTotalCnt;
     private int shrtntSuccCnt;
     private int shrtntFailCnt;
+    private int shrtntRejectedCnt;
+    private int shrtntReservedCnt;
+    private int shrtntCanceledCnt;
     private int emlTotalCnt;
     private int emlSuccCnt;
     private int emlFailCnt;
@@ -46,9 +49,6 @@ public class MsgSndrDsctnVO extends DefaultVO {
     private int lmsTotalCnt;
     private int lmsSuccCnt;
     private int lmsFailCnt;
-    private int mmsTotalCnt;
-    private int mmsSuccCnt;
-    private int mmsFailCnt;
 
     public String getSbjctYr() {
         return sbjctYr;
@@ -64,14 +64,6 @@ public class MsgSndrDsctnVO extends DefaultVO {
 
     public void setSbjctSmstr(String sbjctSmstr) {
         this.sbjctSmstr = sbjctSmstr;
-    }
-
-    public String getDeptId() {
-        return deptId;
-    }
-
-    public void setDeptId(String deptId) {
-        this.deptId = deptId;
     }
 
     public String getSndngSdttm() {
@@ -106,12 +98,26 @@ public class MsgSndrDsctnVO extends DefaultVO {
         this.rsltGbncd = rsltGbncd;
     }
 
+    public String getSndngStscd() {
+        return sndngStscd;
+    }
+
+    public void setSndngStscd(String sndngStscd) {
+        this.sndngStscd = sndngStscd;
+    }
+
     public String[] getSndngGbncds() {
         return sndngGbncds;
     }
 
     public void setSndngGbncds(String[] sndngGbncds) {
         this.sndngGbncds = sndngGbncds;
+    }
+
+    public void setSndngGbncdsStr(String sndngGbncdsStr) {
+        if (sndngGbncdsStr != null && !sndngGbncdsStr.isEmpty()) {
+            this.sndngGbncds = sndngGbncdsStr.split(",");
+        }
     }
 
     public int getRnum() {
@@ -130,20 +136,20 @@ public class MsgSndrDsctnVO extends DefaultVO {
         this.msgId = msgId;
     }
 
+    public String getSndngrId() {
+        return sndngrId;
+    }
+
+    public void setSndngrId(String sndngrId) {
+        this.sndngrId = sndngrId;
+    }
+
     public String getOrgnm() {
         return orgnm;
     }
 
     public void setOrgnm(String orgnm) {
         this.orgnm = orgnm;
-    }
-
-    public String getDeptnm() {
-        return deptnm;
-    }
-
-    public void setDeptnm(String deptnm) {
-        this.deptnm = deptnm;
     }
 
     public String getDvclasNo() {
@@ -242,6 +248,30 @@ public class MsgSndrDsctnVO extends DefaultVO {
         this.shrtntFailCnt = shrtntFailCnt;
     }
 
+    public int getShrtntRejectedCnt() {
+        return shrtntRejectedCnt;
+    }
+
+    public void setShrtntRejectedCnt(int shrtntRejectedCnt) {
+        this.shrtntRejectedCnt = shrtntRejectedCnt;
+    }
+
+    public int getShrtntReservedCnt() {
+        return shrtntReservedCnt;
+    }
+
+    public void setShrtntReservedCnt(int shrtntReservedCnt) {
+        this.shrtntReservedCnt = shrtntReservedCnt;
+    }
+
+    public int getShrtntCanceledCnt() {
+        return shrtntCanceledCnt;
+    }
+
+    public void setShrtntCanceledCnt(int shrtntCanceledCnt) {
+        this.shrtntCanceledCnt = shrtntCanceledCnt;
+    }
+
     public int getEmlTotalCnt() {
         return emlTotalCnt;
     }
@@ -336,29 +366,5 @@ public class MsgSndrDsctnVO extends DefaultVO {
 
     public void setLmsFailCnt(int lmsFailCnt) {
         this.lmsFailCnt = lmsFailCnt;
-    }
-
-    public int getMmsTotalCnt() {
-        return mmsTotalCnt;
-    }
-
-    public void setMmsTotalCnt(int mmsTotalCnt) {
-        this.mmsTotalCnt = mmsTotalCnt;
-    }
-
-    public int getMmsSuccCnt() {
-        return mmsSuccCnt;
-    }
-
-    public void setMmsSuccCnt(int mmsSuccCnt) {
-        this.mmsSuccCnt = mmsSuccCnt;
-    }
-
-    public int getMmsFailCnt() {
-        return mmsFailCnt;
-    }
-
-    public void setMmsFailCnt(int mmsFailCnt) {
-        this.mmsFailCnt = mmsFailCnt;
     }
 }

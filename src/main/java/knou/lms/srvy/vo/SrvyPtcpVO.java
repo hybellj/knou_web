@@ -11,9 +11,10 @@ public class SrvyPtcpVO extends DefaultVO {
 	// TB_LMS_SRVY_PTCP ( 설문참여 )
 	private String  	srvyPtcpId;		// 설문참여아이디
 	private String  	srvyId;			// 설문아이디
-	private String  	ptcpDttm;		// 참여일시
+	private String  	ptcpSdttm;		// 참여시작일시
+	private String  	ptcpEdttm;		// 참여종료일시
 	private String  	cntnDvcTycd;	// 접속기기유형코드
-	private String  	cntnip;			// 접속아이피
+	private String  	cntnIp;			// 접속아이피
 	private BigDecimal 	ptcpEvlScr;		// 참여평가점수
 	private String  	profMemo;		// 교수메모
 	private String  	srvyPtcpEvlyn;	// 설문참여평가여부
@@ -24,14 +25,17 @@ public class SrvyPtcpVO extends DefaultVO {
 	public String getSrvyId() {
 		return srvyId;
 	}
-	public String getPtcpDttm() {
-		return ptcpDttm;
+	public String getPtcpSdttm() {
+		return ptcpSdttm;
+	}
+	public String getPtcpEdttm() {
+		return ptcpEdttm;
 	}
 	public String getCntnDvcTycd() {
 		return cntnDvcTycd;
 	}
-	public String getCntnip() {
-		return cntnip;
+	public String getCntnIp() {
+		return cntnIp;
 	}
 	public BigDecimal getPtcpEvlScr() {
 		return ptcpEvlScr;
@@ -48,14 +52,17 @@ public class SrvyPtcpVO extends DefaultVO {
 	public void setSrvyId(String srvyId) {
 		this.srvyId = srvyId;
 	}
-	public void setPtcpDttm(String ptcpDttm) {
-		this.ptcpDttm = ptcpDttm;
+	public void setPtcpSdttm(String ptcpSdttm) {
+		this.ptcpSdttm = ptcpSdttm;
+	}
+	public void setPtcpEdttm(String ptcpEdttm) {
+		this.ptcpEdttm = ptcpEdttm;
 	}
 	public void setCntnDvcTycd(String cntnDvcTycd) {
 		this.cntnDvcTycd = cntnDvcTycd;
 	}
-	public void setCntnip(String cntnip) {
-		this.cntnip = cntnip;
+	public void setCntnIp(String cntnIp) {
+		this.cntnIp = cntnIp;
 	}
 	public void setPtcpEvlScr(BigDecimal ptcpEvlScr) {
 		this.ptcpEvlScr = ptcpEvlScr;

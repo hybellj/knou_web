@@ -4,26 +4,27 @@
 
 	<sql id="bbsAtclCmntListQuery">
 		SELECT
-			A.ATCL_ID
-			, B.ORG_ID
-			, A.BBS_ID
-			, A.USER_ID
-			, C.UP_ATCL_CMNT_ID
-			, A.ATCL_TTL
-			, A.ATCL_LV
-			, A.ATCL_SEQNO
-			, C.ATCL_CMNT_ID
-			, C.UP_ATCL_CMNT_ID
-			, C.ATCL_CMNT_CTS AS ATCL_CMNT_CTS
-			, C.EMTICN_NO
-			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = A.USER_ID) AS RGTR_NM
-			, C.REG_DTTM
-			, C.DELYN
+		    A.ATCL_ID
+		    , B.ORG_ID
+		    , A.BBS_ID
+		    , B.BBS_TYCD
+		    , A.USER_ID
+		    , A.ATCL_TTL
+		    , A.ATCL_LV
+		    , A.ATCL_SEQNO
+		    , C.ATCL_CMNT_ID
+		    , C.ATCL_CMNT_CTS
+		    , C.ATCL_CMNT_LV
+		    , C.UP_ATCL_CMNT_ID
+		    , C.EMTICN_NO
+		    , (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = C.RGTR_ID) AS RGTRNM
+		    , C.DELYN
+		    , C.REG_DTTM
 		  FROM TB_LMS_BBS_ATCL A
 		  JOIN TB_LMS_BBS B ON A.BBS_ID = B.BBS_ID
 		  JOIN TB_LMS_BBS_ATCL_CMNT C ON A.ATCL_ID = C.ATCL_ID
 		 WHERE 1=1
-		   AND A.BBS_ID = #{bbsId}
+		   <!-- AND A.BBS_ID = #{bbsId} -->
 		   AND A.ATCL_ID = #{atclId}
 		   <if test="orgId != null and orgId != ''">
 		     AND B.ORG_ID = #{orgId}
@@ -44,14 +45,14 @@
 			, A.EMTICN_NO
 			, A.DELYN
 			, A.RGTR_ID
-			, (SELECT USERNM FROM TB_LMS_USR WHERE USER_ID = A.RGTR_ID) AS RGTRNM
-			, A.FRST_INQ_DTTM
+			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = A.RGTR_ID) AS RGTRNM
 			, A.MDFR_ID
 			, A.MOD_DTTM
 		FROM TB_LMS_BBS_ATCL_CMNT A
-		WHERE A.ATCL_CMNT_ID = #{cmntId}
-		AND A.ATCL_ID = #{atclId}
-		AND A.DELYN = 'N'
+		WHERE 1=1
+		  AND A.ATCL_ID = #{atclId}
+		  AND A.ATCL_CMNT_ID = #{cmntId}
+		  AND A.DELYN = 'N'
 	</select>
 
 	<sql id="listQuery">
@@ -239,7 +240,7 @@
          */
         <include refid="CommonSQL.pagePrefix" />
 		<include refid="listQuery" />
-		<include refid="CommonSQL.pageSubfix" />
+		<include refid="CommonSQL.pageSuffix" />
 	</select>
 
 	<insert id="insertBbsCmnt" parameterType="bbsCmntVO">
@@ -346,15 +347,17 @@
 	        USER_ID,
 	        UP_ATCL_CMNT_ID,
 	        ATCL_CMNT_CTS,
+	        ATCL_CMNT_LV,
 	        EMTICN_NO,
 	        RGTR_ID,
 	        REG_DTTM
 	    ) VALUES (
 	        #{atclCmntId},
 	        #{atclId},
-	        #{userId},
+	        #{rgtrId},
 	        #{upAtclCmntId},
 	        #{atclCmntCts},
+	        #{atclCmntLv},
 	        #{emticnNo},
 	        #{rgtrId},
 	        FN_DTTM()
@@ -385,4 +388,14 @@
 		WHERE 1=1
 		  AND ATCL_CMNT_ID = #{atclCmntId}
 	</delete>
+
+	<select id="selectBbsAtclCmntLv" parameterType="string" resultType="Integer">
+	    /*
+	        SQL ID : BbsCmntDAO.selectBbsAtclCmntLv
+	        설  명 : 부모 댓글 레벨 조회
+	    */
+	    SELECT NVL(ATCL_CMNT_LV, 1)
+	      FROM TB_LMS_BBS_ATCL_CMNT
+	     WHERE ATCL_CMNT_ID = #{upAtclCmntId}
+	</select>
 </mapper>

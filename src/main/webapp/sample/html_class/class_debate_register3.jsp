@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="../common/common_inc.jsp" %><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+	<jsp:include page="../common/common_head.jsp">
         <jsp:param name="module" value="editor,fileuploader"/>
 		<jsp:param name="style" value="classroom"/>
 	</jsp:include>
@@ -12,25 +12,25 @@
 <body class="class colorA "><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
-        <jsp:include page="/WEB-INF/jsp/common_new/class_header.jsp"/>
+        <jsp:include page="../common/class_header.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
         <!-- //common header -->
 
         <!-- classroom -->
         <main class="common">
 
             <!-- gnb -->
-            <jsp:include page="/WEB-INF/jsp/common_new/class_gnb_prof.jsp"/>
+            <jsp:include page="../common/class_gnb_prof.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
             <!-- //gnb -->
 
             <!-- content -->
             <div id="content" class="content-wrap common">
                 <!-- class_sub_top -->
-				<jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+				<jsp:include page="../common/class_sub_top.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 				<!-- //class_sub_top -->
 
                 <div class="class_sub">
                     <!-- class_info -->
-					<jsp:include page="/WEB-INF/jsp/common_new/class_info.jsp"/>
+					<jsp:include page="../common/class_info.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
                     <!-- //class_info -->
 
                     <div class="sub-content">
@@ -456,6 +456,14 @@
 
                     </div>
 
+                <!-- modal popup 보여주기 버튼(개발시 삭제) -->
+                <div class="modal-btn-box">
+                    <button type="button" class="btn modal__btn" data-modal-open="modal1">학습그룹지정</button>
+                    <button type="button" class="btn modal__btn" data-modal-open="modal2">이전토론 가져오기</button>
+                </div>
+                <!--// modal popup 보여주기 버튼(개발시 삭제) -->
+
+
                 </div>
             </div>
             <!-- //content -->
@@ -465,6 +473,180 @@
         <!-- //classroom-->
 
     </div>
+
+        <!-- Modal 1 학습그룹지정 -->
+        <div class="modal-overlay" id="modal1" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
+            <div class="modal-content modal-md" tabindex="-1">
+                <div class="modal-header">
+                    <h2 id="modal1Title">학습그룹지정</h2>
+                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="msg-box warning">
+                        <p class="txt"><i class="xi-error" aria-hidden="true"></i> 학습그룹 배정이 완료된 학습그룹만 조회됩니다.</p>
+                    </div>
+
+                    <div class="board_top">
+                        <select class="form-select wide" id="selectGroup">
+                            <option value="학습그룹 지정">학습그룹 지정</option>
+                        </select>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="table-type1">
+                            <colgroup>
+                                <col style="width:10%">
+                                <col style="">
+                                <col style="width:20%">
+                                <col style="width:20%">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>번호</th>
+                                    <th>팀명</th>
+                                    <th>팀장</th>
+                                    <th>팀원</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td data-th="번호">1</td>
+                                    <td data-th="팀명">팀1</td>
+                                    <td data-th="팀장">홍길동</td>
+                                    <td data-th="팀원">10명</td>
+                                </tr>
+                                <tr>
+                                    <td data-th="번호">2</td>
+                                    <td data-th="팀명">팀2</td>
+                                    <td data-th="팀장">김철수</td>
+                                    <td data-th="팀원">10명</td>
+                                </tr>
+                                <tr>
+                                    <td data-th="번호">3</td>
+                                    <td data-th="팀명">팀3</td>
+                                    <td data-th="팀장">이영희</td>
+                                    <td data-th="팀원">10명</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="modal_btns">
+                        <button type="button" class="btn type1">확인</button>
+                        <button type="button" class="btn type2">닫기</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- //Modal 1 학습그룹지정 -->
+
+        <!-- Modal 2 이전토론 가져오기 -->
+        <div class="modal-overlay" id="modal2" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal2Title" >
+            <div class="modal-content modal-lg" tabindex="-1">
+                <div class="modal-header">
+                    <h2 id="modal2Title">이전토론 가져오기</h2>
+                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="board_top">
+                        <select class="form-select" id="selectDate1">
+                            <option value="">학사년도</option>
+                            <option value="2025년">2025년</option>
+                            <option value="2024년">2024년</option>
+                        </select>
+                        <select class="form-select" id="selectDate2">
+                            <option value="">학기</option>
+                            <option value="2학기">2학기</option>
+                            <option value="1학기">1학기</option>
+                        </select>
+                        <select class="form-select" id="selectCourse">
+                            <option value="">과목</option>
+                            <option value="과정(테넌시)">과정(테넌시)</option>
+                            <option value="평생교육">평생교육</option>
+                        </select>
+                        <input class="form-control wide" type="text" name="" id="inputSearch1" value="" placeholder="퀴즈명 입력">
+                        <button type="button" class="btn basic icon search" aria-label="검색"><i class="icon-svg-search"></i></button>
+                    </div>
+
+
+                    <div class="table-wrap">
+                        <table class="table-type1">
+                            <colgroup>
+                                <col style="width:10%">
+                                <col style="">
+                                <col style="width:20%">
+                                <col style="width:20%">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>번호</th>
+                                    <th>과목</th>
+                                    <th>분반</th>
+                                    <th>퀴즈구분</th>
+                                    <th>퀴즈</th>
+                                    <th>선택</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td data-th="번호">1</td>
+                                    <td data-th="과목">일한 번영연습01</td>
+                                    <td data-th="분반">1반</td>
+                                    <td data-th="퀴즈구분">토론</td>
+                                    <td data-th="퀴즈">일한번영연습 토론</td>
+                                    <td data-th="선택"><button class="btn basic small">선택</button></td>
+                                </tr>
+                                <tr>
+                                    <td data-th="번호">2</td>
+                                    <td data-th="과목">일한 번영연습02</td>
+                                    <td data-th="분반">2반</td>
+                                    <td data-th="퀴즈구분">토론</td>
+                                    <td data-th="퀴즈">일한번영연습 토론</td>
+                                    <td data-th="선택"><button class="btn basic small">선택</button></td>
+                                </tr>
+                                <tr>
+                                    <td data-th="번호">3</td>
+                                    <td data-th="과목">일한 번영연습03</td>
+                                    <td data-th="분반">3반</td>
+                                    <td data-th="퀴즈구분">토론</td>
+                                    <td data-th="퀴즈">일한번영연습 토론</td>
+                                    <td data-th="선택"><button class="btn basic small">선택</button></td>
+                                </tr>
+                                <tr>
+                                    <td data-th="번호">4</td>
+                                    <td data-th="과목">일한 번영연습04</td>
+                                    <td data-th="분반">4반</td>
+                                    <td data-th="퀴즈구분">토론</td>
+                                    <td data-th="퀴즈">일한번영연습 토론</td>
+                                    <td data-th="선택"><button class="btn basic small">선택</button></td>
+                                </tr>
+                                <tr>
+                                    <td data-th="번호">5</td>
+                                    <td data-th="과목">일한 번영연습05</td>
+                                    <td data-th="분반">5반</td>
+                                    <td data-th="퀴즈구분">토론</td>
+                                    <td data-th="퀴즈">일한번영연습 토론</td>
+                                    <td data-th="선택"><button class="btn basic small">선택</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="modal_btns">
+                        <button type="button" class="btn type1">확인</button>
+                        <button type="button" class="btn type2">닫기</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+        <script src="<%=request.getContextPath()%>/webdoc/assets/js/modal.js" defer></script>
+
 
 </body>
 </html>

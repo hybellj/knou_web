@@ -287,17 +287,12 @@ public class SecureUtil {
 	 * @param value
 	 * @return value
 	 */
-	public static String encodeStr(String value) {
+	public static String encodeStr(String value) throws Exception {
 		if (value != null) {
-			try {
-				value = encodeUrl(value);
-				value = (new Base64()).encodeToString(value.getBytes(CHAR_SET));
-			} catch (Exception e) {
-				value = "";
-				log.error(e.getMessage());
-			}
+			// 개발하는 동안은 평문으로 by jinkoon 20260415
+			value = encodeUrl(value);
+			value = (new Base64()).encodeToString(value.getBytes(CHAR_SET));			
 		}
-
 		return value;
 	}
 
@@ -307,11 +302,10 @@ public class SecureUtil {
 	 * @param value
 	 * @return value
 	 */
-	public static String encodeSecureStr(HttpServletRequest request, String value) {
+	public static String encodeSecureStr(HttpServletRequest request, String value) throws Exception {
 		if (value != null) {
 			value = getEncChkValue(request) + encodeStr(value);
 		}
-
 		return value;
 	}
 
@@ -321,16 +315,11 @@ public class SecureUtil {
 	 * @param value
 	 * @return value
 	 */
-	public static String decodeStr(String value) {
+	public static String decodeStr(String value) throws Exception {
 		if (value != null) {
-			try {
-				value = new String(java.util.Base64.getDecoder().decode(value), StandardCharsets.UTF_8);
-				value = decodeUrl(value);
-			} catch (Exception e) {
-				log.error(e.getMessage());
-			}
+			value = new String(java.util.Base64.getDecoder().decode(value), StandardCharsets.UTF_8);
+			value = decodeUrl(value);
 		}
-
 		return value;
 	}
 
@@ -340,7 +329,7 @@ public class SecureUtil {
 	 * @param value
 	 * @return value
 	 */
-	public static String decodeSecureStr(HttpServletRequest request, String value) {
+	public static String decodeSecureStr(HttpServletRequest request, String value) throws Exception {
 		if (value != null) {
 			String userEnc = getEncChkValue(request);
 			if (value.indexOf(userEnc) == 0) {
@@ -351,7 +340,6 @@ public class SecureUtil {
 				value = null;
 			}
 		}
-
 		return value;
 	}
 
@@ -360,7 +348,7 @@ public class SecureUtil {
 	 * @param request
 	 * @return userEnc
 	 */
-	private static String getEncChkValue(HttpServletRequest request) {
+	private static String getEncChkValue(HttpServletRequest request) throws Exception  {
 		String chkValue = (String)SessionUtil.getSessionValue(request, ENC_CHK_VALUE);
 		if (chkValue == null) {
 			chkValue = UUID.randomUUID().toString().substring(0,4);

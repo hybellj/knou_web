@@ -6,12 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 
 import knou.framework.common.ServiceBase;
 import knou.lms.smnr.pltfrm.zoom.api.common.ZoomRestTemplateSupporter;
 import knou.lms.smnr.pltfrm.zoom.api.meetings.MeetingsUrl;
 import knou.lms.smnr.pltfrm.zoom.api.meetings.service.ZoomMeetingService;
 import knou.lms.smnr.pltfrm.zoom.api.meetings.vo.ZoomMeetingVO;
+import knou.lms.smnr.pltfrm.zoom.api.meetings.vo.ZoomPastMeetingVO;
 import knou.lms.smnr.pltfrm.zoom.api.meetings.vo.ZoomRegistrantVO;
 
 @Service("zoomMeetingService")
@@ -22,7 +24,7 @@ public class ZoomMeetingServiceImpl extends ServiceBase implements ZoomMeetingSe
 
 	// ZOOM미팅등록
 	@Override
-	public ZoomMeetingVO zoomMeetingRegist(String authrtTkn, String hostEml, ZoomMeetingVO meeting) throws Exception {
+	public ZoomMeetingVO zoomMeetingRegist(String authrtTkn, String hostEml, ZoomMeetingVO meeting) {
 		URI uri = URI.create(MeetingsUrl.CREATE_A_MEETING.getUrl(hostEml));
 
 	    ResponseEntity<ZoomMeetingVO> response = zoomRestTemplateSupporter.exchange(
@@ -49,7 +51,7 @@ public class ZoomMeetingServiceImpl extends ServiceBase implements ZoomMeetingSe
 
 	// ZOOM미팅삭제
 	@Override
-	public void zoomMeetingDelete(String authrtTkn, String meetngrmId) throws Exception {
+	public void zoomMeetingDelete(String authrtTkn, String meetngrmId) {
 		URI uri = URI.create(MeetingsUrl.DELETE_A_MEETING.getUrl(meetngrmId));
 
 	    ResponseEntity<Void> response = zoomRestTemplateSupporter.exchange(
@@ -62,7 +64,7 @@ public class ZoomMeetingServiceImpl extends ServiceBase implements ZoomMeetingSe
 
 	// ZOOM미팅참여자사전등록
 	@Override
-	public ZoomRegistrantVO zoomRegistrantRegist(String authrtTkn, String meetngrmId, ZoomRegistrantVO reqVO) throws Exception {
+	public ZoomRegistrantVO zoomRegistrantRegist(String authrtTkn, String meetngrmId, ZoomRegistrantVO reqVO) {
 	    URI uri = URI.create(MeetingsUrl.ADD_MEETING_REGISTRANT.getUrl(meetngrmId));
 
 	    ResponseEntity<ZoomRegistrantVO> response = zoomRestTemplateSupporter.exchange(
@@ -77,7 +79,7 @@ public class ZoomMeetingServiceImpl extends ServiceBase implements ZoomMeetingSe
 
 	// ZOOM미팅조회
 	@Override
-	public ZoomMeetingVO zoomMeetingSelect(String authrtTkn, String meetngrmId) throws Exception {
+	public ZoomMeetingVO zoomMeetingSelect(String authrtTkn, String meetngrmId) {
 		URI uri = URI.create(MeetingsUrl.GET_A_MEETING.getUrl(meetngrmId));
 
 	    ResponseEntity<ZoomMeetingVO> response = zoomRestTemplateSupporter.exchange(
@@ -88,6 +90,25 @@ public class ZoomMeetingServiceImpl extends ServiceBase implements ZoomMeetingSe
 	    }
 
 	    return response.getBody();
+	}
+
+	// ZOOM과거미팅조회
+	@Override
+	public ZoomPastMeetingVO zoomPastMeetingSelect(String authrtTkn, String meetngrmId) {
+		try {
+	        URI uri = URI.create(MeetingsUrl.GET_PAST_MEETING.getUrl(meetngrmId));
+
+	        ResponseEntity<ZoomPastMeetingVO> response = zoomRestTemplateSupporter.exchange(
+	        		authrtTkn, MeetingsUrl.GET_PAST_MEETING, uri, ZoomPastMeetingVO.class);
+
+	        return response.getBody();
+
+	    } catch (HttpClientErrorException e) {
+	        if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+	            return null;  // 404 → null 반환 (예외 던지지 않음)
+	        }
+	        throw e;
+	    }
 	}
 
 }

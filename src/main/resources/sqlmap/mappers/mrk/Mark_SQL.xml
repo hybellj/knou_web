@@ -1,0 +1,20 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.mrk.dao.MarkDAO">
+
+    <select id="markActivityEvalRateSelect" parameterType="String" resultType="egovMap">
+        /*	설  명 : 성적활동평가비율조회	*/
+        SELECT	*
+        FROM 	TB_LMS_SBJCT	S
+        		LEFT	JOIN	TB_LMS_MRK_ITM_STNG		MIS		ON	S.SBJCT_ID = MIS.SBJCT_ID
+        		LEFT	JOIN	TB_LMS_CMMN_CD CC	ON 	CC.UP_CD   = 'MRK_ITM_TYCD' AND MIS.MRK_ITM_TYCD = CC.CD 
+										        		AND CC.ORG_ID  = #{orgId}
+										          		AND CC.LANG_CD = NVL(#{langCd}, 'ko')
+										          		<if test="mrkItmUseyn != null and mrkItmUseyn != ''">
+												          AND MIS.MRK_ITM_USEYN = #{mrkItmUseyn}
+												        </if>
+        WHERE 	MIS.SBJCT_ID = #{sbjctId}
+        ORDER 	BY	CC.CD_SEQNO
+    </select>    
+    
+</mapper>

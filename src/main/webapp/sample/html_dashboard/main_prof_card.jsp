@@ -1,24 +1,24 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="../common/common_inc.jsp" %><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+	<jsp:include page="../common/common_head.jsp">
 		<jsp:param name="style" value="dashboard"/>
 	</jsp:include>
 </head>
 
-<body class="home colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="home"><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
-        <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
+        <jsp:include page="../common/home_header.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
         <!-- //common header -->
 
         <!-- dashboard -->
         <main class="common">
 
             <!-- gnb -->
-			<jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
+			<jsp:include page="../common/home_gnb_prof.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
             <!-- //gnb -->
 
             <!-- content -->
@@ -199,8 +199,43 @@
                                     <a href="#0" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
                                 </div>
                             </div>
-                            <div class="box_content">
+                            <div class="box_content" style="height:100%;max-height:150px;overflow-y:auto">
                                 <ul class="dash_item_listA">
+                                    <li>
+                                        <div class="user">
+                                           <span class="user_img"></span>
+                                        </div>
+                                        <a href="#0" class="item_txt">
+                                            <p class="tit">과제 제출 언제까지 인가요?</p>
+                                            <p class="desc">
+                                                <span class="name">[대학원] 경영수리와 통계1반</span>
+                                                <span class="date">2025.05.17</span>
+                                            </p>
+                                        </a>
+                                        <div class="state">
+                                            <label class="label check_no">미답변</label>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="user">
+                                           <span class="user_img"></span>
+                                        </div>
+                                        <a href="#0" class="item_txt">
+                                            <p class="tit">과제 제출 언제까지 인가요?</p>
+                                            <p class="desc">
+                                                <span class="name">[대학원] 경영수리와 통계1반</span>
+                                                <span class="date">2025.05.17</span>
+                                            </p>
+                                        </a>
+                                        <div class="state">
+                                            <label class="label check_no">미답변</label>
+                                        </div>
+                                    </li>
+
+
+
+
+
                                     <li>
                                         <div class="user">
                                            <span class="user_img"></span>
@@ -780,17 +815,17 @@
                                                     </div>
                                                 </div>
                                                 <div class="bottom_button">
-                                                   <div class="card_btns">
-                                                        <a href="#0">공지<span>2</span></a>
-                                                        <a href="#0">Q&A<span>2</span></a>
-                                                        <a href="#0">1 : 1<span>2</span></a>
-                                                        <a href="#0">과제<span>2</span></a>
-                                                        <a href="#0">토론<span>2</span></a>
-                                                        <a href="#0">세미나<span>2</span></a>
-                                                        <a href="#0">퀴즈<span>2</span></a>
-                                                        <a href="#0">설문<span>2</span></a>
-                                                        <a href="#0">시험<span>2</span></a>
-                                                    </div>
+                                                   <ul class="card_btns">
+                                                        <li><a href="#0">공지<span>2</span></a></li>
+                                                        <li><a href="#0">Q&A<span>2</span></a></li>
+                                                        <li><a href="#0">1 : 1<span>2</span></a></li>
+                                                        <li><a href="#0">과제<span>2</span></a></li>
+                                                        <li><a href="#0">토론<span>2</span></a></li>
+                                                        <li><a href="#0">세미나<span>2</span></a></li>
+                                                        <li><a href="#0">퀴즈<span>2</span></a></li>
+                                                        <li><a href="#0">설문<span>2</span></a></li>
+                                                        <li><a href="#0">시험<span>2</span></a></li>
+                                                    </ul>
                                                 </div>
                                             </div>
                                         </li>
@@ -836,17 +871,17 @@
                                                     </div>
                                                 </div>
                                                 <div class="bottom_button">
-                                                   <div class="card_btns">
-                                                        <a href="#0">공지<span>2</span></a>
-                                                        <a href="#0">Q&A<span>2</span></a>
-                                                        <a href="#0">1 : 1<span>2</span></a>
-                                                        <a href="#0">과제<span>2</span></a>
-                                                        <a href="#0">토론<span>2</span></a>
-                                                        <a href="#0">세미나<span>2</span></a>
-                                                        <a href="#0">퀴즈<span>2</span></a>
-                                                        <a href="#0">설문<span>2</span></a>
-                                                        <a href="#0">시험<span>2</span></a>
-                                                    </div>
+                                                   <ul class="card_btns">
+                                                        <li><a href="#0">공지<span>2</span></a></li>
+                                                        <li><a href="#0">Q&A<span>2</span></a></li>
+                                                        <li><a href="#0">1 : 1<span>2</span></a></li>
+                                                        <li><a href="#0">과제<span>2</span></a></li>
+                                                        <li><a href="#0">토론<span>2</span></a></li>
+                                                        <li><a href="#0">세미나<span>2</span></a></li>
+                                                        <li><a href="#0">퀴즈<span>2</span></a></li>
+                                                        <li><a href="#0">설문<span>2</span></a></li>
+                                                        <li><a href="#0">시험<span>2</span></a></li>
+                                                    </ul>
                                                 </div>
                                             </div>
                                         </li>
@@ -889,14 +924,14 @@
                                                     </div>
                                                 </div>
                                                 <div class="bottom_button">
-                                                   <div class="card_btns">
-                                                        <a href="#0">공지<span>2</span></a>
-                                                        <a href="#0">Q&A<span>2</span></a>
-                                                        <a href="#0">1 : 1<span>2</span></a>
-                                                        <a href="#0">과제<span>2</span></a>
-                                                        <a href="#0">설문<span>2</span></a>
-                                                        <a href="#0">시험<span>2</span></a>
-                                                    </div>
+                                                   <ul class="card_btns">
+                                                        <li><a href="#0">공지<span>2</span></a></li>
+                                                        <li><a href="#0">Q&A<span>2</span></a></li>
+                                                        <li><a href="#0">1 : 1<span>2</span></a></li>
+                                                        <li><a href="#0">과제<span>2</span></a></li>
+                                                        <li><a href="#0">토론<span>2</span></a></li>
+                                                        <li><a href="#0">세미나<span>2</span></a></li>
+                                                    </ul>
                                                 </div>
                                             </div>
                                         </li>
@@ -942,13 +977,68 @@
                                                     </div>
                                                 </div>
                                                 <div class="bottom_button">
-                                                   <div class="card_btns">
-                                                        <a href="#0">공지<span>2</span></a>
-                                                        <a href="#0">Q&A<span>2</span></a>
-                                                        <a href="#0">1 : 1<span>2</span></a>
-                                                        <a href="#0">설문<span>2</span></a>
-                                                        <a href="#0">시험<span>2</span></a>
+                                                   <ul class="card_btns">
+                                                        <li><a href="#0">공지<span>2</span></a></li>
+                                                        <li><a href="#0">Q&A<span>2</span></a></li>
+                                                        <li><a href="#0">1 : 1<span>2</span></a></li>
+                                                        <li><a href="#0">과제<span>2</span></a></li>
+                                                        <li><a href="#0">토론<span>2</span></a></li>
+                                                    </ul>                                                </div>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="card_item">
+                                                <div class="item_header">
+                                                    <div class="title_area">
+                                                        <p class="info_detail">
+                                                            <span class="label uniC">학위과정</span>
+                                                            <span class="info_txt">수강 50명</span>
+                                                            <span class="info_txt">튜터 김하늘</span>
+                                                            <span class="info_txt">3학점</span>
+                                                        </p>
+                                                        <p class="tit"><a href="#0">AI와 빅데이터 경영입문 2반</a></p>
                                                     </div>
+                                                </div>
+                                                <div class="extra">
+                                                    <div class="info">
+                                                        <p class="point">
+                                                            <span class="tit">중간고사:</span>
+                                                            <span>2025.04.26 16:00</span>
+                                                        </p>
+                                                        <p class="desc">
+                                                            <span class="tit">시간:</span>
+                                                            <span>40분</span>
+                                                        </p>
+                                                    </div>
+                                                    <div class="info">
+                                                        <p class="point">
+                                                            <span class="tit">기말고사:</span>
+                                                            <span>2025.06.07 17:00</span>
+                                                        </p>
+                                                        <p class="desc">
+                                                            <span class="tit">시간:</span>
+                                                            <span>40분</span>
+                                                        </p>
+                                                    </div>
+                                                    <div class="my_prog_rate">
+                                                        <div class="progress">
+                                                            <div class="bar blue_type" style="width: 40%;"></div>
+                                                        </div>
+                                                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
+                                                    </div>
+                                                </div>
+                                                <div class="bottom_button">
+                                                   <ul class="card_btns">
+                                                        <li><a href="#0">공지<span>2</span></a></li>
+                                                        <li><a href="#0">Q&A<span>2</span></a></li>
+                                                        <li><a href="#0">1 : 1<span>2</span></a></li>
+                                                        <li><a href="#0">과제<span>2</span></a></li>
+                                                        <li><a href="#0">토론<span>2</span></a></li>
+                                                        <li><a href="#0">세미나<span>2</span></a></li>
+                                                        <li><a href="#0">퀴즈<span>2</span></a></li>
+                                                        <li><a href="#0">설문<span>2</span></a></li>
+                                                        <li><a href="#0">시험<span>2</span></a></li>
+                                                    </ul>
                                                 </div>
                                             </div>
                                         </li>
@@ -994,69 +1084,12 @@
                                                     </div>
                                                 </div>
                                                 <div class="bottom_button">
-                                                   <div class="card_btns">
-                                                        <a href="#0">공지<span>2</span></a>
-                                                        <a href="#0">Q&A<span>2</span></a>
-                                                        <a href="#0">1 : 1<span>2</span></a>
-                                                        <a href="#0">과제<span>2</span></a>
-                                                        <a href="#0">토론<span>2</span></a>
-                                                        <a href="#0">세미나<span>2</span></a>
-                                                        <a href="#0">퀴즈<span>2</span></a>
-                                                        <a href="#0">설문<span>2</span></a>
-                                                        <a href="#0">시험<span>2</span></a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li>
-                                            <div class="card_item">
-                                                <div class="item_header">
-                                                    <div class="title_area">
-                                                        <p class="info_detail">
-                                                            <span class="label uniC">학위과정</span>
-                                                            <span class="info_txt">수강 50명</span>
-                                                            <span class="info_txt">튜터 김하늘</span>
-                                                            <span class="info_txt">3학점</span>
-                                                        </p>
-                                                        <p class="tit"><a href="#0">AI와 빅데이터 경영입문 2반</a></p>
-                                                    </div>
-                                                </div>
-                                                <div class="extra">
-                                                    <div class="info">
-                                                        <p class="point">
-                                                            <span class="tit">중간고사:</span>
-                                                            <span>2025.04.26 16:00</span>
-                                                        </p>
-                                                        <p class="desc">
-                                                            <span class="tit">시간:</span>
-                                                            <span>40분</span>
-                                                        </p>
-                                                    </div>
-                                                    <div class="info">
-                                                        <p class="point">
-                                                            <span class="tit">기말고사:</span>
-                                                            <span>2025.06.07 17:00</span>
-                                                        </p>
-                                                        <p class="desc">
-                                                            <span class="tit">시간:</span>
-                                                            <span>40분</span>
-                                                        </p>
-                                                    </div>
-                                                    <div class="my_prog_rate">
-                                                        <div class="progress">
-                                                            <div class="bar blue_type" style="width: 40%;"></div>
-                                                        </div>
-                                                        <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
-                                                    </div>
-                                                </div>
-                                                <div class="bottom_button">
-                                                   <div class="card_btns">
-                                                        <a href="#0">공지<span>2</span></a>
-                                                        <a href="#0">Q&A<span>2</span></a>
-                                                        <a href="#0">1 : 1<span>2</span></a>
-                                                        <a href="#0">과제<span>2</span></a>
-                                                        <a href="#0">토론<span>2</span></a>
-                                                    </div>
+                                                   <ul class="card_btns">
+                                                        <li><a href="#0">공지<span>2</span></a></li>
+                                                        <li><a href="#0">Q&A<span>2</span></a></li>
+                                                        <li><a href="#0">1 : 1<span>2</span></a></li>
+                                                        <li><a href="#0">과제<span>2</span></a></li>
+                                                    </ul>
                                                 </div>
                                             </div>
                                         </li>
@@ -1093,7 +1126,7 @@
 
 
             <!-- common footer -->
-            <jsp:include page="/WEB-INF/jsp/common_new/home_footer.jsp"/>
+            <jsp:include page="../common/home_footer.jsp"/>
             <!-- //common footer -->
 
         </main>

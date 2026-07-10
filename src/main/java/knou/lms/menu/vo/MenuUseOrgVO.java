@@ -9,7 +9,6 @@ public class MenuUseOrgVO extends DefaultVO {
 	private static final long serialVersionUID = -8854136686629009782L;
 	private String		menuUseId;		// 메뉴사용아이디
 	private String		menuId;			// 메뉴아이디
-	private String		orgId;			// 기관아이디
 	private String		useyn;			// 사용여부
 	private String 		menuAuthTycd;	// 메뉴권한유형코드
 	private String		menuGbncd;		// 메뉴구분코드
@@ -28,14 +27,6 @@ public class MenuUseOrgVO extends DefaultVO {
 
 	public void setMenuId(String menuId) {
 		this.menuId = menuId;
-	}
-
-	public String getOrgId() {
-		return orgId;
-	}
-
-	public void setOrgId(String orgId) {
-		this.orgId = orgId;
 	}
 
 	public String getUseyn() {

@@ -1,5 +1,7 @@
 package knou.lms.seminar.api.users;
 
+// by jinkoon
+@Deprecated
 public enum Role {
     
     OWNER("Owner"),

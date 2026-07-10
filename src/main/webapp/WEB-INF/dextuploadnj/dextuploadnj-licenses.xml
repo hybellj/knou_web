@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <dextuploadnj-licenses>
+	<license type="cert" hostname="SERVER-A" ip="1.1.1.1" path="dextuploadnj-server-a.config"/>
+	<license type="cert" hostname="SERVER-B" ip="2.2.2.2" path="dextuploadnj-server-b.config"/>
 	<license type="eval" path="dextuploadnj.config"/>
-	
-	<!-- 
-	<license type="cert" hostname="hycu-dev-lmsweb1" ip="10.70.254.201" path="dextuploadnj-server-dev.config"/>
-	--> 
 </dextuploadnj-licenses>

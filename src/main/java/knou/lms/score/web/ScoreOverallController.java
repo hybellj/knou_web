@@ -104,7 +104,8 @@ public class ScoreOverallController  extends ControllerBase {
     // 강의실 홈 종합성적 메인페이지
     @RequestMapping(value="/score/scoreOverall/scoreOverallMainList.do")
     public String scoreOverallProfMain(ScoreOverallVO vo, ModelMap model, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        
+    	String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
 
         SysJobSchVO sysJobSchVO = null;
         String calendarCtgr = "";
@@ -114,7 +115,7 @@ public class ScoreOverallController  extends ControllerBase {
         LocalDateTime today = LocalDateTime.now();
         model.addAttribute("today", today.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
         TermVO termVO = new TermVO();
-        termVO.setOrgId(SessionInfo.getOrgId(request));
+        termVO.setOrgId(orgId);
         termVO = termService.selectCurrentTerm(termVO);
         model.addAttribute("termVO", termVO);
         model.addAttribute("yearList", DateTimeUtil.getYearList(10, "mix"));
@@ -123,14 +124,20 @@ public class ScoreOverallController  extends ControllerBase {
         model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
 
         String url = "";
+        
+        String	userAuthrtGrpcd = SessionInfo.getAuthrtGrpcd(request);
+        String	userAuthrtCd = SessionInfo.getAuthrtCd(request);
 
-        if(SessionInfo.getAuthrtGrpcd(request).contains("PROF")) {
-            model.addAttribute("TUT_YN", SessionInfo.getAuthrtCd(request).contains("TUT") ? "Y" : "N");
+        if( CommConst.AUTHRT_GRPCD_PROF.equals(userAuthrtGrpcd) ) {
+        	
+            model.addAttribute("TUT_YN", CommConst.AUTHRT_CD_TUT.equals(userAuthrtCd) ? "Y" : "N");
 
             url = "score/overall/score_overall_prof_main";
             
             model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
-        } else if(SessionInfo.getAuthrtGrpcd(request).contains("USR"))  {
+            
+        } else if ( CommConst.AUTHRT_GRPCD_STDNT.equals(userAuthrtGrpcd) )  {
+        	
             sysJobSchVO = new SysJobSchVO();
             calendarCtgr = "00210210";//성적조회기간
             sysJobSchVO.setOrgId(orgId);
@@ -188,9 +195,10 @@ public class ScoreOverallController  extends ControllerBase {
  
         model.addAttribute("sUserId", SessionInfo.getUserId(request));
         model.addAttribute("vo", vo);
-        model.addAttribute("orgId", SessionInfo.getOrgId(request));
-        model.addAttribute("menuType", SessionInfo.getAuthrtGrpcd(request).contains("PROF") ? "PROF" : "USR");
-        model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("menuType", CommConst.AUTHRT_GRPCD_PROF.equals(userAuthrtGrpcd) ? 
+        		CommConst.AUTHRT_GRPCD_PROF : CommConst.AUTHRT_GRPCD_STDNT);
+        model.addAttribute("authGrpCd", userAuthrtCd);
 
         return url;
     }
@@ -284,6 +292,7 @@ public class ScoreOverallController  extends ControllerBase {
 
         String openYn = scoreOverallService.selectOverallScoreOpenYn(vo);
         String url = "";
+        String	userAuthrtCd = SessionInfo.getAuthrtCd(request);
 
         if(SessionInfo.getAuthrtGrpcd(request).contains("PROF")) {
             TermVO termVO = new TermVO();
@@ -298,7 +307,7 @@ public class ScoreOverallController  extends ControllerBase {
 
             model.addAttribute("termVO", termVO);
             model.addAttribute("creCrsVO", creCrsVO);
-            model.addAttribute("TUT_YN", SessionInfo.getAuthrtCd(request).contains("TUT") ? "Y" : "N");
+            model.addAttribute("TUT_YN", CommConst.AUTHRT_CD_TUT.equals(userAuthrtCd) ? "Y" : "N");
             model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
         } else if(SessionInfo.getAuthrtGrpcd(request).contains("USR"))  {
             url = "score/overall/score_overall_std_list";

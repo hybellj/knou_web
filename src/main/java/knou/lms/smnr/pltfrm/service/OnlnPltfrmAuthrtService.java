@@ -1,18 +1,21 @@
 package knou.lms.smnr.pltfrm.service;
 
+import java.util.List;
+
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+
 import knou.lms.smnr.pltfrm.vo.OnlnPltfrmAuthrtVO;
+import knou.lms.smnr.pltfrm.vo.OnlnPltfrmStngVO;
 
 public interface OnlnPltfrmAuthrtService {
 
-	/**
-     * 온라인플랫폼권한조회
-     *
-     * @param pltfrmGbncd	플랫폼구분코드
-     * @param orgId	 		기관아이디
-     * @param userId	 	사용자아이디
-     * @return 온라인플랫폼권한
-     * @throws Exception
-     */
-	public OnlnPltfrmAuthrtVO onlnPltfrmAuthrtSelect(String pltfrmGbncd, String orgId, String userId) throws Exception;
+	// 온라인플랫폼권한갱신
+	public OnlnPltfrmAuthrtVO onlnPltfrmAuthrtUpdt(String pltfrmGbncd, String orgId, String userId);
+
+	// 온라인플랫폼권한목록
+	public List<EgovMap> onlnPltfrmAuthrtList(OnlnPltfrmStngVO vo);
+
+	// 온라인플랫폼권한일괄삭제
+	public void onlnPltfrmAuthrtBulkDelete(String onlnPltfrmStngId);
 
 }

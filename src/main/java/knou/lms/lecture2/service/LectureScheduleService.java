@@ -4,14 +4,14 @@ import java.util.List;
 
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
-import knou.lms.common.dto.BaseParam;
+import knou.lms.common.dto.CommonDTO;
 
 public interface LectureScheduleService {
-    public List<EgovMap> lectureScheduleList(BaseParam param) throws Exception;
+    public List<EgovMap> lectureScheduleList(CommonDTO cmmnDto);
 
-    public EgovMap thisWeekLectureSelect(BaseParam param) throws Exception;
+    public EgovMap thisWeekLectureSelect(CommonDTO cmmnDto);
 
-    public List<EgovMap> profLectureScheduleList(BaseParam param) throws Exception;
+    public List<EgovMap> profLectureScheduleList(CommonDTO cmmnDto);
 
-    public List<EgovMap> byWeeknoLectureSchdlList(BaseParam param) throws Exception;
+    public List<EgovMap> byWeeknoLectureSchdlList(CommonDTO cmmnDto);
 }

@@ -71,6 +71,13 @@ public interface BbsAtclDAO {
      * @param vo
      * @throws Exception
      ******************************************************/
+    public void bbsAtclHitsUserLog(BbsAtclVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시글 조회수 수정
+     * @param vo
+     * @throws Exception
+     ******************************************************/
     public void bbsAtclHitsModify(BbsAtclVO vo) throws Exception;
 
     /*****************************************************
@@ -176,30 +183,6 @@ public interface BbsAtclDAO {
     public List<EgovMap> listRecentBbsLctrQna(BbsAtclVO vo) throws Exception;
 
     /*****************************************************
-     * 게시판 게시글 목록 - 과목공지
-     * @param vo
-     * @return List<BbsAtclVO>
-     * @throws Exception
-     ******************************************************/
-    public List<BbsAtclVO> selectBbsSbjctList(BbsAtclVO vo) throws Exception;
-
-    /*****************************************************
-     * 게시판 게시글 목록 - 강의Q&A
-     * @param vo
-     * @return List<BbsAtclVO>
-     * @throws Exception
-     ******************************************************/
-    public List<BbsAtclVO> selectBbsLctrQnaList(BbsAtclVO vo) throws Exception;
-
-    /*****************************************************
-     * 게시판 게시글 목록 - 1:1상담
-     * @param vo
-     * @return List<BbsAtclVO>
-     * @throws Exception
-     ******************************************************/
-    public List<BbsAtclVO> selectBbsDscsnList(BbsAtclVO vo) throws Exception;
-
-    /*****************************************************
      * 게시글 댓글 리스트
      * @param vo
      * @return BbsAtclVO
@@ -246,6 +229,20 @@ public interface BbsAtclDAO {
     public void bbsAtclSbjctRegist(BbsAtclVO vo) throws Exception;
 
     /*****************************************************
+     * 메뉴 > 글로벌메뉴 > 게시글 저장(위 과목공지 사용 X)
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void bbsAtclRegist(BbsAtclVO vo) throws Exception;
+
+    /*****************************************************
+     * 메뉴 > 관리자메뉴 > 시스템공지사항 > 게시글 저장
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void bbsSysAtclRegist(BbsAtclVO vo) throws Exception;
+
+    /*****************************************************
      * 메뉴 > 글로벌메뉴 > 게시글 옵션 저장
      * @param vo
      * @throws Exception
@@ -274,4 +271,41 @@ public interface BbsAtclDAO {
      * @throws Exception
      ******************************************************/
     public List<BbsAtclVO> selectBbsAtclRspnsList(BbsAtclVO vo) throws Exception;
+
+    /*****************************************************
+     * 메뉴 > 글로벌메뉴 > 과목공지 저장
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void bbsGrpNtcRegist(BbsAtclVO vo) throws Exception;
+
+    /*****************************************************
+     * 메뉴 > 글로벌메뉴 > 과목공지 저장
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public List<EgovMap> stdInfoListPaging(BbsAtclVO bbsAtclVO) throws Exception;
+
+    /*****************************************************
+     * 메뉴 > 글로벌메뉴 > 과목공지 저장
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public List<BbsAtclVO> bbsTeamMbrListView(BbsAtclVO bbsAtclVO) throws Exception;
+
+    /*****************************************************
+     * 게시판 > 과목공지 > 그룹공지사항 수강생 목록
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    List<EgovMap> bbsGrpNtcStdntAtndList(BbsAtclVO vo) throws Exception;
+    List<EgovMap> bbsGrpNtcStdntLrnList(BbsAtclVO vo) throws Exception;
+    List<EgovMap> bbsGrpNtcStdntTeamList(BbsAtclVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시판 삭제
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void deleteBbsGrpNtcTrgtr(BbsAtclVO vo) throws Exception;
 }

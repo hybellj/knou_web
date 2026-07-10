@@ -56,4 +56,14 @@ public class MsgAlimServiceImpl extends ServiceBase implements MsgAlimService {
         return msgAlimDAO.selectMblSndngList(vo);
     }
 
+    /*****************************************************
+     * 모바일 채널 알림 읽음 처리
+     * @param vo
+     * @return int
+     ******************************************************/
+    @Override
+    public int updateAlimReadDttm(MsgAlimVO vo) {
+        return msgAlimDAO.updateAlimReadDttm(vo);
+    }
+
 }

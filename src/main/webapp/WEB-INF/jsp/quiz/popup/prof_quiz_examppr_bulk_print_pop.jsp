@@ -15,93 +15,140 @@
 	<script type="text/javascript">
 		// 제출 답안 시험문제 리스트
 		function quizStarePaperList(num, tkexamId, userId, lastYn) {
-			var url  = "/quiz/profTkexamExampprAnswShtListAjax.do";
-			var data = {
-				"tkexamId"	: tkexamId,
-				"userId"    : userId
+			const url  = "/quiz/profTkexamExampprAnswShtListAjax.do";
+			const data = {
+				tkexamId	: tkexamId,
+				userId    	: userId
 			};
 
 			ajaxCall(url, data, function(data) {
 				if (data.result > 0) {
-	        		var returnList = data.returnList || [];
-	        		var html = "";
+					let returnList = data.returnList || [];
+	        		let html = "";
 	        		if(returnList.length > 0) {
-						html += "<div class='qstnInfo flex-item gap-3 margin-bottom-5'>";
+						// 번호영역
+						html += "<div class='quiz_paper_wrap'>";
+						html += "	<div class='board_top'>";
+						html += "		<div class='quiz_paper_list'>";
+						html += "			<ol>";
 						returnList.forEach(function(v, i) {
-							var answClass = v.answShtCts != null && v.answShtCts != "" ? "bcLblue" : "";
-							html += "<div class='custom-input padding-3'>";
-							html += "	<p class='checkmark padding-left-3 " + answClass + "'>" + v.qstnDsplySeqno + "</p>";
-							html += "</div>";
+							let answClass = v.answShtCts != null && v.answShtCts != "" ? "active" : "";
+							html += "			<li class='" + answClass + "'><span>" + v.qstnDsplySeqno + "</span></li>";
 						});
+						html += "			</ol>";
+						html += "		</div>";
+						html += "	</div>";
 						html += "</div>";
-						html += "<div class='qstnList'>";
 	        			returnList.forEach(function(v, i) {
-	        				var answSrc = v.ansrYn == "Y" ? "/webdoc/img/quiz_true.gif" : "/webdoc/img/answer.png";
-	        				html += "<div class='board_top border-1 padding-3 margin-bottom-0'>";
-	        				html += "	<span>문제 " + v.qstnDsplySeqno + ". " + UiComm.escapeHtml(v.qstnTtl) + "</span>";
-	        				html += "	<div class='overflow-hidden right-area w30 d-inline-block position-relative' style='height:30px;'>";
-	        				html += "		<img class='width-100-per show margin-left-auto' style='position:absolute;bottom:0;' src='" + answSrc + "' />";
-	        				html += "	</div>";
-	        				html += "</div>";
-	        				html += "<div class='padding-3 margin-top-0 border-1 cpn'>";
-	        				html += "	<div class='margin-bottom-5'>" + v.qstnCts + "</div>";
+	        				html += "<div class='course_history bd0 cpn'>";
+	        				html += "	<div class='question_area pd0'>";
+	        				html += "		<div class='question_con'>";
+	        				// 문제번호,제목영역
+	        				html += "			<div class='q_top'>";
+	        				html += "				<div class='flex-item width-100per'>";
+	        				html += "					<p class='flex-none mr15'><b><spring:message code='quiz.label.qstn' />" + v.qstnDsplySeqno + "</b></p>";/* 문제 */
+	        				html += "					<div class='flex-1 tal'>" + UiComm.escapeHtml(v.qstnTtl) + "</div>";
+	        				if(v.ansrYn == "Y") {
+								html += "				<div class='q_result correct'>";
+								html += "					<i class='xi-radiobox-blank icon'></i>";
+								html += "				</div>";
+	        				} else {
+								html += "				<div class='q_result incorrect'>";
+								html += "					<i class='xi-close icon'></i>";
+								html += "				</div>";
+	        				}
+	        				html += "				</div>";
+	        				html += "			</div>";
+	        				// 문제내용영역
+	        				html += "			<div class='q_cont'>";
+	        				if(v.qstnCts.trimStart().startsWith('<div class="se-contents"')) {
+		        				html += "			<pre>" + v.qstnCts + "</pre>";
+	        				} else {
+		        				html += "			<p>" + v.qstnCts + "</p>";
+	        				}
 	        				// 단일, 다중선택형
 	        				if(v.qstnRspnsTycd == 'ONE_CHC' || v.qstnRspnsTycd == 'MLT_CHC') {
-	        					v.qstnVwitmDsplySeq.split("@#").forEach(function(el, index) {
-									html += "<div class='margin-bottom-3'>";
-									html += "	<span class='custom-input'>";
-									var rspnsType = v.qstnRspnsTycd == "MLT_CHC" ? "checkbox" : "radio";
-									var checkCrans = "";
-									v.answShtCts.split("@#").forEach(function(sel, sindex) {
+								html += "			<ol class='q_cont_ans'>";
+								v.qstnVwitmDsplySeq.split("@#").forEach(function(el, index) {
+									let rspnsType = v.qstnRspnsTycd == "MLT_CHC" ? "checkbox" : "radio";
+									let checkCrans = "";
+									let answShtCts = v.answShtCts || "";
+									answShtCts.split("@#").forEach(function(sel, sindex) {
 										if(sel == (index+1)) checkCrans = "checked";
 									});
-									html += "		<input type='" + rspnsType + "' name='qstn_" + v.qstnId + "' id='qstn_" + v.exampprId + "_" + index + "' " + checkCrans + " />";
-									html += "		<label for='qstn_" + v.exampprId + "_" + index + "'>" + v.qstnVwitmCts.split('@#')[index] + "</label>";
-									html += "	</span>";
-									html += "</div>";
-	        					});
-	        				// OX선택형
+									html += "			<li>";
+									html += "				<input type='" + rspnsType + "' name='qstn_" + v.qstnId + "' id='qstn_" + v.exampprId + "_" + index + "' " + checkCrans + " />";
+									html += "				<label for='qstn_" + v.exampprId + "_" + index + "'><span class='ansNum'>" + (index+1) + "</span>" + v.qstnVwitmCts.split('@#')[index] + "</label>";
+									html += "			</li>";
+								});
+								html += "			</ol>";
+							// OX선택형
 	        				} else if(v.qstnRspnsTycd == 'OX_CHC') {
-	        					v.qstnVwitmDsplySeq.split("@#").forEach(function(el, index) {
-									html += "<span class='custom-input'>";
-									html += "	<input type='radio' name='qstn_" + v.qstnId + "' id='qstn_" + v.exampprId + "_" + index + "' " + (v.answShtCts == (index+1) ? "checked" : "") + " />";
-									html += "	<label for='qstn_" + v.exampprId + "_" + index + "'>" + v.qstnVwitmCts.split('@#')[index] + "</label>";
-									html += "</span>";
+								html += "			<div class='q_cont_ans ox_quiz justify-content-center'>";
+								v.qstnVwitmDsplySeq.split("@#").forEach(function(el, index) {
+									html += "			<div class='ox_item'>";
+									html += "				<input type='radio' class='ox_input' name='qstn_" + v.qstnId + "' id='qstn_" + v.exampprId + "_" + index + "' " + (v.answShtCts == (index+1) ? "checked" : "") + " />";
+									html += "				<label for='qstn_" + v.exampprId + "_" + index + "' class='btn basic'>";
+									if(v.qstnVwitmCts.split('@#')[index] == "O") {
+										html += "				<i class='xi-radiobox-blank icon'></i>";
+									} else {
+										html += "				<i class='xi-close icon'></i>";
+									}
+									html += "				</label>";
+									html += "			</div>";
 	        					});
-	        				// 단답형
+								html += "			</div>";
+							// 단답형
 	        				} else if(v.qstnRspnsTycd == 'SHORT_TEXT') {
-								html += "<div class='flex gap-2 margin-bottom-2'>";
-								v.answShtCts.split("@#").forEach(function(el, index) {
-									html += "<input type='text' class='width-15per' value='" + el + "' />";
+	        					let answShtCts = v.answShtCts || "";
+		        				html += "			<div class='q_cont_ans shortAnswerList'>";
+								answShtCts.split("@#").forEach(function(el, index) {
+									html += "			<label><input type='text' class='form-control' value='" + el + "' /></label>";
 								});
-								html += "</div>";
-							// 서술형
+		        				html += "			</div>";
+		        			// 서술형
 	        				} else if(v.qstnRspnsTycd == 'LONG_TEXT') {
-								html += "<textarea style='width:100%;height:100px;'>" + v.answShtCts + "</textarea>";
-							// 연결형
+		        				html += "			<div class='q_cont_ans'>";
+		        				html += "				<textarea style='width:100%;height:100px;'>" + v.answShtCts + "</textarea>";
+		        				html += "			</div>";
+		        			// 연결형
 	        				} else if(v.qstnRspnsTycd == 'LINK') {
-								html += "<div class='line-sortable-box flex'>";
-								html += "	<div class='account-list width-50per'>";
-								v.qstnVwitmCts.split("@#").forEach(function(el, index) {
+								const alphabets = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		        				html += "			<div class='q_cont_ans matching_form'>";
+		        				html += "				<ol class='matching_list'>";
+		        				v.qstnVwitmCts.split("@#").forEach(function(el, index) {
 									var cts = v.answShtCts == null ? "" : v.answShtCts.split("@#")[index];
-									html += "	<div class='line-box border-1 margin-bottom-3 padding-3 flex'>";
-									html += "		<div class='question width-30per'><span>" + el.split("|")[0] + "</span></div>";
-									html += "		<div class='slot margin-left-auto border-1 text-center width-100per' style='height:30px;'>" + cts + "</div>";
-									html += "	</div>";
+									html += "				<li class='matching_item'>";
+									html += "					<div class='q_box'>";
+									html += "						<label>";
+									html += "							<span>" + alphabets[index] + "</span>";
+									html += "							<input type='text' value='" + el.split("|")[0] + "'>";
+									html += "						</label>";
+									html += "					</div>";
+									html += "					<div class='a_box'>";
+									html += "						<label>";
+									html += "							<input type='text' value='" + cts + "'>";
+									html += "						</label>";
+									html += "					</div>";
+									html += "				</li>";
 								});
-								html += "	</div>";
-								html += "	<div class='inventory-list w200 margin-left-auto'>";
-								html += "	</div>";
-								html += "</div>";
+		        				html += "				</ol>";
+		        				html += "			</div>";
 	        				}
+	        				html += "			</div>";
+
+	        				html += "		</div>";
+	        				html += "	</div>";
 	        				html += "</div>";
-	        				html += "<div class='border-1 margin-bottom-3 padding-3 qstnDiv'>";
-	        				html += "	<div class='flex-item'>";
-	        				html += "		<p class='margin-right-3'>정답</p>";
-	        				html += "		<div class='margin-right-3'>";
-	        				// 단일, 다중선택형
+							// 결과영역
+							html += "<div class='ans_cont qstnDiv'>";
+							html += "	<div class='board_top align-items-center'>";
+							html += "		<ol class='ans_cont_list'>";
+							html += "			<li><spring:message code='quiz.label.crans' />";/* 정답 */
+							html += "				<span>";
+							// 단일, 다중선택형
 	        				if(v.qstnRspnsTycd == 'ONE_CHC' || v.qstnRspnsTycd == 'MLT_CHC') {
-	        					var cransNo = "";
+	        					let cransNo = "";
 								v.cransNo.split("@#").forEach(function(el, index) {
 									v.qstnVwitmDsplySeq.split("@#").forEach(function(sel, sindex) {
 										if(sel == el) {
@@ -113,21 +160,18 @@
 										}
 									});
 								});
-								html += "		<p>" + cransNo + "</p>";
+								html += 				cransNo;
 							// 단답형
 	        				} else if(v.qstnRspnsTycd == 'SHORT_TEXT') {
-								html += "		<p>" + v.qstnVwitmCts.replaceAll("@#", ",") + "</p>";
-							// 서술형
-	        				} else if(v.qstnRspnsTycd == 'LONG_TEXT') {
-								html += "		<p></p>";
+								html += 				v.qstnVwitmCts.replaceAll("@#", ",");
 							// OX선택형
 	        				} else if(v.qstnRspnsTycd == 'OX_CHC') {
-								html += "		<p>" + v.cransCts + "</p>";
+								html += 				v.cransCts;
 							// 연결형
 	        				} else if(v.qstnRspnsTycd == 'LINK') {
-								var emplMatchNumStr = "A@#B@#C@#D@#E@#F@#G@#H@#I@#J";
-								var emplMatchNumArray = emplMatchNumStr.split("@#");
-								var cransCts = "";
+	        					let emplMatchNumStr = "A@#B@#C@#D@#E@#F@#G@#H@#I@#J";
+	        					let emplMatchNumArray = emplMatchNumStr.split("@#");
+	        					let cransCts = "";
 								v.qstnVwitmCts.split("@#").forEach(function(el, index) {
 									if(cransCts == "") {
 										cransCts = emplMatchNumArray[index] + "-" + el.split("|")[1];
@@ -135,21 +179,17 @@
 										cransCts += "," + emplMatchNumArray[index] + "-" + el.split("|")[1];
 									}
 								});
-								html += "		<p>" + cransCts + "</p>";
+								html += 				cransCts;
 	        				}
-	        				html += "		</div>";
-	        				html += "		<p class='margin-right-3'>배점</p>";
-	        				html += "		<div class='margin-right-3'><p>" + v.qstnScr + "</p></div>";
-	        				html += "		<p class='margin-right-3'>난이도</p>";
-	        				html += "		<div class='margin-right-3'><p>" + v.qstnDfctlvTynm + "</p></div>";
-	        				html += "		<div class='margin-left-auto flex-item'>";
-	        				html += "			<p class='margin-right-3'>점수</p>";
-	        				html += "			<p>" + v.scr + "</p>";
-	        				html += "		</div>";
-	        				html += "	</div>";
-	        				html += "</div>";
+							html += "				</span>";
+							html += "			</li>";
+							html += "			<li><spring:message code='message.marks' /><span>" + v.qstnScr + "</span></li>";/* 배점 */
+							html += "			<li><spring:message code='quiz.label.dfctlv' /><span>" + v.qstnDfctlvTynm + "</span></li>";/* 난이도 */
+							html += "			<li><spring:message code='common.score' /><span>" + v.scr + "</span></li>";/* 점수 */
+							html += "		</ol>";
+							html += "	</div>";
+							html += "</div>";
 	        			});
-	        			html += "</div>";
 	        		}
 	        		$("#examPreviewQstnList_"+num).append(html);
 	        		watermarkedDataURL("${examBscVO.rgtrId}"+"_"+"${examBscVO.rgtrnm}",$("div.qstnList"));
@@ -160,7 +200,7 @@
 	             	alert(data.message);
 	            }
     		}, function(xhr, status, error) {
-    			alert("<spring:message code='exam.error.list' />");/* 리스트 조회 중 에러가 발생하였습니다. */
+    			alert("<spring:message code='quiz.error.list' />");/* 리스트 조회 중 에러가 발생하였습니다. */
     		});
 		}
 
@@ -220,7 +260,7 @@
 				<div id="exampprModal">
 					<c:forEach var="items" items="${quizTkexamList}" varStatus="status">
 						<div class="msg-box info">
-                            <p class="txt">'${items.usernm}'<spring:message code="exam.label.std.paper" /></p><!-- 의 시험지 -->
+                            <p class="txt">'${items.usernm}'<spring:message code="quiz.label.is.examppr" /></p><!-- 의 시험지 -->
                         </div>
 						<div id="examPreviewQstnList_${status.count}" class="qstnList"></div>
 						<c:choose>

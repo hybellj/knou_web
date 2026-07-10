@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.review.dao.ReviewPeriodDAO">
+
+    <!-- 복습기간설정 목록/상세 공통 조회 컬럼 -->
+    <sql id="reviewPeriodBaseSelect">
+        SELECT
+          CHRT.ORG_ID AS "orgId"
+        , ORG.ORGNM AS "orgNm"
+        , CHRT.DGRS_YR AS "haksaYear"
+        , CHRT.DGRS_SMSTR_CHRT AS "haksaTerm"
+        , CHRT.SMSTR_CHRTNM AS "haksaTermNm"
+        , CHRT.SMSTR_CHRT_ID AS "smstrChrtId"
+        , SBJ.CRS_GBNCD AS "crsGbncd"
+        /* 공통코드명이 없으면 화면에는 '-'로 표시 */
+        /* 공통코드 미매칭 시 코드값을 그대로 노출하지 않도록 '-'로 표시 */
+        , NVL(CRS_GBNCD.CDNM, '-') AS "crsGbncdNm"
+        , NVL(SBJCT_TYCD.CDNM, '-') AS "sbjctTycdNm"
+        , SBJ.SBJCT_TYCD AS "sbjctTycd"
+        , NVL(TO_CHAR(SBJ.CRCLMN_NO), '-') AS "crclmnNo"
+        , SBJ.SBJCT_ID AS "sbjctId"
+        , SBJ.SBJCTNM AS "sbjctNm"
+        , NVL(TO_CHAR(SBJ.DVCLAS_NO), '-') AS "dvclasNo"
+        , NVL(SBJ.DVCLAS_NO, 99999) AS "dvclasSortNo"
+        , NVL(PROF.USERNM, SBJ.PROF_ID) AS "professorNm"
+        , NVL(SBJCT_ADM.TUT_USERNM, '-') AS "tutorNm"
+        , CASE
+            WHEN SBJ.RVW_PSBL_GBNCD = 'PRD_STNG' THEN 'PRD_STNG'
+            WHEN SBJ.RVW_PSBL_GBNCD = 'RVW_PSBL' THEN 'RVW_PSBL'
+            ELSE 'RVW_IMPSBL'
+          END AS "reviewStatus"
+        , CASE
+            WHEN SBJ.RVW_PSBL_GBNCD = 'PRD_STNG' THEN '기간설정'
+            WHEN SBJ.RVW_PSBL_GBNCD = 'RVW_PSBL' THEN '영구'
+            ELSE '불가'
+          END AS "reviewStatusNm"
+        , SBJ.RVW_SDTTM AS "reviewStartDttm"
+        , SBJ.RVW_EDTTM AS "reviewEndDttm"
+        , NVL(SBJ.USEYN, 'N') AS "useYn"
+    </sql>
+
+    <!-- 복습기간설정 목록/상세 공통 조인 -->
+    <sql id="reviewPeriodBaseFrom">
+        FROM TB_LMS_SBJCT SBJ
+        JOIN TB_LMS_SMSTR_CHRT CHRT
+          ON SBJ.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+        JOIN TB_LMS_ORG ORG
+          ON CHRT.ORG_ID = ORG.ORG_ID
+        LEFT JOIN TB_LMS_USER PROF
+          ON PROF.USER_ID = SBJ.PROF_ID
+        LEFT JOIN (
+            SELECT
+              ADM.SBJCT_ID
+            , MAX(CASE WHEN ADM.SBJCT_ADM_TYCD = 'TUT' THEN USR.USERNM END) AS TUT_USERNM
+            FROM TB_LMS_SBJCT_ADM ADM
+            JOIN TB_LMS_USER USR
+              ON USR.USER_ID = ADM.USER_ID
+            GROUP BY ADM.SBJCT_ID
+        ) SBJCT_ADM
+          ON SBJCT_ADM.SBJCT_ID = SBJ.SBJCT_ID
+        LEFT JOIN TB_LMS_CMMN_CD SBJCT_TYCD
+          ON SBJCT_TYCD.LANG_CD = NVL(#{langCd}, 'ko')
+         AND SBJCT_TYCD.UP_CD = 'SBJCT_TYCD'
+         AND SBJCT_TYCD.CD = SBJ.SBJCT_TYCD
+        LEFT JOIN TB_LMS_CMMN_CD CRS_GBNCD
+          ON CRS_GBNCD.LANG_CD = NVL(#{langCd}, 'ko')
+         AND CRS_GBNCD.UP_CD = 'CRS_GBNCD'
+         AND CRS_GBNCD.CD = SBJ.CRS_GBNCD
+    </sql>
+
+    <!-- 상세/팝업 조회용 레거시 검색 조건 -->
+    <sql id="reviewPeriodBaseFilter">
+        WHERE SBJ.DELYN = 'N'
+        <if test="orgId != null and orgId != ''">
+          AND CHRT.ORG_ID = #{orgId}
+        </if>
+        <if test="haksaYear != null and haksaYear != ''">
+          AND CHRT.DGRS_YR = #{haksaYear}
+        </if>
+        <if test="haksaTerm != null and haksaTerm != ''">
+          AND CHRT.DGRS_SMSTR_CHRT = #{haksaTerm}
+        </if>
+        <if test="crsGbncd != null and crsGbncd != ''">
+          AND SBJ.CRS_GBNCD = #{crsGbncd}
+        </if>
+        <if test="sbjctTycd != null and sbjctTycd != ''">
+          AND SBJ.SBJCT_TYCD = #{sbjctTycd}
+        </if>
+        <if test="sbjctId != null and sbjctId != ''">
+          AND SBJ.SBJCT_ID = #{sbjctId}
+        </if>
+        <if test="crsTypeCdList != null and crsTypeCdList.length > 0">
+          AND SBJ.SBJCT_TYCD IN
+          <foreach collection="crsTypeCdList" item="item" separator="," open="(" close=")">
+            #{item}
+          </foreach>
+        </if>
+        <if test="searchValue != null and searchValue != ''">
+          AND (
+              LOWER(TO_CHAR(SBJ.CRCLMN_NO)) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+           OR LOWER(SBJ.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+           OR LOWER(NVL(PROF.USERNM, SBJ.PROF_ID)) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+           OR LOWER(NVL(SBJCT_ADM.TUT_USERNM, '-')) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+          )
+        </if>
+    </sql>
+
+    <!-- 목록 조회용 PageInfo 검색 조건 -->
+    <sql id="reviewPeriodListFilter">
+        WHERE SBJ.DELYN = 'N'
+        <if test="orgId != null and orgId != ''">
+          AND CHRT.ORG_ID = #{orgId}
+        </if>
+        <if test="dgrsYr != null and dgrsYr != ''">
+          AND CHRT.DGRS_YR = #{dgrsYr}
+        </if>
+        <if test="dgrsSmstrChrt != null and dgrsSmstrChrt != ''">
+          AND CHRT.DGRS_SMSTR_CHRT = #{dgrsSmstrChrt}
+        </if>
+        <if test="crsGbncd != null and crsGbncd != ''">
+          AND SBJ.CRS_GBNCD = #{crsGbncd}
+        </if>
+        <if test="sbjctTycd != null and sbjctTycd != ''">
+          AND SBJ.SBJCT_TYCD = #{sbjctTycd}
+        </if>
+        <if test="sbjctId != null and sbjctId != ''">
+          AND SBJ.SBJCT_ID = #{sbjctId}
+        </if>
+        <if test="searchText != null and searchText != ''">
+          AND (
+              LOWER(TO_CHAR(SBJ.CRCLMN_NO)) LIKE FN_LIKE_VAL(LOWER(#{searchText}))
+           OR LOWER(SBJ.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchText}))
+           OR LOWER(NVL(PROF.USERNM, SBJ.PROF_ID)) LIKE FN_LIKE_VAL(LOWER(#{searchText}))
+           OR LOWER(NVL(SBJCT_ADM.TUT_USERNM, '-')) LIKE FN_LIKE_VAL(LOWER(#{searchText}))
+          )
+        </if>
+    </sql>
+
+    <!-- 복습기간설정 목록 총건수 조회 -->
+    <select id="countReviewPeriod" parameterType="knou.lms.review.vo.ReviewPeriodListVO" resultType="int">
+        SELECT COUNT(1)
+        <include refid="reviewPeriodBaseFrom"/>
+        <include refid="reviewPeriodListFilter"/>
+    </select>
+
+    <!-- 복습기간설정 목록 조회 -->
+    <select id="listReviewPeriod" parameterType="knou.lms.review.vo.ReviewPeriodListVO" resultType="egovMap">
+        <include refid="CommonSQL.pagePrefix2"/>
+        SELECT A.*
+             , ROW_NUMBER() OVER (
+                ORDER BY
+                  A."haksaYear" DESC
+                , A."haksaTerm" DESC
+                , A."sbjctNm"
+                , A."dvclasSortNo"
+                , A."sbjctId"
+              ) AS LINE_NO
+        FROM (
+            <include refid="reviewPeriodBaseSelect"/>
+            <include refid="reviewPeriodBaseFrom"/>
+            <include refid="reviewPeriodListFilter"/>
+        ) A
+        <include refid="CommonSQL.pageSuffix2"/>
+    </select>
+
+    <!-- 복습기간설정 상세 조회 -->
+    <select id="selectReviewPeriod" parameterType="knou.lms.review.vo.ReviewPeriodVO" resultType="egovMap">
+        <include refid="reviewPeriodBaseSelect"/>
+        <include refid="reviewPeriodBaseFrom"/>
+        <include refid="reviewPeriodBaseFilter"/>
+    </select>
+
+    <!-- 복습기간 상태 저장 -->
+    <update id="updateReviewPeriod" parameterType="knou.lms.review.vo.ReviewPeriodVO">
+        UPDATE TB_LMS_SBJCT
+           SET RVW_PSBL_GBNCD = #{reviewStatus}
+             , RVW_SDTTM = CASE WHEN #{reviewStatus} = 'PRD_STNG' THEN #{reviewStartDttm} ELSE NULL END
+             , RVW_EDTTM = CASE WHEN #{reviewStatus} = 'PRD_STNG' THEN #{reviewEndDttm} ELSE NULL END
+             , MDFR_ID = #{mdfrId}
+             , MOD_DTTM = FN_DTTM()
+         WHERE SBJCT_ID = #{sbjctId}
+        <if test="orgId != null and orgId != ''">
+           AND SMSTR_CHRT_ID IN (
+               SELECT SMSTR_CHRT_ID
+                 FROM TB_LMS_SMSTR_CHRT
+                WHERE ORG_ID = #{orgId}
+           )
+        </if>
+    </update>
+</mapper>

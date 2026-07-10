@@ -8,8 +8,8 @@
             <span class="barBot"></span>
         </a>
         <h1 class="logo">
-            <a href="/">
-                <img class="main_logo" src="/webdoc/img/logo.png" alt="LMS">
+            <a href="/main.do">
+                <img class="main_logo" src="/webdoc/img/logo.svg" alt="LMS">
             </a>
         </h1>
         <div class="h_option">

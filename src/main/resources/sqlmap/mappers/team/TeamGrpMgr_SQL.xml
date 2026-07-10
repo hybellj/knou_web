@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.team.dao.TeamGrpMgrDAO">
+
+    <sql id="listQueryForTeamGrp">
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY TO_DATE(GRP.REG_DTTM, 'YYYYMMDDHH24MISS') DESC) AS "LINE_NO"
+            , GRP.TEAM_GRP_ID    AS "TEAM_GRP_ID"
+            , GRP.TEAM_GRPNM     AS "TEAM_GRPNM"
+            , TM1.TEAM_TOT      AS "TEAM_TOT"
+--             , GRP.RGTR_ID       AS "RGTR_ID"
+            , USR.USERNM        AS "USERNM"
+            , GRP.REG_DTTM      AS "REG_DTTM"
+            , CASE
+                WHEN TM1.TEAM_TOT = TM2.Y_TOT THEN 'Y'   /* 구성완료 */
+                ELSE 'N'    /* 임시저장 */
+            END                 AS "TEAM_GRP_CMPTNYN"
+            , GRP.SBJCT_ID      AS "SBJCT_ID"
+            , CASE
+                WHEN NVL(A1.CNT, 0) + NVL(A2.CNT, 0) + NVL(A3.CNT, 0)
+                    + NVL(A4.CNT, 0) + NVL(A5.CNT, 0) + NVL(A6.CNT, 0) = 0 THEN 'N'
+                ELSE 'Y'
+            END                 AS "USINGYN"            /* 현재 사용여부 */
+        FROM
+            TB_LMS_TEAM_GRP GRP
+            /* 팀 전체 COUNT */
+            JOIN (SELECT
+                      GRPSUB1.TEAM_GRP_ID
+                      , COUNT(1) AS "TEAM_TOT"
+                  FROM
+                      TB_LMS_TEAM_GRP GRPSUB1
+                      JOIN TB_LMS_TEAM TBSUB1
+                          ON GRPSUB1.TEAM_GRP_ID = TBSUB1.TEAM_GRP_ID
+                  GROUP BY
+                      GRPSUB1.TEAM_GRP_ID) TM1
+                ON GRP.TEAM_GRP_ID = TM1.TEAM_GRP_ID
+            /* 팀 저장완료 COUNT */
+            JOIN (SELECT
+                      GRPSUB2.TEAM_GRP_ID
+                       , COUNT(1) AS "Y_TOT"
+                  FROM
+                      TB_LMS_TEAM_GRP GRPSUB2
+                      JOIN TB_LMS_TEAM TBSUB2
+                          ON GRPSUB2.TEAM_GRP_ID = TBSUB2.TEAM_GRP_ID
+                          AND TBSUB2.TEAM_CPST_CMPTNYN = 'Y'
+                  GROUP BY
+                      GRPSUB2.TEAM_GRP_ID) TM2
+                ON GRP.TEAM_GRP_ID = TM2.TEAM_GRP_ID
+            JOIN TB_LMS_USER USR
+                ON GRP.RGTR_ID = USR.USER_ID
+            /* 과제 */
+            LEFT JOIN (SELECT
+                            TEAM_GRP_ID
+                            , COUNT(1) AS "CNT"
+                        FROM
+                            TB_LMS_ASMT
+                        WHERE
+                            DELYN = 'N'
+                        GROUP BY
+                            TEAM_GRP_ID) A1
+                ON GRP.TEAM_GRP_ID = A1.TEAM_GRP_ID
+            /* 토론 */
+            LEFT JOIN (SELECT
+                            TEAM_GRP_ID
+                            , COUNT(1) AS "CNT"
+                        FROM
+                            TB_LMS_DSCS
+                        WHERE
+                            DELYN = 'N'
+                        GROUP BY
+                            TEAM_GRP_ID) A2
+                ON GRP.TEAM_GRP_ID = A2.TEAM_GRP_ID
+            /* 세미나 */
+            LEFT JOIN (SELECT
+                            SUBGRP.TEAM_GRP_ID
+                            , COUNT(SMNR.TEAM_ID) AS "CNT"
+                        FROM
+                            TB_LMS_TEAM_GRP SUBGRP
+                            JOIN TB_LMS_TEAM SUBTEAM
+                                ON SUBGRP.TEAM_GRP_ID = SUBTEAM.TEAM_GRP_ID
+                            JOIN TB_LMS_SMNR_TEAM SMNR
+                                ON SUBTEAM.TEAM_ID = SMNR.TEAM_ID
+                            JOIN TB_LMS_SMNR SMNR2
+                                ON SMNR.SMNR_ID = SMNR2.SMNR_ID
+                        WHERE
+                            SMNR2.DELYN = 'N'
+                        GROUP BY
+                            SUBGRP.TEAM_GRP_ID) A3
+                ON GRP.TEAM_GRP_ID = A3.TEAM_GRP_ID
+            /* 시험, 퀴즈 */
+            LEFT JOIN (SELECT
+                            SUBGRP.TEAM_GRP_ID
+                            , COUNT(TRGTR.TEAM_ID) AS "CNT"
+                        FROM
+                            TB_LMS_TEAM_GRP SUBGRP
+                            JOIN TB_LMS_TEAM SUBTEAM
+                                ON SUBGRP.TEAM_GRP_ID = SUBTEAM.TEAM_GRP_ID
+                            JOIN TB_LMS_EXAM_TRGTR TRGTR
+                                ON SUBTEAM.TEAM_ID = TRGTR.TEAM_ID
+                            JOIN TB_LMS_EXAM_DTL DTL
+                                ON TRGTR.EXAM_DTL_ID = DTL.EXAM_DTL_ID
+                        WHERE
+                            DTL.DELYN = 'N'
+                        GROUP BY
+                            SUBGRP.TEAM_GRP_ID) A4
+                ON GRP.TEAM_GRP_ID = A4.TEAM_GRP_ID
+            /* 설문 */
+            LEFT JOIN (SELECT
+                            SUBGRP.TEAM_GRP_ID
+                            , COUNT(TRGT.TEAM_ID) AS "CNT"
+                        FROM
+                            TB_LMS_TEAM_GRP SUBGRP
+                            JOIN TB_LMS_TEAM SUBTEAM
+                                ON SUBGRP.TEAM_GRP_ID = SUBTEAM.TEAM_GRP_ID
+                            JOIN TB_LMS_SRVY_TRGT TRGT
+                                ON SUBTEAM.TEAM_ID = TRGT.TEAM_ID
+                            JOIN TB_LMS_SRVY SRVY
+                                ON TRGT.SRVY_ID = SRVY.SRVY_ID
+                        WHERE
+                            SRVY.DELYN = 'N'
+                        GROUP BY
+                            SUBGRP.TEAM_GRP_ID) A5
+                ON GRP.TEAM_GRP_ID = A5.TEAM_GRP_ID
+            /* 게시판 */
+            LEFT JOIN (SELECT
+                            SUBGRP.TEAM_GRP_ID
+                            , COUNT(BBS_ATCL.TEAM_GRP_ID) AS "CNT"
+                        FROM
+                            TB_LMS_TEAM_GRP SUBGRP
+                            JOIN TB_LMS_BBS_ATCL BBS_ATCL
+                                ON SUBGRP.TEAM_GRP_ID = BBS_ATCL.TEAM_GRP_ID
+                        WHERE
+                            BBS_ATCL.DELYN = 'N'
+                        GROUP BY
+                            SUBGRP.TEAM_GRP_ID) A6
+                ON GRP.TEAM_GRP_ID = A6.TEAM_GRP_ID
+        WHERE
+            GRP.SBJCT_ID = #{sbjctId}
+            AND GRP.DELYN = 'N'
+        <if test="teamGrpnm != null and teamGrpnm != '' ">
+            AND GRP.TEAM_GRPNM LIKE '%' || #{teamGrpnm} || '%'
+        </if>
+    </sql>
+
+    <sql id="listQueryForAtndlcUser">
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY USR.USERNM ASC)  AS "LINE_NO"
+            , DEPT.DEPTNM                               AS "DEPTNM"
+            , USR.STDNT_NO                              AS "STDNT_NO"
+            , USR.USER_ID                               AS "USER_ID"
+            , USR.USERNM                                AS "USERNM"
+            , (SELECT
+                   CNTCT
+               FROM
+                   TB_LMS_USER_CNTCT
+               WHERE
+                   CNTCT_TYCD = 'MBL_PHN'
+                   AND USER_ID = USR.USER_ID)           AS "MOBILE_NO"
+        FROM
+            TB_LMS_USER USR
+            JOIN TB_LMS_ATNDLC ATND
+                ON USR.USER_ID = ATND.USER_ID
+                AND ATND.SBJCT_ID = #{sbjctId}
+                AND ATND.ATNDLC_STSCD = 'APPROVE'    /* 수강 */
+            JOIN TB_LMS_DEPT DEPT
+                ON USR.DEPT_ID = DEPT.DEPT_ID
+        WHERE
+            USR.USER_ID_STSCD = 'APRV_CMPTN'        /* 상태코드 */
+    </sql>
+
+    <!-- 팀 그룹 등록 -->
+    <insert id="teamGrpRegist" parameterType="teamGrpMgrVO">
+        /*
+            SQL ID : TeamGrpMgrDAO.teamGrpRegist
+            설명 : 팀 그룹 등록
+        */
+        INSERT INTO
+            TB_LMS_TEAM_GRP
+                ( TEAM_GRP_ID
+                , SBJCT_ID
+                , TEAM_GRPNM
+                , TEAM_GRP_SEQNO
+                , USEYN
+                , DELYN
+                , RGTR_ID
+                , REG_DTTM
+                , MDFR_ID
+                , MOD_DTTM )
+        VALUES
+                ( #{teamGrpId}
+                , #{sbjctId}
+                , #{teamGrpnm}
+                , (SELECT NVL(MAX(TEAM_GRP_SEQNO), 0) + 1  FROM TB_LMS_TEAM_GRP WHERE SBJCT_ID = #{sbjctId})
+                , 'Y'
+                , 'N'
+                , #{rgtrId}
+                , FN_DTTM()
+                , #{mdfrId}
+        <choose>
+            <when test="mdfrId != '' and mdfrId != null">
+                , FN_DTTM()
+            </when>
+            <otherwise>
+                , null
+            </otherwise>
+        </choose>
+                )
+    </insert>
+
+    <!-- 팀 등록 -->
+    <insert id="teamRegist" parameterType="teamGrpMgrVO">
+        /*
+            SQL ID : TeamGrpMgrDAO.teamRegist
+            설명 : 팀 등록
+        */
+        INSERT INTO
+            TB_LMS_TEAM
+                ( TEAM_ID
+                , TEAM_GRP_ID
+                , TEAMNM
+                , TEAM_QUOTA
+                , TEAM_TYCD
+                , AUTO_ALLOCYN
+                , MRK_ACTV_TYCD
+                , ACTV_GBNCD
+                , TEAM_BBS_ID
+                , TEAM_CPST_CMPTNYN
+                , RGTR_ID
+                , REG_DTTM
+                , MDFR_ID
+                , MOD_DTTM
+                , TEAM_BBS_USEYN )
+        VALUES
+                ( #{teamId}
+                , #{teamGrpId}
+                , #{teamnm}
+                , #{teamQuota}
+                , (SELECT
+                        CASE
+<![CDATA[                   WHEN 1 <= #{teamTot} AND #{teamTot} <= 5 THEN 'SMALL'   ]]>
+<![CDATA[                   WHEN 6 <= #{teamTot} AND #{teamTot} <= 10 THEN 'MEDIUM' ]]>
+<![CDATA[                   WHEN 11 <= #{teamTot} THEN 'LARGE'                      ]]>
+                        END
+                    FROM
+                        DUAL)
+                , #{autoAllocyn}
+                , #{mrkActvTycd}
+                , 'ACTV'
+                , #{teamBbsId}
+                , 'Y'
+                , #{rgtrId}
+                , FN_DTTM()
+                , #{mdfrId}
+        <choose>
+            <when test="mdfrId != '' and mdfrId != null">
+                , FN_DTTM()
+            </when>
+            <otherwise>
+                , null
+            </otherwise>
+        </choose>
+                , #{teamBbsUseyn} )
+    </insert>
+
+    <!-- 팀 멤버 등록 -->
+    <insert id="teamMbrRegist" parameterType="teamGrpMgrVO">
+        /*
+            SQL ID : TeamGrpMgrDAO.teamMbrRegist
+            설명 : 팀 멤버 등록
+        */
+        INSERT INTO
+            TB_LMS_TEAM_MBR
+                ( TEAM_MBR_ID
+                , TEAM_ID
+                , USER_ID
+                , ROLE
+                , LDRYN
+                , RGTR_ID
+                , REG_DTTM
+                , MDFR_ID
+                , MOD_DTTM )
+        VALUES
+                ( #{teamMbrId}
+                , #{teamId}
+                , #{userId}
+                , #{role}
+                , #{ldryn}
+                , #{rgtrId}
+                , FN_DTTM()
+                , #{mdfrId}
+        <choose>
+            <when test="mdfrId != '' and mdfrId != null">
+                , FN_DTTM()
+            </when>
+            <otherwise>
+                , null
+            </otherwise>
+        </choose>
+                )
+    </insert>
+
+    <!-- 팀 그룹 목록 페이징 -->
+    <select id="listTeamGrpPaging" parameterType="teamGrpMgrVO" resultType="teamGrpMgrVO">
+        /*
+            SQL ID : TeamGrpMgrDAO.listTeamGrpPaging
+            설명 : 팀 그룹 목록 페이징
+        */
+        <include refid="CommonSQL.pagePrefix" />
+        <include refid="listQueryForTeamGrp"/>
+        <include refid="CommonSQL.pageSuffix" />
+    </select>
+
+    <!-- 팀 그룹 목록 카운트 -->
+    <select id="countTeamGrp" parameterType="teamGrpMgrVO" resultType="Integer">
+        /*
+            SQL ID : TeamGrpMgrDAO.countTeamGrp
+            설명 : 팀 그룹 목록 카운트
+        */
+        SELECT
+            COUNT(1)
+        FROM
+            (<include refid="listQueryForTeamGrp"/>) Z
+    </select>
+
+    <!-- 수강생 목록 조회 -->
+    <select id="listAtndlcUser" parameterType="teamGrpMgrVO" resultType="egovMap">
+        /*
+            SQL ID : TeamGrpMgrDAO.listAtndlcUser
+            설명 : 수강생 목록 조회
+        */
+        <include refid="listQueryForAtndlcUser"/>
+    </select>
+
+    <!-- 수강생 목록 카운트 -->
+    <select id="countAtndlcUser" parameterType="teamGrpMgrVO" resultType="Integer">
+        /*
+            SQL ID : TeamGrpMgrDAO.countAtndlcUser
+            설명 : 수강생 목록 카운트
+        */
+        SELECT
+            COUNT(1)
+        FROM
+            (<include refid="listQueryForAtndlcUser"/>) Z
+    </select>
+
+    <!-- 팀 및 팀원 목록 조회 -->
+    <select id="listTeamAndMbr" parameterType="teamGrpMgrVO" resultType="egovMap">
+        /*
+            SQL ID : TeamGrpMgrDAO.listTeamAndMbr
+            설명 : 팀 및 팀원 목록 조회
+        */
+        SELECT
+            GRP.TEAM_GRP_ID          AS "TEAM_GRP_ID"
+            , GRP.TEAM_GRPNM         AS "TEAM_GRPNM"
+            , TEAM.TEAM_ID          AS "TEAM_ID"
+            , TEAM.TEAMNM           AS "TEAMNM"
+            , TEAM.TEAM_BBS_USEYN   AS "TEAM_BBS_USEYN"
+            , MBR.USER_ID           AS "USER_ID"
+            , MBR.LDRYN             AS "LDRYN"
+            , USR.USERNM            AS "USERNM"
+            , USR.STDNT_NO          AS "STDNT_NO"
+            , DEPT.DEPTNM           AS "DEPTNM"
+        FROM
+            TB_LMS_TEAM_GRP GRP
+            JOIN TB_LMS_TEAM TEAM
+                ON GRP.TEAM_GRP_ID = TEAM.TEAM_GRP_ID
+            JOIN TB_LMS_TEAM_MBR MBR
+                ON TEAM.TEAM_ID = MBR.TEAM_ID
+            JOIN TB_LMS_USER USR
+                ON MBR.USER_ID = USR.USER_ID
+            JOIN TB_LMS_DEPT DEPT
+                ON USR.DEPT_ID = DEPT.DEPT_ID
+        WHERE
+            GRP.SBJCT_ID = #{sbjctId}
+            AND GRP.TEAM_GRP_ID = #{teamGrpId}
+        ORDER BY
+            TEAM.TEAM_ID DESC
+    </select>
+
+    <select id="findLearnerTeamId" parameterType="teamGrpMgrVO" resultType="String">
+        /*
+            SQL ID : TeamGrpMgrDAO.findLearnerTeamId
+            설명 : 학습자 팀 식별자(ID) 조회 및 검증
+        */
+        SELECT
+            Z.TEAM_ID
+        FROM (
+            SELECT
+                TEAM.TEAM_ID
+            FROM
+                TB_LMS_TEAM TEAM
+                JOIN TB_LMS_TEAM_MBR MBR
+                    ON TEAM.TEAM_ID = MBR.TEAM_ID
+            WHERE
+                TEAM.TEAM_GRP_ID = #{teamGrpId}
+                AND MBR.USER_ID = #{userId}
+            ORDER BY
+                TEAM.TEAM_ID
+        ) Z
+        WHERE
+            ROWNUM = 1
+    </select>
+
+    <select id="countUserInTeam" parameterType="teamGrpMgrVO" resultType="Integer">
+        /*
+            SQL ID : TeamGrpMgrDAO.countUserInTeam
+            설명 : 특정 팀의 소속 여부 및 인원 확인
+        */
+        SELECT
+            COUNT(1)
+        FROM
+            TB_LMS_TEAM_MBR
+        WHERE
+            TEAM_ID = #{teamId}
+            AND USER_ID = #{userId}
+    </select>
+
+    <select id="listTeamMembers" parameterType="teamGrpMgrVO" resultType="egovMap">
+        /*
+            SQL ID : TeamGrpMgrDAO.listTeamMembers
+            설명 : 팀원 목록 조회
+        */
+        SELECT
+            MBR.TEAM_ID          AS "teamId"
+            , TEAM.TEAMNM        AS "teamNm"
+            , MBR.USER_ID        AS "userId"
+            , USR.USERNM         AS "userNm"
+            , USR.STDNT_NO       AS "stdntNo"
+            , DEPT.DEPTNM        AS "deptNm"
+            , MBR.LDRYN          AS "leaderYn"
+            , MBR.LDRYN          AS "ldryn"
+            , MBR.ROLE           AS "role"
+        FROM
+            TB_LMS_TEAM_MBR MBR
+            JOIN TB_LMS_TEAM TEAM
+                ON MBR.TEAM_ID = TEAM.TEAM_ID
+            JOIN TB_LMS_USER USR
+                ON MBR.USER_ID = USR.USER_ID
+            LEFT JOIN TB_LMS_DEPT DEPT
+                ON USR.DEPT_ID = DEPT.DEPT_ID
+        WHERE
+            MBR.TEAM_ID = #{teamId}
+        ORDER BY
+            MBR.LDRYN DESC, USR.USERNM ASC, MBR.USER_ID ASC
+    </select>
+
+    <!-- 팀 그룹 수정 -->
+    <update id="updateTeamGrpInfo" parameterType="teamGrpMgrVO">
+        /*
+            SQL ID : TeamGrpMgrDAO.updateTeamGrpInfo
+            설명 : 팀 그룹 수정
+        */
+        UPDATE
+            TB_LMS_TEAM_GRP
+        SET
+            TEAM_GRPNM   =   #{teamGrpnm}
+            , MDFR_ID   =   #{mdfrId}
+            , MOD_DTTM  =   FN_DTTM()
+        WHERE
+            TEAM_GRP_ID = #{teamGrpId}
+    </update>
+
+    <!-- 팀 수정 -->
+    <update id="updateTeamInfo" parameterType="teamGrpMgrVO">
+        /*
+            SQL ID : TeamGrpMgrDAO.updateTeamInfo
+            설명 : 팀 수정
+        */
+        UPDATE
+            TB_LMS_TEAM
+        SET
+            MDFR_ID             =   #{mdfrId}
+            , MOD_DTTM          =   FN_DTTM()
+        <if test="teamnm != null and teamnm != ''">
+            , TEAMNM            =   #{teamnm}
+        </if>
+        <if test="teamQuota != null and teamQuota != ''">
+            , TEAM_QUOTA        =   #{teamQuota}
+        </if>
+        <if test="teamTot != null and teamTot != ''">
+            , TEAM_TYCD         =   (SELECT
+                                        CASE
+<![CDATA[                                   WHEN 1 <= #{teamTot} AND #{teamTot} <= 5 THEN 'SMALL'   ]]>
+<![CDATA[                                   WHEN 6 <= #{teamTot} AND #{teamTot} <= 10 THEN 'MEDIUM' ]]>
+<![CDATA[                                   WHEN 11 <= #{teamTot} THEN 'LARGE'                      ]]>
+                                        END
+                                    FROM
+                                        DUAL)
+        </if>
+        <if test="autoAllocyn != null and autoAllocyn != ''">
+            , AUTO_ALLOCYN      =   #{autoAllocyn}
+        </if>
+        <if test="mrkActvTycd != null and mrkActvTycd != ''">
+            , MRK_ACTV_TYCD     =   #{mrkActvTycd}
+        </if>
+        <if test="actvGbncd != null and actvGbncd != ''">
+            , ACTV_GBNCD        =   #{actvGbncd}
+        </if>
+        <if test="teamBbsId != null and teamBbsId != ''">
+            , TEAM_BBS_ID       =   #{teamBbsId}
+        </if>
+        <if test="teamCpstCmptnyn != null and teamCpstCmptnyn != ''">
+            , TEAM_CPST_CMPTNYN =   #{teamCpstCmptnyn}
+        </if>
+        <if test="teamBbsUseyn != null and teamBbsUseyn != ''">
+            , TEAM_BBS_USEYN    =   #{teamBbsUseyn}
+        </if>
+        WHERE
+            TEAM_ID = #{teamId}
+    </update>
+
+    <!-- 팀 그룹 삭제 -->
+    <update id="updateTeamGrpDelyn" parameterType="teamGrpMgrVO">
+        /*
+            SQL ID : TeamGrpMgrDAO.updateTeamGrpDelyn
+            설명 : 팀 그룹 삭제
+        */
+        UPDATE
+            TB_LMS_TEAM_GRP
+        SET
+            DELYN   =   'Y'
+            , USEYN =   'N'
+        WHERE
+            TEAM_GRP_ID = #{teamGrpId}
+    </update>
+
+    <!-- 팀 삭제 -->
+    <delete id="deleteTeam" parameterType="teamGrpMgrVO">
+        /*
+            SQL ID : TeamGrpMgrDAO.deleteTeam
+            설명 : 팀 삭제
+        */
+        DELETE FROM
+            TB_LMS_TEAM
+        WHERE
+            TEAM_GRP_ID = #{teamGrpId}
+    </delete>
+
+    <!-- 팀 멤버 삭제 -->
+    <delete id="deleteTeamMbr" parameterType="teamGrpMgrVO">
+        /*
+            SQL ID : TeamGrpMgrDAO.deleteTeamMbr
+            설명 : 팀 멤버 삭제
+        */
+        DELETE FROM
+            TB_LMS_TEAM_MBR
+        WHERE
+            TEAM_ID IN (SELECT
+                            TEAM.TEAM_ID
+                        FROM
+                            TB_LMS_TEAM_GRP GRP
+                            JOIN TB_LMS_TEAM TEAM
+                                 ON GRP.TEAM_GRP_ID = TEAM.TEAM_GRP_ID
+                        WHERE
+                            GRP.TEAM_GRP_ID = #{teamGrpId})
+    </delete>
+</mapper>

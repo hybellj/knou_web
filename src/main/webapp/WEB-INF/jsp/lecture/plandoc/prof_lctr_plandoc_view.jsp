@@ -5,10 +5,43 @@
 <head>
     <jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
         <jsp:param name="style" value="dashboard"/>
+        <jsp:param name="module" value="table"/>
     </jsp:include>
+    <script type="text/javascript">
+        let EPARAM = '<c:out value="${encParams}" />';
+        let PLANDOC_MODIFY_PERIOD_YN = '<c:out value="${plandocModifyPeriodYn}" />';
+
+
+        /**
+         * 강의계획서 수정 화면 이동
+         * @param sbjctId
+         */
+        function modifyPlandoc(sbjctId) {
+            if (PLANDOC_MODIFY_PERIOD_YN !== "Y") {
+                UiComm.showMessage("강의계획서 수정기간이 아닙니다.", "warning");
+                return;
+            }
+
+            const extData = {
+                sbjctId: sbjctId
+            };
+
+            const url = "/lctr/plandoc/profLctrPlandocModifyView.do";
+            document.location.href = url + "?encParams=" + EPARAM + "&addParams=" + UiComm.makeEncParams(extData);
+        }
+
+        /**
+         * 강의계획서 목록 화면 이동
+         */
+        function listPlandoc() {
+
+            const url = "/lctr/plandoc/profLctrPlandocListView.do";
+            document.location.href = url + "?encParams=" + EPARAM;
+        }
+    </script>
 </head>
 
-<body class="home colorA ${bodyClass}">
+<body class="home ${uiex:getTheme()} ${bodyClass}">
 <div id="wrap" class="main">
     <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
 
@@ -20,12 +53,7 @@
                 <div class="sub-content">
                     <div class="page-info">
                         <h2 class="page-title">강의계획서</h2>
-                        <div class="navi_bar">
-                            <ul>
-                                <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                                <li><span class="current">강의계획서</span></li>
-                            </ul>
-                        </div>
+                        <uiex:navibar type="main"/>
                     </div>
                     <div class="board_top">
                         <h3 class="board-title">강의계획서 상세정보</h3>
@@ -34,12 +62,12 @@
                     <!-- 과목 정보 -->
                     <h4 class="sub-title">과목 정보</h4>
                     <div class="table_list">
-                        <ul class="list">
+                        <%--<ul class="list">
                             <li class="head"><label>과목번호</label></li>
                             <li><c:out value="${subjectInfo.crclmnNo}"/></li>
                             <li class="head"><label>분반</label></li>
                             <li><c:out value="${subjectInfo.dvclasNo}"/></li>
-                        </ul>
+                        </ul>--%>
                         <ul class="list">
                             <li class="head"><label>과목명 (한글)</label></li>
                             <li><c:out value="${subjectInfo.sbjctnm}"/></li>
@@ -76,7 +104,7 @@
                             <tr>
                                 <td data-th="교수">담당교수 : <c:out value="${profInfo.usernm}"/></td>
                                 <td data-th="소속"><c:out value="${profInfo.deptnm}"/></td>
-                                <td data-th="연락처"><c:out value="${profInfo.offiPhn}"/></td>
+                                <td data-th="연락처">-</td>
                                 <td data-th="이메일"><c:out value="${profInfo.eml}"/></td>
                             </tr>
 
@@ -86,7 +114,7 @@
                                         <tr>
                                             <td data-th="교수">공동교수 : <c:out value="${r.usernm}"/></td>
                                             <td data-th="소속"><c:out value="${r.deptnm}"/></td>
-                                            <td data-th="연락처"><c:out value="${r.offiPhn}"/></td>
+                                            <td data-th="연락처">-</td>
                                             <td data-th="이메일"><c:out value="${r.eml}"/></td>
                                         </tr>
                                     </c:forEach>
@@ -126,8 +154,8 @@
                                     <c:forEach var="r" items="${tutList}">
                                         <tr>
                                             <td data-th="튜터"><c:out value="${r.usernm}"/></td>
-                                            <td data-th="연락처"><c:out value="${r.homePhn}"/></td>
-                                            <td data-th="핸드폰"><c:out value="${r.mblPhn}"/></td>
+                                            <td data-th="연락처">-</td>
+                                            <td data-th="핸드폰">-</td>
                                             <td data-th="이메일"><c:out value="${r.eml}"/></td>
                                         </tr>
                                     </c:forEach>
@@ -166,8 +194,8 @@
                                     <c:forEach var="r" items="${assiList}">
                                         <tr>
                                             <td data-th="튜터"><c:out value="${r.usernm}"/></td>
-                                            <td data-th="연락처"><c:out value="${r.homePhn}"/></td>
-                                            <td data-th="핸드폰"><c:out value="${r.mblPhn}"/></td>
+                                            <td data-th="연락처">-</td>
+                                            <td data-th="핸드폰">-</td>
                                             <td data-th="이메일"><c:out value="${r.eml}"/></td>
                                         </tr>
                                     </c:forEach>
@@ -194,14 +222,14 @@
                             <li class="head"><label>강의 목표</label></li>
                             <li><c:out value="${lctrPlandocInfo.lctrGoal}"/></li>
                         </ul>
-                        <ul class="list">
+                        <%--<ul class="list">
                             <li class="head"><label>운영 방침</label></li>
                             <li><c:out value="${lctrPlandocInfo.lctrOpGdln}"/></li>
                         </ul>
                         <ul class="list">
                             <li class="head"><label>운영 계획</label></li>
                             <li><c:out value="${lctrPlandocInfo.lctrOpPlan}"/></li>
-                        </ul>
+                        </ul>--%>
                         <ul class="list">
                             <li class="head"><label>관련 과목 내용</label></li>
                             <li><c:out value="${lctrPlandocInfo.rltdSbjctCts}"/></li>
@@ -261,63 +289,51 @@
                                 <div class="tit_area">
                                     <span class="tit">강의노트 :</span>
                                     <c:choose>
-                                        <c:when test="${not empty fileInfo.noteFileId}">
-                                            <a href="javascript:void(0);" class="file_down" onclick="downloadFile('${fileInfo.noteFileId}')">
-                                                <span class="text"><c:out value="${fileInfo.noteFileNm}"/></span>
-                                            </a>
+                                        <c:when test="${not empty noteFileList}">
+                                            <div class="add_file_list">
+                                                <uiex:filedownload fileList="${noteFileList}"/>
+                                            </div>
                                         </c:when>
                                         <c:otherwise>
                                             <span class="text">-</span>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
-                                <span class="link">
-                                    <c:if test="${not empty fileInfo.noteFileId}">
-                                        <button type="button" class="btn s_basic down" onclick="downloadFile('${fileInfo.noteFileId}')">다운로드</button>
-                                    </c:if>
-                                </span>
+
                             </li>
 
                             <li>
                                 <div class="tit_area">
                                     <span class="tit">음성파일 :</span>
                                     <c:choose>
-                                        <c:when test="${not empty fileInfo.voiceFileId}">
-                                            <a href="javascript:void(0);" class="file_down" onclick="downloadFile('${fileInfo.voiceFileId}')">
-                                                <span class="text"><c:out value="${fileInfo.voiceFileNm}"/></span>
-                                            </a>
+                                        <c:when test="${not empty voiceFileList}">
+                                            <div class="add_file_list">
+                                                <uiex:filedownload fileList="${voiceFileList}"/>
+                                            </div>
                                         </c:when>
                                         <c:otherwise>
                                             <span class="text">-</span>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
-                                <span class="link">
-                                    <c:if test="${not empty fileInfo.voiceFileId}">
-                                        <button type="button" class="btn s_basic down" onclick="downloadFile('${fileInfo.voiceFileId}')">다운로드</button>
-                                    </c:if>
-                                </span>
+
                             </li>
 
                             <li>
                                 <div class="tit_area">
                                     <span class="tit">실습지도 첨부파일 :</span>
                                     <c:choose>
-                                        <c:when test="${not empty fileInfo.practiceFileId}">
-                                            <a href="javascript:void(0);" class="file_down" onclick="downloadFile('${fileInfo.practiceFileId}')">
-                                                <span class="text"><c:out value="${fileInfo.practiceFileNm}"/></span>
-                                            </a>
+                                        <c:when test="${not empty trainingFileList}">
+                                            <div class="add_file_list">
+                                                <uiex:filedownload fileList="${trainingFileList}"/>
+                                            </div>
                                         </c:when>
                                         <c:otherwise>
                                             <span class="text">-</span>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
-                                <span class="link">
-                                    <c:if test="${not empty fileInfo.practiceFileId}">
-                                        <button type="button" class="btn s_basic down" onclick="downloadFile('${fileInfo.practiceFileId}')">다운로드</button>
-                                    </c:if>
-                                </span>
+
                             </li>
                         </ul>
                     </div>
@@ -348,18 +364,47 @@
                     <!-- 평가비율 -->
                     <h4 class="sub-title">평가비율</h4>
                     <div class="table-wrap">
+                        <c:set var="atndcColspan" value="0"/>
+                        <c:set var="atndcUseyn" value="N"/>
+                        <c:set var="atndcMrkOyn" value="N"/>
+                        <c:forEach var="c" items="${mrkItmStngList}">
+                            <c:set var="isAtndc" value="${c.grpcd eq 'ATNDC' or c.mrkItmTycd eq 'PRG' or c.mrkItmTycd eq 'EXRCS_QSTN'}"/>
+                            <c:if test="${isAtndc}">
+                                <c:set var="atndcColspan" value="${atndcColspan + 1}"/>
+                                <c:if test="${c.mrkItmUseyn eq 'Y'}"><c:set var="atndcUseyn" value="Y"/></c:if>
+                                <c:if test="${c.mrkOyn eq 'Y'}"><c:set var="atndcMrkOyn" value="Y"/></c:if>
+                            </c:if>
+                        </c:forEach>
                         <table class="table-type1">
                             <colgroup>
-                                <col>
+                                <col style="width:10%">
                                 <c:forEach var="c" items="${mrkItmStngList}">
                                     <col style="width:10%">
                                 </c:forEach>
                             </colgroup>
                             <thead>
                             <tr>
-                                <th>평가항목</th>
+                                <th rowspan="2">평가항목</th>
+                                <c:set var="atndcHeaderPrinted" value="N"/>
                                 <c:forEach var="c" items="${mrkItmStngList}">
-                                    <th><c:out value="${c.mrkItmTynm}"/></th>
+                                    <c:set var="isAtndc" value="${c.grpcd eq 'ATNDC' or c.mrkItmTycd eq 'PRG' or c.mrkItmTycd eq 'EXRCS_QSTN'}"/>
+                                    <c:choose>
+                                        <c:when test="${isAtndc and atndcHeaderPrinted ne 'Y'}">
+                                            <th colspan="${atndcColspan}">출석</th>
+                                            <c:set var="atndcHeaderPrinted" value="Y"/>
+                                        </c:when>
+                                        <c:when test="${not isAtndc}">
+                                            <th rowspan="2"><c:out value="${c.mrkItmTynm}"/></th>
+                                        </c:when>
+                                    </c:choose>
+                                </c:forEach>
+                            </tr>
+                            <tr>
+                                <c:forEach var="c" items="${mrkItmStngList}">
+                                    <c:set var="isAtndc" value="${c.grpcd eq 'ATNDC' or c.mrkItmTycd eq 'PRG' or c.mrkItmTycd eq 'EXRCS_QSTN'}"/>
+                                    <c:if test="${isAtndc}">
+                                        <th><c:out value="${c.mrkItmTynm}"/></th>
+                                    </c:if>
                                 </c:forEach>
                             </tr>
                             </thead>
@@ -367,10 +412,13 @@
                             <tr>
                                 <th data-th="평가항목">비율 (%)</th>
                                 <c:forEach var="c" items="${mrkItmStngList}">
-                                    <td data-th="${c.mrkItmTynm}">
+                                    <td data-th="${c.mrkItmTynm}" class="t_center">
                                         <c:choose>
                                             <c:when test="${c.mrkItmUseyn eq 'Y'}">
-                                                <c:out value="${c.mrkRfltrt}"/>
+                                                <c:choose>
+                                                    <c:when test="${empty c.mrkRfltrt}">-</c:when>
+                                                    <c:otherwise><c:out value="${c.mrkRfltrt}"/></c:otherwise>
+                                                </c:choose>
                                             </c:when>
                                             <c:otherwise>-</c:otherwise>
                                         </c:choose>
@@ -379,14 +427,30 @@
                             </tr>
                             <tr>
                                 <th data-th="평가항목">성적공개여부</th>
+                                <c:set var="atndcOynPrinted" value="N"/>
                                 <c:forEach var="c" items="${mrkItmStngList}">
-                                    <td data-th="${c.mrkItmTynm}">
-                                        <c:choose>
-                                            <c:when test="${c.mrkItmUseyn ne 'Y'}">-</c:when>
-                                            <c:when test="${c.mrkOyn eq 'Y'}">공개</c:when>
-                                            <c:otherwise>비공개</c:otherwise>
-                                        </c:choose>
-                                    </td>
+                                    <c:set var="isAtndc" value="${c.grpcd eq 'ATNDC' or c.mrkItmTycd eq 'PRG' or c.mrkItmTycd eq 'EXRCS_QSTN'}"/>
+                                    <c:choose>
+                                        <c:when test="${isAtndc and atndcOynPrinted ne 'Y'}">
+                                            <td data-th="출석" class="t_center" colspan="${atndcColspan}">
+                                                <c:choose>
+                                                    <c:when test="${atndcUseyn ne 'Y'}">-</c:when>
+                                                    <c:when test="${atndcMrkOyn eq 'Y'}">공개</c:when>
+                                                    <c:otherwise>비공개</c:otherwise>
+                                                </c:choose>
+                                            </td>
+                                            <c:set var="atndcOynPrinted" value="Y"/>
+                                        </c:when>
+                                        <c:when test="${not isAtndc}">
+                                            <td data-th="${c.mrkItmTynm}" class="t_center">
+                                                <c:choose>
+                                                    <c:when test="${c.mrkItmUseyn ne 'Y'}">-</c:when>
+                                                    <c:when test="${c.mrkOyn eq 'Y'}">공개</c:when>
+                                                    <c:otherwise>비공개</c:otherwise>
+                                                </c:choose>
+                                            </td>
+                                        </c:when>
+                                    </c:choose>
                                 </c:forEach>
                             </tr>
                             </tbody>
@@ -519,8 +583,8 @@
 
                     <!-- 버튼 -->
                     <div class="btns">
-                        <button type="button" class="btn type1" onclick="location.href='/lctr/plandoc/profLctrPlandocModifyView.do?sbjctId=<c:out value='${subjectInfo.sbjctId}'/>'">수정</button>
-                        <button type="button" class="btn type2" onclick="location.href='/lctr/plandoc/profLctrPlandocListView.do'">목록</button>
+                        <button type="button" class="btn type1" onclick="modifyPlandoc('${subjectInfo.sbjctId}')">수정</button>
+                        <button type="button" class="btn type2" onclick="listPlandoc()">목록</button>
                     </div>
                 </div>
             </div>

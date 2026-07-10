@@ -77,7 +77,7 @@
          	)
          </if>
          ORDER BY A.FRST_INQ_DTTM DESC
-         <include refid="CommonSQL.pageSubfix"/>
+         <include refid="CommonSQL.pageSuffix"/>
          <!-- <if test='pagingYn == null or pagingYn == "".toString() or pagingYn == "Y".toString()'>
          LIMIT #{firstIndex}, #{listScale}
          </if> -->

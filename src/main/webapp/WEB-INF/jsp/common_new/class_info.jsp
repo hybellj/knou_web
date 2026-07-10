@@ -4,21 +4,13 @@
     <div class="class_info">
         <div class="class_tit">
             <p class="labels">
-                <label class="label uniA">[기관]</label>
+                <label class="label uniA" style="width:150px">${uiex:getClassOrgnm()}</label> <%-- 기관명 --%>
             </p>
-            <h2>[과목명]</h2>
-        </div>
+            <h2>${uiex:getClassSbjctnm()}</h2> <%-- 과목명 --%>
 
+            <%-- 권한=${uiex:getSubjectAuth()} --%> <!-- 테스트용, 삭제 -->
+
+        </div>
         <uiex:navibar type="lect"/><%-- 네비게이션바 --%>
-
-        <%-- 네비게이션바 내용
-        <div class="navi_bar">
-            <ul>
-                <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                <li>강의실</li>
-                <li><span class="current">게시판</span></li>
-            </ul>
-        </div>
-        --%>
     </div>
 </div>

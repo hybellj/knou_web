@@ -6,11 +6,11 @@ import java.time.temporal.TemporalAdjusters;
 
 import javax.servlet.http.HttpServletRequest;
 
+import knou.framework.common.CommConst;
 import knou.framework.common.SessionInfo;
 import knou.framework.util.StringUtil;
 import knou.lms.bbs.vo.BbsAtclVO;
 import knou.lms.bbs.vo.BbsCmntVO;
-import knou.lms.bbs.vo.BbsInfoVO;
 import knou.lms.bbs.vo.BbsVO;
 
 public class BbsAuthUtil {
@@ -50,15 +50,16 @@ public class BbsAuthUtil {
     }
 
     // 게시글 글쓰기 권한
-    public static String getAtclWriteAuth(HttpServletRequest request, BbsInfoVO bbsInfoVO) {
+    public static String getAtclWriteAuth(HttpServletRequest request, BbsVO bbsVO) {
         String atclWriteAuth = "N";
-        String writeUseYn = bbsInfoVO.getWriteUseYn(); // 학생 글쓰기 권한
-        String sysUseYn = bbsInfoVO.getSysUseYn();
-        String bbsCd = bbsInfoVO.getBbsId();
+        String bbsWriteUseYn = bbsVO.getBbsWriteUseyn(); // 학생 글쓰기 권한
+        String sysUseYn = bbsVO.getSysUseYn();
+        String bbsTycd = bbsVO.getBbsTycd();
         String professorVirtualLoginYn = SessionInfo.getProfessorVirtualLoginYn(request);
 
         // 시스템 게시판 (전체공지)
         if("Y".equals(sysUseYn)) {
+
             if(isAdmin(request)) {
                 atclWriteAuth = "Y";
             } else {
@@ -72,38 +73,36 @@ public class BbsAuthUtil {
                 atclWriteAuth = "Y";
 
                 // 문의/상담 게시판 교수 글쓰기 불가능
-                if("SECRET".equals(bbsCd) || "QNA".equals(bbsCd)) {
+                if("1ON1".equals(bbsTycd) || "QNA".equals(bbsTycd)) {
                     atclWriteAuth = "N";
                 }
             }
             // 강의실 학생
             else {
-                atclWriteAuth = StringUtil.nvl(writeUseYn, "N"); // 'Y'로 설정된경우 학생 글쓰기 가능
+                atclWriteAuth = StringUtil.nvl(bbsWriteUseYn, "N"); // 'Y'로 설정된경우 학생 글쓰기 가능
 
                 // 교수 학생화면보기 일경우 불가
                 if("Y".equals(professorVirtualLoginYn)) {
                     atclWriteAuth = "N";
                 }
             }
-
-            if(!isBbsUsePeriod(request, bbsInfoVO.getHaksaYear(), bbsInfoVO.getHaksaTerm(), bbsInfoVO.getCrsCd())) {
+            if(!isBbsUsePeriod(request, bbsVO.getHaksaYear(), bbsVO.getHaksaTerm(), bbsVO.getCrsCd())) {
                 atclWriteAuth = "N";
             }
         }
-
         return atclWriteAuth;
     }
 
     // 게시글 답글쓰기 권한
-    public static String getAnswerAtclWriteAuth(HttpServletRequest request, BbsInfoVO bbsInfoVO) {
+    public static String getAnswerAtclWriteAuth(HttpServletRequest request, BbsVO bbsVO) {
         String answerAtclWriteAuth = "N";
-        String userType = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
-        String ansrUseYn = bbsInfoVO.getAnsrUseYn();
-        String sysUseYn = bbsInfoVO.getSysUseYn();
-        String bbsCd = bbsInfoVO.getBbsId();
+        String authrtCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String rspnsUseyn = bbsVO.getRspnsUseyn();
+        String sysUseYn = bbsVO.getSysUseYn();
+        String bbsTycd = bbsVO.getBbsTycd();
 
         // 게시판 답글쓰기 옵션 사용
-        if("Y".equals(ansrUseYn)) {
+        if("Y".equals(rspnsUseyn)) {
             // 시스템 게시판
             if("Y".equals(sysUseYn)) {
                 if(isAdmin(request)) {
@@ -116,12 +115,12 @@ public class BbsAuthUtil {
                     answerAtclWriteAuth = "Y";
 
                     // 상담게시판은 교수만 답변가능
-                    if("SECRET".equals(bbsCd) && userType.contains("TUT")) {
-                        answerAtclWriteAuth = "N";
+                    if("1ON1".equals(bbsTycd) && CommConst.AUTHRT_CD_TUT.equals( authrtCd ) ) {
+                        answerAtclWriteAuth = "Y";
                     }
                 }
 
-                if(!isBbsUsePeriod(request, bbsInfoVO.getHaksaYear(), bbsInfoVO.getHaksaTerm(), bbsInfoVO.getCrsCd())) {
+                if(!isBbsUsePeriod(request, bbsVO.getHaksaYear(), bbsVO.getHaksaTerm(), bbsVO.getCrsCd())) {
                     answerAtclWriteAuth = "N";
                 }
             }
@@ -131,14 +130,13 @@ public class BbsAuthUtil {
     }
 
     // 게시글 수정권한
-    public static String getAtclEditAuth(HttpServletRequest request, BbsInfoVO bbsInfoVO, BbsAtclVO bbsAtclVO) {
+    public static String getAtclEditAuth(HttpServletRequest request, BbsVO bbsVO, BbsAtclVO bbsAtclVO) {
         String atclEditAuth = "N";
         String userId = SessionInfo.getUserId(request);
         String rgtrId = bbsAtclVO.getRgtrId();
-        String sysUseYn = bbsInfoVO.getSysUseYn();
-        String bbsCd = bbsInfoVO.getBbsId();
+        String sysUseYn = bbsVO.getSysUseYn();
+        String bbsTycd = bbsVO.getBbsTycd();
         int answerAtclCnt = bbsAtclVO.getAnswerAtclCnt();
-
         // 시스템 게시판
         if("Y".equals(sysUseYn)) {
             if(isAdmin(request)) {
@@ -157,7 +155,7 @@ public class BbsAuthUtil {
                     atclEditAuth =  "Y";
                 }
 
-                if("NOTICE".equals(bbsCd) || "PDS".equals(bbsCd) || "QNA".equals(bbsCd)  || "SECRET".equals(bbsCd)) {
+                if("NTC".equals(bbsTycd) || "DATARM".equals(bbsTycd)) {
                     atclEditAuth = "Y";
                 }
 
@@ -173,16 +171,15 @@ public class BbsAuthUtil {
                 }
 
                 // 답변이 달린 게시글
-                if(("QNA".equals(bbsCd) || "SECRET".equals(bbsCd)) && answerAtclCnt > 0) {
+                if(("QNA".equals(bbsTycd) || "1ON1".equals(bbsTycd)) && answerAtclCnt > 0) {
                     atclEditAuth = "N";
                 }
             }
 
-            if(!isBbsUsePeriod(request, bbsInfoVO.getHaksaYear(), bbsInfoVO.getHaksaTerm(), bbsInfoVO.getCrsCd())) {
+            if(!isBbsUsePeriod(request, bbsVO.getHaksaYear(), bbsVO.getHaksaTerm(), bbsVO.getCrsCd())) {
                 atclEditAuth = "N";
             }
         }
-
         return atclEditAuth;
     }
 
@@ -191,7 +188,7 @@ public class BbsAuthUtil {
         String atclDeleteAuth = "N";
         String userId = SessionInfo.getUserId(request);
         String sysUseYn = bbsVO.getSysUseYn();
-        String bbsCd = bbsVO.getBbsId();
+        String bbsTycd = bbsVO.getBbsTycd();
         String rgtrId = bbsAtclVO.getRgtrId();
         int answerAtclCnt = bbsAtclVO.getAnswerAtclCnt();
 
@@ -213,7 +210,7 @@ public class BbsAuthUtil {
                     atclDeleteAuth = "Y";
                 }
 
-                if("NOTICE".equals(bbsCd) || "PDS".equals(bbsCd) || "QNA".equals(bbsCd)  || "SECRET".equals(bbsCd)) {
+                if("NTC".equals(bbsTycd) || "DATARM".equals(bbsTycd)) {
                     atclDeleteAuth = "Y";
                 }
 
@@ -229,7 +226,7 @@ public class BbsAuthUtil {
                 }
 
                 // 답변이 달린 게시글
-                if(("QNA".equals(bbsCd) || "SECRET".equals(bbsCd)) && answerAtclCnt > 0) {
+                if(("QNA".equals(bbsTycd) || "1ON1".equals(bbsTycd)) && answerAtclCnt > 0) {
                     atclDeleteAuth = "N";
                 }
             }
@@ -242,15 +239,15 @@ public class BbsAuthUtil {
         return atclDeleteAuth;
     }
 
-    public static String getAtclViewAuth(HttpServletRequest request, BbsInfoVO bbsInfoVO, BbsAtclVO bbsAtclVO) {
+    public static String getAtclViewAuth(HttpServletRequest request, BbsVO bbsVO, BbsAtclVO bbsAtclVO) {
         String atclViewAuth = "Y";
         String userId = SessionInfo.getUserId(request);
-        String sysUseYn = bbsInfoVO.getSysUseYn();
-        String useYn = StringUtil.nvl(bbsInfoVO.getUseYn());
-        String stdViewYn = StringUtil.nvl(bbsInfoVO.getStdViewYn());
+        String sysUseYn = bbsVO.getSysUseYn();
+        String useYn = StringUtil.nvl(bbsVO.getUseYn());
+        String stdViewYn = StringUtil.nvl(bbsVO.getStdViewYn());
         String rsrvUseYn = bbsAtclVO.getRsrvUseYn();
         String rsrvDttmStartYn = StringUtil.nvl(bbsAtclVO.getRsrvDttmStartYn());
-        String bbsCd = bbsInfoVO.getBbsId();
+        String bbsTycd = bbsVO.getBbsTycd();
         boolean isTutor = BbsAuthUtil.isTutor(request);
 
         // 시스템 게시판
@@ -279,14 +276,14 @@ public class BbsAuthUtil {
             // 강의실 교수자
             if(isProfessor(request)) {
                 // 상담글 조교 확인 불가
-                if("SECRET".equals(bbsCd) && isTutor) {
+                if("1ON1".equals(bbsTycd) && isTutor) {
                     atclViewAuth = "N";
                 }
             }
             // 강의실 학생
             else {
                 // 1:1 문의 접근 체크(학생일경우 자신의 글만 가능)
-                if("SECRET".equals(bbsCd) && !userId.equals(bbsAtclVO.getRgtrId())) {
+                if("1ON1".equals(bbsTycd) && !userId.equals(bbsAtclVO.getRgtrId())) {
                     atclViewAuth = "N";
                 }
 
@@ -316,22 +313,21 @@ public class BbsAuthUtil {
     }
 
     // 게시글 댓글 쓰기권한
-    public static String getCommentWriteAuth(HttpServletRequest request, BbsInfoVO bbsInfoVO, BbsAtclVO bbsAtclVO) {
+    public static String getCommentWriteAuth(HttpServletRequest request, BbsVO bbsVO, BbsAtclVO bbsAtclVO) {
         String commentWriteAuth = "N";
-        String sysUseYn = bbsInfoVO.getSysUseYn();
+        String sysUseYn = bbsVO.getSysUseYn();
         String professorVirtualLoginYn = SessionInfo.getProfessorVirtualLoginYn(request);
 
-        boolean useCmnt = "Y".equals(bbsInfoVO.getCmntUseYn())
-                && "Y".equals(bbsAtclVO.getCmntUseYn())
-                && "N".equals(bbsAtclVO.getDelYn());
-
+		/*
+		 * boolean useCmnt = "Y".equals(bbsVO.getCmntUseYn()) &&
+		 * "Y".equals(bbsAtclVO.getCmntPrmyn()) && "N".equals(bbsAtclVO.getDelYn());
+		 */
+        boolean useCmnt = "Y".equals(bbsAtclVO.getCmntPrmyn()) && "N".equals(bbsAtclVO.getDelyn());
         if(useCmnt) {
             // 시스템 게시판
             if("Y".equals(sysUseYn)) {
                 commentWriteAuth = "Y";
-            }
-            // 강의실 게시판
-            else {
+            } else { // 강의실 게시판
                 commentWriteAuth = "Y";
 
                 // 교수 학생화면보기 일경우 불가
@@ -339,24 +335,28 @@ public class BbsAuthUtil {
                     commentWriteAuth = "N";
                 }
 
-                if(!isBbsUsePeriod(request, bbsInfoVO.getHaksaYear(), bbsInfoVO.getHaksaTerm(), bbsInfoVO.getCrsCd())) {
+                if(!isBbsUsePeriod(request, bbsVO.getHaksaYear(), bbsVO.getHaksaTerm(), bbsVO.getCrsCd())) {
                     commentWriteAuth = "N";
                 }
             }
+        } else {
+        	if("QNA".equals(bbsVO.getBbsTycd()) && isStudent(request)) {
+        		commentWriteAuth = "Y";
+        	}
         }
 
         return commentWriteAuth;
     }
 
     // 게시글 댓글 수정권한
-    public static String getCommentEditAuth(HttpServletRequest request, BbsInfoVO bbsInfoVO, BbsAtclVO bbsAtclVO, BbsCmntVO bbsCmntVO) {
+    public static String getCommentEditAuth(HttpServletRequest request, BbsVO bbsVO, BbsAtclVO bbsAtclVO, BbsCmntVO bbsCmntVO) {
         String commentEditAuth = "N";
         String userId = SessionInfo.getUserId(request);
-        String sysUseYn = bbsInfoVO.getSysUseYn();
+        String sysUseYn = bbsVO.getSysUseYn();
         String rgtrId = bbsCmntVO.getRgtrId();
         String professorVirtualLoginYn = SessionInfo.getProfessorVirtualLoginYn(request);
 
-        boolean useCmnt = "Y".equals(bbsInfoVO.getCmntUseYn())
+        boolean useCmnt = "Y".equals(bbsVO.getCmntUseYn())
                 && "Y".equals(bbsAtclVO.getCmntUseYn())
                 && "N".equals(bbsAtclVO.getDelYn());
 
@@ -380,7 +380,7 @@ public class BbsAuthUtil {
                     commentEditAuth = "N";
                 }
 
-                if(!isBbsUsePeriod(request, bbsInfoVO.getHaksaYear(), bbsInfoVO.getHaksaTerm(), bbsInfoVO.getCrsCd())) {
+                if(!isBbsUsePeriod(request, bbsVO.getHaksaYear(), bbsVO.getHaksaTerm(), bbsVO.getCrsCd())) {
                     commentEditAuth = "N";
                 }
             }
@@ -390,16 +390,21 @@ public class BbsAuthUtil {
     }
 
     // 게시글 댓글 삭제권한
-    public static String getCommentDeleteAuth(HttpServletRequest request, BbsInfoVO bbsInfoVO, BbsAtclVO bbsAtclVO, BbsCmntVO bbsCmntVO) {
+    public static String getCommentDeleteAuth(HttpServletRequest request, BbsVO bbsVO, BbsAtclVO bbsAtclVO, BbsCmntVO bbsCmntVO) {
         String commentDeleteAuth = "N";
         String userId = SessionInfo.getUserId(request);
-        String sysUseYn = bbsInfoVO.getSysUseYn();
-        String rgtrId = bbsCmntVO.getRgtrId();
+        String sysUseYn = bbsVO.getSysUseYn();
         String professorVirtualLoginYn = SessionInfo.getProfessorVirtualLoginYn(request);
 
-        boolean useCmnt = "Y".equals(bbsInfoVO.getCmntUseYn())
-                && "Y".equals(bbsAtclVO.getCmntUseYn())
-                && "N".equals(bbsAtclVO.getDelYn());
+        String cmntRgtrId = bbsCmntVO.getRgtrId();   // 댓글 작성자
+
+        // 본인이 쓴 댓글만
+        boolean isMyCmnt = cmntRgtrId != null && cmntRgtrId.equals(StringUtil.nvl(userId));
+
+        // 명시적으로 "막혀있지 않으면" 통과 (조회 단계에서 null 로 오는 경우 정상 취급)
+        boolean useCmnt = !"N".equals(bbsVO.getCmntUseYn())
+                && !"N".equals(bbsAtclVO.getCmntUseYn())
+                && !"Y".equals(bbsAtclVO.getDelYn());
 
         if(useCmnt) {
             // 시스템 게시판
@@ -407,8 +412,7 @@ public class BbsAuthUtil {
                 if(isAdmin(request)) {
                     commentDeleteAuth = "Y";
                 } else {
-                    // 본인의 게시글
-                    if(userId.equals(rgtrId)) {
+                    if(isMyCmnt) {
                         commentDeleteAuth = "Y";
                     }
                 }
@@ -419,10 +423,9 @@ public class BbsAuthUtil {
                 if(isProfessor(request)) {
                     commentDeleteAuth = "Y";
                 }
-                // 강의실 학생
+                // 강의실 학생 : 본인 댓글만
                 else {
-                    // 본인의 게시글
-                    if(userId.equals(rgtrId)) {
+                    if(isMyCmnt) {
                         commentDeleteAuth = "Y";
                     }
                 }
@@ -432,7 +435,7 @@ public class BbsAuthUtil {
                     commentDeleteAuth = "N";
                 }
 
-                if(!isBbsUsePeriod(request, bbsInfoVO.getHaksaYear(), bbsInfoVO.getHaksaTerm(), bbsInfoVO.getCrsCd())) {
+                if(!isBbsUsePeriod(request, bbsVO.getHaksaYear(), bbsVO.getHaksaTerm(), bbsVO.getCrsCd())) {
                     commentDeleteAuth = "N";
                 }
             }
@@ -511,34 +514,15 @@ public class BbsAuthUtil {
     }
 
     public static boolean isAdmin(HttpServletRequest request) {
-        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-
-        boolean isAdmin = menuType.contains("ADM") ? true : false;
-
-        return isAdmin;
+        return CommConst.AUTHRT_GRPCD_ADM.equals(StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request)));
     }
-
     public static boolean isProfessor(HttpServletRequest request) {
-        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-
-        boolean isProfessor = menuType.contains("PROF");
-
-        return isProfessor;
+    	return CommConst.AUTHRT_GRPCD_PROF.equals(StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request)));
     }
-
-    public static boolean isTutor(HttpServletRequest request) {
-        String userType = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
-
-        boolean isTutor = userType.contains("TUT");
-
-        return isTutor;
-    }
-
     public static boolean isStudent(HttpServletRequest request) {
-        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-
-        boolean isStudent = menuType.contains("USR");
-
-        return isStudent;
+    	return CommConst.AUTHRT_GRPCD_STDNT.equals(StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request)));
+    }
+    public static boolean isTutor(HttpServletRequest request) {
+    	return CommConst.AUTHRT_CD_TUT.equals(StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request)));
     }
 }

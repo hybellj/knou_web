@@ -206,7 +206,7 @@
    	  	AND LOWER(A.CRSNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
    	  </if>
    	  ORDER BY LINE_NO DESC
-   	  <include refid="CommonSQL.pageSubfix"/>
+   	  <include refid="CommonSQL.pageSuffix"/>
 	</select>
 	
 	<update id="updateUseYn" parameterType="knou.lms.crs.crs.vo.CrsVO">
@@ -404,7 +404,7 @@
 					 ORDER BY TLC.CRSNM
 				   ) R
 			 ORDER BY LINE_NO DESC
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 	
 	<select id="list" parameterType="crsVO" resultType="crsVO">

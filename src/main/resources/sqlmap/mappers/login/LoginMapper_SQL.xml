@@ -2,21 +2,38 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="knou.lms.login.dao.LoginDAO">
 
+	<!-- 공통 결과 매핑 -->
+    <resultMap id="loginVoMap" type="knou.lms.login.vo.LoginVO">
+        <result property="userId"        column="USER_ID"/>
+        <result property="intgNo"        column="INTG_NO"/>
+        <result property="userRprsId"    column="USER_RPRS_ID"/>
+        <result property="userIdEncpswd" column="PWD"/>
+        <result property="orgId"         column="ORG_ID"/>
+        <result property="orgNm"         column="ORG_NM"/>
+        <result property="userTycd"      column="USER_TY_CD"/>
+        <result property="authrtCd"      column="AUTHRT_CD"/>
+        <result property="authrtGrpcd"   column="AUTHRT_GRP_CD"/>
+        <result property="userNm"        column="USER_NM"/>
+    </resultMap>
+
 	<!-- Deprecated TOBE: orgService.orgListSelect -->
 	<select id="selectOrgList" resultType="loginVO">
 		SELECT 	ORG_ID , ORGNM
 		  FROM 	TB_LMS_ORG
 		 WHERE 	USEYN  = 'Y'
 	</select>
-	
+
 	<select id="userLatestLoginHstrySelect" resultType="egovMap">
 		/*	설  명 	: 사용자최근로그인이력조회 */
-		SELECT	*
-		FROM 	TB_LMS_USER_LGN_HSTRY 
-		WHERE 	1 = 1 AND ROWNUM = 1 AND USER_ID = #{userId}
-		ORDER 	BY	REG_DTTM DESC
+		SELECT * FROM (
+			SELECT	*
+			FROM 	TB_LMS_USER_LGN_HSTRY
+			WHERE 	1 = 1 AND USER_ID = #{userId}
+			ORDER 	BY	REG_DTTM DESC
+		) X
+		WHERE ROWNUM = 1
 	</select>
-	
+
 	<insert id="userLatestLoginHstryInsert" parameterType="knou.lms.login.vo.UserLgnHstryVO">
 		/*	설  명 	: 사용자최근로그인이력저장 */
 		INSERT INTO TB_LMS_USER_LGN_HSTRY
@@ -31,12 +48,19 @@
 	        LGN_CNTN_BRWSR,
 	        SESS_ID,
 	        RGTR_ID,
-	        REG_DTTM
+	        REG_DTTM,
+	        LGN_DATETIME,
+	        DAYOFWEEK,
+	        HOUROFDAY,
+	        LGN_FAIL_MSG,
+	        TRACE_ID,
+	     	ORG_ID,
+	     	DEPT_ID
 	    )
 	    VALUES
 	    (
 	        #{userLgnHstryId},
-	        #{userId},
+	        NVL(#{userId}, 'GUEST'),
 	        #{acsrTycd},
 	        #{lgnIp},
 	        TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'),
@@ -44,9 +68,56 @@
 	        #{cntnDvcTycd},
 	        #{lgnCntnBrwsr},
 	        #{sessId},
-	        #{userId},
-	        TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+	        NVL(#{userId}, 'SYSTEM'),
+	        TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'),
+	        #{lgnDatetime},
+	        #{dayOfWeek},
+	        #{hourOfDay},
+	        #{lgnFailMsg},
+	        #{traceId},
+	        #{orgId},
+	        #{deptId}
 	    )
 	</insert>
-	
+
+	<!-- ============================================================
+         1차: EP 사용자 조회 (TB_EPO_USER + TB_EPO_USER_TP)
+         - 대표아이디(LOGIN_ID)로 조회, 통합번호(INTG_NO) 동반 조회
+         - 사용자유형은 TB_EPO_USER_TP 에서 조인
+         ============================================================ -->
+    <select id="selectEpUser" parameterType="knou.lms.login.vo.LoginVO" resultMap="loginVoMap">
+    /*	설  명 	: 1차: EP 사용자 조회 (TB_EPO_USER + TB_EPO_USER_TP) */
+        SELECT
+		      U.LOGIN_ID        AS USER_ID
+		    , U.INTG_NO         AS INTG_NO
+		    , U.LOGIN_ID        AS USER_RPRS_ID
+		    , U.PWD             AS PWD
+		  FROM EP.TB_EPO_USER U
+		 WHERE ( U.LOGIN_ID = #{userId}
+		         OR U.INTG_NO = (
+		                SELECT T2.INTG_NO
+		                  FROM EP.TB_EPO_USER_TP T2
+		                 WHERE T2.USER_TP_ID = #{userId}
+		                   AND ROWNUM = 1
+		            )
+		       )
+		<if test="userIdEncpswd != null and userIdEncpswd != ''">
+		   AND U.PWD = FURLMS.PasswordEncoder(#{userIdEncpswd})
+		</if>
+    </select>
+
+    <!-- ============================================================
+         2차: LMS 사용자 조회 (TB_LMS_USER)
+         - EP 미존재 시에만 호출됨
+         ============================================================ -->
+    <select id="selectLmsUser" parameterType="knou.lms.login.vo.LoginVO" resultMap="loginVoMap">
+        /*	설  명 	: 2차: LMS 사용자 조회 (TB_LMS_USER) */
+        SELECT
+              U.USER_ID         AS USER_ID
+          FROM TB_LMS_USER U
+         WHERE U.USER_ID = #{userId}
+        <if test="userIdEncpswd != null and userIdEncpswd != ''">
+           AND U.USER_ID_ENCPSWD = #{userIdEncpswd}
+        </if>
+    </select>
 </mapper>

@@ -3,6 +3,7 @@ package knou.lms.user.facade;
 import knou.framework.common.ServiceBase;
 import knou.framework.context2.UserContext;
 import knou.lms.org.service.OrgInfoService;
+import knou.lms.user.CurrentUser;
 import knou.lms.user.dao.UsrUserAuthGrpDAO;
 import knou.lms.user.service.UserPrfilService;
 import knou.lms.user.vo.UserPrfilVO;
@@ -35,7 +36,7 @@ public class UserPrfilFacadeServiceImpl extends ServiceBase implements UserPrfil
      * @throws Exception
      */
     @Override
-    public UserPrfilView loadUserPrfil(UserContext userCtx) throws Exception {
+    public UserPrfilView loadUserPrfil(@CurrentUser UserContext userCtx) throws Exception {
 
         UserPrfilView userPrfilView = new UserPrfilView();
 
@@ -62,7 +63,7 @@ public class UserPrfilFacadeServiceImpl extends ServiceBase implements UserPrfil
      * @throws Exception
      */
     @Override
-    public UserPrfilView loadUserPrfilModify(UserContext userCtx) throws Exception {
+    public UserPrfilView loadUserPrfilModify(@CurrentUser UserContext userCtx) throws Exception {
         UserPrfilView userPrfilView = new UserPrfilView();
 
         UserPrfilVO paramVO = new UserPrfilVO();
@@ -74,9 +75,11 @@ public class UserPrfilFacadeServiceImpl extends ServiceBase implements UserPrfil
         userPrfilVO.setAuthrtCd(userCtx.getAuthrtCd());
         userPrfilVO.setAuthrtGrpcd(userCtx.getAuthrtGrpcd());
         userPrfilView.setUserPrfilVO(userPrfilVO);
+
+        //paramVO.setUserRprsId(userPrfilVO.getUserRprsId());
         // 사용자 등록된 전체기관권한 조회
         userPrfilView.setUserAuthrtList(userPrfilService.userAllOrgAuthrtList(paramVO));
-        // 현재학기 강의하는 기관 목록 조회
+        // 현재학기 강의/수강하는 기관 목록 조회
         userPrfilView.setNowSmstrLectOrgList(userPrfilService.nowSmstrLectOrgList(paramVO));
 
 
@@ -91,15 +94,17 @@ public class UserPrfilFacadeServiceImpl extends ServiceBase implements UserPrfil
      * @throws Exception
      */
     @Override
-    public void modifyUserPrfil(UserContext userCtx, UserPrfilVO vo) throws Exception {
+    public void modifyUserPrfil(@CurrentUser UserContext userCtx, UserPrfilVO vo) throws Exception {
         vo.setOrgId(userCtx.getOrgId());
         vo.setUserId(userCtx.getUserId());
+        vo.setRgtrId(userCtx.getUserId());
         vo.setMdfrId(userCtx.getUserId());
         vo.setAuthrtGrpcd(userCtx.getAuthrtGrpcd());
 
-        if("PROF".equals(userCtx.getAuthrtGrpcd())) {
+        /*if("PROF".equals(userCtx.getAuthrtGrpcd())) {
             vo.setAuthrtCd("PROF");
-        }
+        }*/
+        vo.setAuthrtCd(userCtx.getAuthrtCd());
 
         // TODO 사용자 프로필 사진 처리
         userPrfilService.uploadUserPhoto(vo);

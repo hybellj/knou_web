@@ -12,6 +12,8 @@ public enum MeetingsUrl implements ZoomApiUrl {
     GET_A_MEETING(HttpMethod.GET, "/meetings/%s"),
     /** API URL : /meetings/{meetingId} */
     GET_PAST_MEETING(HttpMethod.GET, "/past_meetings/%s"),
+    /** API URL : /report/meetings/{meetingId} */
+    GET_MEETING_REPORT(HttpMethod.GET, "/report/meetings/%s"),
     /** API URL : /users/{userId}/meetings */
     CREATE_A_MEETING(HttpMethod.POST, "/users/%s/meetings"),
     /** API URL : /meetings/{meetingId} */

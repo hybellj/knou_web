@@ -12,7 +12,7 @@
 	</jsp:include>
 </head>
 
-<body class="home colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="home ${uiex:getTheme()} "><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
         <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
@@ -330,7 +330,9 @@
                                     <a href="#tab23" class="btn "><span>과목공지</span></a>
                                 </nav>
                                 <div class="btn-wrap">
-                                    <a href="/bbs/bbsHome/bbsAtclList.do?bbsTycd=NTC" class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
+                                    <a href="javascript:void(0);" 
+	                                    		onclick='moveMenu(this, "/bbs/bbsLect/bbsAtclListView.do?bbsTycd=NTC", "ROOT", "STDLECT000002", "공지사항", "self", { sbjctId : "${item.sbjctId}"} ); return false;'
+	                                    		  class="btn_more" aria-label="더보기"><i class="xi-plus"></i></a>
                                 </div>
                             </div>
 
@@ -361,7 +363,9 @@
 												            </div>
 
 												            <!-- 공지 링크 및 내용 -->
-												            <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${item.bbsId}&${item.atclId}" class="item_txt">
+												            <a href="javascript:void(0);" 
+	                                    						onclick='moveMenu(this, "/bbs/bbsLect/bbsAtclListView.do?bbsTycd=NTC", "ROOT", "STDLECT000002", "공지사항", "self", { sbjctId : "${item.sbjctId}"} ); return false;'
+	                                    		  				class="item_txt">
 												                <p class="tit">${item.atclTtl}</p>
 												                <p class="desc">
 												                    <c:choose>
@@ -862,7 +866,7 @@
                             </div>
 
 							<!-- 강의과목카드형 -->
-                            <div class="box_content">
+                            <div class="box_content" style="display:none">
                                 <div id="tab31" class="tab-content" style="display: block;">                                    
                                     <!-- 전체강의목록 -->
                                     <ul class="lecture_list">
@@ -879,7 +883,15 @@
 				                                                <div class="item_header">
 				                                                    <div class="title_area">
 				                                                        <p class="info_detail">
-				                                                            <span class="label uniA">${item.orgnm}</span>
+				                                                            <c:choose>
+																			    <c:when test="${item.orgTycd eq 'LMSBASIC'}"><c:set var="styClass" value="uniA"/></c:when>
+																			    <c:when test="${item.orgTycd eq 'PRIME'}"><c:set var="styClass" value="uniB"/></c:when>
+																			    <c:when test="${item.orgTycd eq 'SMART'}"><c:set var="styClass" value="uniC"/></c:when>
+																			    <c:when test="${item.orgTycd eq 'GRSC'}"><c:set var="styClass" value="uniD"/></c:when>
+																			    <c:when test="${item.orgTycd eq 'GDSC_BIZ'}"><c:set var="styClass" value="uniE"/></c:when>
+																			    <c:otherwise><c:set var="styClass" value="uniA"/></c:otherwise>
+																			</c:choose>
+							                                       			<span class="label <c:out value='${styClass}'/>">${item.orgShrtnm}</span>
 				                                                            <span class="info_txt">수강 ${item.atndlcCnt}명</span>
 				                                                            <span class="info_txt">튜터 ${item.tutUsernm}</span>
 				                                                            <span class="info_txt">${item.crdts}학점</span>
@@ -1012,7 +1024,14 @@
 				                                        <li>
 				                                            <div class="card_item">
 				                                                <div class="item_header">
-				                                                    <span class="label uniA">${item.orgnm}</span>
+				                                                    <c:choose>
+																	    <c:when test="${item.orgTycd eq 'LMSBASIC'}"><c:set var="styClass" value="uniA"/><c:set var="AvgPrgrRt" value="45.3"/></c:when>
+																	    <c:when test="${item.orgTycd eq 'KNOU'}"><c:set var="styClass" value="uniB"/><c:set var="AvgPrgrRt" value="30.9"/></c:when>
+																	    <c:when test="${item.orgTycd eq 'SMART'}"><c:set var="styClass" value="uniC"/><c:set var="AvgPrgrRt" value="55.5"/></c:when>
+																	    <c:when test="${item.orgTycd eq 'CITT'}"><c:set var="styClass" value="uniD"/><c:set var="AvgPrgrRt" value="60.3"/></c:when>
+																	    <c:when test="${item.orgTycd eq 'GDSC_BIZ'}"><c:set var="styClass" value="uniE"/><c:set var="AvgPrgrRt" value="70.0"/></c:when>
+																    <c:otherwise><c:set var="styClass" value="uniA"/><c:set var="AvgPrgrRt" value="48.5"/></c:otherwise>
+					                                       			<span class="label <c:out value='${styClass}'/>">${item.orgShrtnm}</span>
 				                                                    <div class="title_area">
 				                                                        <p class="info_detail">
 				                                                            <span class="info_txt">수강 ${item.atndlcCnt}명</span>
@@ -1023,9 +1042,9 @@
 				                                                    </div>
 				                                                    <div class="extra">
 				                                                        <div class="my_prog_rate">
-				                                                            <span class="prog_num">평균 진도율</span><span class="meta">40%</span>
+				                                                            <span class="prog_num">평균 진도율</span><span class="meta"><c:out value='${AvgPrgrRt}'/>%</span>
 				                                                            <div class="progress">
-				                                                                <div class="bar blue_type" style="width: 40%;"></div>
+				                                                                <div class="bar blue_type" style="width: <c:out value='${AvgPrgrRt}'/>%;"></div>
 				                                                            </div>
 				                                                        </div>
 				                                                        <div class="info">

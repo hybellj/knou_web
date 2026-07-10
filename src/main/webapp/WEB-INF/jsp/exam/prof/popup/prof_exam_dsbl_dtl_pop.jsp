@@ -23,7 +23,7 @@
         <div id="wrap">
         	<div class="board_top">
         		<div class="left-area">
-	            	<a><strong>요청사항</strong></a>
+	            	<a><strong><spring:message code='exam.label.std.request' /></strong></a><!-- 학생요청사항 -->
         		</div>
         	</div>
             <fmt:parseDate var="regDttmFmt" pattern="yyyyMMddHHmmss" value="${dsblDtl.regDttm}" />
@@ -37,63 +37,57 @@
                     </colgroup>
                     <tbody>
                         <tr>
-                            <th><label>학번</label></th>
+                            <th><label><spring:message code='exam.label.user.no' /></label></th><!-- 학번 -->
                             <td class="t_left"><pre>${dsblDtl.stdntNo}</pre></td>
-                            <th><label>이름</label></th>
+                            <th><label><spring:message code='exam.label.user.nm' /></label></th><!-- 이름 -->
                             <td class="t_left"><pre>${dsblDtl.usernm}</pre></td>
                         </tr>
                         <tr>
-                            <th><label>학과</label></th>
+                            <th><label><spring:message code='exam.label.dept' /></label></th><!-- 학과 -->
                             <td class="t_left"><pre>${dsblDtl.deptnm}</pre></td>
-                            <th><label>연락처</label></th>
+                            <th><label><spring:message code='exam.label.mobile.no' /></label></th><!-- 연락처 -->
                             <td class="t_left"><pre>${dsblDtl.mobileNo}</pre></td>
                         </tr>
                         <!-- 고령자 -->
                         <c:if test = "${dsblDtl.userStatus eq 'Seniors'}">
                             <tr>
-                                <th><label>장애인/고령자</label></th>
-                                <td class="t_left" colspan="3"><pre>고령자</pre></td>
+                                <th><label><spring:message code='exam.label.dsbl' />/<spring:message code='exam.label.snrs' /></label></th><!-- 장애인 --><!-- 고령자 -->
+                                <td class="t_left" colspan="3"><pre><spring:message code='exam.label.snrs' /></pre></td><!-- 고령자 -->
                             </tr>
                         </c:if>
                         <!-- 장애인 -->
                         <c:if test = "${dsblDtl.userStatus eq 'Disabled'}">
                             <tr>
-                                <th><label>장애인/고령자</label></th>
-                                <td class="t_left" colspan="3"><pre>장애인</pre></td>
+                                <th><label><spring:message code='exam.label.dsbl' />/<spring:message code='exam.label.snrs' /></label></th><!-- 장애인 --><!-- 고령자 -->
+                                <td class="t_left" colspan="3"><pre><spring:message code='exam.label.dsbl' /></pre></td><!-- 장애인 -->
                             </tr>
                             <tr>
-                                <th><label>장애종류</label></th>
+                                <th><label><spring:message code='exam.label.dsbl.req.type' /></label></th><!-- 장애종류 -->
                                 <td class="t_left"><pre>${dsblDtl.dsblTynm}</pre></td>
-                                <th><label>장애등급</label></th>
+                                <th><label><spring:message code='exam.label.dsbl.req.grade' /></label></th><!-- 장애 등급 -->
                                 <td class="t_left"><pre>${dsblDtl.dsblGrdnm}</pre></td>
-                            </tr>
-                            <tr>
-                                <th><label>부 장애종류</label></th>
-                                <td class="t_left"><pre>${dsblDtl.scndDsblTynm}</pre></td>
-                                <th><label>부 장애등급</label></th>
-                                <td class="t_left"><pre>${dsblDtl.scndDsblGrdnm}</pre></td>
                             </tr>
                         </c:if>
                         <tr>
-                            <th><label>과목코드</label></th>
+                            <th><label><spring:message code='exam.label.crs.code' /></label></th><!-- 과목 코드 -->
                             <td class="t_left"><pre>${dsblDtl.sbjctId}</pre></td>
-                            <th><label>분반</label></th>
+                            <th><label><spring:message code='exam.label.decls.cls' /></label></th><!-- 분반 -->
                             <td class="t_left"><pre>${dsblDtl.dvclasNcknm}</pre></td>
                         </tr>
                         <tr>
-                            <th><label>과목</label></th>
+                            <th><label><spring:message code='exam.label.crs' /></label></th><!-- 과목 -->
                             <td class="t_left"><pre>${dsblDtl.sbjctnm}</pre></td>
-                            <th><label>신청일시</label></th>
-                            <td class="t_left"><pre>신청 : ${regDttm}</pre></td>
+                            <th><label><spring:message code='exam.label.applicate.dttm' /></label></th><!-- 신청일시 -->
+                            <td class="t_left"><pre><spring:message code='exam.label.applicate' /> : ${regDttm}</pre></td><!-- 신청 -->
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <a class = "fcBlue">장애등급에 맞춰 연장시간이 기본으로 설정되어 있습니다. 과목/학생의 특성에 따라 조정이 필요한 경우 조정됩니다.</a>
+            <a class = "fcBlue"><pre><spring:message code='exam.label.exam.dsbl.req.info.msg6' /></pre></a><!-- 장애등급에 맞춰 연장시간이 기본으로 설정되어 있습니다. 과목/학생의 특성에 따라 조정이 필요한 경우 조정됩니다. -->
             <!-- 중간고사 -->
             <div class="board_top margin-top-4">
                 <div class="left-area">
-                    <a><strong>중간고사</strong></a>
+                    <a><strong><spring:message code='exam.label.mid.exam' /></strong></a><!-- 중간고사 -->
                 </div>
             </div>
             <div class="table-wrap">
@@ -104,18 +98,18 @@
                     </colgroup>
                     <tbody>
                         <tr>
-                            <th><label>학생신청 지원방식</label></th>
+                            <th><label><spring:message code='exam.label.std.applicate.type' /></label></th><!-- 학생신청 지원방식 -->
                             <td class="t_left"><pre>${dsblDtl.examSprtAplyTynm}</pre></td>
-                            <th><label>시험시간</label></th>
-                            <td class="t_left"><pre>${dsblDtl.midExamMnts}분</pre></td>
+                            <th><label><spring:message code='exam.label.exam.time' /></label></th><!-- 시험시간 -->
+                            <td class="t_left"><pre>${dsblDtl.midExamMnts} <spring:message code='exam.label.min.time' /></pre></td><!-- 분 -->
                         </tr>
                         <tr>
-                            <th><label>시험지원사항</label></th>
+                            <th><label><spring:message code='exam.label.exam.support.detail' /></label></th><!-- 시험지원사항 -->
                             <td class="t_left" colspan="3"><pre>${dsblDtl.examSprtAplyTynm}</pre></td>
                         </tr>
                         <tr>
-                            <th><label>연장시간</label></th>
-                            <td class="t_left" colspan="3"><pre>연장 (${dsblDtl.sprtMidAddMnts}분)</pre></td>
+                            <th><label><spring:message code='exam.label.late.time' /></label></th><!-- 연장시간 -->
+                            <td class="t_left" colspan="3"><pre><spring:message code='exam.label.late' /> (${dsblDtl.sprtMidAddMnts} <spring:message code='exam.label.min.time' />)</pre></td><!-- 연장 --><!-- 분 -->
                         </tr>
                     </tbody>
                 </table>
@@ -123,7 +117,7 @@
             <!-- 기말고사 -->
             <div class="board_top margin-top-4">
                 <div class="left-area">
-                    <a><strong>기말고사</strong></a>
+                    <a><strong><spring:message code='exam.label.end.exam' /></strong></a><!-- 기말고사 -->
                 </div>
             </div>
             <div class="table-wrap">
@@ -134,18 +128,18 @@
                     </colgroup>
                     <tbody>
                     <tr>
-                        <th><label>학생신청 지원방식</label></th>
+                        <th><label><spring:message code='exam.label.std.applicate.type' /></label></th><!-- 학생신청 지원방식 -->
                         <td class="t_left"><pre>${dsblDtl.examSprtAplyTynm}</pre></td>
-                        <th><label>시험시간</label></th>
-                        <td class="t_left"><pre>${dsblDtl.lstExamMnts}분</pre></td>
+                        <th><label><spring:message code='exam.label.exam.time' /></label></th><!-- 시험시간 -->
+                        <td class="t_left"><pre>${dsblDtl.lstExamMnts} <spring:message code='exam.label.min.time' /></pre></td><!-- 분 -->
                     </tr>
                     <tr>
-                        <th><label>시험지원사항</label></th>
+                        <th><label><spring:message code='exam.label.exam.support.detail' /></label></th><!-- 시험지원사항 -->
                         <td class="t_left" colspan="3"><pre>${dsblDtl.examSprtAplyTynm}</pre></td>
                     </tr>
                     <tr>
-                        <th><label>연장시간</label></th>
-                        <td class="t_left" colspan="3"><pre>연장 (${dsblDtl.sprtLstAddMnts}분)</pre></td>
+                        <th><label><spring:message code='exam.label.late.time' /></label></th><!-- 연장시간 -->
+                        <td class="t_left" colspan="3"><pre><spring:message code='exam.label.late' /> (${dsblDtl.sprtLstAddMnts} <spring:message code='exam.label.min.time' />)</pre></td><!-- 연장 --><!-- 분 -->
                     </tr>
                     </tbody>
                 </table>

@@ -1,7 +1,5 @@
 package knou.lms.msg.vo;
 
-import java.math.BigDecimal;
-
 import knou.lms.common.vo.DefaultVO;
 
 public class MsgSndngCostVO extends DefaultVO {
@@ -9,7 +7,7 @@ public class MsgSndngCostVO extends DefaultVO {
 
     private String sndngCostId;
     private String msgTycd;
-    private BigDecimal sndngCost;
+    private String sndngCost;
     private String useyn;
 
     public String getSndngCostId() {
@@ -28,11 +26,11 @@ public class MsgSndngCostVO extends DefaultVO {
         this.msgTycd = msgTycd;
     }
 
-    public BigDecimal getSndngCost() {
+    public String getSndngCost() {
         return sndngCost;
     }
 
-    public void setSndngCost(BigDecimal sndngCost) {
+    public void setSndngCost(String sndngCost) {
         this.sndngCost = sndngCost;
     }
 

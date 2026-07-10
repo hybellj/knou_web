@@ -78,11 +78,7 @@
         	, REG_DTTM
         )
         SELECT
-        	  'SRQVL'
-					  || TO_CHAR(SYSDATE, 'YYMMDDHH24MISS')
-					  || LPAD(MOD(EXTRACT(SECOND FROM SYSTIMESTAMP) * 1000, 1000), 3, '0')
-					  || LOWER(SUBSTR(RAWTOHEX(SYS_GUID()), 1, 7))
-					  || LPAD(ROW_NUMBER() OVER(ORDER BY NULL), 3, '0') AS SRVY_QSTN_VWITM_LVL_ID
+        	  FN_NEW_ID('SRQVL') AS SRVY_QSTN_VWITM_LVL_ID
 			, A.*
 		  FROM (
 	        <foreach item="item" collection="list" separator="UNION ALL">
@@ -139,6 +135,7 @@
 				  JOIN TB_LMS_SRVY SRVY
 				    ON SRVYPPR.SRVY_ID = SRVY.SRVY_ID
 				 WHERE SRVY.SRVY_ID = #{srvyId}
+				    OR SRVY.UP_SRVY_ID = #{srvyId}
 	    	)
 	</delete>
 

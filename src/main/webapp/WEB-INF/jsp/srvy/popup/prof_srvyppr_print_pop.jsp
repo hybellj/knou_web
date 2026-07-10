@@ -4,7 +4,8 @@
 <html lang="ko" style="position: fixed; width: 100%;">
 	<head>
     	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
-			<jsp:param name="style" value="classroom"/>
+    		<jsp:param name="style" value="classroom"/>
+			<jsp:param name="module" value="chart"/>
 		</jsp:include>
     </head>
 
@@ -70,10 +71,10 @@
 			<form id="srvypprPrintForm" name="srvypprPrintForm" method="POST">
 				<div id="srvypprModal">
 					<div class="msg-box">
-	                    <p class="txt"><strong>${srvyPtcpnt.usernm}</strong>의 설문지</p>
+	                    <p class="txt"><strong>${srvyPtcpnt.usernm}</strong><spring:message code="srvy.label.target.srvyppr" /><!-- 의 설문지 --></p>
 	                </div>
 					<div id="srvyPreviewQstnList">
-						<jsp:include page="/WEB-INF/jsp/srvy/common/srvy_qstn_inc.jsp" />
+						<%@ include file="/WEB-INF/jsp/srvy/common/srvy_qstn_inc.jsp" %>
 					</div>
 					<script type="text/javascript">watermarkedDataURL("${srvyPtcpnt.userId}"+"_"+"${srvyPtcpnt.usernm}",$("div.cpn"));</script>
 				</div>

@@ -10,46 +10,22 @@ import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 @Mapper("tkexamRsltDAO")
 public interface TkexamRsltDAO {
 
-	/**
-	* 교수메모조회
-	*
-	* @param tkexamId 	시험응시아이디
-    * @param userId 	사용자이이디
-	* @return 교수메모조회
-	* @throws Exception
-	*/
-	public EgovMap profMemoSelect(@Param("tkexamId") String tkexamId, @Param("userId") String userId) throws Exception;
+	// 교수메모조회
+	public EgovMap profMemoSelect(@Param("tkexamId") String tkexamId, @Param("userId") String userId);
 
-	/**
-	* 교수메모수정
-	*
-	* @param tkexamRsltId 	시험응시결과아이디
-    * @param tkexamId 		시험응시아이디
-    * @param userId 		사용자이이디
-    * @param profMemo 		교수메모
-	* @throws Exception
-	*/
-	public void profMemoModify(Map<String, Object> params) throws Exception;
+	// 교수메모수정
+	public void profMemoModify(Map<String, Object> params);
 
-	/**
-	* 사용자시험응시결과초기화
-	*
-    * @param tkexamId 		시험응시아이디
-    * @param userId 		사용자이이디
-	* @throws Exception
-	*/
-	public void userTkexamRsltInit(Map<String, Object> params) throws Exception;
+	// 사용자시험응시결과초기화
+	public void userTkexamRsltInit(Map<String, Object> params);
 
-	/**
-	 * 사용자목록평가점수일괄수정
-	 *
-	 * @param tkexamRsltId 	시험응시결과아이디
-	 * @param tkexamId 		시험응시아이디
-	 * @param userId 		사용자아이디
-	 * @param scr 			점수
-	 * @param scoreType 	점수유형
-	 * @throws Exception
-	 */
-	public void userListEvlScrBulkModify(List<Map<String, Object>> list) throws Exception;
+	// 사용자목록평가점수일괄수정
+	public void userListEvlScrBulkModify(List<Map<String, Object>> list);
+
+	// 학생시험응시결과조회
+	public EgovMap stdntTkexamRsltSelect(Map<String, Object> params);
+
+	// 학생시험응시결과등록
+	public void stdntTkexamRsltRegist(Map<String, Object> params);
 
 }

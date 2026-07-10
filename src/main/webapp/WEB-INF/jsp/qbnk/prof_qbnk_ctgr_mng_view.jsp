@@ -10,84 +10,70 @@
 	</jsp:include>
 
 	<script type="text/javascript">
-		var dialog;
+		var SEARCH_VALUE	= '<c:out value="${vo.searchValue}" />';
+		var PAGE_INDEX		= '<c:out value="${vo.pageIndex}" />';
+		var LIST_SCALE		= '<c:out value="${vo.listScale}" />';
 
 		$(document).ready(function () {
-			qbnkCtgrListSelect(1);
-
 			$("#searchValue").on("keyup", function(e) {
 				if(e.keyCode == 13) {
 					qbnkCtgrListSelect(1);
 				}
 			});
+
+			if(!PAGE_INDEX) {
+				PAGE_INDEX = 1;
+			}
+
+			qbnkCtgrListSelect(PAGE_INDEX);
 		});
-
-		/**
-		 * 문제은행 화면 이동
-		 * @param {String}  sbjctId 	- 과목아이디
-		 */
-		function qbnkViewMv(tab) {
-			var urlMap = {
-				"1" : "/qbnk/profQbnkListView.do",		// 문제은행 목록 화면
-				"2" : "/qbnk/profQbnkCtgrMngView.do"	// 분류코드 관리 화면
-			};
-
-			var kvArr = [];
-			kvArr.push({'key' : 'sbjctId', 		'val' : "${vo.sbjctId}"});
-
-			submitForm(urlMap[tab], kvArr);
-		}
 
 		// list scale 변경
 		function changeListScale() {
+			LIST_SCALE = scale;
 			qbnkCtgrListSelect(1);
 		}
 
 		/**
 		 * 문제은행문항목록조회
-		 * @param {Integer} pageIndex 		- 현재 페이지
-		 * @param {String}  listScale 		- 페이징 목록 수
-		 * @param {String}  upQbnkCtgrId 	- 상위문제은행분류아이디
-		 * @param {String}  qbnkCtgrId 		- 문제은행분류아이디
-		 * @param {String}  sbjctId 		- 과목아이디
-		 * @param {String}  userRprsId 		- 사용자대표아이디
-		 * @param {String}  searchValue 	- 검색어(분류명, 과목, 담당교수)
-		 * @returns {list} 문제은행문항 목록
+		 * @param pageNo	이동페이지
 		 */
-		function qbnkCtgrListSelect(page) {
-			var url  = "/qbnk/profQbnkCtgrAllListAjax.do";
-			var data = {
-				"pageIndex" 	: page,
-				"listScale" 	: $('[id^="listScale"]').eq(0).val(),
-				"upQbnkCtgrId" 	: $("#upQbnkCtgrId").val(),
-				"qbnkCtgrId" 	: $("#qbnkCtgrId").val(),
-				"sbjctId" 		: $("#sbjctId").val(),
-				"userRprsId" 	: $("#userRprsId").val(),
-				"searchValue" 	: $("#searchValue").val()
+		function qbnkCtgrListSelect(pageNo) {
+			PAGE_INDEX   = pageNo || PAGE_INDEX;
+			SEARCH_VALUE = $("#searchValue").val();
+
+			const url   = "/qbnk/profQbnkCtgrAllListAjax.do";
+			const param = {
+				currentPageNo 		: PAGE_INDEX,
+				recordCountPerPage 	: LIST_SCALE,
+				searchValue 		: SEARCH_VALUE,
+				pageSize 			: 10,
+				upQbnkCtgrId 		: $("#upQbnkCtgrId").val(),
+				qbnkCtgrId 			: $("#qbnkCtgrId").val(),
+				sbjctId 			: $("#sbjctId").val(),
+				userId 				: $("#searchUserId").val(),
+				searchKey			: "${qbnkSbjct.sbjctId }"
 			};
 
-			UiComm.showLoading(true);
 			$.ajax({
-		        url 	  : url,
-		        async	  : false,
-		        type 	  : "POST",
-		        dataType  : "json",
-		        data 	  : data,
-		    }).done(function(data) {
-		    	UiComm.showLoading(false);
-	        	if (data.result > 0) {
-	        		var returnList = data.returnList || [];
-	        		var dataList = createQstnListHTML(returnList);	// 문항 리스트 HTML 생성
+		        url 	  	: url,
+		        type 	  	: "POST",
+		        data 	  	: param,
+		        dataType  	: "json",
+		        beforeSend	: () => UiComm.showLoading(true),
+                success		: function (data) {
+                    if (data.result > 0) {
+    	        		let dataList = createQstnListHTML(data.returnList);	// 문항 리스트 HTML 생성
 
-	        		ctgrListTable.clearData();
-	        		ctgrListTable.replaceData(dataList);
-	        		ctgrListTable.setPageInfo(data.pageInfo);
-	            } else {
-	            	UiComm.showMessage(data.message, "error");
-	            }
-		    }).fail(function() {
-		    	UiComm.showLoading(false);
-	        	UiComm.showMessage("<spring:message code='exam.error.list' />", "error");/* 리스트 조회 중 에러가 발생하였습니다. */
+    	        		ctgrListTable.clearData();
+    	        		ctgrListTable.replaceData(dataList);
+    	        		ctgrListTable.setPageInfo(data.pageInfo);
+                    } else {
+                    	UiComm.showMessage(data.message, "error");
+                    }
+                },
+                error		: () => UiComm.showMessage("<spring:message code='quiz.error.list' />", "error"),/* 리스트 조회 중 에러가 발생하였습니다. */
+                complete	: () => UiComm.showLoading(false)
 		    });
 		}
 
@@ -97,47 +83,40 @@
 
 			if(ctgrList.length == 0) {
 				return dataList;
-			} else {
-				ctgrList.forEach(function(v,i) {
-					// 과목
-					var sbjctnm = v.sbjctnm + " " + v.dvclasNo + "반";
-					// 제목
-					var mng  = "<a href='javascript:qbnkCtgrModifyFrmInit(\"" + v.qbnkCtgrId + "\")' class='btn basic small'>수정</a>";
-					 	mng += "<a href='javascript:qbnkCtgrDelete(\"" + v.qbnkCtgrId + "\")' class='btn basic small'>삭제</a>";
-
-					dataList.push({
-						no: 			v.lineNo,
-						upQbnkCtgrnm: 	v.upQbnkCtgrnm,
-						ctgrnm: 		v.ctgrnm,
-						sbjctnm: 		sbjctnm,
-						usernm: 		v.usernm,
-						mng: 			mng
-					});
-				});
 			}
+
+			ctgrList.forEach(function(v,i) {
+				let mng  = "<a href='javascript:qbnkCtgrModifyFrmInit(\"" + v.qbnkCtgrId + "\")' class='btn basic small'><spring:message code='common.button.modify' /></a>";/* 수정 */
+				 	mng += "<a href='javascript:qbnkCtgrDelete(\"" + v.qbnkCtgrId + "\")' class='btn basic small'><spring:message code='common.button.delete' /></a>";/* 삭제 */
+
+				dataList.push({
+					no: 			v.lineNo,
+					upQbnkCtgrnm: 	v.upQbnkCtgrnm,
+					ctgrnm: 		v.ctgrnm,
+					sbjctnm: 		v.sbjctnm + " " + (v.dvclasNo || "-") + "<spring:message code='quiz.label.decls' />",/* 반 */
+					usernm: 		v.usernm,
+					mng: 			mng
+				});
+			});
 
 			return dataList;
 		}
 
 		/**
 		* 문제은행하위분류목록조회
-		* @param {String} qbnkCtgrId 	- 문제은행분류아이디
-		* @param {String} userRprsId 	- 사용자아이디
-		* @param {String} sbjctId 		- 과목아이디
-		* @returns {list} 문제은행하위분류 목록
+		* @param qbnkCtgrId		문제은행분류아이디
 		*/
 		function subQbnkCtgrList(qbnkCtgrId) {
-			var url  = "/qbnk/profQbnkCtgrListAjax.do";
-			var data = {
-				"upQbnkCtgrId" 	: qbnkCtgrId,
-				"userRprsId"	: "${vo.userRprsId}",
-				"sbjctId"		: "${vo.sbjctId}"
+			const url   = "/qbnk/profQbnkCtgrListAjax.do";
+			const param = {
+				encParams : EPARAM,
+				addParams : UiComm.makeEncParams({upQbnkCtgrId : qbnkCtgrId})
 			};
 
-			ajaxCall(url, data, function(data) {
+			ajaxCall(url, param, function(data) {
 				if (data.result > 0) {
-				   	var returnList = data.returnList || [];
-				   	html = "<option value=''><spring:message code='exam.label.sub.categori' /></option>";/* 하위분류 */
+				   	let returnList = data.returnList || [];
+				   	let html = "<option value=''><spring:message code='quiz.label.sub.category' /></option>";/* 하위분류 */
 
 				   	if(returnList.length > 0 && qbnkCtgrId != "") {
 				   		returnList.forEach(function(v, i) {
@@ -152,7 +131,7 @@
 			    	UiComm.showMessage(data.message, "error");
 			    }
 			}, function(xhr, status, error) {
-				UiComm.showMessage("<spring:message code='exam.error.list' />", "error");/* 리스트 조회 중 에러가 발생하였습니다. */
+				UiComm.showMessage("<spring:message code='quiz.error.list' />", "error");/* 리스트 조회 중 에러가 발생하였습니다. */
 			}, true);
 		}
 
@@ -161,44 +140,35 @@
 			let validator = UiValidator("qbnkCtgrForm");
 			validator.then(function(result) {
 				if (result) {
-					UiComm.showLoading(true);
-					var url = "/qbnk/qbnkCtgrRegistAjax.do";
-					$.ajax({
-					    url 	 : url,
-					    async	 : false,
-					    type 	 : "POST",
-					    dataType : "json",
-					    data 	 : $("#qbnkCtgrForm").serialize(),
-					}).done(function(data) {
-						UiComm.showLoading(false);
+					const url = "/qbnk/qbnkCtgrRegistAjax.do";
+					ajaxCall(url, $("#qbnkCtgrForm").serialize(), function(data) {
 						if (data.result > 0) {
 							location.reload();
+					    } else {
+					    	UiComm.showMessage(data.message, "error");
 					    }
-					}).fail(function() {
-						UiComm.showLoading(false);
+					}, function(xhr, status, error) {
 						if($("#qbnkCtgrForm input[name=qbnkCtgrId]").val() == "") {
-							UiComm.showMessage("<spring:message code='exam.error.insert' />", "error");	/* 저장 중 에러가 발생하였습니다. */
+							UiComm.showMessage("<spring:message code='quiz.error.insert' />", "error");	/* 저장 중 에러가 발생하였습니다. */
 						} else {
-							UiComm.showMessage("<spring:message code='exam.error.update' />", "error");	/* 수정 중 에러가 발생하였습니다. */
+							UiComm.showMessage("<spring:message code='quiz.error.update' />", "error");	/* 수정 중 에러가 발생하였습니다. */
 						}
-					});
+					}, true);
 				}
 			});
 		}
 
 		/**
 		* 다음분류순번조회
-		* @param {String} upQbnkCtgrId  - 상위문제은행분류아이디
-		* @param {String} userRprsId 	- 사용자아이디
-		* @returns {list} 문제은행하위분류 목록
+		* @param upQbnkCtgrId	상위문제은행분류아이디
 		*/
 		function nextCtgrSeqnoSelect(upQbnkCtgrId) {
 			$("#qbnkCtgrForm input[name=upQbnkCtgrId]").val(upQbnkCtgrId);
 
-			var url  = "/qbnk/qbnkNextCtgrSeqnoSelectAjax.do";
-			var data = {
-				"upQbnkCtgrId" 	: upQbnkCtgrId,
-				"userRprsId" 	: "${qbnkSbjct.userRprsId }"
+			const url  = "/qbnk/qbnkNextCtgrSeqnoSelectAjax.do";
+			const data = {
+				upQbnkCtgrId 	: upQbnkCtgrId,
+				userId 			: "${qbnkSbjct.userId }"
 			};
 
 			ajaxCall(url, data, function(data) {
@@ -210,24 +180,23 @@
 
 		/**
 		* 문제은행분류수정폼초기화
-		* @param {String} qbnkCtgrId - 문제은행분류아이디
+		* @param qbnkCtgrId		문제은행분류아이디
 		*/
 		function qbnkCtgrModifyFrmInit(qbnkCtgrId) {
-			var url  = "/qbnk/qbnkCtgrSelectAjax.do";
-			var data = {
-				"qbnkCtgrId" : qbnkCtgrId
+			const url  = "/qbnk/qbnkCtgrSelectAjax.do";
+			const data = {
+				qbnkCtgrId : qbnkCtgrId
 			};
 
 			ajaxCall(url, data, function(data) {
 				if (data.result > 0) {
-	        		var qbnkCtgrVO = data.returnVO;
+	        		let qbnkCtgrVO = data.data;
 
 	        		// 상위분류 변경 제거
 	        		$("#qbnkCtgrForm select[name=selectUpQbnkCtgrId]").val(qbnkCtgrVO.upQbnkCtgrId);
 	        		$("#qbnkCtgrForm select[name=selectUpQbnkCtgrId]").attr("disabled", true).trigger("chosen:updated");
 
 	        		$("#qbnkCtgrForm input[name=smstrChrtId]").val(qbnkCtgrVO.smstrChrtId);
-	        		$("#qbnkCtgrForm input[name=crsMstrId]").val(qbnkCtgrVO.crsMstrId);
 	        		$("#qbnkCtgrForm input[name=upQbnkCtgrId]").val(qbnkCtgrVO.upQbnkCtgrId);
 	        		$("#qbnkCtgrForm input[name=qbnkCtgrId]").val(qbnkCtgrVO.qbnkCtgrId);
 	        		$("#qbnkCtgrForm input[name=ctgrSeqno]").val(qbnkCtgrVO.ctgrSeqno);
@@ -241,36 +210,36 @@
 
 		/**
 		* 문제은행분류삭제
-		* @param {String} qbnkCtgrId - 문제은행분류아이디
+		* @param qbnkCtgrId		문제은행분류아이디
 		*/
 		function qbnkCtgrDelete(qbnkCtgrId) {
-			var url  = "/qbnk/qbnkCtgrUseCntSelectAjax.do";
-			var data = {
-				"qbnkCtgrId" : qbnkCtgrId
+			const selectUrl  = "/qbnk/qbnkCtgrUseCntSelectAjax.do";
+			const selectData = {
+				qbnkCtgrId : qbnkCtgrId
 			};
 
-			ajaxCall(url, data, function(data) {
+			ajaxCall(selectUrl, selectData, function(data) {
 				if (data.result > 0) {
-					var cnt = data.returnVO;
+					let cnt = data.data;
 
 					if(cnt.ctgrCnt > 0) {
-						UiComm.showMessage("하위분류가 있어 삭제 할 수 없습니다.", "warning");
+						UiComm.showMessage("<spring:message code='quiz.alert.not.delete.sub.category' />", "warning");/* 하위분류가 있어 삭제 할 수 없습니다. */
 					} else if(cnt.qstnCnt > 0) {
-						UiComm.showMessage("하위문항이 있어 삭제 할 수 없습니다.", "warning");
+						UiComm.showMessage("<spring:message code='quiz.alert.not.delete.sub.qstn' />", "warning");/* 하위문항이 있어 삭제 할 수 없습니다. */
 					} else {
-						var url  = "/qbnk/qbnkCtgrDeleteAjax.do";
-						var data = {
+						const url  = "/qbnk/qbnkCtgrDeleteAjax.do";
+						const data = {
 							"qbnkCtgrId" : qbnkCtgrId
 						};
 
 						ajaxCall(url, data, function(data) {
 							if (data.result > 0) {
-								qbnkCtgrListSelect(1);
+								location.reload();
 						    } else {
 						    	UiComm.showMessage(data.message, "error");
 						    }
 						}, function(xhr, status, error) {
-							UiComm.showMessage("<spring:message code='exam.error.delete' />", "error");/* 삭제 중 에러가 발생하였습니다. */
+							UiComm.showMessage("<spring:message code='quiz.error.delete' />", "error");/* 삭제 중 에러가 발생하였습니다. */
 						}, true);
 					}
 			    } else {
@@ -283,7 +252,7 @@
 	</script>
 </head>
 
-<body class="class colorA">
+<body class="class ${uiex:getTheme()}">
     <div id="wrap" class="main">
         <!-- common header -->
         <jsp:include page="/WEB-INF/jsp/common_new/class_header.jsp"/>
@@ -298,55 +267,35 @@
 
             <!-- content -->
             <div id="content" class="content-wrap common">
-            	<div class="class_sub_top">
-					<div class="navi_bar">
-						<ul>
-							<li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-							<li>강의실</li>
-							<li><span class="current">내강의실</span></li>
-						</ul>
-					</div>
-					<div class="btn-wrap">
-						<div class="first">
-							<select class="form-select">
-								<option value="2025년 2학기">2025년 2학기</option>
-								<option value="2025년 1학기">2025년 1학기</option>
-							</select>
-							<select class="form-select wide">
-								<option value="">강의실 바로가기</option>
-								<option value="2025년 2학기">2025년 2학기</option>
-								<option value="2025년 1학기">2025년 1학기</option>
-							</select>
-						</div>
-						<div class="sec">
-							<button type="button" class="btn type1"><i class="xi-book-o"></i>교수 매뉴얼</button>
-							<button type="button" class="btn type1"><i class="xi-info-o"></i>학습안내정보</button>
-						</div>
-					</div>
-				</div>
+				<!-- class_sub_top -->
+				<jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+				<!-- //class_sub_top -->
 
 				<div class="class_sub">
+					<!-- class_info -->
+					<jsp:include page="/WEB-INF/jsp/common_new/class_info.jsp"/>
+					<!-- //class_info -->
+
 		        	<div class="sub-content">
 		        		<div class="listTab">
 					        <ul>
-					            <li class="mw120"><a onclick="qbnkViewMv(1)">문제은행</a></li>
-					            <li class="select mw120"><a onclick="qbnkViewMv(2)">분류코드 관리</a></li>
+					            <li class="mw120"><a onclick="quizViewMv('', 'QBNKLIST')"><spring:message code="quiz.common.qbnk" /><!-- 문제은행 --></a></li>
+					            <li class="select mw120"><a onclick="quizViewMv('', 'QBNKCTGR')"><spring:message code="quiz.tab.category" /><!-- 분류코드 관리 --></a></li>
 					        </ul>
 					    </div>
 		        		<div class="page-info">
 				        	<h2 class="page-title">
-                                분류코드 관리
+                                <spring:message code="quiz.tab.category" /><!-- 분류코드 관리 -->
                             </h2>
 				        </div>
 				        <div class="board_top">
-				        	분류코드 등록
+				        	<spring:message code="quiz.label.regist.category" /><!-- 분류코드 등록 -->
 				        	<div class="right-area">
-				        		<button type="button" class="btn type2" onclick="qbnkCtgrRegist()">저장</button>
+				        		<button type="button" class="btn type2" onclick="qbnkCtgrRegist()"><spring:message code="common.button.save" /><!-- 저장 --></button>
 				        	</div>
 				        </div>
 				        <form id="qbnkCtgrForm">
 				        	<input type="hidden" name="smstrChrtId" value="${qbnkSbjct.smstrChrtId }" />
-					        <input type="hidden" name="crsMstrId" 	value="${qbnkSbjct.crsMstrId }" />
 					        <input type="hidden" name="ctgrSeqno"	value="${fn:length(upQbnkCtgrList)+1 }" />
 					        <input type="hidden" name="qbnkCtgrId" />
 					        <input type="hidden" name="upQbnkCtgrId" />
@@ -357,10 +306,10 @@
 					        	</colgroup>
 					        	<tbody>
 					        		<tr>
-					        			<th><label>상위분류</label></th>
+					        			<th><label><spring:message code="quiz.label.upper.category" /><!-- 상위분류 --></label></th>
 					        			<td>
 					        				<select class="form-select" name="selectUpQbnkCtgrId" onchange="nextCtgrSeqnoSelect(this.value)">
-		                                		<option value=""><spring:message code="exam.label.upper.categori" /></option><!-- 상위분류 -->
+		                                		<option value=""><spring:message code="quiz.label.upper.category" /></option><!-- 상위분류 -->
 			                                    <c:forEach var="item" items="${upQbnkCtgrList }">
 										        	<option value="${item.qbnkCtgrId }">${item.ctgrnm }</option>
 										        </c:forEach>
@@ -368,29 +317,25 @@
 					        			</td>
 					        		</tr>
 					        		<tr>
-					        			<th><label class="req">과목코드/과목</label></th>
+					        			<th><label class="req"><spring:message code="common.label.crsauth.crscd" /><!-- 과목코드 -->/<spring:message code="common.subject" /><!-- 과목 --></label></th>
 					        			<td>
 					        				<input class="form-control" type="text" name="sbjctId" value="${qbnkSbjct.sbjctId }" readonly="true" autocomplete="off" required="true">
-					        				<span>( ${qbnkSbjct.sbjctnm } ${qbnkSbjct.dvclasNo }반 )</span>
+					        				<span>( ${qbnkSbjct.sbjctnm } ${qbnkSbjct.dvclasNo }<spring:message code="quiz.label.decls" /><!-- 반 --> )</span>
 					        			</td>
 					        		</tr>
 					        		<tr>
-					        			<th><label class="req">대표아이디</label></th>
-					        			<td><input class="form-control" type="text" name="userRprsId" value="${qbnkSbjct.userRprsId }" readonly="true" autocomplete="off" required="true"></td>
-					        		</tr>
-					        		<tr>
-					        			<th><label>교수번호/교수명</label></th>
+					        			<th><label><spring:message code="common.label.prof.no" /><!-- 교수사번 -->/<spring:message code="common.label.prof.nm" /><!-- 교수명 --></label></th>
 					        			<td>
-					        				<input class="form-control" type="text" name="userId" value="${qbnkSbjct.profId }" readonly="true" autocomplete="off">
-					        				<span>( ${qbnkSbjct.usernm } 교수 )</span>
+					        				<input class="form-control" type="text" name="userId" value="${qbnkSbjct.userId }" readonly="true" autocomplete="off">
+					        				<span>( ${qbnkSbjct.usernm } <spring:message code="common.professor" /><!-- 교수 --> )</span>
 					        			</td>
 					        		</tr>
 					        		<tr>
-					        			<th><label class="req" for="ctgrnm">분류명</label></th>
+					        			<th><label class="req" for="ctgrnm"><spring:message code="quiz.label.category.nm" /><!-- 분류명 --></label></th>
 					        			<td><input class="form-control width-100per" type="text" name="ctgrnm" autocomplete="off" required="true"></td>
 					        		</tr>
 					        		<tr>
-					        			<th><label class="req" for="ctgrExpln">설명</label></th>
+					        			<th><label class="req" for="ctgrExpln"><spring:message code="quiz.label.explan" /><!-- 설명 --></label></th>
 					        			<td><textarea class="width-100per min-height-100px" name="ctgrExpln" required="true"></textarea></td>
 					        		</tr>
 					        	</tbody>
@@ -399,32 +344,31 @@
 
 						<div id="qbnkCtgrListArea">
 							<div class="board_top margin-top-3">
-	                            <h3 class="board-title">분류코드</h3>
+	                            <h3 class="board-title"><spring:message code="quiz.label.category.code" /><!-- 분류코드 --></h3>
 	                        </div>
 	                        <div class="board_top">
-	                        	<input type="hidden" id="userRprsId" value="${qbnkSbjct.userRprsId }" />
 								<select class="form-select" id="upQbnkCtgrId" onchange="subQbnkCtgrList(this.value)">
-                               		<option value=""><spring:message code="exam.label.upper.categori" /></option><!-- 상위분류 -->
+                               		<option value=""><spring:message code="quiz.label.upper.category" /></option><!-- 상위분류 -->
 	                                <c:forEach var="item" items="${upQbnkCtgrList }">
 							        	<option value="${item.qbnkCtgrId }">${item.ctgrnm }</option>
 							        </c:forEach>
 	                            </select>
 	                            <select class="form-select" id="qbnkCtgrId" onchange="qbnkCtgrListSelect(1)">
-                               		<option value=""><spring:message code="exam.label.sub.categori" /></option><!-- 하위분류 -->
+                               		<option value=""><spring:message code="quiz.label.sub.category" /></option><!-- 하위분류 -->
 	                            </select>
 	                            <select class="form-select" id="sbjctId" onchange="qbnkCtgrListSelect(1)">
-                               		<option value=""><spring:message code="crs.label.crecrs" /></option><!-- 과목 -->
-							        <c:forEach var="item" items="${qbnkSearchSbjctList }">
+                               		<option value=""><spring:message code="common.subject" /></option><!-- 과목 -->
+							        <c:forEach var="item" items="${sbjctList }">
 							        	<option value="${item.sbjctId }">${item.sbjctnm }</option>
 							        </c:forEach>
 	                            </select>
-	                            <select class="form-select" id="searchUserRprsId" onchange="qbnkCtgrListSelect(1)" disabled>
-                               		<option value="">담당교수</option>
-							        <c:forEach var="item" items="${qbnkSearchProfList }">
-							        	<option value="${item.userRprsId }" ${item.userRprsId eq qbnkSbjct.userRprsId ? 'selected' : '' }>${item.usernm }</option>
+	                            <select class="form-select" id="searchUserId" onchange="qbnkCtgrListSelect(1)" disabled>
+                               		<option value=""><spring:message code="common.charge.professor" /><!-- 담당교수 --></option>
+							        <c:forEach var="item" items="${profList }">
+							        	<option value="${item.userId }" ${item.userId eq qbnkSbjct.userId ? 'selected' : '' }>${item.usernm }</option>
 							        </c:forEach>
 	                            </select>
-	                            <input class="form-control wide" type="text" id="searchValue" placeholder="분류명/과목/담당교수 입력">
+	                            <input class="form-control wide" type="text" id="searchValue" placeholder="<spring:message code='quiz.placeholder.input.category.sbjct.prof.nm' />"><!-- 분류명/과목/담당교수 입력 -->
 	                            <button type="button" class="btn basic icon" onclick="qbnkCtgrListSelect(1)"><i class="xi-search"></i></button>
 	                        	<div class="right-area">
 									<uiex:listScale func="changeListScale" value="" />
@@ -440,12 +384,12 @@
 									lang: "ko",
 									pageFunc: qbnkCtgrListSelect,
 									columns: [
-										{title:"No", 		field:"no",				headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},
-										{title:"상위분류", 	field:"upQbnkCtgrnm",	headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:150},
-										{title:"하위분류", 	field:"ctgrnm",			headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:150},
-										{title:"과목", 		field:"sbjctnm", 		headerHozAlign:"center", hozAlign:"center", width:0, 	minWidth:150},
-										{title:"담당교수", 	field:"usernm", 		headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},
-										{title:"관리", 		field:"mng", 			headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:100},
+										{title:"No", 													field:"no",				headerHozAlign:"center", hozAlign:"center", width:40,	minWidth:40},
+										{title:"<spring:message code='quiz.label.upper.category' />", 	field:"upQbnkCtgrnm",	headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:150},/* 상위분류 */
+										{title:"<spring:message code='quiz.label.sub.category' />", 	field:"ctgrnm",			headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:150},/* 하위분류 */
+										{title:"<spring:message code='common.subject' />", 				field:"sbjctnm", 		headerHozAlign:"center", hozAlign:"center", width:0, 	minWidth:150},/* 과목 */
+										{title:"<spring:message code='common.charge.professor' />", 	field:"usernm", 		headerHozAlign:"center", hozAlign:"center", width:100,	minWidth:100},/* 담당교수 */
+										{title:"<spring:message code='common.mgr' />", 					field:"mng", 			headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:100},/* 관리 */
 									]
 								});
 							</script>

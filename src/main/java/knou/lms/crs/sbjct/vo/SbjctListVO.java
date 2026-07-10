@@ -6,86 +6,91 @@ public class SbjctListVO extends DefaultVO {
 
     private static final long serialVersionUID = 1L;
 
-    private String orgId;         // 기관아이디
-    private String orgNm;         // 기관이름
-    private String searchValue;   // 검색어
+    private String sbjctCd; // 과목코드
+    private String profId; // 교수아이디
+    private String smstrChrtId; // 학기기수아이디
+    private String sbjctYr; // 과목연도
+    private String sbjctSmstr; // 과목학기
+    private String crsGbncd; // 과정구분코드
+    private String sbjctTycd; // 과목분류코드
+    private String lctrGbncd; // 강의구분코드
+    private String cmcrsGbncd; // 이수구분코드
+    private String evlGbncd; // 평가구분코드
+    private Integer dvclasNo; // 분반번호
+    private Integer crdts; // 학점
+    private String useyn; // 사용여부
+    private String atndlcCertStscd; // 수강인증상태코드
+    private String sbjctLctrSdttm; // 과목강의시작일시
+    private String sbjctLctrEdttm; // 과목강의종료일시
+    private String lessonCntsUrl; // 강의 미리보기 URL
 
-    private String sbjctMstrId;       // 과목아이디(SBJCT_MSTR_ID)
-    private String sbjctNm;       // 과목명(SBJCTNM)
-    private String sbjctEnNm;     // 과목영문명(SBJCT_ENNM)
-    private String sbjctExpln;    // 과목설명(SBJCT_EXPLN)
+    /* DB와 관계없는 파라미터 */
+    private String crsGbncdnm; // 과정구분코드명
+    private String sbjctTycdnm; // 과목분류코드명
+    private String lctrGbncdnm; // 강의구분코드명
+    private String cmcrsGbncdnm; // 이수구분코드명
+    private String evlGbncdnm; // 평가구분코드명
+    private String profUsernm; // 담당교수명
+    private String tutUsernm; // 담당튜터명
+    private String assiUsernm; // 담당조교명
+    private Integer atndlcCnt; // 수강생수
+    private Integer auditCnt; // 청강생수
 
-    private String sbjctYr;       // 과목연도(SBJCT_YR)
-    private String sbjctSmstr;    // 과목학기(SBJCT_SMSTR)
-    private String sbjctGbnCd;    // 과목구분코드(SBJCT_GBNCD)
-    private String sbjctTycd;     // 과목유형코드(SBJCT_TYCD)
-
-    private String smstrChrtId;   // 학기기수아이디(SMSTR_CHRT_ID)
-    private String deptId;        // 학과부서아이디(DEPT_ID)
-    private String univId;        // 대학교아이디(UNIV_ID)
-
-    private String useYn;         // 사용여부(USEYN)
-    private String delYn;         // 삭제여부(DELYN)
-
-    private String regDttm;       // 등록일시(REG_DTTM)
-    private String mdfrId;        // 수정자아이디(MDFR_ID)
-    private String modDttm;       // 수정일시(MOD_DTTM)
-
-    @Override
-    public String getOrgId() {
-        return orgId;
+    public String getSbjctCd() {
+        return sbjctCd;
     }
 
-    @Override
-    public void setOrgId(String orgId) {
-        this.orgId = orgId;
+    public void setSbjctCd(String sbjctCd) {
+        this.sbjctCd = sbjctCd;
     }
 
-    @Override
-    public String getOrgNm() {
-        return orgNm;
+    public String getProfId() {
+        return profId;
     }
 
-    @Override
-    public String getSearchValue() {
-        return searchValue;
+    public void setProfId(String profId) {
+        this.profId = profId;
     }
 
-    @Override
-    public void setSearchValue(String searchValue) {
-        this.searchValue = searchValue;
+    public String getSmstrChrtId() {
+        return smstrChrtId;
     }
 
-    @Override
-    public void setOrgNm(String orgNm) {
-        this.orgNm = orgNm;
+    public void setSmstrChrtId(String smstrChrtId) {
+        this.smstrChrtId = smstrChrtId;
     }
 
-    public String getSbjctMstrId() {
-        return sbjctMstrId;
+    public String getSbjctYr() {
+        return sbjctYr;
     }
 
-    public void setSbjctMstrId(String sbjctMstrId) {
-        this.sbjctMstrId = sbjctMstrId;
+    public void setSbjctYr(String sbjctYr) {
+        this.sbjctYr = sbjctYr;
     }
 
-    public String getSbjctNm() { return sbjctNm; }
-    public void setSbjctNm(String sbjctNm) { this.sbjctNm = sbjctNm; }
+    public String getSbjctSmstr() {
+        return sbjctSmstr;
+    }
 
-    public String getSbjctEnNm() { return sbjctEnNm; }
-    public void setSbjctEnNm(String sbjctEnNm) { this.sbjctEnNm = sbjctEnNm; }
+    public void setSbjctSmstr(String sbjctSmstr) {
+        this.sbjctSmstr = sbjctSmstr;
+    }
 
-    public String getSbjctExpln() { return sbjctExpln; }
-    public void setSbjctExpln(String sbjctExpln) { this.sbjctExpln = sbjctExpln; }
+    public String getCrsGbncd() {
+        return crsGbncd;
+    }
 
-    public String getSbjctYr() { return sbjctYr; }
-    public void setSbjctYr(String sbjctYr) { this.sbjctYr = sbjctYr; }
+    public void setCrsGbncd(String crsGbncd) {
+        this.crsGbncd = crsGbncd;
+    }
 
-    public String getSbjctSmstr() { return sbjctSmstr; }
-    public void setSbjctSmstr(String sbjctSmstr) { this.sbjctSmstr = sbjctSmstr; }
+    public String getCrsGbncdnm() {
+        return crsGbncdnm;
+    }
 
-    public String getSbjctGbnCd() { return sbjctGbnCd; }
-    public void setSbjctGbnCd(String sbjctGbnCd) { this.sbjctGbnCd = sbjctGbnCd; }
+    public void setCrsGbncdnm(String crsGbncdnm) {
+        this.crsGbncdnm = crsGbncdnm;
+    }
 
     public String getSbjctTycd() {
         return sbjctTycd;
@@ -95,27 +100,156 @@ public class SbjctListVO extends DefaultVO {
         this.sbjctTycd = sbjctTycd;
     }
 
-    public String getSmstrChrtId() { return smstrChrtId; }
-    public void setSmstrChrtId(String smstrChrtId) { this.smstrChrtId = smstrChrtId; }
+    public String getSbjctTycdnm() {
+        return sbjctTycdnm;
+    }
 
-    public String getDeptId() { return deptId; }
-    public void setDeptId(String deptId) { this.deptId = deptId; }
+    public void setSbjctTycdnm(String sbjctTycdnm) {
+        this.sbjctTycdnm = sbjctTycdnm;
+    }
 
-    public String getUnivId() { return univId; }
-    public void setUnivId(String univId) { this.univId = univId; }
+    public String getLctrGbncd() {
+        return lctrGbncd;
+    }
 
-    public String getUseYn() { return useYn; }
-    public void setUseYn(String useYn) { this.useYn = useYn; }
+    public void setLctrGbncd(String lctrGbncd) {
+        this.lctrGbncd = lctrGbncd;
+    }
 
-    public String getDelYn() { return delYn; }
-    public void setDelYn(String delYn) { this.delYn = delYn; }
+    public String getLctrGbncdnm() {
+        return lctrGbncdnm;
+    }
 
-    public String getRegDttm() { return regDttm; }
-    public void setRegDttm(String regDttm) { this.regDttm = regDttm; }
+    public void setLctrGbncdnm(String lctrGbncdnm) {
+        this.lctrGbncdnm = lctrGbncdnm;
+    }
 
-    public String getMdfrId() { return mdfrId; }
-    public void setMdfrId(String mdfrId) { this.mdfrId = mdfrId; }
+    public String getCmcrsGbncd() {
+        return cmcrsGbncd;
+    }
 
-    public String getModDttm() { return modDttm; }
-    public void setModDttm(String modDttm) { this.modDttm = modDttm; }
+    public void setCmcrsGbncd(String cmcrsGbncd) {
+        this.cmcrsGbncd = cmcrsGbncd;
+    }
+
+    public String getCmcrsGbncdnm() {
+        return cmcrsGbncdnm;
+    }
+
+    public void setCmcrsGbncdnm(String cmcrsGbncdnm) {
+        this.cmcrsGbncdnm = cmcrsGbncdnm;
+    }
+
+    public String getEvlGbncd() {
+        return evlGbncd;
+    }
+
+    public void setEvlGbncd(String evlGbncd) {
+        this.evlGbncd = evlGbncd;
+    }
+
+    public String getEvlGbncdnm() {
+        return evlGbncdnm;
+    }
+
+    public void setEvlGbncdnm(String evlGbncdnm) {
+        this.evlGbncdnm = evlGbncdnm;
+    }
+
+    public Integer getDvclasNo() {
+        return dvclasNo;
+    }
+
+    public void setDvclasNo(Integer dvclasNo) {
+        this.dvclasNo = dvclasNo;
+    }
+
+    public Integer getCrdts() {
+        return crdts;
+    }
+
+    public void setCrdts(Integer crdts) {
+        this.crdts = crdts;
+    }
+
+    public String getUseyn() {
+        return useyn;
+    }
+
+    public void setUseyn(String useyn) {
+        this.useyn = useyn;
+    }
+
+    public String getAtndlcCertStscd() {
+        return atndlcCertStscd;
+    }
+
+    public void setAtndlcCertStscd(String atndlcCertStscd) {
+        this.atndlcCertStscd = atndlcCertStscd;
+    }
+
+    public String getSbjctLctrSdttm() {
+        return sbjctLctrSdttm;
+    }
+
+    public void setSbjctLctrSdttm(String sbjctLctrSdttm) {
+        this.sbjctLctrSdttm = sbjctLctrSdttm;
+    }
+
+    public String getSbjctLctrEdttm() {
+        return sbjctLctrEdttm;
+    }
+
+    public void setSbjctLctrEdttm(String sbjctLctrEdttm) {
+        this.sbjctLctrEdttm = sbjctLctrEdttm;
+    }
+
+    public String getLessonCntsUrl() {
+        return lessonCntsUrl;
+    }
+
+    public void setLessonCntsUrl(String lessonCntsUrl) {
+        this.lessonCntsUrl = lessonCntsUrl;
+    }
+
+    public String getProfUsernm() {
+        return profUsernm;
+    }
+
+    public void setProfUsernm(String profUsernm) {
+        this.profUsernm = profUsernm;
+    }
+
+    public String getTutUsernm() {
+        return tutUsernm;
+    }
+
+    public void setTutUsernm(String tutUsernm) {
+        this.tutUsernm = tutUsernm;
+    }
+
+    public String getAssiUsernm() {
+        return assiUsernm;
+    }
+
+    public void setAssiUsernm(String assiUsernm) {
+        this.assiUsernm = assiUsernm;
+    }
+
+    public Integer getAtndlcCnt() {
+        return atndlcCnt;
+    }
+
+    public void setAtndlcCnt(Integer atndlcCnt) {
+        this.atndlcCnt = atndlcCnt;
+    }
+
+    public Integer getAuditCnt() {
+        return auditCnt;
+    }
+
+    public void setAuditCnt(Integer auditCnt) {
+        this.auditCnt = auditCnt;
+    }
+
 }

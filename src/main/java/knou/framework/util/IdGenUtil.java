@@ -48,14 +48,14 @@ public class IdGenUtil {
 	 * @param 	idPrefixType (모듈명, 5자 이내)
 	 * @return
 	 */
-	public synchronized static String genNewId(IdPrefixType idPrefixType) throws Exception {
+	public synchronized static String genNewId(IdPrefixType idPrefixType) {
 		newId = new StringBuffer();
 		if ( idPrefixType == null ) {
-			throw new Exception ("업무코드 정보가 없습니다.");
+			throw new IllegalArgumentException ("업무코드 정보가 없습니다.");
 		}
 		String code = idPrefixType.getCode();
 		if ( code.length() < 3 || code.length() > 5) {
-			throw new Exception ("업무코드의 길이는 3~5글자입니다.");
+			throw new IllegalArgumentException ("업무코드의 길이는 3~5글자입니다.");
 		}
 
 		code = code.toUpperCase();

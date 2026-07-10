@@ -1,47 +1,41 @@
 package knou.lms.mrk.service;
 
+import knou.framework.common.PageInfo;
+import knou.lms.common.dto.ResultDTO;
 import knou.lms.common.vo.ProcessResultVO;
-import knou.lms.mrk.vo.MarkSubjectDetailVO;
 import knou.lms.mrk.vo.MarkSubjectVO;
+import knou.lms.mrk.vo.MrkProcExcpProcVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
 public interface MarkSubjectService {
 
-    ProcessResultVO<EgovMap> stdMrkList(String orgId, String sbjctId, String searchType) throws Exception;
+    EgovMap getStdMrkDetails (String sbjctid, String userId);
 
-    int stdMrkListCntSelect(String sbjctId) throws Exception;
+    ProcessResultVO<EgovMap> stdMrkList(String orgId, String sbjctId, String searchType);
 
-    void stdMrkInit(String orgId, String sbjctId, String userId) throws Exception;
+    void stdMrkInit(String orgId, String sbjctId, String userId);
 
-//    void allStdMrkSbjctDelete(String sbjctId) throws Exception;
+//    List<SubjectMarkDetailVO> attdSummaryList(String sbjctId) throws Exception;
 
-//    void allStdMrkSbjctDtlDelete(String sbjctId) throws Exception;
+    Map<String, BigDecimal> getMrkItmStngInfoMap(String orgId, String sbjctId);
 
-//    List<MarkSubjectVO> stdMrkSbjctList(String sbjctId) throws Exception;
+    ProcessResultVO<EgovMap> stdMrkModify(Map<String, Map<String, String>> stdMrkList,String orgId, String sbjctId, String mdfrId);
 
-    List<EgovMap> attdSummaryList(String sbjctId) throws Exception;
+    ResultDTO<EgovMap> stdScrCnvsStsModify(MarkSubjectVO vo);
 
-    List<EgovMap> getMrkItmStngList(String orgId, String sbjctId) throws Exception;
+    Map<String, Double> getAvgScrInfoByMrkItm(String sbjctId);
 
-//    List<EgovMap> examEvlScoreList(String sbjctId, String searchKey) throws Exception;
-//
-//    List<EgovMap> smnrScoreEvlList(String sbjctId) throws Exception;
-//
-//    List<EgovMap> asmtScoreEvlList(String sbjctId) throws Exception;
-//
-//    List<EgovMap> dscsScoreEvlList(String sbjctId) throws Exception;
-//
-//    List<EgovMap> quizScoreEvlList(String sbjctId) throws Exception;
-//
-//    List<EgovMap> srvyScoreEvlList(String sbjctId) throws Exception;
+    EgovMap getMrkRangeStatus(String sbjctId);
 
-//    int mrkSbjctBatchInsert(List<MarkSubjectVO> mrksbjctList)throws Exception;
-//
-//    int mrkSbjctDtlBatchInsert(List<MarkSubjectDetailVO> vo)throws Exception;
+    ResultDTO<EgovMap> mrkProcExcpProcListPaging(PageInfo pageInfo);
 
-    void stdMrkModify(Map<String, Map<String, String>> stdMrkList,String orgId, String sbjctId, String mdfrId) throws Exception;
+    ResultDTO<EgovMap> allMrkProcExcpProcListPaging(PageInfo pageInfo);
 
+    void mrkProcExcpProcRegist(List<MrkProcExcpProcVO> list, String rgtrId);
+
+    void mrkProcExcpProcDelete(List<MrkProcExcpProcVO> list);
 }

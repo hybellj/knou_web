@@ -44,6 +44,9 @@ public class SmstrChrtVO extends DefaultVO {
 	private String		nowSmstryn;				// 현재학기여부
 	private String		rvwEdttm;				// 복습종료일시
 	private String		profAccssPblSdttm;		// 교수접근가능시작일시
+	private String		smstrChrtLctrSdttm;		// 학기기수강의시작일시
+	private String		smstrChrtLctrEdttm;		// 학기기수강의종료일시
+	private String		smstrChrtLateRecgDttm;	// 학기기수지각인정일시
 
 	public String getSmstrChrtId() {
 		return smstrChrtId;
@@ -243,6 +246,30 @@ public class SmstrChrtVO extends DefaultVO {
 
 	public void setProfAccssPblSdttm(String profAccssPblSdttm) {
 		this.profAccssPblSdttm = profAccssPblSdttm;
+	}
+
+	public String getSmstrChrtLctrSdttm() {
+		return smstrChrtLctrSdttm;
+	}
+
+	public void setSmstrChrtLctrSdttm(String smstrChrtLctrSdttm) {
+		this.smstrChrtLctrSdttm = smstrChrtLctrSdttm;
+	}
+
+	public String getSmstrChrtLctrEdttm() {
+		return smstrChrtLctrEdttm;
+	}
+
+	public void setSmstrChrtLctrEdttm(String smstrChrtLctrEdttm) {
+		this.smstrChrtLctrEdttm = smstrChrtLctrEdttm;
+	}
+
+	public String getSmstrChrtLateRecgDttm() {
+		return smstrChrtLateRecgDttm;
+	}
+
+	public void setSmstrChrtLateRecgDttm(String smstrChrtLateRecgDttm) {
+		this.smstrChrtLateRecgDttm = smstrChrtLateRecgDttm;
 	}
 
 	public static long getSerialversionuid() {

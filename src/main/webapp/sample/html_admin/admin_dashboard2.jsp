@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="../common/common_inc.jsp" %><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+	<jsp:include page="../common/common_head.jsp">
 		<jsp:param name="style" value="admin"/>
 	</jsp:include>
 </head>
@@ -11,14 +11,14 @@
 <body class="admin">
     <div id="wrap" class="main">
         <!-- common header -->
-        <jsp:include page="/WEB-INF/jsp/common_new/admin_header.jsp"/>
+        <jsp:include page="../common/admin_header.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
         <!-- //common header -->
 
         <!-- admin -->
         <main class="common">
 
             <!-- gnb -->
-            <jsp:include page="/WEB-INF/jsp/common_new/admin_aside.jsp"/>
+            <jsp:include page="../common/admin_aside.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
             <!-- //gnb -->
 
             <!-- content -->
@@ -30,6 +30,18 @@
                 </div>
                 <div class="admin_sub">
                     <div class="sub-content">
+
+                        <div class="page-info">
+                            <div class="navi_bar">
+                                <ul>
+                                    <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
+                                    <li>관리자</li>
+                                    <li><span class="current">학생 접속현황</span></li>
+                                </ul>
+                            </div>
+                        </div>
+
+
                         <div class="row">
                             <div class="box">
                                 <div class="listTab">

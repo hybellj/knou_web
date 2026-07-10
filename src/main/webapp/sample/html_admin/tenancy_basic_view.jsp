@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="../common/common_inc.jsp" %><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+	<jsp:include page="../common/common_head.jsp">
 		<jsp:param name="style" value="admin"/>
 	</jsp:include>
 </head>
@@ -11,14 +11,14 @@
 <body class="admin">
     <div id="wrap" class="main">
         <!-- common header -->
-        <%@ include file="/WEB-INF/jsp/common_new/admin_header.jsp" %>
+        <jsp:include page="../common/admin_header.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
         <!-- //common header -->
 
         <!-- admin -->
         <main class="common">
 
             <!-- gnb -->
-            <%@ include file="/WEB-INF/jsp/common_new/admin_aside.jsp" %>
+            <jsp:include page="../common/admin_aside.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
             <!-- //gnb -->
 
             <!-- content -->
@@ -33,6 +33,13 @@
                     <div class="sub-content">
                         <div class="page-info">
                             <h2 class="page-title">기본 정보 관리</h2>
+                            <div class="navi_bar">
+                                <ul>
+                                    <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
+                                    <li>기관 관리</li>
+                                    <li><span class="current">기본 정보 관리</span></li>
+                                </ul>
+                            </div>
                         </div>
 
                         <div class="box">
@@ -80,7 +87,7 @@
                                 </ul>
                                 <ul class="list">
                                     <li class="head"><label>기관 로고 PC</label></li>
-                                    <li><img src="<%=request.getContextPath()%>/webdoc/assets/img/logo.png" aria-hidden="true" alt="한국방송통신대학교"></li>
+                                    <li><img src="<%=request.getContextPath()%>/webdoc/assets/img/logo.svg" aria-hidden="true" alt="한국방송통신대학교"></li>
                                 </ul>
                                 <ul class="list">
                                     <li class="head"><label>기관 로고 Mobile</label></li>

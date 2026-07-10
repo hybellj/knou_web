@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.exception.dao.SystemExceptionDAO">
+
+		<insert id="systemExceptionInsert" parameterType="knou.lms.exception.vo.SystemExceptionVO">
+		    INSERT INTO TB_LMS_SYS_ERR (
+		        SYS_ERR_ID,
+		        SBJCT_ID,
+		        SYS_ERR_MSG,
+		        SYS_ERR_TYCD,
+		        SYS_ERR_REQ_URL,
+		        SYS_ERR_DT,
+		        SYS_ERR_HOUROFDAY,
+		        SYS_ERR_DAYOFWEEK,
+		        USER_ID,
+		        RGTR_ID,
+		        REG_DTTM,
+		        MDFR_ID,
+		        MOD_DTTM,
+		        CNTN_IP,
+		        TRACE_ID
+		    ) VALUES (
+		        #{sysErrId},
+		        #{sbjctId},
+		        #{sysErrMsg},
+		        #{sysErrTycd},
+		        #{sysErrReqUrl},
+		        #{sysErrDt},
+		        #{sysErrHourOfDay},
+		        #{sysErrDayOfWeek},
+		        #{userId},
+		        #{rgtrId},
+		        #{regDttm},
+		        #{mdfrId},
+		        #{modDttm},
+		        #{cntnIp},
+		        #{traceId}
+		    )
+		</insert>
+     
+ </mapper>

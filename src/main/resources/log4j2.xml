@@ -2,12 +2,12 @@
 <Configuration>
     <Appenders>
         <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d %5p [%c] %m%n"/>
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger - [%X{TRACE_ID}] %msg%n"/>
         </Console>
     </Appenders>
     <!-- TOBE -->
     <Loggers>
-	    <Logger name="jdbc.sqlonly" 	level="ON" additivity="true" />
+	    <Logger name="jdbc.sqlonly" 	level="ON" additivity="false" />
 	    <Logger name="jdbc.audit" 		level="OFF" additivity="false" />
 	    <Logger name="jdbc.sqltiming" 	level="ON" additivity="true" /> 
 	    <Logger name="jdbc.resultset" 	level="OFF" additivity="false" />

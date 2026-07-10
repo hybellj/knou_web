@@ -14,7 +14,7 @@
 
 			<h1 class="logo">
 				<a href="<%= SessionInfo.getCurUserHome(request) %>" title="<spring:message code="common.label.classroom" />">
-					<img src="/webdoc/img/logo.png" alt="<spring:message code="common.logo" />">
+					<img src="/webdoc/img/logo.svg" alt="<spring:message code="common.logo" />">
 				</a>
 			</h1>
 

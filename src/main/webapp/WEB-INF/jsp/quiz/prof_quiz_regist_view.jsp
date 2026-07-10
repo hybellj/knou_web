@@ -10,85 +10,76 @@
 	</jsp:include>
 
 	<script type="text/javascript">
-		var dialog;
-		const editors = {};	// 에디터 목록 저장용
+		const editors = {};					// 에디터 목록 저장용
+		let subQuizUploaderIds = [];        // 팀별 업로더 ID 목록 (순서 보장)
+        let subQuizUploadResults = {};      // { uploaderId : { uploadFiles, uploadPath, delFileIdStr, copyFiles } }
 
 		$(window).on('load', function() {
+			// 팀퀴즈수정시
 			if(${not empty vo.examBscId && vo.examGbncd eq 'QUIZ_TEAM' }) {
-				// 부과제 조회
-				$("input[name='lrnGrpSubasmtStngyns']").each(function(i, e) {
-					var lrnGrpId = $("#lrnGrpId" + e.id.split("_")[1]).val().split(":")[0];	// 학습그룹아이디
-					var lrnGrpnm = $("#lrnGrpnm" + e.id.split("_")[1]).val();				// 학습그룹명
-					var dvclasNo = e.id.split("_")[1];										// 분반 순서
-					var sbjctId = e.value.split(":")[1];									// 과목아이디
+				$("input[name='teamGrpSubasmtStngyns']").each(function(i, e) {
+					let sbjctId 	= e.value.split(":")[1];							// 과목아이디
+					let teamGrpId 	= $("#teamGrpId" + sbjctId).val().split(":")[0];	// 팀그룹아이디
+					let teamGrpnm 	= $("#teamGrpnm" + sbjctId).val();					// 팀그룹명
 
-					selectTeam(lrnGrpId, lrnGrpnm, dvclasNo+":"+sbjctId);
+					// 팀선택
+					selectTeam(teamGrpId, teamGrpnm, e.value, "LOAD");
 				});
 			}
 
+			// 분반선택변경
 			dvclasChcChange($("#allDeclas")[0]);
 
-			// 퀴즈 등록 분반 클릭 이벤트 해제
+			// 퀴즈등록 분반 클릭이벤트 해제
 			const checkbox = document.querySelector('input[name="sbjctIds"].readonly');
 			checkbox.addEventListener('click', (e) => {
 				e.preventDefault();
 			});
+
+			// 재응시사용여부변경
+			reexamynChange("${vo.examDtlVO.reexamyn eq 'Y' ? 'Y' : 'N'}");
 		});
 
 	 	// 이전 퀴즈 가져오기 팝업
 		function bfrQuizCopyPopup() {
-			var data = "sbjctId=${sbjctId}";
-
 			dialog = UiDialog("dialog1", {
-				title: "이전퀴즈 가져오기",
-				width: 800,
-				height: 450,
-				url: "/quiz/profBfrQuizCopyPopup.do?"+data,
-				autoresize: true
+				title	: "<spring:message code='quiz.button.prev.quiz.copy' />"/* 이전퀴즈 가져오기 */,
+				width	: 800,
+				height	: 580,
+				url		: "/quiz/profBfrQuizCopyPopup.do?encParams="+$("#encParams").val()
 			});
 		}
 
 	 	/**
-		 * 퀴즈 복사
-		 * @param {String}  examBscId 	- 시험기본아이디
-		 * @returns {vo} 퀴즈 정보
+		 * 퀴즈가져오기
+		 * @param examBscId	- 시험기본아이디
 		 */
 	 	function quizCopy(examBscId) {
-	 		var url  = "/quiz/quizSelectAjax.do";
-			var data = {
-				"examBscId" : examBscId
+	 		const url  = "/quiz/quizSelectAjax.do";
+	 		const data = {
+				examBscId : examBscId
 			};
 
 			ajaxCall(url, data, function(data) {
 				if (data.result > 0) {
-	        		var quiz = data.returnVO;
+	        		let quiz = data.data;
 
-	        		// 퀴즈명
-	        		$("#examTtl").val(quiz.examTtl);
-	        		// 퀴즈 내용
-	        		$("button.se-clickable[name=new]").trigger("click");
-	        		editors['editor'].insertHTML($.trim(quiz.examCts) == "" ? " " : quiz.examCts);
-	        		// 퀴즈 시간
-	        		$("#examMnts").val(quiz.examDtlVO.examMnts);
-	        		// 성적 반영 여부
-	        		var mrkRfltId = quiz.mrkRfltyn == "Y" ? "mrkRfltynY" : "mrkRfltynN";
-	        		$("#"+mrkRfltId).trigger("click");
-	        		// 문제 표시 방식
-	        		var qstnDsplyId = quiz.qstnDsplyGbncd == "WHOL" ? "wholViewQstn" : "eachViewQstn";
-	        		$("#"+qstnDsplyId).trigger("click");
-	        		// 문제 섞기
-	        		$("#qstnRndmynChk").prop("checked", quiz.qstnRndmyn == "Y");
-	        		// 보기 섞기
-	        		$("#qstnVwitmRndmynChk").prop("checked", quiz.qstnVwitmRndmyn == "Y");
-	        		// 문항후보사용여부
-	        		$("#qstnCnddtUseynChk").prop("checked", quiz.qstnCnddtUseyn == "Y");
+	        		$("#examTtl").val(quiz.examTtl);														// 퀴즈명
+	        		editors['editor'].openHTML($.trim(quiz.examCts) == "" ? " " : quiz.examCts);			// 퀴즈 내용
+	        		$("#examMnts").val(quiz.examDtlVO.examMnts);											// 퀴즈 시간
+	        		$("input[name=mrkRfltyn][value='" + quiz.mrkRfltyn + "']").trigger("click");			// 성적 반영 여부
+	        		$("input[name=qstnDsplyGbncd][value='" + quiz.qstnDsplyGbncd + "']").trigger("click");	// 문제 표시 방식
+	        		$("#qstnRndmynChk").prop("checked", quiz.qstnRndmyn == "Y");							// 문제 섞기
+	        		$("#qstnVwitmRndmynChk").prop("checked", quiz.qstnVwitmRndmyn == "Y");					// 보기 섞기
+	        		$("#qstnCnddtUseynChk").prop("checked", quiz.qstnCnddtUseyn == "Y");					// 문항후보사용여부
+	        		$("#searchValue").val(quiz.examDtlVO.examDtlId);										// 복사 시험기본아이디
 	        		dialog.close();
 	            } else {
 	            	UiComm.showMessage(data.message, "error");
 	            }
 			}, function(xhr, status, error) {
-				UiComm.showMessage("<spring:message code='exam.error.copy' />", "error");/* 가져오기 중 에러가 발생하였습니다. */
-			});
+				UiComm.showMessage("<spring:message code='quiz.error.copy' />", "error");/* 가져오기 중 에러가 발생하였습니다. */
+			}, true);
 	 	}
 
 	 	// 저장 확인
@@ -96,18 +87,11 @@
 	    	let validator = UiValidator("writeQuizForm");
 			validator.then(function(result) {
 				if (result) {
-					if(!isNull()) {
-						return false;
-					}
-
 					let dx = dx5.get("fileUploader");
-					// 첨부파일 있으면 업로드
 		    		if (dx.availUpload()) {
 		    			dx.startUpload();
-		    		}
-					// 첨부파일 없으면 저장 호출
-		    		else {
-		    			save();
+		    		} else {
+		    			continueSubQuizUploadChain(0);
 		    		}
 				}
 			});
@@ -118,8 +102,8 @@
 	    	let url = "/common/uploadFileCheck.do"; // 업로드된 파일 검증 URL
         	let dx = dx5.get("fileUploader");
         	let data = {
-        		"uploadFiles" : dx.getUploadFiles(),
-        		"uploadPath"  : dx.getUploadPath()
+        		uploadFiles : dx.getUploadFiles(),
+        		uploadPath  : dx.getUploadPath()
         	};
 
         	// 업로드된 파일 체크
@@ -127,175 +111,147 @@
         		if(data.result > 0) {
         			$("#uploadFiles").val(dx.getUploadFiles());
 
-        	    	save();
+        			continueSubQuizUploadChain(0);
         		} else {
 					UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error"); // 업로드를 실패하였습니다.
         		}
         	},
         	function(xhr, status, error) {
         		UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error"); // 업로드를 실패하였습니다.
-        	});
+        	}, true);
 	    }
+
+	 	// 팀그룹부퀴즈업로드처리
+	    function continueSubQuizUploadChain(uploadIdx) {
+            if (uploadIdx >= subQuizUploaderIds.length) {
+                save();
+                return;
+            }
+
+            const uploaderId = subQuizUploaderIds[uploadIdx];
+            const dx = dx5.get(uploaderId);
+
+            if (!dx) {
+                subQuizUploadResults[uploaderId] = {
+                    uploadFiles	: "",
+                    uploadPath	: "",
+                    delFileIdStr: ""
+                };
+                continueSubQuizUploadChain(uploadIdx + 1);
+                return;
+            }
+
+            if (dx.availUpload()) {
+                dx.startUpload();
+            } else {
+                subQuizUploadResults[uploaderId] = {
+                    uploadFiles	: "",
+                    uploadPath	: dx.getUploadPath(),
+                    delFileIdStr: dx.getDelFileIdStr ? dx.getDelFileIdStr() : ""
+                };
+                continueSubQuizUploadChain(uploadIdx + 1);
+            }
+        }
+
+	 	// 팀그룹부과제업로드완료
+	    function onSubQuizUploadComplete(uploaderId) {
+
+            const uploadIdx = subQuizUploaderIds.indexOf(uploaderId);
+            const dx = dx5.get(uploaderId);
+
+            const url  = "/common/uploadFileCheck.do";
+            const data = {
+                uploadFiles	: dx.getUploadFiles(),
+                uploadPath	: dx.getUploadPath()
+            };
+
+            ajaxCall(url, data, function (resp) {
+                if (resp.result > 0) {
+                    subQuizUploadResults[uploaderId] = {
+                        uploadFiles	: dx.getUploadFiles(),
+                        uploadPath	: dx.getUploadPath(),
+                        delFileIdStr: dx.getDelFileIdStr ? dx.getDelFileIdStr() : ""
+                    };
+
+                    continueSubQuizUploadChain(uploadIdx + 1);
+                } else {
+                    UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error");
+                }
+            }, function () {
+                UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error");
+            }, true);
+        }
 
 	    // 퀴즈 등록, 수정
 	    function save() {
 	    	setValue();
-			UiComm.showLoading(true);
 
 			let dx = dx5.get("fileUploader");
     		$("#delFileIdStr").val(dx.getDelFileIdStr()); // 삭제파일 ID 설정
 
-			var url = "/quiz/quizRegistAjax.do";
+			let url = "/quiz/quizRegistAjax.do";
 			if(${not empty vo.examBscId}) {
 				url = "/quiz/quizModifyAjax.do";
 			}
-			$.ajax({
-			    url 	 : url,
-			    async	 : false,
-			    type 	 : "POST",
-			    dataType : "json",
-			    data 	 : $("#writeQuizForm").serialize(),
-			}).done(function(data) {
-				UiComm.showLoading(false);
-				if (data.result > 0) {
-					if(${empty vo.examBscId} || ${vo.examQstnsCmptnyn ne 'Y'}) {
-						UiComm.showMessage("<spring:message code='exam.alert.already.quiz.qstn.submit' />", "info")	/* 퀴즈 문제관리에서 문제를 출제 해 주세요. */
+
+			ajaxCall(url, $("#writeQuizForm").serialize(), function (data) {
+                if (data.result > 0) {
+                	if(${empty vo.examBscId} || ${vo.examQstnsCmptnyn ne 'Y'}) {
+						UiComm.showMessage("<spring:message code='quiz.alert.qstn.mng.create.qstn' />", "info")	/* 문제관리에서 문제를 출제 해 주세요. */
 						.then(function(result) {
 							// 메시지 닫은후 실행
-							quizViewMv("qstn", data.returnVO.examBscId);
+							quizViewMv(data.data.examBscId, "QSTN");	// 퀴즈 문항 관리 화면
 						});
 					} else {
-						quizViewMv("list", '');
+						quizViewMv("", "LIST");	// 퀴즈 목록 화면
 					}
-			    } else {
-			     	UiComm.showMessage(data.message, "error");
-			    }
-			}).fail(function() {
-				UiComm.showLoading(false);
-				if(${empty vo.examBscId}) {
-					UiComm.showMessage("<spring:message code='exam.error.insert' />", "error");	/* 저장 중 에러가 발생하였습니다. */
+                } else {
+                    UiComm.showMessage(data.message, "error");
+                }
+            }, function () {
+            	if(${empty vo.examBscId}) {
+					UiComm.showMessage("<spring:message code='quiz.error.insert' />", "error");	/* 저장 중 에러가 발생하였습니다. */
 				} else {
-					UiComm.showMessage("<spring:message code='exam.error.update' />", "error");	/* 수정 중 에러가 발생하였습니다. */
+					UiComm.showMessage("<spring:message code='quiz.error.update' />", "error");	/* 수정 중 에러가 발생하였습니다. */
 				}
-			});
-	    }
-
-	    // 빈 값 체크
-	    function isNull() {
-			// 재응시 사용시
-			if($("#reexamynY").is(":checked")) {
-				if($("#redateSt").val() == "") {
-					UiComm.showMessage("<spring:message code='exam.alert.input.reexam.start.dttm' />", "warning");	/* 재응시 시작일자를 입력하세요. */
-					return false;
-				}
-				if($("#retimeSt").val() == " ") {
-					UiComm.showMessage("<spring:message code='exam.alert.input.reexam.start.dttm.hour' />", "warning");	/* 재응시 시작시간을 입력하세요. */
-					return false;
-				}
-				if($("#redateEd").val() == "") {
-					UiComm.showMessage("<spring:message code='exam.alert.input.reexam.end.dttm' />", "warning");	/* 재응시 종료일자를 입력하세요. */
-					return false;
-				}
-				if($("#retimeEd").val() == " ") {
-					UiComm.showMessage("<spring:message code='exam.alert.input.reexam.end.dttm.hour' />", "warning");	/* 재응시 종료시간을 입력하세요. */
-					return false;
-				}
-				if($("#reexamMrkRfltrt").val() == "") {
-					UiComm.showMessage("<spring:message code='exam.alert.input.reexam.aply.ratio' />", "warning");	/* 재응시 적용률을 입력하세요. */
-				return false;
-				}
-			}
-
-			// 팀 퀴즈 설정시
-			if($("#quizTeamynY").is(":checked")) {
-				var isResult = true;
-				var alertMsg = "";
-				$("input[name=lrnGrpnm]:visible").each(function(i, e) {
-					if(e.value == "") {
-						isResult = false;
-						alertMsg = "학습그룹을 지정하세요.";
-						return false;
-					}
-				});
-
-				// 팀 퀴즈 학습그룹별 부 과제 설정시
-				$("input[name='lrnGrpSubasmtStngyns']:checked").each(function(i, e) {
-					if(!isResult) return false;
-					$("#subInfoDiv"+e.id.split("_")[1]+" tr.subQuizTr").each(function(index, element) {
-						var ttl = $(element).find("input[name='subExamTtl']");
-						if($.trim($(ttl).val()) == "") {
-							isResult = false;
-							alertMsg = "<spring:message code='exam.alert.input.title' />"	/* 제목을 입력하세요. */
-							return false;
-						}
-
-						var teamId = ttl[0].id.split("_")[0];
-						if(editors[teamId+'_editor'+index].isEmpty() || editors[teamId+'_editor'+index].getTextContent().trim() === "") {
-							isResult = false;
-							alertMsg = "<spring:message code='exam.alert.input.contents' />";	/* 내용을 입력하세요. */
-				 			return false;
-				 		}
-					});
-				});
-				if(!isResult) {
-					UiComm.showMessage(alertMsg, "warning");
-					return false;
-				}
-			}
-
-			return true;
+            }, true);
 	    }
 
 	    // 값 채우기
 	    function setValue() {
-	    	// 퀴즈 내용
-	    	var examContents = editors['editor'].getPublishingHtml();
-			$("#examCts").val(examContents);
+			$("#examPsblSdttm").val(UiComm.getDateTimeVal("dateSt", "timeSt") + "00");					// 퀴즈 시작일시
+			$("#examPsblEdttm").val(UiComm.getDateTimeVal("dateEd", "timeEd") + "59");					// 퀴즈 종료일시
+			$("#qstnRndmyn").val($("#qstnRndmynChk").is(":checked") ? "Y" : "N");						// 문제 섞기
+			$("#qstnVwitmRndmyn").val($("#qstnVwitmRndmynChk").is(":checked") ? "Y" : "N");				// 보기 섞기
+			$("#qstnCnddtUseyn").val($("#qstnCnddtUseynChk").is(":checked") ? "Y" : "N");				// 문항후보사용여부
+			$("#dvclasRegyn").val($("input:checkbox[name=sbjctIds]:checked").length > 1 ? "Y" : "N");	// 분반 체크 여부
+			$("#examGbncd").val($("#quizTeamynY").is(":checked") ? "QUIZ_TEAM" : "QUIZ");				// 퀴즈구분코드
 
-			// 퀴즈 시작일시
-			$("#examPsblSdttm").val(UiComm.getDateTimeVal("dateSt", "timeSt") + "00");
-
-			// 퀴즈 종료일시
-			$("#examPsblEdttm").val(UiComm.getDateTimeVal("dateEd", "timeEd") + "59");
-
-			// 문제 섞기
-			$("#qstnRndmyn").val($("#qstnRndmynChk").is(":checked") ? "Y" : "N");
-
-			// 보기 섞기
-			$("#qstnVwitmRndmyn").val($("#qstnVwitmRndmynChk").is(":checked") ? "Y" : "N");
-
-			// 문항후보사용여부
-			$("#qstnCnddtUseyn").val($("#qstnCnddtUseynChk").is(":checked") ? "Y" : "N");
-
-			// 분반 체크 여부
-			$("#dvclasRegyn").val($("input:checkbox[name=sbjctIds]:checked").length > 1 ? "Y" : "N");
-
-			// 재응시 여부
+			// 재응시사용시
 			if($("#reexamynY").is(":checked")) {
-				// 재응시 시작일시
-				$("#reexamPsblSdttm").val(UiComm.getDateTimeVal("redateSt", "retimeSt") + "00");
-
-				// 재응시 종료일시
-				$("#reexamPsblEdttm").val(UiComm.getDateTimeVal("redateEd", "retimeEd") + "59");
+				$("#reexamPsblSdttm").val(UiComm.getDateTimeVal("redateSt", "retimeSt") + "00");		// 재응시 시작일시
+				$("#reexamPsblEdttm").val(UiComm.getDateTimeVal("redateEd", "retimeEd") + "59");		// 재응시 종료일시
 			}
 
-			// 퀴즈구분코드
-			$("#examGbncd").val($("#quizTeamynY").is(":checked") ? "QUIZ_TEAM" : "QUIZ");
-
-			// 팀 퀴즈 학습그룹별 부 과제 설정시
+			// 팀퀴즈시
 	    	if($("#quizTeamynY").is(":checked")) {
 				const dtlInfos = [];
-	    		$("input[name='lrnGrpSubasmtStngyns']:checked").each(function(i, e) {
-	    			$("#subInfoDiv"+e.id.split("_")[1]+" tr.subQuizTr").each(function(index, element) {
-						var ttl = $(element).find("input[name='subExamTtl']");
-						var teamId = ttl[0].id.split("_")[0];
+				// 팀그룹별퀴즈설정시
+	    		$("input[name='teamGrpSubasmtStngyns']:checked").each(function(i, e) {
+	    			$("#subInfoDiv"+e.value.split(":")[1]+" tr.subQuizTr").each(function(index, element) {
+						let ttl 			= $(element).find("input[name='subExamTtl']");		// 부주제
+						let teamId 			= ttl[0].id.split("_")[0];							// 팀아이디
+						let uploaderId 		= "subQuizFileUploader_" + teamId + "_" + index;	// 업로더아이디
+						let uploadResult 	= subQuizUploadResults[uploaderId] || {};			// 업로더상세값
 
-						const map = {
-							id: teamId,
-							ttl: $.trim($(ttl).val()),
-							cts: editors[teamId+'_editor'+index].getPublishingHtml()
-						};
-						dtlInfos.push(map);
+						dtlInfos.push({
+							id			: teamId,
+							ttl			: $.trim($(ttl).val()),
+							cts			: $("#"+teamId+'_subExamCts_'+index).val(),
+							uploadFiles	: uploadResult.uploadFiles || "",
+							uploadPath	: uploadResult.uploadPath || "${vo.uploadPath}",
+							delFileIdStr: uploadResult.delFileIdStr || ""
+						});
 	    			});
 	    		});
 	    		$("#dtlInfos").val(JSON.stringify(dtlInfos));
@@ -303,221 +259,227 @@
 	    }
 
 		/**
-		 * 퀴즈 화면 이동
-		 * @param {String}  examBscId 	- 시험기본아이디
-		 * @param {String}  sbjctId 	- 과목아이디
-		 */
-		function quizViewMv(type, examBscId) {
-			var urlMap = {
-				"qstn" : "/quiz/profQuizQstnMngView.do",	// 퀴즈 문항 관리 화면
-				"list" : "/quiz/profQuizListView.do"		// 퀴즈 목록 화면
-			}
-			var kvArr = [];
-			kvArr.push({'key' : 'examBscId',   	'val' : examBscId});
-			kvArr.push({'key' : 'sbjctId', 		'val' : "${sbjctId}"});
-
-			submitForm(urlMap[type], kvArr);
-		}
-
-		/**
-		 * 분반 선택 변경
-		 * @param {obj}  obj - 선택한 분반 체크박스
+		 * 분반선택변경
+		 * @param obj - 선택한 분반 체크박스
 		 */
 		function dvclasChcChange(obj) {
 			if(obj.value == "all") {
 				$("input[name=sbjctIds]").not(".readonly").prop("checked", obj.checked);
 
 				if(obj.checked) {
-					$("div[id^='lrnGrpView']").css("display", "flex");
-					$("input[name='lrnGrpSubasmtStngyns']:checked").each(function(i, e) {
-						$("#setQuizDiv"+e.id.split("_")[1]).show();
+					$("div[id^='teamGrpView']").css("display", "flex");
+					$("input[name='teamGrpSubasmtStngyns']:checked").each(function(i, e) {
+						$("#setQuizDiv" + e.value.split(":")[1]).show();
 					});
 				} else {
-					var fixDvclas = $("input[name=sbjctIds]").filter(".readonly")[0].id.split("_")[1];
-					$("div[id^='lrnGrpView']").not("#lrnGrpView"+fixDvclas).hide();
-					$("div[id^='setQuizDiv']").not("#setQuizDiv"+fixDvclas).hide();
+					let fixSbjct = $("input[name=sbjctIds]").filter(".readonly")[0].value;
+					$("div[id^='teamGrpView']").not("#teamGrpView"+fixSbjct).hide();
+					$("div[id^='setQuizDiv']").not("#setQuizDiv"+fixSbjct).hide();
 				}
 			} else {
 				$("#allDeclas").prop("checked", $("input[name=sbjctIds]").length == $("input[name=sbjctIds]:checked").length);
 
+				$("#setQuizDiv" + obj.value).toggle(obj.checked);
 				if(obj.checked) {
-					$("#lrnGrpView" + obj.id.split("_")[1]).css("display", "flex");
-					$("#setQuizDiv"+obj.id.split("_")[1]).show();
+					$("#teamGrpView" + obj.value).css("display", "flex");
 				} else {
-					$("#lrnGrpView" + obj.id.split("_")[1]).hide();
-					$("#setQuizDiv"+obj.id.split("_")[1]).hide();
+					$("#teamGrpView" + obj.value).hide();
 				}
 			}
+
+			// 팀그룹 필수변경
+			document.querySelectorAll('#teamQuizDiv input[name=teamGrpnm]').forEach(input => {
+				if($("#quizTeamynY").is(":checked")) {
+					input.setAttribute("required", $(input).is(':visible') ? "true" : "false");
+				} else {
+					input.setAttribute("required", "false");
+				}
+			});
 		}
 
 		/**
 		 * 팀 퀴즈 여부 변경
-		 * @param {String}  value - 팀 퀴즈 여부
+		 * @param value - 팀 퀴즈 여부
 		 */
 		function teamynChange(value) {
-			if(value == "Y") {
-				$("#teamQuizDiv").show();
-			} else {
-				$("#teamQuizDiv").hide();
-			}
+			$("#teamQuizDiv").toggle(value == "Y");
+
+			// 팀그룹 필수변경
+			document.querySelectorAll('#teamQuizDiv input[name=teamGrpnm]').forEach(input => {
+				if($("#quizTeamynY").is(":checked")) {
+					input.setAttribute("required", $(input).is(':visible') ? "true" : "false");
+				} else {
+					input.setAttribute("required", "false");
+				}
+			});
 		}
 
 		/**
-		 * 학습그룹지정 팝업
-		 * @param {Integer} i 		- 분반 순서
-		 * @param {String}  sbjctId - 과목아이디
+		 * 팀그룹지정 팝업
+		 * @param i			- 분반 순서
+		 * @param sbjctId 	- 과목아이디
 		 */
 	    function teamGrpChcPopup(i, sbjctId) {
 			dialog = UiDialog("dialog1", {
-				title: "학습그룹지정",
-				width: 600,
-				height: 500,
-				url: "/team/teamHome/teamCtgrSelectPop.do?sbjctId="+sbjctId+"&searchFrom="+i + ":" + sbjctId,
-				autoresize: true
+				title	: "<spring:message code='srvy.button.assign.teams' />"/* 팀그룹지정 */,
+				width	: 600,
+				height	: 500,
+				url		: "/team/teamHome/teamCtgrSelectPop.do?sbjctId="+sbjctId+"&searchFrom="+i + ":" + sbjctId
 			});
 		}
 
 	    /**
-		 * 학습그룹 선택
-		 * @param {String}  lrnGrpId 	- 학습그룹아이디
-		 * @param {String}  lrnGrpnm 	- 학습그룹명
-		 * @param {String}  id 			- 분반 순서:과목개설아이디
-		 * @returns {list} 팀 목록
+		 * 팀선택
+		 * @param teamGrpId	- 팀그룹아이디
+		 * @param teamGrpnm	- 팀그룹명
+		 * @param id 		- 분반 순서:과목개설아이디
 		 */
-	    function selectTeam(lrnGrpId, lrnGrpnm, id) {
-	    	var idList = id.split(':');
-	    	$("#lrnGrpId" + idList[0]).val(lrnGrpId + ":" + idList[1]);
-	    	$("#lrnGrpnm" + idList[0]).val(lrnGrpnm);
-	    	$("#setQuizDiv" + idList[0]).show();
+	    function selectTeam(teamGrpId, teamGrpnm, id, type) {
+	    	let idList = id.split(':');
+	    	$("#teamGrpId" + idList[1]).val(teamGrpId + ":" + idList[1]);
+	    	$("#teamGrpnm" + idList[1]).val(teamGrpnm);
+	    	$("#setQuizDiv" + idList[1]).show();
 
-	    	var url  = "/quiz/quizLrnGrpSubAsmtListAjax.do";
-			var data = {
-				lrnGrpId  : lrnGrpId,
-				examBscId : $("#lrnGrpSubasmtStngyn_" + idList[0]).data("bscid")
+	    	let bscId = type == "LOAD" ? $("#teamGrpSubasmtStngyn_" + idList[1]).data("bscid") : "";
+	    	const url  = "/quiz/quizTeamGrpSubQuizListAjax.do";
+	    	const data = {
+				teamGrpId  	: teamGrpId,
+				examBscId 	: bscId
 			};
 
 			ajaxCall(url, data, function(data) {
 				if (data.result > 0) {
-					var returnList = data.returnList || [];
-					var html = "";
+					let returnList = data.returnList || [];
+					let html = "";
 
 	        		if(returnList.length > 0) {
-						html += "<table class='table-type5'>";
+						html += "<table class='table-type5 in_table'>";
 						html += "	<colgroup>";
-						html += "		<col class='width-10per' />";
+						html += "		<col class='width-5per' />";
+						html += "		<col class='width-15per' />";
 						html += "		<col class='' />";
-						html += "		<col class='width-10per' />";
 						html += "	</colgroup>";
 						html += "	<tbody>";
-						html += "		<tr>";
-						html += "			<th>팀</th>";
-						html += "			<th>부 과제</th>";
-						html += "			<th>학습그룹 구성원</th>";
-						html += "		</tr>";
 	        			returnList.forEach(function(v, i) {
 							html += "	<tr class='subQuizTr'>";
-							html += "		<th><label>" + v.teamnm + "</label></th>";
+							html += "		<th rowspan='3' class='group-header'><label>" + v.teamnm + "</label></th>";
+							html += "		<th><label for='" + v.teamId + "_dtlExamTtl_" + i + "' class='req'><spring:message code='quiz.label.sub.title' /></label></th>";/* 부주제 */
 							html += "		<td>";
-							html += "			<table class='table-type5'>";
-							html += "				<colgroup>";
-							html += "					<col class='width-10per' />";
-							html += "					<col class='' />";
-							html += "				</colgroup>";
-							html += "				<tbody>";
-							html += "					<tr>";
-							html += "						<th><label for='" + v.teamId + "_dtlExamTtl_" + i + "' class='req'>주제</label></th>";
-							html += "						<td><input type='text' id='" + v.teamId + "_dtlExamTtl_" + i + "' name='subExamTtl' value='" + (v.examTtl == null ? '' : v.examTtl) + "' inputmask='byte' maxLen='200' class='width-100per' /></td>";
-							html += "					</tr>";
-							html += "					<tr>";
-							html += "						<th><label for='" + v.teamId + "_contentTextArea_" + i + "' class='req'>내용</label></th>";
-							html += "						<td>";
-							html += "							<div class='editor-box'>";
-							html += "								<textarea name='" + v.teamId + "_contentTextArea_" + i + "' id='" + v.teamId + "_contentTextArea_" + i + "'>" + (v.examCts == null ? '' : v.examCts) + "</textarea>";
-							html += "							</div>";
-							html += "						</td>";
-							html += "					</tr>";
-							html += "					<tr>";
-							html += "						<th><label for='attchFile1'>첨부파일</label></th>";
-							html += "						<td></td>";
-//							html += "							<div id='"+v.teamId+"_upload"+i+"-container' class='dext5-container' style='width:100%;height:180px'></div>";
-//							html += "							<div id='"+v.teamId+"_upload"+i+"-btn-area' class='dext5-btn-area'><button type='button' id='"+v.teamId+"_upload"+i+"_btn-add'><spring:message code='button.select.file'/></button>";
-//							html += "							<button type='button' id='"+v.teamId+"_upload"+i+"_btn-filebox'><spring:message code='button.from_filebox'/></button>";
-//							html += "							<button type='button' id='"+v.teamId+"_upload"+i+"_btn-delete'><spring:message code='button.delete'/></button></div>";
-							html += "					</tr>";
-							html += "				</tbody>";
-							html += "			</table>";
+							html += "			<div class='form-row'>";
+							html += "				<input type='text' id='" + v.teamId + "_dtlExamTtl_" + i + "' name='subExamTtl' value='" + (v.examTtl == null ? '' : v.examTtl) + "' inputmask='byte' maxLen='200' class='form-control width-100per' />";
+							html += "			</div>";
+							html += "		</td>"
+							html += "	</tr>";
+							html += "	<tr>";
+							html += "		<th><label for='" + v.teamId + "_subExamCts_" + i + "' class='req'><spring:message code='common.label.contents' /></label></th>";/* 내용 */
+							html += "		<td>";
+							html += "			<label class='width-100per'>";
+							html += "				<textarea rows='4'";
+							html += "						  class='form-control resize-none'";
+							html += "						  name='" + v.teamId + "_subExamCts_" + i + "'";
+							html += "						  id='" + v.teamId + "_subExamCts_" + i + "'>";
+							html += 					(v.examCts == null ? '' : v.examCts);
+							html += "				</textarea>";
+							html += "			</label>";
 							html += "		</td>";
-							html += "		<th>" + v.leadernm + " 외 " + (v.teamMbrCnt - 1) + "</th>";
+							html += "	</tr>";
+							html += "	<tr>";
+							html += "		<th><label><spring:message code='common.attachments' /></label></th>";/* 첨부파일 */
+							html += "		<td>";
+							html += "			<div id='subQuizUploaderWrap_" + v.teamId + "_" + i + "'></div>";
+							html += "		</td>";
 							html += "	</tr>";
 	        			});
 						html += "	</tbody>";
 						html += "</table>";
 	        		}
 
-	        		$("#subInfoDiv" + idList[0]).empty().html(html);
+	        		$("#subInfoDiv" + idList[1]).empty().html(html);
+	        		/*
+                     * 재조회 시 중복 방지
+                     */
+                    subQuizUploaderIds 		= [];
+                    subQuizUploadResults 	= {};
+
 	        		if(returnList.length > 0) {
 	        			returnList.forEach(function(v, i) {
 	        				// html 에디터 생성
-							editors[v.teamId+'_editor'+i] = UiEditor({
-																targetId: v.teamId+'_contentTextArea_'+i,
-																uploadPath: "/quiz",
-																height: "500px"
-															});
-
-	        				// 첨부파일
-							<%-- DextUploader({
-								id:v.teamId+"_upload"+i,
-								parentId:v.teamId+"_upload"+i+"-container",
-								btnFile:v.teamId+"_upload"+i+"_btn-add",
-								btnDelete:v.teamId+"_upload"+i+"_btn-delete",
-								lang:"<%=LocaleUtil.getLocale(request)%>",
-								uploadMode:"ORAF",
-								fileCount:5,
-								maxTotalSize:1024,
-								maxFileSize:1024,
-								extensionFilter:"*",
-								finishFunc:"finishUpload()",
-								uploadUrl:"<%=CommConst.PRODUCT_DOMAIN + CommConst.DEXT_FILE_UPLOAD%>",
-								path:"/quiz",
-								useFileBox:true
-							}); --%>
+	        				const editorId = v.teamId + "_subExamCts_" + i;
+							editors[editorId] = UiEditor({
+													targetId: editorId,
+													uploadPath: "${vo.uploadPath}",
+													height: "250px"
+												});
 	        			});
+
+	        			initFileuploader(idList[1]);
 	        		}
 	            } else {
 	            	UiComm.showMessage(data.message, "error");
 	            }
 			}, function(xhr, status, error) {
-				UiComm.showMessage("<spring:message code='exam.error.copy' />", "error");	/* 가져오기 중 에러가 발생하였습니다. */
+				UiComm.showMessage("<spring:message code='quiz.error.copy' />", "error");	/* 가져오기 중 에러가 발생하였습니다. */
+			}, true);
+	    }
+
+	    function initFileuploader(sbjctId) {
+			if($("#subInfoDiv" + sbjctId).is(":visible")) {
+				$("#subInfoDiv"+sbjctId+" tr.subQuizTr").each(function(index, element) {
+					let teamId 		= $(element).find("input[name='subExamTtl']")[0].id.split("_")[0];
+					let uploaderId 	= "subQuizFileUploader_" + teamId + "_" + index;
+					let wrapId 		= "subQuizUploaderWrap_" + teamId + "_" + index;
+
+					if(!subQuizUploaderIds.includes(uploaderId)) {
+						UiFileUploader({
+			                id: uploaderId,
+			                targetId: wrapId,
+			                path: "${vo.uploadPath}",
+			                limitCount: 5,
+			                limitSize: 1024,
+			                oneLimitSize: 1024,
+			                listSize: 3,
+			                fileList: "",
+			                finishFunc: onSubQuizUploadComplete,
+			                allowedTypes: "*"
+			            });
+
+						subQuizUploaderIds.push(uploaderId);
+					}
+    			});
+			}
+		}
+
+	    /**
+		 * 팀그룹 설정여부 변경
+		 * @param obj - 분반 팀그룹 퀴즈 설정 체크박스
+		 */
+	    function teamGrpSubasmtStngynChange(obj) {
+	    	$("#subInfoDiv" + obj.id.split("_")[1]).toggle(obj.checked);
+
+	    	if(obj.checked) initFileuploader(obj.id.split("_")[1]);
+
+	    	// 부주제, 내용 필수변경
+	    	document.querySelectorAll('#subInfoDiv'+obj.id.split("_")[1]+' input[name=subExamTtl], #subInfoDiv'+obj.id.split("_")[1]+' textarea').forEach(input => {
+				input.setAttribute("required", obj.checked ? "true" : "false");
 			});
 	    }
 
-	    /**
-		 * 학습그룹 설정여부 변경
-		 * @param {obj}  obj - 분반 학습그룹 과제 설정 체크박스
-		 */
-	    function lrnGrpSubasmtStngynChange(obj) {
-	    	if(obj.checked) {
-				$("#subInfoDiv" + obj.id.split("_")[1]).show();
-			} else {
-				$("#subInfoDiv" + obj.id.split("_")[1]).hide();
-			}
-	    }
-
 		/**
-		 * 재응시 사용여부 변경
-		 * @param {String}  value - 재응시 사용여부
+		 * 재응시사용여부변경
+		 * @param value - 재응시 사용여부
 		 */
 		function reexamynChange(value) {
-			if(value == "Y") {
-				$("#reexamDiv").show();
-			} else {
-				$("#reexamDiv").hide();
-			}
+			$(".reexamDiv").toggle(value == "Y");
+
+			// 재응시값 필수변경
+			document.querySelectorAll('.reexamDiv input').forEach(input => {
+				input.setAttribute("required", value == "Y" ? "true" : "false");
+			});
 		}
 	</script>
 </head>
 
-<body class="class colorA">
+<body class="class ${uiex:getTheme()}">
     <div id="wrap" class="main">
         <!-- common header -->
         <jsp:include page="/WEB-INF/jsp/common_new/class_header.jsp"/>
@@ -532,54 +494,28 @@
 
             <!-- content -->
             <div id="content" class="content-wrap common">
-            	<div class="class_sub_top">
-					<div class="navi_bar">
-						<ul>
-							<li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-							<li>강의실</li>
-							<li><span class="current">내강의실</span></li>
-						</ul>
-					</div>
-					<div class="btn-wrap">
-						<div class="first">
-							<select class="form-select">
-								<option value="2025년 2학기">2025년 2학기</option>
-								<option value="2025년 1학기">2025년 1학기</option>
-							</select>
-							<select class="form-select wide">
-								<option value="">강의실 바로가기</option>
-								<option value="2025년 2학기">2025년 2학기</option>
-								<option value="2025년 1학기">2025년 1학기</option>
-							</select>
-						</div>
-						<div class="sec">
-							<button type="button" class="btn type1"><i class="xi-book-o"></i>교수 매뉴얼</button>
-							<button type="button" class="btn type1"><i class="xi-info-o"></i>학습안내정보</button>
-						</div>
-					</div>
-				</div>
+				<!-- class_sub_top -->
+				<jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+				<!-- //class_sub_top -->
 
 				<div class="class_sub">
+					<!-- class_info -->
+					<jsp:include page="/WEB-INF/jsp/common_new/class_info.jsp"/>
+					<!-- //class_info -->
+
 		        	<div class="sub-content">
 				        <div class="page-info">
 				        	<h2 class="page-title">
-                                <spring:message code="exam.label.quiz" /><!-- 퀴즈 -->
+                                <spring:message code="quiz.common.quiz" /><!-- 퀴즈 -->
                             </h2>
 				        </div>
-				        <spring:message code="exam.button.save" var="save" /><!-- 저장 -->
-				        <spring:message code="exam.button.mod"  var="modify" /><!-- 수정 -->
-				        <div class="board_top">
-					        <div class="right-area">
-					        	<a href="javascript:saveConfirm()" class="btn type2">${empty vo.examBscId ? save : modify }</a>
-					            <a href="javascript:bfrQuizCopyPopup()" class="btn type2"><spring:message code="exam.label.prev" /> <spring:message code="exam.label.quiz" /> <spring:message code="exam.label.copy" /></a><!-- 이전 --><!-- 퀴즈 --><!-- 가져오기 -->
-					            <a href="javascript:quizViewMv('list', '')" class="btn type2"><spring:message code="exam.button.list" /></a><!-- 목록 -->
-					        </div>
-				        </div>
 				        <!--table-type-->
+				        <spring:message code="quiz.common.yes" var="yes" /><!-- 예 -->
+				        <spring:message code="quiz.common.no"  var="no" /><!-- 아니오 -->
 				        <div class="table-wrap">
-							<form name="writeQuizForm" id="writeQuizForm" method="POST" autocomplete="off">
+							<form name="writeQuizForm" id="writeQuizForm" method="POST" autocomplete="off" onsubmit="return false;">
+						        <input type="hidden" name="encParams"    				value="<c:out value='${encParams}' />" 		id="encParams" />
 						    	<input type="hidden" name="examBscId" 					value="${vo.examBscId }" />
-						        <input type="hidden" name="sbjctId" 					value="${sbjctId }" />
 						        <input type="hidden" name="examGrpId" 					value="${vo.examGrpId }" />
 						        <input type="hidden" name="examDtlVO.examDtlId" 		value="${vo.examDtlVO.examDtlId }" />
 						        <input type="hidden" name="mrkRfltrt" 					value="0" />
@@ -588,6 +524,8 @@
 						        <input type="hidden" name="avgMrkOyn" 					value="N" />
 						        <input type="hidden" name="examTycd"					value="QUIZ" />
 						        <input type="hidden" name="examDtlVO.examtmLmtyn"		value="Y" />
+						        <input type="hidden" name="examtmAllocGbncd"			value="REMAINDER" />
+						        <input type="hidden" name="examtmExpsrTycd"				value="LEFT" />
 						        <input type="hidden" name="examGbncd"					value=""									id="examGbncd" />
 						        <input type="hidden" name="examDtlVO.examPsblSdttm" 	value="${vo.examDtlVO.examPsblSdttm }" 		id="examPsblSdttm" />
 						        <input type="hidden" name="examDtlVO.examPsblEdttm" 	value="${vo.examDtlVO.examPsblEdttm }"  	id="examPsblEdttm" />
@@ -598,46 +536,47 @@
 						        <input type="hidden" name="examDtlVO.reexamPsblEdttm" 	value="${vo.examDtlVO.reexamPsblEdttm }"   	id="reexamPsblEdttm" />
 						        <input type="hidden" name="dvclasRegyn" 				value="${vo.dvclasRegyn }"	   				id="dvclasRegyn" />
 						        <input type="hidden" name="imdtAnswShtInqyn"			value=""					   				id="imdtAnswShtInqyn" />
-						        <input type="hidden" name="examCts" 					value=""					   				id="examCts"/>
 						        <input type="hidden" name="dtlInfos" 					value=""					   				id="dtlInfos"/>
 						        <input type="hidden" name="uploadFiles"  				value=""									id="uploadFiles" />
 								<input type="hidden" name="uploadPath"   				value="${vo.uploadPath}"					id="uploadPath"   />
 								<input type="hidden" name="delFileIdStr" 				value=""									id="delFileIdStr" />
+								<input type="hidden" name="searchValue" 				value=""									id="searchValue" />
 						        <table class="table-type5">
 						        	<colgroup>
-						        		<col class="width-20per" />
+						        		<col class="width-15per" />
 						        		<col class="" />
 						        	</colgroup>
 						        	<tbody>
 						        		<tr>
-						        			<th><label for="examTtl" class="req">퀴즈명</label></th>
+						        			<th><label for="examTtl" class="req"><spring:message code="quiz.label.ttl" /><!-- 퀴즈명 --></label></th>
 						        			<td>
 						        				<input type="text" name="examTtl" id="examTtl" inputmask="byte" maxLen="200" class="width-100per" required="true" value="${vo.examTtl }">
 						        			</td>
 						        		</tr>
 						        		<tr>
-						        			<th><label for="contentTextArea" class="req">퀴즈 내용</label></th>
+						        			<th><label for="contentTextArea" class="req"><spring:message code="quiz.label.cts" /><!-- 퀴즈내용 --></label></th>
 						        			<td>
 						        				<div class="editor-box">
-													<textarea id="contentTextArea" name="contentTextArea" required="true"><c:out value="${vo.examCts}" /></textarea>
-													<script>
-														// HTML 에디터
-														editors['editor'] = UiEditor({
-																				targetId: "contentTextArea",
-																				uploadPath: "/quiz",
-																				height: "400px"
-																			});
-													</script>
+													<%-- HTML 에디터 --%>
+                                                    <textarea id="examCts" name="examCts" required="true"><c:out value="${vo.examCts}"/></textarea>
+                                                    <script>
+                                                        // HTML 에디터
+                                                        editors['editor'] = UiEditor({
+                                                            targetId: "examCts",
+                                                            uploadPath: "${vo.uploadPath}",
+                                                            height: "300px"
+                                                        });
+                                                    </script>
 												</div>
 						        			</td>
 						        		</tr>
 						        		<tr>
-						        			<th><label for="contLabel" class="req">분반 일괄 등록</label></th>
+						        			<th><label for="contLabel" class="req"><spring:message code="quiz.label.dvclas.batch.regist" /><!-- 분반 일괄 등록 --></label></th>
 						        			<td>
 						        				<div class="checkbox_type">
 						        					<span class="custom-input">
 														<input type="checkbox" name="allDeclasNo" value="all" id="allDeclas" onchange="dvclasChcChange(this)">
-														<label for="allDeclas">전체</label>
+														<label for="allDeclas"><spring:message code="quiz.common.all" /><!-- 전체 --></label>
 													</span>
 													<c:forEach var="list" items="${dvclasList }">
 												        <c:set var="sbjctChk" value="N" />
@@ -647,15 +586,26 @@
 												        	</c:if>
 												        </c:forEach>
 												        <span class="custom-input">
-															<input type="checkbox" ${list.sbjctId eq sbjctId || sbjctChk eq 'Y' ? 'class="readonly" checked' : '' } name="sbjctIds" id="declas_${list.dvclasNo }" value="${list.sbjctId }" onchange="dvclasChcChange(this)">
-															<label for="declas_${list.dvclasNo }">${list.dvclasNo }반</label>
+															<input type="checkbox" ${list.sbjctId eq uiex:getParamValue('sbjctId') || sbjctChk eq 'Y' ? 'class="readonly" checked' : '' } name="sbjctIds" id="declas_${list.sbjctId }" value="${list.sbjctId }" onchange="dvclasChcChange(this)">
+															<label for="declas_${list.sbjctId }">${list.dvclasNo }<spring:message code="quiz.label.decls" /><!-- 반 --></label>
 														</span>
 											        </c:forEach>
 						        				</div>
 						        			</td>
 						        		</tr>
 						        		<tr>
-						        			<th><label for="dateSt" class="req">응시기간</label></th>
+						        			<th><label for="contLabel" class="req"><spring:message code="quiz.label.set.lctr.wkno" /><!-- 강의목록 주차 설정 --></label></th>
+						        			<td>
+						        				<select class="form-select" name="lctrWknoSchdlId" required="true">
+			                                		<option value=""><spring:message code="common.label.lesson.schedule" /><!-- 주차 --></option>
+				                                    <c:forEach var="item" items="${lctrWknoList }">
+										            	<option value="${item.lctrWknoSchdlId }" ${item.lctrWknoSchdlId eq vo.lctrWknoSchdlId || item.curLctrWkno eq 'Y' ? 'selected' : '' }>${item.lctrWknonm }</option>
+										            </c:forEach>
+				                                </select>
+						        			</td>
+						        		</tr>
+						        		<tr>
+						        			<th><label for="dateSt" class="req"><spring:message code="quiz.label.period" /><!-- 응시기간 --></label></th>
 						        			<td>
 						        				<input id="dateSt" type="text" name="dateSt" class="datepicker" timeId="timeSt" toDate="dateEd" value="${fn:substring(vo.examDtlVO.examPsblSdttm,0,8)}" required="true">
 												<input id="timeSt" type="text" name="timeSt" class="timepicker" dateId="dateSt" value="${fn:substring(vo.examDtlVO.examPsblSdttm,8,12)}" required="true">
@@ -665,77 +615,83 @@
 						        			</td>
 						        		</tr>
 						        		<tr>
-						        			<th><label for="examStareTm" class="req">퀴즈시간</label></th>
+						        			<th><label for="examStareTm" class="req"><spring:message code="quiz.label.mnts" /><!-- 퀴즈시간 --></label></th>
 						        			<td>
 						        				<div class="form-row">
 													<div class="input_btn">
-														<input class="form-control md" name="examDtlVO.examMnts" id="examMnts" type="text" inputmask="numeric" value="${vo.examDtlVO.examMnts }" required="true"><label>분</label>
+														<input class="form-control md" name="examDtlVO.examMnts" id="examMnts" type="text" inputmask="numeric" value="${vo.examDtlVO.examMnts }" required="true"><label><spring:message code="date.minute" /><!-- 분 --></label>
 														<div class="form-inline">
-															<small class="note2">! 퀴즈 시험지의 시간 표시는 남은 시간이 표시됩니다.</small>
+															<small class="note2"><spring:message code="quiz.label.examppr.mnts.notice" /><!-- ! 퀴즈 시험지의 시간 표시는 남은 시간이 표시됩니다. --></small>
 														</div>
 													</div>
 												</div>
 						        			</td>
 						        		</tr>
 						        		<tr>
-						        			<th><label class="req">성적반영</label></th>
+						        			<th><label class="req"><spring:message code="quiz.label.mrk.rfltyn" /><!-- 성적반영 --></label></th>
 						        			<td>
 						        				<span class="custom-input">
 													<input type="radio" name="mrkRfltyn" id="mrkRfltynY" value="Y" ${vo.mrkRfltyn eq 'Y' || empty vo.examBscId ? 'checked' : '' }>
-													<label for="mrkRfltynY">예</label>
+													<label for="mrkRfltynY">${yes }</label>
 												</span>
 												<span class="custom-input ml5">
 													<input type="radio" name="mrkRfltyn" id="mrkRfltynN" value="N" ${vo.mrkRfltyn eq 'N' ? 'checked' : '' }>
-													<label for="mrkRfltynN">아니오</label>
+													<label for="mrkRfltynN">${no }</label>
 												</span>
 						        			</td>
 						        		</tr>
 						        		<tr>
-						        			<th><label class="req">성적공개</label></th>
+						        			<th><label class="req"><spring:message code="quiz.label.mrk.oyn" /><!-- 성적공개 --></label></th>
 						        			<td>
 						        				<span class="custom-input">
 													<input type="radio" name="mrkOyn" id="mrkOynY" value="Y" ${vo.mrkOyn eq 'Y' || empty vo.examBscId ? 'checked' : '' }>
-													<label for="mrkOynY">예</label>
+													<label for="mrkOynY">${yes }</label>
 												</span>
 												<span class="custom-input ml5">
 													<input type="radio" name="mrkOyn" id="mrkOynN" value="N" ${vo.mrkOyn eq 'N' ? 'checked' : '' }>
-													<label for="mrkOynN">아니오</label>
+													<label for="mrkOynN">${no }</label>
 												</span>
 						        			</td>
 						        		</tr>
 						        		<tr>
-						        			<th><label class="req">문제표시방식</label></th>
+						        			<th><label class="req"><spring:message code="quiz.label.qstn.dsply.mode" /><!-- 문제표시방식 --></label></th>
 						        			<td>
 						        				<span class="custom-input">
 													<input type="radio" name="qstnDsplyGbncd" id="wholViewQstn" value="WHOL" ${vo.qstnDsplyGbncd eq 'WHOL' || empty vo.examBscId ? 'checked' : '' }>
-													<label for="wholViewQstn">전체문제 표시</label>
+													<label for="wholViewQstn"><spring:message code="quiz.label.all.view.qstn" /><!-- 전체문제 표시 --></label>
 												</span>
 												<span class="custom-input ml5">
 													<input type="radio" name="qstnDsplyGbncd" id="eachViewQstn" value="EACH" ${vo.qstnDsplyGbncd eq 'EACH' ? 'checked' : '' }>
-													<label for="eachViewQstn">페이지별로 1문제씩 표시</label>
+													<label for="eachViewQstn"><spring:message code="quiz.label.each.view.qstn" /><!-- 페이지별로 1문제씩 표시 --></label>
 												</span>
 						        			</td>
 						        		</tr>
 						        		<tr>
-						        			<th><label for="teamLabel">문제 섞기</label></th>
+						        			<th><label for="teamLabel"><spring:message code="quiz.label.qstn.shuffle" /><!-- 문제 섞기 --></label></th>
 						        			<td>
-						        				<input type="checkbox" name="qstnRndmynChk" id="qstnRndmynChk" class="switch" ${vo.qstnRndmyn eq 'Y' ? 'checked' : '' }>
+						        				<div class="form-row">
+													<input type="checkbox" id="qstnRndmynChk" id="qstnRndmynChk" class="switch yesno" ${vo.qstnRndmyn eq 'Y' ? 'checked' : '' }>
+												</div>
 						        			</td>
 						        		</tr>
 						        		<tr>
-						        			<th><label for="teamLabel">보기 섞기</label></th>
+						        			<th><label for="teamLabel"><spring:message code="quiz.label.vwitm.shuffle" /><!-- 보기 섞기 --></label></th>
 						        			<td>
-						        				<input type="checkbox" name="qstnVwitmRndmynChk" id="qstnVwitmRndmynChk" class="switch" ${vo.qstnVwitmRndmyn eq 'Y' ? 'checked' : '' }>
+						        				<div class="form-row">
+													<input type="checkbox" id="qstnVwitmRndmynChk" id="qstnVwitmRndmynChk" class="switch yesno" ${vo.qstnVwitmRndmyn eq 'Y' ? 'checked' : '' }>
+												</div>
 						        			</td>
 						        		</tr>
 						        		<tr>
-						        			<th><label for="teamLabel">문항후보사용여부</label></th>
+						        			<th><label for="teamLabel"><spring:message code="quiz.label.qstn.cnddt.useyn" /><!-- 문항후보사용여부 --></label></th>
 						        			<td>
-						        				<input type="checkbox" name="qstnCnddtUseynChk" id="qstnCnddtUseynChk" class="switch" ${vo.qstnCnddtUseyn eq 'Y' ? 'checked' : '' }>
+						        				<div class="form-row">
+													<input type="checkbox" id="qstnCnddtUseynChk" id="qstnCnddtUseynChk" class="switch yesno" ${vo.qstnCnddtUseyn eq 'Y' ? 'checked' : '' }>
+												</div>
 						        			</td>
 						        		</tr>
 						        		<tr>
-											<th><label for="attchFile">첨부파일</label></th>
+											<th><label for="attchFile"><spring:message code="common.attachments" /><!-- 첨부파일 --></label></th>
 											<td>
 												<uiex:dextuploader
 													id="fileUploader"
@@ -751,117 +707,118 @@
 											</td>
 										</tr>
 										<tr>
-						        			<th><label>팀퀴즈</label></th>
+						        			<th><label><spring:message code="quiz.common.team.quiz" /><!-- 팀 퀴즈 --></label></th>
 						        			<td>
-						        				<span class="custom-input">
-													<input type="radio" name="quizTeamyn" id="quizTeamynY" value="Y" onchange="teamynChange(this.value)" ${vo.examGbncd eq 'QUIZ_TEAM' ? 'checked' : ''}>
-													<label for="quizTeamynY">예</label>
-												</span>
-												<span class="custom-input ml5">
-													<input type="radio" name="quizTeamyn" id="quizTeamynN" value="N" onchange="teamynChange(this.value)" ${empty vo.examBscId || vo.examGbncd ne 'QUIZ_TEAM' ? 'checked' : ''}>
-													<label for="quizTeamynN">아니오</label>
-												</span>
-												<div id="teamQuizDiv" ${empty vo.examBscId || vo.examGbncd ne 'QUIZ_TEAM' ? 'style="display:none"' : '' }>
+						        				<div class="form-inline">
+							        				<span class="custom-input">
+														<input type="radio" name="quizTeamyn" id="quizTeamynY" value="Y" onchange="teamynChange(this.value)" ${vo.examGbncd eq 'QUIZ_TEAM' ? 'checked' : ''}>
+														<label for="quizTeamynY">${yes }</label>
+													</span>
+													<span class="custom-input ml5">
+														<input type="radio" name="quizTeamyn" id="quizTeamynN" value="N" onchange="teamynChange(this.value)" ${empty vo.examBscId || vo.examGbncd ne 'QUIZ_TEAM' ? 'checked' : ''}>
+														<label for="quizTeamynN">${no }</label>
+													</span>
+						        				</div>
+												<div id="teamQuizDiv" class="team_item" ${empty vo.examBscId || vo.examGbncd ne 'QUIZ_TEAM' ? 'style="display:none"' : '' }>
 										        	<c:forEach var="list" items="${dvclasList }" varStatus="i">
-														<div class="form-row" id='lrnGrpView${list.dvclasNo}'>
-															<div class="input_btn width-100per">
-																<label>${list.dvclasNo }반</label>
-																<input type='hidden' id='lrnGrpId${list.dvclasNo}' name='lrnGrpIds' value="${empty vo.examBscId ? '' : list.lrnGrpId}:${list.sbjctId}">
-																<input class="form-control width-60per" type="text" name="lrnGrpnm" id="lrnGrpnm${list.dvclasNo}" placeholder="팀 분류를 선택해 주세요." value="${empty vo.examBscId ? '' : list.lrnGrpnm}" readonly="" autocomplete="off">
-																<a class="btn type1 small" onclick="teamGrpChcPopup('${list.dvclasNo}','${list.sbjctId }')">학습그룹지정</a>
-															</div>
-														</div>
+										        		<div class="item" id="teamGrpView${list.sbjctId}">
+		                                                    <label class="label_num">${list.dvclasNo }반</label>
+		                                                    <input type='hidden' id='teamGrpId${list.sbjctId}' name='teamGrpIds' value="${empty vo.examBscId ? '' : list.teamGrpId}:${list.sbjctId}">
+		                                                    <input class="form-control wide" type="text" name="teamGrpnm" id="teamGrpnm${list.sbjctId}" placeholder="<spring:message code='quiz.placeholder.select.team.group' />" value="${empty vo.examBscId ? '' : list.teamGrpnm}" readonly="true" autocomplete="off"><!-- 팀그룹을 선택해 주세요. -->
+															<button type="button" class="btn basic" onclick="teamGrpChcPopup('${list.dvclasNo}','${list.sbjctId }')"><spring:message code="srvy.button.assign.teams" /><!-- 팀그룹지정 --></a>
+		                                                </div>
 											        	<c:if test="${i.count eq 1 }">
-											        		<div class="form-inline">
-																<small class="note2">! 구성된 팀이 없는 경우 메뉴 “과목설정 > 학습그룹지정”에서 팀을 생성해 주세요</small>
-															</div>
+															<small class="note2"><spring:message code="quiz.label.select.team.group.notice" /><!-- ! 구성된 팀이 없는 경우 메뉴 “과목설정 > 팀그룹지정”에서 팀을 생성해 주세요 --></small>
 											        	</c:if>
-											        	<div class="ui segment" id="setQuizDiv${list.dvclasNo }" style="display:none;">
-											        		<span class="custom-input">
-															    <input type="checkbox" name="lrnGrpSubasmtStngyns" id="lrnGrpSubasmtStngyn_${list.dvclasNo }" data-bscId="${not empty vo.examBscId && list.lrnGrpSubasmtStngyn eq 'Y' ? list.examBscId : '' }" value="Y:${list.sbjctId }" onchange="lrnGrpSubasmtStngynChange(this)" ${not empty vo.examBscId && list.lrnGrpSubasmtStngyn eq 'Y' ? 'checked' : '' }>
-															    <label for="lrnGrpSubasmtStngyn_${list.dvclasNo }">학습그룹별 부 과제 설정</label>
-															</span>
-												        	<div id="subInfoDiv${list.dvclasNo }" ${not empty vo.examBscId && list.lrnGrpSubasmtStngyn eq 'Y' ? '' : 'style="display: none;"' }></div>
-											        	</div>
+											        	<div class="item_setting" id="setQuizDiv${list.sbjctId }" style="display:none;">
+		                                                    <div class="checkbox_type">
+		                                                        <span class="custom-input">
+		                                                            <input type="checkbox" id="teamGrpSubasmtStngyn_${list.sbjctId }" name="teamGrpSubasmtStngyns" data-bscId="${not empty vo.examBscId && list.teamGrpSubasmtStngyn eq 'Y' ? list.examBscId : '' }" value="${list.dvclasNo}:${list.sbjctId }" onchange="teamGrpSubasmtStngynChange(this)" ${not empty vo.examBscId && list.teamGrpSubasmtStngyn eq 'Y' ? 'checked' : '' }>
+		                                                            <label for="teamGrpSubasmtStngyn_${list.sbjctId }"><spring:message code="quiz.label.team.group.set.quiz" /><!-- 팀그룹별 퀴즈 설정 --></label>
+		                                                        </span>
+		                                                    </div>
+		                                                </div>
+		                                                <div id="subInfoDiv${list.sbjctId }" class="table-wrap mb30" ${not empty vo.examBscId && list.teamGrpSubasmtStngyn eq 'Y' ? '' : 'style="display: none;"' }></div>
 										        	</c:forEach>
 										        </div>
 						        			</td>
 						        		</tr>
 						        	</tbody>
 						        </table>
-						        <div class="course_list">
-						        	<ul class="accordion course_week">
-						        		<li>
-						        			<div class="title-wrap">
+						        <div class="options_wrap">
+		                            <ul class="accordion">
+		                                <li class=""><!-- 클릭시 active 추가 -->
+		                                    <div class="title-wrap">
 		                                        <a class="title" href="#">
-		                                            <span>옵션</span>
-		                                        </a>
-		                                        <div class="btn_right">
+		                                            <div class="lecture_tit">
+		                                                <strong><spring:message code="quiz.label.option" /><!-- 옵션 --></strong>
+		                                            </div>
 		                                            <i class="arrow xi-angle-down"></i>
+		                                        </a>
+		                                    </div>
+		                                    <div class="cont">
+		                                        <div class="table-wrap">
+		                                            <table class="table-type5">
+		                                                <colgroup>
+		                                                    <col class="width-15per" />
+		                                                    <col />
+		                                                </colgroup>
+		                                                <tbody>
+		                                                    <tr>
+		                                                        <th>
+		                                                            <label for="reexamynY"><spring:message code="quiz.label.retkexam.allow" /><!-- 재응시 사용 --></label>
+		                                                        </th>
+		                                                        <td>
+		                                                            <div class="form-inline">
+		                                                                <span class="custom-input ml5">
+		                                                                    <input type="radio" id="reexamynY" name="examDtlVO.reexamyn" value="Y" onchange="reexamynChange(this.value)" ${vo.examDtlVO.reexamyn eq 'Y' ? 'checked' : ''}>
+		                                                                    <label for="reexamynY"><spring:message code="quiz.common.yes" /><!-- 예 --></label>
+		                                                                </span>
+		                                                                <span class="custom-input">
+		                                                                    <input type="radio" id="reexamynN" name="examDtlVO.reexamyn" value="N" onchange="reexamynChange(this.value)" ${empty vo.examBscId || vo.examDtlVO.reexamyn eq 'N' ? 'checked' : ''}>
+		                                                                    <label for="reexamynN"><spring:message code="quiz.common.no" /><!-- 아니오 --></label>
+		                                                                </span>
+		                                                            </div>
+
+		                                                            <div class="custom-txt mt10 reexamDiv">
+		                                                                <span class="tit"><spring:message code="quiz.label.reperiod" /><!-- 채응시기간 --></span>
+		                                                                <div class="date_area">
+		                                                                    <input type="text" placeholder="<spring:message code='quiz.placeholder.start.date' />" 	id="redateSt" 	name="redateSt" class="datepicker" toDate="redateEd" 	timeId="retimeSt" 	value="${fn:substring(vo.examDtlVO.reexamPsblSdttm,0,8)}"><!-- 시작일 -->
+		                                                                    <input type="text" placeholder="<spring:message code='quiz.placeholder.start.time' />" 	id="retimeSt" 	name="retimeSt" class="timepicker" dateId="redateSt" 	value="${fn:substring(vo.examDtlVO.reexamPsblSdttm,8,12)}"><!-- 시작시간 -->
+		                                                                    <span class="txt-sort">~</span>
+		                                                                    <input type="text" placeholder="<spring:message code='quiz.placeholder.end.date' />" 	id="redateEd" 	name="redateEd" class="datepicker" fromDate="redateSt" 	timeId="retimeEd" 	value="${fn:substring(vo.examDtlVO.reexamPsblEdttm,0,8)}"><!-- 종료일 -->
+		                                                                    <input type="text" placeholder="<spring:message code='quiz.placeholder.end.time' />" 	id="retimeEd" 	name="retimeEd" class="timepicker" dateId="redateEd" 	value="${fn:substring(vo.examDtlVO.reexamPsblEdttm,8,12)}"><!-- 종료시간 -->
+		                                                                </div>
+		                                                            </div>
+
+
+		                                                            <div class="custom-txt mt10 reexamDiv">
+		                                                                <span class="tit"><spring:message code="quiz.label.retkexam.scr.weight" /><!-- 재응시 적용률 --></span>
+		                                                                <div class="form-row">
+		                                                                    <div class="input_btn">
+																				<input class="form-control md" name="examDtlVO.reexamMrkRfltrt" id="reexamMrkRfltrt" type="text" inputmask="numeric" maxVal="100" value="${vo.examDtlVO.reexamMrkRfltrt }" autocomplete="off"><label>%</label>
+																			</div>
+		                                                                </div>
+		                                                            </div>
+		                                                        </td>
+		                                                    </tr>
+		                                                </tbody>
+		                                            </table>
 		                                        </div>
 		                                    </div>
-
-		                                    <div class="cont">
-												<table class="table-type5">
-										        	<colgroup>
-										        		<col class="width-15per" />
-										        		<col class="" />
-										        	</colgroup>
-										        	<tbody>
-										        		<tr>
-										        			<th><label>재응시 사용</label></th>
-										        			<td>
-										        				<div class="form-inline">
-																	<span class="custom-input">
-																		<input type="radio" name="examDtlVO.reexamyn" id="reexamynY" value="Y" onchange="reexamynChange(this.value)" ${vo.examDtlVO.reexamyn eq 'Y' ? 'checked' : ''}>
-																		<label for="reexamynY">예</label>
-																	</span>
-																	<span class="custom-input ml5">
-																		<input type="radio" name="examDtlVO.reexamyn" id="reexamynN" value="N" onchange="reexamynChange(this.value)" ${empty vo.examBscId || vo.examDtlVO.reexamyn eq 'N' ? 'checked' : ''}>
-																		<label for="reexamynN">아니오</label>
-																	</span>
-																</div>
-																<div id="reexamDiv" style="<c:if test="${empty vo.examBscId || vo.examDtlVO.reexamyn ne 'Y'}">display: none;</c:if>">
-																	<table class="table-type5">
-															        	<colgroup>
-															        		<col class="width-20per" />
-															        		<col class="" />
-															        	</colgroup>
-															        	<tbody>
-															        		<tr>
-															        			<th><label>재응시 기간</label></th>
-															        			<td>
-															        				<input id="redateSt" type="text" name="redateSt" class="datepicker" timeId="retimeSt" toDate="redateEd" value="${fn:substring(vo.examDtlVO.reexamPsblSdttm,0,8)}">
-																					<input id="retimeSt" type="text" name="retimeSt" class="timepicker" dateId="redateSt" value="${fn:substring(vo.examDtlVO.reexamPsblSdttm,8,12)}">
-																					<span class="txt-sort">~</span>
-																					<input id="redateEd" type="text" name="redateEd" class="datepicker" timeId="retimeEd" fromDate="redateSt" value="${fn:substring(vo.examDtlVO.reexamPsblEdttm,0,8)}">
-																					<input id="retimeEd" type="text" name="retimeEd" class="timepicker" dateId="redateEd" value="${fn:substring(vo.examDtlVO.reexamPsblEdttm,8,12)}">
-															        			</td>
-															        		</tr>
-															        		<tr>
-															        			<th><label>재응시 적용률</label></th>
-															        			<td>
-															        				<div class="form-row">
-																						<div class="input_btn">
-																							<input class="form-control md" name="examDtlVO.reexamMrkRfltrt" id="reexamMrkRfltrt" type="text" inputmask="numeric" maxVal="100" value="${vo.examDtlVO.reexamMrkRfltrt }" autocomplete="off"><label>%</label>
-																						</div>
-																					</div>
-															        			</td>
-															        		</tr>
-															        	</tbody>
-															        </table>
-														        </div>
-										        			</td>
-										        		</tr>
-										        	</tbody>
-										        </table>
-		                                    </div>
-						        		</li>
-						        	</ul>
-						        </div>
+		                                </li>
+		                            </ul>
+		                        </div>
 							</form>
 				        </div>
 				        <!--table-type-->
+				        <spring:message code="common.button.save" 	var="save" /><!-- 저장 -->
+				        <spring:message code="common.button.modify" var="modify" /><!-- 수정 -->
+				        <div class="btns">
+					        <a href="javascript:saveConfirm()" class="btn type1">${empty vo.examBscId ? save : modify }</a>
+					        <a href="javascript:bfrQuizCopyPopup()" class="btn type2"><spring:message code="quiz.button.prev.quiz.copy" /></a><!-- 이전퀴즈 가져오기 -->
+					        <a href="javascript:quizViewMv('', 'LIST')" class="btn type2"><spring:message code="common.button.list" /></a><!-- 목록 -->
+                        </div>
 				    </div>
 				</div>
         	</div>

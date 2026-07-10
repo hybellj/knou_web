@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 
+import knou.lms.crs.semester.vo.SmstrChrtSchdlVO;
 import knou.lms.crs.semester.vo.SmstrChrtVO;
 
 @Mapper("semesterDAO")
@@ -15,7 +16,15 @@ public interface SemesterDAO {
 	 * @return
 	 * @throws Exception
 	 */
-	public List<SmstrChrtVO> listSmstrChrtByDgrsYr(SmstrChrtVO smstrChrtVO) throws Exception;
+	public List<SmstrChrtVO> listSmstrChrtByDgrsYr(SmstrChrtVO smstrChrtVO);
+
+	/**
+	 * 학기기수 일정 주차 목록 조회
+	 * @param smstrChrtSchdlVO
+	 * @return
+	 * @throws Exception
+	 */
+	public List<SmstrChrtSchdlVO> listSmstrChrtSchdlWkno(SmstrChrtSchdlVO smstrChrtSchdlVO);
 
 	/**
 	 * 현재 학기기수 조회

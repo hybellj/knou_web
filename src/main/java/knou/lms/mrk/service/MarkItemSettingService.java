@@ -6,5 +6,5 @@ import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import java.util.List;
 
 public interface MarkItemSettingService {
-    List<EgovMap> mrkItmStngList(MarkItemSettingVO vo) throws Exception;
+    List<EgovMap> mrkItmStngList(MarkItemSettingVO vo);
 }

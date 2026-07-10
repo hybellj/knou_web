@@ -24,33 +24,39 @@ public class MaskUtil {
 
 		        if (isKorean) { // 한글이름
 		        	int length = userNm.length();
-		        	if (length <= 2) {
-		                userNm = userNm.charAt(0) + "*";
-		            } else if (length == 3) {
-		            	userNm = userNm.charAt(0) + "*" + userNm.charAt(2);
-		            } else if (length == 4) {
-		            	userNm = userNm.charAt(0) + "**" + userNm.charAt(3);
-		            } else {
+
+		            if (length <= 2) {
+		                return userNm.charAt(0) + "*";
+		            }
+		            else {
 		                StringBuilder maskedName = new StringBuilder();
-		                maskedName.append(userNm.substring(0, 2));
-		                for (int i = 2; i < length - 1; i++) {
+		                maskedName.append(userNm.charAt(0));
+
+		                for (int i = 1; i < length - 1; i++) {
 		                    maskedName.append('*');
 		                }
+
 		                maskedName.append(userNm.charAt(length - 1));
 		                userNm = maskedName.toString();
 		            }
 		        }
 		        else { // 영문이름
-		            String[] parts = userNm.split(" ");
-		            StringBuilder maskedName = new StringBuilder();
-		            for (String part : parts) {
-		                if (part.length() <= 2) {
-		                    maskedName.append(part.charAt(0)).append("* ");
-		                } else {
-		                    maskedName.append(part.charAt(0)).append("*".repeat(part.length() - 2)).append(part.charAt(part.length() - 1)).append(" ");
-		                }
+		        	int firstSpaceIdx = userNm.indexOf(" ");
+		            String firstName = (firstSpaceIdx == -1) ? userNm : userNm.substring(0, firstSpaceIdx);
+		            String lastName = (firstSpaceIdx == -1) ? "" : userNm.substring(firstSpaceIdx);
+
+		            int firstNameLen = firstName.length();
+		            StringBuilder maskedFirst = new StringBuilder();
+
+		            if (firstNameLen <= 2) {
+		                maskedFirst.append("*".repeat(firstNameLen));
 		            }
-		            userNm = maskedName.toString().trim();
+		            else {
+		                maskedFirst.append("*".repeat(firstNameLen - 2));
+		                maskedFirst.append(firstName.substring(firstNameLen - 2));
+		            }
+
+		            userNm = maskedFirst.toString() + lastName;
 		        }
 			}
 		} catch (Exception e) {
@@ -174,5 +180,39 @@ public class MaskUtil {
 		}
 
 		return ipAddress;
+    }
+
+    /**
+     * 사용자아이디 마스킹
+     * @param userId
+     * @return
+     */
+    public static String maskUserId(String userId) {
+    	try {
+    		if (userId != null && !"".equals(userId)) {
+                int len = userId.length();
+                int keepLen;
+
+                if (len >= 7) {
+                    keepLen = 4;
+                } else {
+                    keepLen = (int) Math.floor(len / 2.0);
+                }
+
+                StringBuilder sb = new StringBuilder();
+                sb.append(userId.substring(0, keepLen));
+
+                for (int i = 0; i < len - keepLen; i++) {
+                    sb.append("*");
+                }
+
+                userId = sb.toString();
+    		}
+
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+
+		return userId;
     }
 }

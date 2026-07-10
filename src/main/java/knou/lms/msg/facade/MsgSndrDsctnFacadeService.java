@@ -2,33 +2,32 @@ package knou.lms.msg.facade;
 
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.msg.vo.MsgSndrDsctnVO;
+import knou.lms.org.vo.OrgInfoVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+
 public interface MsgSndrDsctnFacadeService {
 
     ProcessResultVO<MsgSndrDsctnVO> selectSndrDsctnListPage(MsgSndrDsctnVO vo) throws Exception;
 
-    MsgSndrDsctnVO selectSndrDsctnSmry(MsgSndrDsctnVO vo) throws Exception;
+    List<OrgInfoVO> selectActiveOrgListByAuth(String userId, boolean isAdmin) throws Exception;
 
-    List<MsgSndrDsctnVO> selectSndrDsctnExcelList(MsgSndrDsctnVO vo) throws Exception;
+    List<OrgInfoVO> selectProfSbjctOrgList(String userId);
 
-    List<MsgSndrDsctnVO> selectSndrDsctnYrList(MsgSndrDsctnVO vo) throws Exception;
+    MsgSndrDsctnVO selectSndrDsctnSmry(MsgSndrDsctnVO vo);
 
-    List<EgovMap> selectSndrDsctnSmstrList(MsgSndrDsctnVO vo) throws Exception;
+    List<MsgSndrDsctnVO> selectSndrDsctnExcelList(MsgSndrDsctnVO vo);
 
-    List<MsgSndrDsctnVO> selectSndrDsctnDeptList(MsgSndrDsctnVO vo) throws Exception;
+    Map<String, BigDecimal> selectSndngCostMap();
 
-    List<MsgSndrDsctnVO> selectSndrDsctnSbjctList(MsgSndrDsctnVO vo) throws Exception;
+    List<Map<String, Object>> buildSmryExcelRows(MsgSndrDsctnVO smry, Map<String, String> labels);
 
-    Map<String, BigDecimal> selectSndngCostMap() throws Exception;
+    MsgSndrDsctnVO loadListViewInfo(MsgSndrDsctnVO vo) throws Exception;
 
-    Map<String, Long> calculateSmryCost(MsgSndrDsctnVO smry) throws Exception;
+    EgovMap loadFilterOptions(MsgSndrDsctnVO vo) throws Exception;
 
-    List<Map<String, Object>> buildSmryExcelRows(MsgSndrDsctnVO smry, Map<String, String> labels) throws Exception;
-
-    String selectOrgNm(String orgId) throws Exception;
 }

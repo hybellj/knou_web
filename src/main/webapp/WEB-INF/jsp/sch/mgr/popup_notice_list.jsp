@@ -30,7 +30,7 @@
 		});
 		
 		function listPaging1(pageIndex) {
-			var url = "/sch/schMgr/listPopupNotice.do"
+			var url = "/schedule/listPopupNotice.do"
 			var param = {
 				  pageIndex		: pageIndex
 				, listScale		: $("#listScale1").val()
@@ -97,7 +97,7 @@
 		function listPaging2(pageIndex) {
 			var popupNtcTrgtCdList = $("#popupNtcTrgtCd2").val() || [];
 				
-			var url = "/sch/schMgr/listPopupNotice.do";
+			var url = "/schedule/listPopupNotice.do";
 			var param = {
 				  pageIndex		: pageIndex
 				, listScale		: $("#listScale2").val()
@@ -187,7 +187,7 @@
 		
 		// 팝업 사용여부 변경
 		function changeUseYn(popupNtcId, el) {
-			var url = "/sch/schMgr/updateUseYnPopupNotice.do"
+			var url = "/schedule/updateUseYnPopupNotice.do"
 				var param = {
 					  popupNtcId: popupNtcId
 					, useyn: el.checked ? "Y" : "N"
@@ -209,7 +209,7 @@
 		function deletePopupNotice(popupNtcId){
 			if(!confirm('<spring:message code="common.delete.msg" />')) return; // 삭제하시겠습니까?
 			
-			var url = "/sch/schMgr/deletePopupNotice.do"
+			var url = "/schedule/deletePopupNotice.do"
 			var param = {
 				popupNtcId: popupNtcId
 			};
@@ -255,7 +255,7 @@
 			$("#popupNoticeWriteForm input[name=popupNtcId]").val(popupNtcId);
 			$("#popupNoticeWriteForm input[name=popupNtcTycd]").val(popupNtcTycd);
 			$("#popupNoticeWriteForm").attr("target", "popupNoticeWriteIfm");
-	        $("#popupNoticeWriteForm").attr("action", "/sch/schMgr/popupNoticeWritePop.do");
+	        $("#popupNoticeWriteForm").attr("action", "/schedule/popupNoticeWritePop.do");
 	        $("#popupNoticeWriteForm").submit();
 	        $("#popupNoticeWriteModal").modal("show");
 		}
@@ -275,7 +275,7 @@
 		
 		// 팝업관리 미리보기 모달
 		function popupNoticePreview(popupNtcId) {
-			var url = "/sch/schMgr/selectPopupNotice.do"
+			var url = "/schedule/selectPopupNotice.do"
 			var param = {
 				popupNtcId: popupNtcId
 			};
@@ -289,7 +289,7 @@
 					
 					$("#popupNoticePreviewForm input[name=popupNtcId]").val(popupNtcId);
 					$("#popupNoticePreviewForm").attr("target", "popupNoticePreviewIfm");
-			        $("#popupNoticePreviewForm").attr("action", "/sch/schMgr/popupNoticePreviewPop.do");
+			        $("#popupNoticePreviewForm").attr("action", "/schedule/popupNoticePreviewPop.do");
 			        $("#popupNoticePreviewForm").submit();
 			        $("#popupNoticePreviewModal").modal("show");
 				} else {

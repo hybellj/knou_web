@@ -33,7 +33,7 @@
             , #{sndngCost}
             , #{useyn}
             , #{rgtrId}
-            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , FN_DTTM()
         )
     </insert>
 
@@ -48,7 +48,7 @@
             , SNDNG_COST = #{sndngCost}
             , USEYN     = #{useyn}
             , MDFR_ID    = #{mdfrId}
-            , MOD_DTTM   = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            , MOD_DTTM   = FN_DTTM()
         WHERE SNDNG_COST_ID = #{sndngCostId}
     </update>
 

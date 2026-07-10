@@ -2,29 +2,83 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="knou.lms.srvy.dao.SrvyDAO">
 
-	<select id="profSrvyListPaging" parameterType="srvyVO" resultType="egovMap">
+    <select id="admAllSrvyList" resultType="egovMap">
+        WITH PTCP_LIST AS (
+            SELECT
+                  /*팀설문이면 부모ID, 일반설문이면 자기자신ID를 기준ID로 설정*/
+                  NVL(SRVY.UP_SRVY_ID, SRVY.SRVY_ID ) AS BASE_SRVY_ID
+                , PTCP.USER_ID
+            FROM TB_LMS_SRVY_PTCP PTCP
+            JOIN TB_LMS_SRVY SRVY
+              ON PTCP.SRVY_ID = SRVY.SRVY_ID
+        )
+        <![CDATA[
+        SELECT X.*
+        FROM (
+            SELECT
+                  ROW_NUMBER() OVER(ORDER BY SRVY.SRVY_SDTTM DESC, SRVY.SRVY_EDTTM ASC) AS RN
+                , SRVY.SRVY_ID
+                , SRVY.SRVY_TTL
+                , NVL((
+                    SELECT COUNT(X.USER_ID) AS PTCP_CNT
+                    FROM PTCP_LIST X
+                    WHERE X.BASE_SRVY_ID = SRVY.SRVY_ID
+                    GROUP BY X.BASE_SRVY_ID), 0) AS PTCP_CNT
+                , CASE WHEN FN_DTTM() > SRVY.SRVY_EDTTM
+                    THEN '마감'
+                    ELSE (
+                        CASE WHEN FN_DTTM() < SRVY.SRVY_SDTTM
+                            THEN '예정'
+                            ELSE '진행중'
+                        END
+                    ) END AS SRVY_STS
+                   , SRVY.SRVY_SDTTM
+                   , SRVY.SRVY_EDTTM
+                   , SRVY.REG_DTTM
+            FROM TB_LMS_SRVY SRVY
+            WHERE SRVY.UP_SRVY_ID IS NULL
+        )X
+        WHERE X.RN <= #{limitTop}
+        ]]>
+    </select>
+
+	<select	id="bySubjectSrvyList" resultType="egovMap">
+		/* 설 명 : 과목별설문목록조회 */
+		SELECT	ROWNUM AS RNUM
+				, SRVY.*
+				, '' RESBMSN_EDTTM
+		FROM	TB_LMS_SRVY SRVY
+		WHERE	1 = 1
+				AND SBJCT_ID = #{sbjctId}
+	</select>
+
+	<select id="profSrvyListPaging" parameterType="srvyPageInfo" resultType="egovMap">
 		/*
              SQL ID : SrvyDAO.profSrvyListPaging
              설  명  : 교수설문목록페이징
          */
+        <include refid="CommonSQL.pagePrefix2" />
         WITH SBJCT_USER AS (
+        	/* 과목 수강생 목록 */
 		    SELECT ATNDLC.USER_ID
-		    FROM TB_LMS_ATNDLC ATNDLC
-		    JOIN TB_LMS_SBJCT SBJCT ON ATNDLC.SBJCT_ID = SBJCT.SBJCT_ID
-		    WHERE ATNDLC.AUDITYN = 'N'
-		      AND SBJCT.SBJCT_ID = #{sbjctId}
+		      FROM TB_LMS_ATNDLC ATNDLC
+		     WHERE ATNDLC.AUDITYN  = 'N'
+		       AND ATNDLC.SBJCT_ID = #{sbjctId}
 		),
 		SUB_SRVY AS (
+			/* 팀설문 목록 */
 		    SELECT SRVY_ID, UP_SRVY_ID
-		    FROM TB_LMS_SRVY
-		    WHERE DELYN = 'N'
-		      AND USEYN = 'Y'
-		      AND UP_SRVY_ID IS NOT NULL
+		      FROM TB_LMS_SRVY
+		     WHERE DELYN = 'N'
+		       AND USEYN = 'Y'
+		       AND SRVY_GBNCD = 'LCTR_SRVY'
+		       AND SRVY_TYCD  = 'SRVY_GNRL'
+		       AND UP_SRVY_ID IS NOT NULL
 		),
 		SRVY_BASE AS (
 		    SELECT
 		          ROW_NUMBER() OVER (ORDER BY SRVY.SRVY_SDTTM DESC, SRVY.REG_DTTM ASC) AS LINE_NO
-		        , COUNT(SRVY.SRVY_ID) OVER () AS TOTAL_CNT
+		        , COUNT(*) OVER () AS TOTAL_CNT
 		        , SRVY.SRVY_ID
 		        , SRVY.SBJCT_ID
 		        , CASE WHEN EXISTS (SELECT 1 FROM SUB_SRVY SS WHERE SS.UP_SRVY_ID = SRVY.SRVY_ID)
@@ -37,52 +91,34 @@
 		        , SRVY.MRK_OYN
 		        , SRVY.SRVY_QSTNS_CMPTNYN
 		        , SRVY.REG_DTTM
-		        , (SELECT COUNT(USER_ID) FROM SBJCT_USER) AS SRVY_TRGT_CNT
-		        , (
-				      SELECT COUNT(SP.SRVY_PTCP_ID)
-				      FROM TB_LMS_SRVY_PTCP SP
-				      WHERE SP.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
-				        AND SP.SRVY_ID IN (
-				            SELECT SS.SRVY_ID
-				            FROM SUB_SRVY SS
-				            WHERE SS.UP_SRVY_ID = SRVY.SRVY_ID
-				            UNION ALL
-				            SELECT SRVY.SRVY_ID
-				            FROM DUAL
-				        )
-				  ) AS SRVY_PTCP_CNT
-		        , (
-				      SELECT COUNT(SP.SRVY_PTCP_ID)
-				      FROM TB_LMS_SRVY_PTCP SP
-				      WHERE SP.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
-				        AND SP.SRVY_PTCP_EVLYN = 'Y'
-				        AND SP.SRVY_ID IN (
-				            SELECT SS.SRVY_ID
-				            FROM SUB_SRVY SS
-				            WHERE SS.UP_SRVY_ID = SRVY.SRVY_ID
-				            UNION ALL
-				            SELECT SRVY.SRVY_ID
-				            FROM DUAL
-				        )
-				  ) AS SRVY_EVLTEE_CNT
+		        , (SELECT COUNT(*) FROM SBJCT_USER) 					AS SRVY_TRGT_CNT
+		        , COUNT(CASE WHEN SP.PTCP_EDTTM IS NOT NULL THEN 1 END) AS SRVY_PTCP_CNT
+		        , COUNT(CASE WHEN SP.SRVY_PTCP_EVLYN = 'Y' THEN 1 END)	AS SRVY_EVLTEE_CNT
 		    FROM TB_LMS_SRVY SRVY
-		    JOIN TB_LMS_SBJCT SBJCT ON SRVY.SBJCT_ID = SBJCT.SBJCT_ID
-		    WHERE SRVY.SRVY_GBNCD = 'LCTR_SRVY'
-		      AND SBJCT.SBJCT_ID  = #{sbjctId}
+		    LEFT JOIN TB_LMS_SRVY_PTCP SP
+		      ON SP.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
+		     AND SP.SRVY_ID IN (
+		     		SELECT SRVY_ID FROM SUB_SRVY WHERE UP_SRVY_ID = SRVY.SRVY_ID
+		            UNION ALL
+		            SELECT SRVY.SRVY_ID FROM DUAL
+		        )
+		    WHERE SRVY.SBJCT_ID   = #{sbjctId}
+		      AND SRVY.SRVY_GBNCD = 'LCTR_SRVY'
 		      AND SRVY.DELYN      = 'N'
 		      AND SRVY.USEYN      = 'Y'
 		      AND SRVY.UP_SRVY_ID IS NULL
 		      <if test="searchValue != null and searchValue != ''">
-			  	AND LOWER(SRVY.SRVY_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
-			  </if>
+		        AND LOWER(SRVY.SRVY_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		      </if>
+		    GROUP BY
+		          SRVY.SRVY_ID, SRVY.SBJCT_ID, SRVY.SRVY_TTL
+		        , SRVY.SRVY_SDTTM, SRVY.SRVY_EDTTM
+		        , SRVY.MRK_RFLTYN, SRVY.MRK_RFLTRT, SRVY.MRK_OYN
+		        , SRVY.SRVY_QSTNS_CMPTNYN, SRVY.REG_DTTM
 		)
 		SELECT *
 		FROM SRVY_BASE
-		<where>
-			<if test="listScale != null and listScale > 0">
-			  AND LINE_NO BETWEEN #{firstIndex} +1 AND #{firstIndex} + #{listScale}
-			</if>
-		</where>
+		<include refid="CommonSQL.pageSuffix2" />
 	</select>
 
 	<select id="sbjctMrkOynSrvyCntSelect" parameterType="String" resultType="int">
@@ -97,7 +133,7 @@
 		   AND USEYN = 'Y'
 		   AND MRK_OYN = 'Y'
 		   AND SRVY_GBNCD = 'LCTR_SRVY'
-		   AND SRVY_TYCD = 'SRVY_GNRL_LCTR_EVL'
+		   AND SRVY_TYCD = 'SRVY_GNRL'
 		   AND SBJCT_ID = #{sbjctId}
 		   <if test="srvyId != null and srvyId != ''">
 		   AND SRVY_ID <![CDATA[ <> ]]> #{srvyId}
@@ -116,7 +152,7 @@
 		   AND USEYN = 'Y'
 		   AND MRK_RFLTYN = 'Y'
 		   AND SRVY_GBNCD = 'LCTR_SRVY'
-		   AND SRVY_TYCD = 'SRVY_GNRL_LCTR_EVL'
+		   AND SRVY_TYCD = 'SRVY_GNRL'
 		   AND UP_SRVY_ID IS NULL
 		   AND SBJCT_ID = #{sbjctId}
 	</select>
@@ -162,6 +198,7 @@
 			, MRK_RFLTRT
 			, MRK_OYN
 			, BYTEAM_SUBSRVY_USEYN
+			, SMSTR_CHRT_ID
 			, RGTR_ID
 			, REG_DTTM
         ) VALUES (
@@ -185,6 +222,7 @@
 			, #{mrkRfltrt}
 			, #{mrkOyn}
 			, #{byteamSubsrvyUseyn}
+			, #{smstrChrtId}
 			, #{rgtrId}
 			, FN_DTTM()
         )
@@ -264,6 +302,9 @@
     		<if test="byteamSubsrvyUseyn != null and byteamSubsrvyUseyn != ''">
     		, BYTEAM_SUBSRVY_USEYN = #{byteamSubsrvyUseyn}
     		</if>
+    		<if test="smstrChrtId != null and smstrChrtId != ''">
+    		, SMSTR_CHRT_ID = #{smstrChrtId}
+    		</if>
     	WHERE SRVY_ID = #{srvyId}
     </update>
 
@@ -272,31 +313,72 @@
              SQL ID : SrvyDAO.srvyGrpSbjctList
              설  명  : 설문그룹과목목록조회
          */
-        WITH DVCLAS_SBJCT AS (
-			SELECT
-				  SBJCT_ID
-				, SRVY_ID
-				, BYTEAM_SUBSRVY_USEYN
-				, (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE UP_SRVY_ID = SRVY.SRVY_ID AND DELYN = 'N' AND USEYN ='Y' AND ROWNUM = 1) AS SUB_SRVY_ID
-			  FROM TB_LMS_SRVY SRVY
-			 WHERE (
-			 		SRVY_GRP_ID = (SELECT SRVY_GRP_ID FROM TB_LMS_SRVY WHERE SRVY_ID = #{srvyId} AND DELYN = 'N' AND USEYN = 'Y' AND DVCLAS_REGYN = 'Y')
-			 		OR SRVY_ID = (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE SRVY_ID = #{srvyId} AND DELYN = 'N' AND USEYN = 'Y' AND DVCLAS_REGYN = 'N')
-			 		)
-			   AND USEYN = 'Y'
-			   AND DELYN = 'N'
-			   AND UP_SRVY_ID IS NULL
+        WITH BASE_SRVY AS (
+			/* 기준 설문 */
+		    SELECT *
+		      FROM TB_LMS_SRVY
+		     WHERE SRVY_ID = #{srvyId}
+		       AND DELYN   = 'N'
+		       AND USEYN   = 'Y'
+		),
+		SUB_SRVY_RANKED AS (
+			/* 하위 설문 */
+		    SELECT
+		          SRVY_ID
+		        , UP_SRVY_ID
+		        , ROW_NUMBER() OVER (PARTITION BY UP_SRVY_ID ORDER BY REG_DTTM) AS RNK
+		      FROM TB_LMS_SRVY
+		     WHERE DELYN = 'N'
+		       AND USEYN = 'Y'
+		       AND SRVY_GBNCD = 'LCTR_SRVY'
+			   AND SRVY_TYCD  = 'SRVY_GNRL'
+		       AND UP_SRVY_ID IS NOT NULL
+		),
+		DVCLAS_SBJCT AS (
+			/* 분반 과목 - 설문 연결 */
+		    SELECT
+		          SRVY.SBJCT_ID
+		        , SRVY.SRVY_ID
+		        , SRVY.BYTEAM_SUBSRVY_USEYN
+		        , SUB.SRVY_ID AS SUB_SRVY_ID
+		      FROM TB_LMS_SRVY SRVY
+		      LEFT JOIN SUB_SRVY_RANKED SUB
+		        ON SUB.UP_SRVY_ID = SRVY.SRVY_ID
+		       AND SUB.RNK        = 1
+		     WHERE SRVY.USEYN = 'Y'
+		       AND SRVY.DELYN = 'N'
+		       AND SRVY.UP_SRVY_ID IS NULL
+		       AND (
+		            SRVY.SRVY_GRP_ID = (SELECT SRVY_GRP_ID FROM BASE_SRVY WHERE DVCLAS_REGYN = 'Y')
+		            OR
+		            SRVY.SRVY_ID     = (SELECT SRVY_ID     FROM BASE_SRVY WHERE DVCLAS_REGYN = 'N')
+		          )
+		),
+		SRVY_TEAM AS (
+			/* 하위 설문 - 팀 연결 */
+		    SELECT
+		          ST.SRVY_ID
+		        , TM.TEAM_ID
+		        , TM.TEAM_GRP_ID
+		      FROM TB_LMS_SRVY_TRGT ST
+		      JOIN TB_LMS_TEAM TM
+		        ON TM.TEAM_ID = ST.TEAM_ID
 		)
 		SELECT
-			  SBJCT_ID
-			, DVCLAS_NO
-			, (SELECT SRVY_ID FROM DVCLAS_SBJCT WHERE SBJCT_ID = SBJCT.SBJCT_ID) AS SRVY_ID
-			, (SELECT BYTEAM_SUBSRVY_USEYN FROM DVCLAS_SBJCT WHERE SBJCT_ID = SBJCT.SBJCT_ID) AS BYTEAM_SUBSRVY_USEYN
-			, (SELECT LRN_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TB_LMS_SRVY_TRGT WHERE SRVY_ID = (SELECT SUB_SRVY_ID FROM DVCLAS_SBJCT WHERE SBJCT_ID = SBJCT.SBJCT_ID))) AS LRN_GRP_ID
-			, (SELECT LRN_GRPNM FROM TB_LMS_TEAM_GRP WHERE USEYN = 'Y' AND DELYN = 'N' AND SBJCT_ID = SBJCT.SBJCT_ID AND LRN_GRP_ID = (SELECT LRN_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TB_LMS_SRVY_TRGT WHERE SRVY_ID = (SELECT SUB_SRVY_ID FROM DVCLAS_SBJCT WHERE SBJCT_ID = SBJCT.SBJCT_ID)))) AS LRN_GRPNM
-		  FROM TB_LMS_SBJCT SBJCT
-		 WHERE SBJCT_ID IN (SELECT SBJCT_ID FROM DVCLAS_SBJCT)
-		 ORDER BY DVCLAS_NO
+		      SBJCT.SBJCT_ID
+		    , SBJCT.DVCLAS_NO
+		    , DS.SRVY_ID
+		    , DS.BYTEAM_SUBSRVY_USEYN
+		    , ST.TEAM_GRP_ID
+		    , TG.TEAM_GRPNM
+		  FROM TB_LMS_SBJCT         SBJCT
+		  JOIN DVCLAS_SBJCT         DS ON DS.SBJCT_ID    = SBJCT.SBJCT_ID
+		  LEFT JOIN SRVY_TEAM       ST ON ST.SRVY_ID     = DS.SUB_SRVY_ID
+		  LEFT JOIN TB_LMS_TEAM_GRP TG ON TG.TEAM_GRP_ID = ST.TEAM_GRP_ID
+		                              AND TG.SBJCT_ID    = SBJCT.SBJCT_ID
+		                              AND TG.USEYN       = 'Y'
+		                              AND TG.DELYN       = 'N'
+		 ORDER BY SBJCT.DVCLAS_NO
     </select>
 
     <select id="srvySelect" parameterType="srvyVO" resultType="egovMap">
@@ -305,54 +387,53 @@
              설  명  : 설문조회
          */
         WITH SBJCT_USER AS (
-			SELECT
-				ATNDLC.USER_ID
-			  FROM TB_LMS_ATNDLC ATNDLC
-			  JOIN TB_LMS_SBJCT SBJCT
-				ON ATNDLC.SBJCT_ID = SBJCT.SBJCT_ID
-			  JOIN TB_LMS_SRVY SRVY
-			    ON SBJCT.SBJCT_ID = SRVY.SBJCT_ID
-			   AND SRVY.SRVY_ID = #{srvyId}
-			 WHERE ATNDLC.AUDITYN = 'N'
+			/* 과목 수강생 목록 */
+		    SELECT ATNDLC.USER_ID
+		      FROM TB_LMS_ATNDLC ATNDLC
+		      JOIN TB_LMS_SRVY SRVY ON SRVY.SBJCT_ID = ATNDLC.SBJCT_ID
+		     WHERE ATNDLC.AUDITYN = 'N'
+		       AND SRVY.SRVY_ID = #{srvyId}
+		),
+		SRVY_IDS AS (
+			/* 하위 설문 포함 대상 설문 목록 */
+		    SELECT SRVY_ID FROM TB_LMS_SRVY WHERE SRVY_ID = #{srvyId}
+		    UNION ALL
+		    SELECT SRVY_ID FROM TB_LMS_SRVY WHERE UP_SRVY_ID = #{srvyId} AND DELYN = 'N' AND USEYN = 'Y'
 		),
 		SUB_SRVY AS (
+			/* 하위 설문 단건 */
 		    SELECT SRVY_ID, UP_SRVY_ID
-		    FROM TB_LMS_SRVY
-		    WHERE DELYN = 'N'
-		      AND USEYN = 'Y'
-		      AND UP_SRVY_ID IS NOT NULL
+		      FROM TB_LMS_SRVY
+		     WHERE UP_SRVY_ID = #{srvyId}
+		       AND DELYN  = 'N'
+		       AND USEYN  = 'Y'
+		       AND ROWNUM = 1
 		)
-         SELECT
-         	  SRVY.*
-         	, CASE WHEN EXISTS (SELECT 1 FROM SUB_SRVY SS WHERE SS.UP_SRVY_ID = SRVY.SRVY_ID)
-		           THEN 'SRVY_TEAM' ELSE 'SRVY' END AS SRVY_GBN
-         	, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = SRVY.RGTR_ID) AS RGTRNM
-         	, (SELECT SBJCTNM FROM TB_LMS_SBJCT SBJCT WHERE SBJCT.SBJCT_ID = SRVY.SBJCT_ID) AS SBJCTNM
-         	, (SELECT DVCLAS_NO FROM TB_LMS_SBJCT SBJCT WHERE SBJCT.SBJCT_ID = SRVY.SBJCT_ID) AS DVCLAS_NO
-         	, (SELECT
-         			COUNT(PTCP.USER_ID)
-         		 FROM TB_LMS_SRVY_PTCP PTCP
-         		WHERE PTCP.PTCP_DTTM IS NOT NULL
-         		  AND PTCP.SRVY_ID IN (
-         		  						SELECT
-         		  							SRVY_ID
-         		  						  FROM TB_LMS_SRVY
-         		  						 WHERE SRVY_ID = #{srvyId}
-         		  						UNION ALL
-         		  						SELECT
-         		  							SRVY_ID
-         		  						  FROM TB_LMS_SRVY
-         		  						 WHERE UP_SRVY_ID = #{srvyId}
-         		  						   AND DELYN = 'N'
-         		  						   AND USEYN = 'Y'
-         		  					)
-         		  AND PTCP.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
-         		) AS PTCP_USER_CNT
-			, (SELECT LRN_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TB_LMS_SRVY_TRGT WHERE SRVY_ID = (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE UP_SRVY_ID = SRVY.SRVY_ID AND DELYN = 'N' AND USEYN ='Y' AND ROWNUM = 1))) AS LRN_GRP_ID
-			, (SELECT LRN_GRPNM FROM TB_LMS_TEAM_GRP WHERE USEYN = 'Y' AND DELYN = 'N' AND SBJCT_ID = SRVY.SBJCT_ID AND LRN_GRP_ID = (SELECT LRN_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TB_LMS_SRVY_TRGT WHERE SRVY_ID = (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE UP_SRVY_ID = SRVY.SRVY_ID AND DELYN = 'N' AND USEYN ='Y' AND ROWNUM = 1)))) LRN_GRPNM
-			, NVL((SELECT SRVY_ID FROM SUB_SRVY WHERE UP_SRVY_ID = SRVY.SRVY_ID AND ROWNUM = 1), SRVY.SRVY_ID) AS SUB_SRVY_ID
-           FROM TB_LMS_SRVY SRVY
-          WHERE SRVY_ID = #{srvyId}
+		SELECT
+		      SRVY.*
+		    , CASE WHEN SUB.SRVY_ID IS NOT NULL THEN 'SRVY_TEAM' ELSE 'SRVY' END AS SRVY_GBN
+		    , USR.USERNM AS RGTRNM
+		    , SBJCT.SBJCTNM
+		    , SBJCT.DVCLAS_NO
+		    , (SELECT COUNT(PTCP.USER_ID)
+		       FROM TB_LMS_SRVY_PTCP PTCP
+		       WHERE PTCP.PTCP_EDTTM IS NOT NULL
+		         AND PTCP.SRVY_ID IN (SELECT SRVY_ID FROM SRVY_IDS)
+		         AND PTCP.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)) AS PTCP_USER_CNT
+		    , TM.TEAM_GRP_ID
+		    , TG.TEAM_GRPNM
+		    , NVL(SUB.SRVY_ID, SRVY.SRVY_ID) AS SUB_SRVY_ID
+		  FROM TB_LMS_SRVY           SRVY
+		  JOIN TB_LMS_SBJCT          SBJCT ON SBJCT.SBJCT_ID = SRVY.SBJCT_ID
+		  JOIN TB_LMS_USER           USR   ON USR.USER_ID    = SRVY.RGTR_ID
+		  LEFT JOIN SUB_SRVY         SUB   ON SUB.UP_SRVY_ID = SRVY.SRVY_ID
+		  LEFT JOIN TB_LMS_SRVY_TRGT ST    ON ST.SRVY_ID     = SUB.SRVY_ID
+		  LEFT JOIN TB_LMS_TEAM      TM    ON TM.TEAM_ID     = ST.TEAM_ID
+		  LEFT JOIN TB_LMS_TEAM_GRP  TG    ON TG.TEAM_GRP_ID = TM.TEAM_GRP_ID
+		                                  AND TG.SBJCT_ID    = SRVY.SBJCT_ID
+		                                  AND TG.USEYN       = 'Y'
+		                                  AND TG.DELYN       = 'N'
+		 WHERE SRVY.SRVY_ID = #{srvyId}
     </select>
 
     <delete id="subSrvyDelete" parameterType="String">
@@ -382,15 +463,16 @@
              설  명  : 설문팀목록조회
          */
     	SELECT
-			  SRVY.SRVY_ID
-			, SRVY_TRGT.TEAM_ID
-			, (SELECT TEAMNM FROM TB_LMS_TEAM WHERE TEAM_CPST_CMPTNYN = 'Y' AND TEAM_ID = SRVY_TRGT.TEAM_ID) AS TEAMNM
-			, SRVY.SRVY_QSTNS_CMPTNYN
+		      SRVY.SRVY_ID
+		    , SRVY_TRGT.TEAM_ID
+		    , TM.TEAMNM
+		    , SRVY.SRVY_QSTNS_CMPTNYN
 		  FROM TB_LMS_SRVY SRVY
-		  JOIN TB_LMS_SRVY_TRGT SRVY_TRGT
-		    ON SRVY.SRVY_ID = SRVY_TRGT.SRVY_ID
-		 WHERE SRVY.DELYN = 'N'
-		   AND SRVY.USEYN = 'Y'
+		  JOIN TB_LMS_SRVY_TRGT SRVY_TRGT ON SRVY_TRGT.SRVY_ID = SRVY.SRVY_ID
+		  JOIN TB_LMS_TEAM TM             ON TM.TEAM_ID        = SRVY_TRGT.TEAM_ID
+		                                 AND TM.TEAM_CPST_CMPTNYN = 'Y'
+		 WHERE SRVY.DELYN     = 'N'
+		   AND SRVY.USEYN     = 'Y'
 		   AND SRVY.UP_SRVY_ID = #{srvyId}
     </select>
 
@@ -409,46 +491,39 @@
 		   AND UP_SRVY_ID IS NULL
     </select>
 
-    <select id="srvyLrnGrpSubAsmtList" parameterType="map" resultType="egovMap">
+    <select id="srvyTeamGrpSubSrvyList" parameterType="map" resultType="egovMap">
     	/*
-             SQL ID : SrvyDAO.srvyLrnGrpSubAsmtList
-             설  명  : 설문학습그룹부과제목록조회
+             SQL ID : SrvyDAO.srvyTeamGrpSubSrvyList
+             설  명  : 설문팀그룹부설문목록조회
          */
-		 SELECT
-			  TEAM.TEAM_ID
-			, TEAM.TEAMNM
-			, NVL((SELECT USR.USERNM FROM TB_LMS_USER USR JOIN TB_LMS_TEAM_MBR TEAM_MBR ON USR.USER_ID = TEAM_MBR.USER_ID WHERE TEAM_MBR.LDRYN = 'Y' AND TEAM_MBR.TEAM_ID = TEAM.TEAM_ID), '-') AS LEADERNM
-			, (SELECT COUNT(tlts.USER_ID) FROM TB_LMS_TEAM_MBR tlts WHERE tlts.TEAM_ID = TEAM.TEAM_ID) AS TEAM_MBR_CNT
-			, SRVY.SRVY_TTL
-			, DBMS_LOB.SUBSTR(SRVY.SRVY_CTS, 4000, 1) AS SRVY_CTS
+        SELECT
+		      TEAM.TEAM_ID
+		    , TEAM.TEAMNM
+		    , NVL(USR.USERNM, '-') AS LEADERNM
+		    , (SELECT COUNT(MBR.USER_ID)
+		       FROM TB_LMS_TEAM_MBR MBR
+		       WHERE MBR.TEAM_ID = TEAM.TEAM_ID) AS TEAM_MBR_CNT
+		    , SRVY.SRVY_TTL
+		    , DBMS_LOB.SUBSTR(SRVY.SRVY_CTS, 4000, 1) AS SRVY_CTS
 		  FROM TB_LMS_TEAM TEAM
-		  LEFT JOIN TB_LMS_SRVY_TRGT SRVY_TRGT
-		    ON TEAM.TEAM_ID = SRVY_TRGT.TEAM_ID
-		   AND SRVY_TRGT.SRVY_ID IN (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE UP_SRVY_ID = #{srvyId})
-		  LEFT JOIN TB_LMS_SRVY SRVY
-		    ON SRVY_TRGT.SRVY_ID = SRVY.SRVY_ID
-		   AND SRVY.DELYN = 'N'
-		   AND SRVY.USEYN = 'Y'
-		   AND SRVY.UP_SRVY_ID = #{srvyId}
-		 WHERE TEAM.LRN_GRP_ID = #{lrnGrpId}
-		 <if test="srvyId != null and srvyId != ''">
-		   AND SRVY.UP_SRVY_ID = #{srvyId}
-		 </if>
+		  LEFT JOIN TB_LMS_TEAM_MBR  LMBR  ON LMBR.TEAM_ID = TEAM.TEAM_ID
+		                                  AND LMBR.LDRYN   = 'Y'
+		  LEFT JOIN TB_LMS_USER      USR   ON USR.USER_ID = LMBR.USER_ID
+		  LEFT JOIN TB_LMS_SRVY_TRGT ST    ON ST.TEAM_ID = TEAM.TEAM_ID
+		                                  AND ST.SRVY_ID IN (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE UP_SRVY_ID = #{srvyId})
+		  LEFT JOIN TB_LMS_SRVY      SRVY  ON SRVY.SRVY_ID = ST.SRVY_ID
+		                                  AND SRVY.DELYN      = 'N'
+		                                  AND SRVY.USEYN      = 'Y'
+		                                  AND SRVY.UP_SRVY_ID = #{srvyId}
+		 WHERE TEAM.TEAM_GRP_ID = #{teamGrpId}
 		 ORDER BY TEAM.TEAM_ID ASC
     </select>
 
-    <select id="profAuthrtSbjctSrvyList" parameterType="map" resultType="egovMap">
+    <select id="profAuthrtSbjctSrvyList" parameterType="srvyVO" resultType="egovMap">
 		/*
              SQL ID : SrvyDAO.profAuthrtSbjctSrvyList
              설  명  : 교수권한과목설문목록조회
          */
-	    WITH SUB_SRVY AS (
-		    SELECT SRVY_ID, UP_SRVY_ID
-		      FROM TB_LMS_SRVY
-		     WHERE DELYN = 'N'
-		       AND USEYN = 'Y'
-		       AND UP_SRVY_ID IS NOT NULL
-		)
 		SELECT
 			  ROW_NUMBER() OVER(ORDER BY SRVY.SRVY_ID DESC) AS LINE_NO
 			, SRVY.SRVY_ID
@@ -456,8 +531,12 @@
 			, SBJCT.SBJCT_ID
 			, SBJCT.SBJCTNM
 			, SBJCT.DVCLAS_NO
-			, CASE WHEN EXISTS (SELECT 1 FROM SUB_SRVY SS WHERE SS.UP_SRVY_ID = SRVY.SRVY_ID)
-		      THEN 'SRVY_TEAM' ELSE 'SRVY' END AS SRVY_GBN
+			, CASE WHEN EXISTS (
+		          SELECT 1 FROM TB_LMS_SRVY SS
+		          WHERE SS.UP_SRVY_ID = SRVY.SRVY_ID
+		            AND SS.DELYN = 'N' AND SS.USEYN = 'Y'
+		      ) THEN 'SRVY_TEAM' ELSE 'SRVY' END AS SRVY_GBN
+		    , (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE UP_SRVY_ID = SRVY.SRVY_ID AND DELYN = 'N' AND USEYN = 'Y' AND ROWNUM = 1) AS SUB_SRVY_ID
 			, COUNT(1) OVER()	AS TOTAL_CNT
 		  FROM TB_LMS_SBJCT_ADM SBJCT_ADM
 		  JOIN TB_LMS_SRVY SRVY
@@ -472,6 +551,7 @@
 		   AND SRVY.SRVY_GBNCD = 'LCTR_SRVY'
 		   AND SRVY.UP_SRVY_ID IS NULL
 		   AND SBJCT_ADM.SBJCT_ADM_TYCD = 'PROF'
+		   AND SRVY.SRVY_QSTNS_CMPTNYN = 'Y'
 		   <if test="smstrChrtId != null and smstrChrtId != ''">
 		     AND SBJCT.SMSTR_CHRT_ID = #{smstrChrtId}
 		   </if>
@@ -516,7 +596,6 @@
 		   AND SRVY.SRVY_GBNCD = 'LCTR_SRVY'
 		   AND SRVY.UP_SRVY_ID IS NULL
 		   AND SRVY.SRVY_QSTNS_CMPTNYN = 'Y'
-		   AND SRVY.UP_SRVY_ID IS NULL
 		  LEFT JOIN TB_LMS_SRVY SUB_SRVY
 		    ON SRVY.SRVY_ID = SUB_SRVY.UP_SRVY_ID
 		   AND SUB_SRVY.DELYN = 'N'
@@ -526,6 +605,1218 @@
 		 WHERE SBJCT.DELYN = 'N'
 		   AND SBJCT.USEYN = 'Y'
 		   AND SBJCT.SBJCT_ID = #{sbjctId}
+	</select>
+
+	<select id="stdntSrvyListPaging" parameterType="srvyPageInfo" resultType="egovMap">
+		/*
+             SQL ID : SrvyDAO.stdntSrvyListPaging
+             	설  명 : 학생설문목록페이징
+         */
+        <include refid="CommonSQL.pagePrefix2" />
+	    WITH USER_TEAM AS (
+	    	/* 사용자 팀목록 */
+		    SELECT TEAM_ID
+		      FROM TB_LMS_TEAM_MBR
+		     WHERE USER_ID = #{userId}
+		),
+		SRVY_BASE AS (
+			/* 기본 설문 정보 */
+		    SELECT
+		          SRVY.SRVY_ID AS UP_SRVY_ID
+		        , SRVY.SBJCT_ID
+		        , CASE WHEN SUB.SRVY_ID IS NOT NULL THEN 'SRVY_TEAM' ELSE 'SRVY' END AS SRVY_GBN
+		        , SRVY.SRVY_TTL
+		        , SRVY.SRVY_SDTTM
+		        , SRVY.SRVY_EDTTM
+		        , SRVY.MRK_RFLTYN
+		        , SRVY.MRK_OYN
+		        , SRVY.SRVY_QSTNS_CMPTNYN
+		        , SRVY.REG_DTTM
+		        , NVL(PTCP.PTCP_EVL_SCR, 0) 	 AS PTCP_EVL_SCR
+		        , NVL(PTCP.SRVY_PTCP_EVLYN, 'N') AS SRVY_PTCP_EVLYN
+		        , PTCP.SRVY_PTCP_ID
+		        , PTCP.PTCP_SDTTM
+		        , PTCP.PTCP_EDTTM
+		        , NVL(TRGT.SRVY_ID, SRVY.SRVY_ID) AS SRVY_ID
+		      FROM TB_LMS_SRVY SRVY
+		      JOIN TB_LMS_ATNDLC ATNDLC ON ATNDLC.SBJCT_ID = SRVY.SBJCT_ID
+		                               AND ATNDLC.USER_ID = #{userId}
+		                               AND ATNDLC.ATNDLC_STSCD = 'APPROVE'
+		      LEFT JOIN TB_LMS_SRVY SUB ON SUB.UP_SRVY_ID = SRVY.SRVY_ID
+		                               AND SUB.DELYN = 'N'
+		                               AND SUB.USEYN = 'Y'
+		      LEFT JOIN TB_LMS_SRVY_TRGT TRGT ON TRGT.SRVY_ID = SUB.SRVY_ID
+		                                     AND TRGT.TEAM_ID IN (SELECT TEAM_ID FROM USER_TEAM)
+		      LEFT JOIN TB_LMS_SRVY_PTCP PTCP ON PTCP.SRVY_ID = NVL(SUB.SRVY_ID, SRVY.SRVY_ID)
+		                                     AND PTCP.USER_ID = #{userId}
+		     WHERE SRVY.SBJCT_ID = #{sbjctId}
+		       AND SRVY.SRVY_GBNCD = 'LCTR_SRVY'
+		       AND SRVY.DELYN = 'N'
+		       AND SRVY.USEYN = 'Y'
+		       AND SRVY.SRVY_QSTNS_CMPTNYN = 'Y'
+		       AND SRVY.UP_SRVY_ID IS NULL
+		       <if test="searchValue != null and searchValue != ''">
+		         AND LOWER(SRVY.SRVY_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		       </if>
+		)
+		SELECT
+		      SRVY.*
+		    , ROW_NUMBER() OVER(ORDER BY SRVY.SRVY_SDTTM DESC, SRVY.REG_DTTM ASC) AS LINE_NO
+		    , COUNT(*) OVER() AS TOTAL_CNT
+		    , CASE
+		          WHEN SYSDATE BETWEEN TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+		                           AND TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS') THEN 'IN_PROGRESS'
+		          WHEN SYSDATE <![CDATA[ < ]]> TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')  THEN 'PRE_SRVY'
+		          WHEN SYSDATE <![CDATA[ > ]]> TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')  THEN 'DONE'
+		          ELSE 'ERROR'
+		      END AS SRVY_PRGRS_STS
+		FROM SRVY_BASE SRVY
+		WHERE (
+		       (SRVY.SRVY_GBN = 'SRVY_TEAM' AND SRVY.UP_SRVY_ID <![CDATA[ <> ]]> SRVY.SRVY_ID)
+		    OR  SRVY.SRVY_GBN = 'SRVY'
+		)
+		<include refid="CommonSQL.pageSuffix2" />
+	</select>
+
+	<select id="stdntSrvySelect" parameterType="srvyVO" resultType="egovMap">
+		/*
+             SQL ID : SrvyDAO.stdntSrvySelect
+             	설  명 : 학생설문조회
+         */
+        SELECT
+		      SRVY.SRVY_ID AS UP_SRVY_ID
+		    , NVL(TRGT.SRVY_ID, SRVY.SRVY_ID) AS SRVY_ID
+		    , SRVY.SRVY_TTL
+		    , SRVY.SRVY_CTS
+		    , CASE WHEN SUB_SRVY.SRVY_ID IS NOT NULL THEN 'SRVY_TEAM' ELSE 'SRVY' END AS SRVY_GBN
+		    , SRVY.SBJCT_ID
+		    , SRVY.SRVY_SDTTM
+		    , SRVY.SRVY_EDTTM
+		    , SRVY.MRK_RFLTYN
+		    , SRVY.MRK_OYN
+		    , SRVY.EVL_SCR_TYCD
+		    , SRVY.RSLT_OPEN_TYCD
+		    , SRVY.BYTEAM_SUBSRVY_USEYN
+		    , TRGT.TEAM_ID
+		    , TM.TEAM_GRP_ID
+		    , TG.TEAM_GRPNM
+		    , CASE
+		          WHEN SYSDATE BETWEEN TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+		                           AND TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS') 		THEN 'IN_PROGRESS'
+		          WHEN SYSDATE <![CDATA[ < ]]> TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS') THEN 'PRE_SRVY'
+		          WHEN SYSDATE <![CDATA[ > ]]> TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS') THEN 'DONE'
+		          ELSE 'ERROR'
+		      END AS SRVY_PRGRS_STS
+		    , PTCP.PTCP_SDTTM
+		    , PTCP.PTCP_EDTTM
+		    , PTCP.SRVY_PTCP_ID
+		    , NVL(PTCP.PTCP_EVL_SCR, 0) 		AS PTCP_EVL_SCR
+		    , NVL(PTCP.SRVY_PTCP_EVLYN, 'N') 	AS SRVY_PTCP_EVLYN
+		    , #{userId} AS USER_ID
+		    , USR.USERNM
+		    , NVL(DEPT.DEPTNM, '-')  AS DEPTNM
+		  FROM TB_LMS_SRVY SRVY
+		  JOIN TB_LMS_SBJCT SBJCT ON SBJCT.SBJCT_ID = SRVY.SBJCT_ID
+		  LEFT JOIN TB_LMS_SRVY SUB_SRVY ON SUB_SRVY.UP_SRVY_ID = SRVY.SRVY_ID
+		                                AND SUB_SRVY.DELYN = 'N'
+		                                AND SUB_SRVY.USEYN = 'Y'
+		  LEFT JOIN TB_LMS_SRVY_TRGT TRGT ON TRGT.SRVY_ID = SUB_SRVY.SRVY_ID
+		  LEFT JOIN TB_LMS_SRVY_PTCP PTCP ON PTCP.SRVY_ID = NVL(SUB_SRVY.SRVY_ID, SRVY.SRVY_ID)
+		                                 AND PTCP.USER_ID = #{userId}
+		  LEFT JOIN TB_LMS_TEAM TM ON TM.TEAM_ID = TRGT.TEAM_ID
+		  LEFT JOIN TB_LMS_TEAM_GRP TG ON TG.TEAM_GRP_ID = TM.TEAM_GRP_ID
+		                              AND TG.SBJCT_ID = SBJCT.SBJCT_ID
+		                              AND TG.USEYN = 'Y'
+		                              AND TG.DELYN = 'N'
+		  LEFT JOIN TB_LMS_USER USR ON USR.USER_ID = #{userId}
+		  LEFT JOIN TB_LMS_DEPT DEPT ON DEPT.DEPT_ID = USR.DEPT_ID
+		 WHERE SRVY.DELYN = 'N'
+		   AND SRVY.USEYN = 'Y'
+		   AND SBJCT.SBJCT_ID = #{sbjctId}
+		   AND (
+		         (#{upSrvyId} <![CDATA[ <> ]]> #{srvyId} AND SRVY.SRVY_ID = #{upSrvyId} AND SUB_SRVY.SRVY_ID = #{srvyId})
+		      OR (#{upSrvyId} = #{srvyId} AND SRVY.SRVY_ID = #{upSrvyId})
+		       )
+	</select>
+
+	<select id="admSrvyLctrEvlListPaging" parameterType="srvyPageInfo" resultType="egovMap">
+		/*
+             SQL ID : SrvyDAO.admSrvyLctrEvlListPaging
+             설  명  : 관리자설문강의평가목록페이징
+         */
+        <include refid="CommonSQL.pagePrefix2" />
+        WITH SUB_SRVY AS (                          -- 상위 설문에 연결된 하위(과목별) 설문 집계
+		    SELECT
+		           SRVY.UP_SRVY_ID,
+		           COUNT(*)         AS SBJCT_CNT,
+		           MAX(ORG.ORGNM)   AS ORGNM
+		      FROM TB_LMS_SRVY       SRVY
+		      JOIN TB_LMS_SBJCT      SBJCT ON SRVY.SBJCT_ID = SBJCT.SBJCT_ID
+		                                    AND SBJCT.DELYN = 'N' AND SBJCT.USEYN = 'Y'
+		      JOIN TB_LMS_SMSTR_CHRT CHRT  ON SBJCT.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+		      JOIN TB_LMS_ORG        ORG   ON CHRT.ORG_ID = ORG.ORG_ID
+		      <if test="userId != null and userId != ''">
+		          <!-- 과목관리자용 -->
+		          JOIN TB_LMS_USER USR
+		            ON USR.USER_ID_STSCD = 'APRV_CMPTN'
+		           AND USR.USER_TYCD     = 'ADM'
+		           AND USR.USER_ID       = #{userId}
+		          JOIN TB_LMS_USER_AUTHRT USR_AUTHRT
+		            ON USR_AUTHRT.USER_ID = USR.USER_ID
+		          JOIN TB_LMS_AUTHRT AUTHRT
+		            ON AUTHRT.AUTHRT_ID = USR_AUTHRT.AUTHRT_ID
+		           AND AUTHRT.AUTHRT_ID = 'AUTHRT_ID00012'
+		      </if>
+		     WHERE SRVY.SRVY_GBNCD  = 'LCTR_SRVY'
+		       AND SRVY.SRVY_TYCD  LIKE '%EXAM%'
+		       AND SRVY.DELYN       = 'N'
+		       AND SRVY.USEYN       = 'Y'
+		       AND CHRT.ORG_ID       = #{orgId}
+		       <if test="smstrChrtId != null and smstrChrtId != ''">
+		           AND CHRT.SMSTR_CHRT_ID = #{smstrChrtId}
+		       </if>
+		       <if test="dgrsYr != null and dgrsYr != ''">
+		           AND CHRT.DGRS_YR = #{dgrsYr}
+		       </if>
+		       AND SRVY.UP_SRVY_ID IS NOT NULL
+		     GROUP BY SRVY.UP_SRVY_ID
+		)
+		SELECT
+		       A.*
+		     , ROW_NUMBER() OVER (ORDER BY A.REG_DTTM DESC) AS LINE_NO
+		     , COUNT(A.SRVY_ID) OVER()                      AS TOTAL_CNT
+		  FROM (
+		    SELECT
+		           SRVY.*,
+		           WRT_CD.CDNM  AS SRVY_WRT_TYNM,
+		           TRGT_CD.CDNM AS SRVY_TRGT_GBNNM,
+		           SUB_SRVY.SBJCT_CNT,
+		           SUB_SRVY.ORGNM,
+		           CASE
+		               WHEN SYSDATE BETWEEN TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+		                                AND TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')
+		               THEN 'IN_PROGRESS'
+		               WHEN SYSDATE <![CDATA[ < ]]> TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+		               THEN 'PRE_SRVY'
+		               WHEN SYSDATE <![CDATA[ > ]]> TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')
+		               THEN 'DONE'
+		               ELSE 'ERROR'
+		           END AS SRVY_PRGRS_STS
+		      FROM TB_LMS_SRVY SRVY
+		      JOIN SUB_SRVY
+		        ON SRVY.SRVY_ID = SUB_SRVY.UP_SRVY_ID
+		      LEFT JOIN TB_LMS_CMMN_CD WRT_CD
+		        ON WRT_CD.UP_CD = 'SRVY_WRT_TYCD' AND WRT_CD.CD = SRVY.SRVY_WRT_TYCD
+		      LEFT JOIN TB_LMS_CMMN_CD TRGT_CD
+		        ON TRGT_CD.UP_CD = 'SRVY_TRGT_GBNCD' AND TRGT_CD.CD = SRVY.SRVY_TRGT_GBNCD
+		     WHERE SRVY.DELYN = 'N'
+		       AND SRVY.USEYN = 'Y'
+		       <if test="searchValue != null and searchValue != ''">
+		           AND LOWER(SRVY.SRVY_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		       </if>
+		  ) A
+    	<include refid="CommonSQL.pageSuffix2" />
+	</select>
+
+	<select id="srvyLctrEvlNRegistSbjctList" parameterType="map" resultType="egovMap">
+		/*
+             SQL ID : SrvyDAO.srvyLctrEvlNRegistSbjctList
+             설  명  : 설문강의평가미등록과목목록
+         */
+		WITH SBJCT_ADM_1ST AS (                     -- 과목별 담당교수(PROF)/조교(TUT) 각 1명
+		    SELECT SBJCT_ID, SBJCT_ADM_TYCD, USER_ID,
+		           ROW_NUMBER() OVER (PARTITION BY SBJCT_ID, SBJCT_ADM_TYCD
+		                               ORDER BY SBJCT_ADM_SEQNO ASC) AS RNUM
+		      FROM TB_LMS_SBJCT_ADM
+		     WHERE SBJCT_ADM_TYCD IN ('PROF', 'TUT')
+		)
+		SELECT
+		       ORG.ORGNM,
+		       SBJCT.SBJCT_ID,
+		       SBJCT.CRCLMN_NO AS SBJCT_CD,
+		       SBJCT.SBJCTNM,
+		       SBJCT.DVCLAS_NO,
+		       PROF_USR.USERNM AS PROFNM,
+		       TUT_USR.USERNM  AS TUTNM
+		  FROM TB_LMS_SBJCT SBJCT
+		  JOIN TB_LMS_SMSTR_CHRT CHRT
+		    ON SBJCT.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+		  JOIN TB_LMS_ORG ORG
+		    ON CHRT.ORG_ID = ORG.ORG_ID
+		  LEFT JOIN SBJCT_ADM_1ST PROF_ADM
+		    ON PROF_ADM.SBJCT_ID       = SBJCT.SBJCT_ID
+		   AND PROF_ADM.SBJCT_ADM_TYCD = 'PROF'
+		   AND PROF_ADM.RNUM = 1
+		  LEFT JOIN TB_LMS_USER PROF_USR
+		    ON PROF_USR.USER_ID = PROF_ADM.USER_ID
+		  LEFT JOIN SBJCT_ADM_1ST TUT_ADM
+		    ON TUT_ADM.SBJCT_ID       = SBJCT.SBJCT_ID
+		   AND TUT_ADM.SBJCT_ADM_TYCD = 'TUT'
+		   AND TUT_ADM.RNUM = 1
+		  LEFT JOIN TB_LMS_USER TUT_USR
+		    ON TUT_USR.USER_ID = TUT_ADM.USER_ID
+		 WHERE SBJCT.DELYN = 'N'
+		   AND SBJCT.USEYN = 'Y'
+		   AND CHRT.ORG_ID = #{orgId}
+		   <if test="smstrChrtId != null and smstrChrtId != ''">
+		       AND CHRT.SMSTR_CHRT_ID = #{smstrChrtId}
+		   </if>
+		   <if test="dgrsYr != null and dgrsYr != ''">
+		   	   AND CHRT.DGRS_YR = #{dgrsYr}
+		   </if>
+		   AND NOT EXISTS (
+		       SELECT 1
+		         FROM TB_LMS_SRVY SRVY
+		        WHERE SRVY.SBJCT_ID  = SBJCT.SBJCT_ID
+		          AND SRVY.DELYN      = 'N'
+		          AND SRVY.USEYN      = 'Y'
+		          AND SRVY.SRVY_GBNCD = 'LCTR_SRVY'
+		          AND SRVY.UP_SRVY_ID IS NOT NULL
+		          AND SRVY.SRVY_TYCD  = #{srvyTycd}
+		          <if test="srvyId != null and srvyId != ''">
+		              AND SRVY.UP_SRVY_ID <![CDATA[ <> ]]> #{srvyId}
+		          </if>
+		   )
+		 ORDER BY CHRT.ORG_ID, SBJCT.SBJCTNM, SBJCT.DVCLAS_NO
+	</select>
+
+	<insert id="srvyBulkRegist" parameterType="java.util.List">
+		/*
+             SQL ID : SrvyDAO.srvyBulkRegist
+             설  명 : 설문일괄등록
+         */
+         INSERT ALL
+		<foreach item="item" collection="list">
+			INTO TB_LMS_SRVY (
+	         	  SRVY_ID
+				, SRVY_GRP_ID
+				, SBJCT_ID
+				, LCTR_WKNO_SCHDL_ID
+				, UP_SRVY_ID
+				, SRVY_WRT_TYCD
+				, SRVY_GBNCD
+				, SRVY_TYCD
+				, SRVY_TRGT_GBNCD
+				, SRVY_TTL
+				, SRVY_CTS
+				, RSLT_OPEN_TYCD
+				, DVCLAS_REGYN
+				, SRVY_SDTTM
+				, SRVY_EDTTM
+				, EVL_SCR_TYCD
+				, MRK_RFLTYN
+				, MRK_RFLTRT
+				, MRK_OYN
+				, BYTEAM_SUBSRVY_USEYN
+				, RGTR_ID
+				, REG_DTTM
+	         ) VALUES (
+	         	  #{item.srvyId}
+				, #{item.srvyGrpId}
+				, #{item.sbjctId}
+				, #{item.lctrWknoSchdlId}
+				, #{item.upSrvyId}
+				, #{item.srvyWrtTycd}
+				, #{item.srvyGbncd}
+				, #{item.srvyTycd}
+				, #{item.srvyTrgtGbncd}
+				, #{item.srvyTtl}
+				, #{item.srvyCts}
+				, #{item.rsltOpenTycd}
+				, #{item.dvclasRegyn}
+				, #{item.srvySdttm}
+				, #{item.srvyEdttm}
+				, #{item.evlScrTycd}
+				, #{item.mrkRfltyn}
+				, #{item.mrkRfltrt}
+				, #{item.mrkOyn}
+				, #{item.byteamSubsrvyUseyn}
+				, #{item.rgtrId}
+				, FN_DTTM()
+	         )
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+
+	<select id="srvyLctrEvlSelect" parameterType="srvyVO" resultType="egovMap">
+		/*
+             SQL ID : SrvyDAO.srvyLctrEvlSelect
+             설  명 : 설문강의평가조회
+         */
+		SELECT
+			  SRVY.SRVY_ID
+			, SRVY.SRVY_TRGT_GBNCD
+			, SRVY.SRVY_TTL
+			, SRVY.SRVY_CTS
+			, SRVY.SRVY_TYCD
+			, SRVY.SRVY_SDTTM
+			, SRVY.SRVY_EDTTM
+			, SRVY.SRVY_WRT_TYCD
+			, SRVY.MRK_OYN
+			, SRVY.RSLT_OPEN_TYCD
+			, SRVY.SRVY_QSTNS_CMPTNYN
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'SRVY_WRT_TYCD' AND CD = SRVY.SRVY_WRT_TYCD) AS SRVY_WRT_TYNM
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'SRVY_TRGT_GBNCD' AND CD = SRVY.SRVY_TRGT_GBNCD) AS SRVY_TRGT_GBNNM
+			, SUB_SRVY.SBJCT_CNT
+			, SUB_SRVY.ORG_ID
+			, SUB_SRVY.ORGNM
+			, SUB_SRVY.DGRS_YR
+			, SUB_SRVY.SMSTR_CHRT_ID
+			, SUB_SRVY.SMSTR_CHRTNM
+			, CASE
+					WHEN SYSDATE BETWEEN TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+				                     AND TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')
+				    THEN 'IN_PROGRESS'
+				    WHEN SYSDATE <![CDATA[ < ]]> TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+				    THEN 'PRE_SRVY'
+				    WHEN SYSDATE <![CDATA[ > ]]> TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')
+				    THEN 'DONE'
+				    ELSE 'ERROR'
+				END AS SRVY_PRGRS_STS
+		  FROM TB_LMS_SRVY SRVY
+		  JOIN (
+		  	SELECT
+				  SRVY.UP_SRVY_ID
+			   	, COUNT(*) AS SBJCT_CNT
+			   	, MAX(ORG.ORG_ID) AS ORG_ID
+			   	, MAX(ORG.ORGNM) AS ORGNM
+			   	, MAX(CHRT.DGRS_YR) AS DGRS_YR
+			   	, MAX(CHRT.SMSTR_CHRT_ID) AS SMSTR_CHRT_ID
+			   	, MAX(CHRT.SMSTR_CHRTNM) AS SMSTR_CHRTNM
+			  FROM TB_LMS_SRVY SRVY
+			  JOIN TB_LMS_SBJCT SBJCT
+			    ON SRVY.SBJCT_ID = SBJCT.SBJCT_ID
+			   AND SBJCT.DELYN = 'N'
+			   AND SBJCT.USEYN = 'Y'
+			  JOIN TB_LMS_SMSTR_CHRT CHRT
+			    ON SBJCT.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+			  JOIN TB_LMS_ORG ORG
+			    ON CHRT.ORG_ID = ORG.ORG_ID
+			 WHERE SRVY.SRVY_GBNCD = 'LCTR_SRVY'
+			   AND SRVY.SRVY_TYCD LIKE '%EXAM%'
+			   AND SRVY.DELYN = 'N'
+			   AND SRVY.USEYN = 'Y'
+			   AND SRVY.UP_SRVY_ID IS NOT NULL
+			   <if test="orgId != null and orgId != ''">
+			   	AND ORG.ORG_ID = #{orgId}
+			   </if>
+			 GROUP BY SRVY.UP_SRVY_ID
+		  ) SUB_SRVY
+		    ON SRVY.SRVY_ID = SUB_SRVY.UP_SRVY_ID
+		 WHERE SRVY.DELYN = 'N'
+		   AND SRVY.USEYN = 'Y'
+		   AND SRVY.SRVY_ID = #{srvyId}
+	</select>
+
+	<select id="srvyLctrEvlRegistSbjctList" parameterType="srvyVO" resultType="egovMap">
+		/*
+             SQL ID : SrvyDAO.srvyLctrEvlRegistSbjctList
+             설  명 : 설문강의평가등록과목목록
+         */
+		SELECT
+		 	  ORG.ORGNM
+		 	, SBJCT.SBJCT_ID
+		 	, SBJCT.CRCLMN_NO AS SBJCT_CD
+		 	, SBJCT.SBJCTNM
+		 	, SBJCT.DVCLAS_NO
+		 	, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = (SELECT USER_ID FROM TB_LMS_SBJCT_ADM WHERE SBJCT_ID = SBJCT.SBJCT_ID AND SBJCT_ADM_TYCD = 'PROF' AND ROWNUM = 1)) AS PROFNM
+			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = (SELECT USER_ID FROM TB_LMS_SBJCT_ADM WHERE SBJCT_ID = SBJCT.SBJCT_ID AND SBJCT_ADM_TYCD = 'TUT' AND ROWNUM = 1)) AS TUTNM
+		  FROM TB_LMS_SRVY SRVY
+		  JOIN TB_LMS_SBJCT SBJCT
+		    ON SRVY.SBJCT_ID = SBJCT.SBJCT_ID
+		   AND SBJCT.DELYN = 'N'
+		   AND SBJCT.USEYN = 'Y'
+		  JOIN TB_LMS_SMSTR_CHRT CHRT
+		    ON SBJCT.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+		  JOIN TB_LMS_ORG ORG
+		    ON CHRT.ORG_ID = ORG.ORG_ID
+		  <if test="orgId != null and orgId != ''">
+		   AND ORG.ORG_ID = #{orgId}
+		  </if>
+		  <if test="userId != null and userId != ''">
+		  	/* 과목관리자용 */
+		  	JOIN TB_LMS_USER USR
+			  ON USR.USER_ID_STSCD = 'APRV_CMPTN'
+			 AND USR.USER_TYCD = 'ADM'
+			 AND USR.USER_ID = #{userId}
+			JOIN TB_LMS_USER_AUTHRT USR_AUTHRT
+			  ON USR_AUTHRT.USER_ID = USR.USER_ID
+			JOIN TB_LMS_AUTHRT AUTHRT
+			  ON AUTHRT.AUTHRT_ID = USR_AUTHRT.AUTHRT_ID
+			 AND AUTHRT.AUTHRT_ID = 'AUTHRT_ID00012'
+		  </if>
+		 WHERE SRVY.SRVY_GBNCD = 'LCTR_SRVY'
+		   AND SRVY.SRVY_TYCD LIKE '%EXAM%'
+		   AND SRVY.DELYN = 'N'
+		   AND SRVY.USEYN = 'Y'
+		   AND SRVY.UP_SRVY_ID = #{srvyId}
+	</select>
+
+	<select id="copySrvyLctrEvlList" parameterType="map" resultType="egovMap">
+		/*
+             SQL ID : SrvyDAO.copySrvyLctrEvlList
+             설  명 : 가져오기설문강의평가목록
+         */
+        SELECT
+			  SRVY.*
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'SRVY_WRT_TYCD' AND CD = SRVY.SRVY_WRT_TYCD) AS SRVY_WRT_TYNM
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'SRVY_TRGT_GBNCD' AND CD = SRVY.SRVY_TRGT_GBNCD) AS SRVY_TRGT_GBNNM
+			, SUB_SRVY.ORGNM
+			, ROW_NUMBER() OVER(ORDER BY SRVY.SRVY_TTL) AS LINE_NO
+		  FROM TB_LMS_SRVY SRVY
+		  JOIN (
+		  	SELECT
+				  SRVY.UP_SRVY_ID
+			   	, MAX(ORG.ORGNM) AS ORGNM
+			  FROM TB_LMS_SRVY SRVY
+			  JOIN TB_LMS_SBJCT SBJCT
+			    ON SRVY.SBJCT_ID = SBJCT.SBJCT_ID
+			   AND SBJCT.DELYN = 'N'
+			   AND SBJCT.USEYN = 'Y'
+			  JOIN TB_LMS_SMSTR_CHRT CHRT
+			    ON SBJCT.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+			  JOIN TB_LMS_ORG ORG
+			    ON CHRT.ORG_ID = ORG.ORG_ID
+			 WHERE SRVY.SRVY_GBNCD = 'LCTR_SRVY'
+			   AND SRVY.SRVY_TYCD LIKE '%EXAM%'
+			   AND SRVY.DELYN = 'N'
+			   AND SRVY.USEYN = 'Y'
+			   AND CHRT.ORG_ID = #{orgId}
+			   <if test="smstrChrtId != null and smstrChrtId != ''">
+				   	AND CHRT.SMSTR_CHRT_ID = #{smstrChrtId}
+			   </if>
+			   AND SRVY.UP_SRVY_ID IS NOT NULL
+			 GROUP BY SRVY.UP_SRVY_ID
+		  ) SUB_SRVY
+		    ON SRVY.SRVY_ID = SUB_SRVY.UP_SRVY_ID
+		 WHERE SRVY.DELYN = 'N'
+		   AND SRVY.USEYN = 'Y'
+		   <if test="searchValue != null and searchValue != ''">
+		   	AND LOWER(SRVY.SRVY_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		   </if>
+		   <if test="srvyTrgtGbncd != null and srvyTrgtGbncd != ''">
+		   	AND SRVY.SRVY_TRGT_GBNCD = #{srvyTrgtGbncd}
+		   </if>
+		   <if test="srvyId != null and srvyId != ''">
+		   	AND SRVY.SRVY_ID <![CDATA[ <> ]]> #{srvyId}
+		   </if>
+		   <if test="srvyQstnsCmptnyn != null and srvyQstnsCmptnyn != ''">
+		   	AND SRVY.SRVY_QSTNS_CMPTNYN = #{srvyQstnsCmptnyn}
+		   </if>
+	</select>
+
+	<select id="admSrvyLctrEvlRsltListPaging" parameterType="srvyPageInfo" resultType="egovMap">
+		/*
+             SQL ID : SrvyDAO.admSrvyLctrEvlRsltListPaging
+             설  명  : 관리자설문강의평가결과목록페이징
+         */
+        <include refid="CommonSQL.pagePrefix2" />
+        SELECT
+			  ROW_NUMBER() OVER(ORDER BY SRVY.USERNM) AS LINE_NO
+			, SRVY.*
+			, COUNT(SRVY.SRVY_ID) OVER() AS TOTAL_CNT
+		  FROM (
+			SELECT
+				  SRVY.SRVY_ID
+				, ORG.ORGNM
+				, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'USER_TYCD' AND CD = USR.USER_TYCD) AS USER_TYNM
+				, USR.USER_ID
+				, USR.USERNM
+				, PTCP.PTCP_SDTTM
+				, PTCP.PTCP_EDTTM
+			  FROM TB_LMS_SRVY SRVY
+			  JOIN TB_LMS_SBJCT SBJCT
+			    ON SRVY.SBJCT_ID = SBJCT.SBJCT_ID
+			   AND SBJCT.DELYN = 'N'
+			   AND SBJCT.USEYN = 'Y'
+			  JOIN TB_LMS_SMSTR_CHRT CHRT
+			    ON SBJCT.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+			  JOIN TB_LMS_ORG ORG
+			    ON CHRT.ORG_ID = ORG.ORG_ID
+			  <if test="userId != null and userId != ''">
+			  	/* 과목관리자용 */
+			    JOIN TB_LMS_USER ADM
+			      ON ADM.USER_ID_STSCD = 'APRV_CMPTN'
+			     AND ADM.USER_TYCD = 'ADM'
+			     AND ADM.USER_ID = #{userId}
+			    JOIN TB_LMS_USER_AUTHRT USR_AUTHRT
+			      ON USR_AUTHRT.USER_ID = ADM.USER_ID
+			    JOIN TB_LMS_AUTHRT AUTHRT
+			      ON AUTHRT.AUTHRT_ID = USR_AUTHRT.AUTHRT_ID
+			     AND AUTHRT.AUTHRT_ID = 'AUTHRT_ID00012'
+			  </if>
+			  JOIN TB_LMS_ATNDLC ATNDLC
+			    ON SBJCT.SBJCT_ID = ATNDLC.SBJCT_ID
+			   AND ATNDLC.AUDITYN = 'N'
+			  JOIN TB_LMS_USER USR
+			    ON ATNDLC.USER_ID = USR.USER_ID
+			   AND USR.USER_ID_STSCD = 'APRV_CMPTN'
+			  LEFT JOIN TB_LMS_SRVY_PTCP PTCP
+			    ON SRVY.SRVY_ID = PTCP.SRVY_ID
+			   AND USR.USER_ID = PTCP.USER_ID
+			 WHERE SRVY.UP_SRVY_ID = #{srvyId}
+			   AND SRVY.SRVY_GBNCD = 'LCTR_SRVY'
+			   AND SRVY.SRVY_TYCD LIKE '%EXAM%'
+			   AND SRVY.DELYN = 'N'
+			   AND SRVY.USEYN = 'Y'
+			   <if test="orgId != null and orgId != ''">
+			   	AND ORG.ORG_ID = #{orgId}
+			   </if>
+			   <if test="smstrChrtId != null and smstrChrtId != ''">
+				AND CHRT.SMSTR_CHRT_ID = #{smstrChrtId}
+			   </if>
+			   <if test="sbjctId != null and sbjctId != ''">
+			   	AND SBJCT.SBJCT_ID = #{sbjctId}
+			   </if>
+			   <if test="srvyPtcp != null and srvyPtcp == 'COMPLETED'">
+			   	AND PTCP.PTCP_EDTTM IS NOT NULL
+			   </if>
+			   <if test="srvyPtcp != null and srvyPtcp == 'NOPTCP'">
+			   	AND PTCP.PTCP_EDTTM IS NULL
+			   </if>
+			   <if test="searchValue != null and searchValue != ''">
+			   	AND (   LOWER(USR.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			   		 OR LOWER(USR.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			   	)
+			   </if>
+		) SRVY
+    	<include refid="CommonSQL.pageSuffix2" />
+	</select>
+
+	<select id="admSrvyListPaging" parameterType="srvyPageInfo" resultType="egovMap">
+		/*
+             SQL ID : SrvyDAO.admSrvyListPaging
+             설  명  : 관리자전체설문목록페이징
+         */
+        <include refid="CommonSQL.pagePrefix2" />
+        SELECT
+		  	  ROW_NUMBER() OVER(ORDER BY SRVY.REG_DTTM DESC) AS LINE_NO
+		  	, SRVY.*
+		  	, COUNT(SRVY.SRVY_ID) OVER() AS TOTAL_CNT
+		  FROM (
+			SELECT
+				  SRVY.*
+				, TRGT.SRVY_TRGT_TYCD
+				, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'USER_TYCD' AND CD = TRGT.SRVY_TRGT_TYCD) AS SRVY_TRGT_TYNM
+				, ORG.ORGNM
+				, CASE
+				  	  WHEN SYSDATE BETWEEN TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+				                       AND TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')
+				      THEN 'IN_PROGRESS'
+				      WHEN SYSDATE <![CDATA[ < ]]> TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+				      THEN 'PRE_SRVY'
+				      WHEN SYSDATE <![CDATA[ > ]]> TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')
+				      THEN 'DONE'
+				      ELSE 'ERROR'
+				  END AS SRVY_PRGRS_STS
+			  FROM TB_LMS_SRVY SRVY
+			  JOIN TB_LMS_SRVY_TRGT TRGT
+			    ON SRVY.SRVY_ID = TRGT.SRVY_ID
+			  JOIN TB_LMS_SMSTR_CHRT CHRT
+			    ON SRVY.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+			  JOIN TB_LMS_ORG ORG
+			    ON CHRT.ORG_ID = ORG.ORG_ID
+			 WHERE SRVY.SRVY_GBNCD = 'HOMEPAGE_SRVY'
+			   AND SRVY.SRVY_TYCD = 'SRVY_WHOL'
+			   AND SRVY.DELYN = 'N'
+			   AND SRVY.USEYN = 'Y'
+			   AND CHRT.ORG_ID = #{orgId}
+			   <if test="smstrChrtId != null and smstrChrtId != ''">
+			   		AND CHRT.SMSTR_CHRT_ID = #{smstrChrtId}
+			   </if>
+			   <if test="dgrsYr != null and dgrsYr != ''">
+			   		AND CHRT.DGRS_YR = #{dgrsYr}
+			   </if>
+			   <if test="searchValue != null and searchValue != ''">
+				   	AND LOWER(SRVY.SRVY_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			   </if>
+		) SRVY
+    	<include refid="CommonSQL.pageSuffix2" />
+	</select>
+
+	<select id="admSrvySelect" parameterType="srvyVO" resultType="egovMap">
+		/*
+             SQL ID : SrvyDAO.admSrvySelect
+             설  명  : 관리자전체설문조회
+         */
+		SELECT
+			  SRVY.*
+			, TRGT.SRVY_TRGT_TYCD
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'USER_TYCD' AND CD = TRGT.SRVY_TRGT_TYCD) AS SRVY_TRGT_TYNM
+			, CHRT.SMSTR_CHRTNM
+			, CHRT.DGRS_YR
+			, ORG.ORGNM
+			, ORG.ORG_ID
+			, CASE
+			  	  WHEN SYSDATE BETWEEN TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+			                       AND TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')
+			      THEN 'IN_PROGRESS'
+			      WHEN SYSDATE <![CDATA[ < ]]> TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+			      THEN 'PRE_SRVY'
+			      WHEN SYSDATE <![CDATA[ > ]]> TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')
+			      THEN 'DONE'
+			      ELSE 'ERROR'
+			  END AS SRVY_PRGRS_STS
+		  FROM TB_LMS_SRVY SRVY
+		  JOIN TB_LMS_SRVY_TRGT TRGT
+		    ON SRVY.SRVY_ID = TRGT.SRVY_ID
+		  JOIN TB_LMS_SMSTR_CHRT CHRT
+		    ON SRVY.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+		  JOIN TB_LMS_ORG ORG
+		    ON CHRT.ORG_ID = ORG.ORG_ID
+		 WHERE SRVY.SRVY_GBNCD = 'HOMEPAGE_SRVY'
+		   AND SRVY.SRVY_TYCD = 'SRVY_WHOL'
+		   AND SRVY.DELYN = 'N'
+		   AND SRVY.USEYN = 'Y'
+		   AND SRVY.SRVY_ID = #{srvyId}
+	</select>
+
+	<select id="copySrvyList" parameterType="map" resultType="egovMap">
+		/*
+             SQL ID : SrvyDAO.copySrvyList
+             설  명 : 가져오기전체설문목록
+         */
+         SELECT
+			  SRVY.*
+			, TRGT.SRVY_TRGT_TYCD
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'USER_TYCD' AND CD = TRGT.SRVY_TRGT_TYCD) AS SRVY_TRGT_TYNM
+			, ORG.ORGNM
+			, ROW_NUMBER() OVER(ORDER BY SRVY.SRVY_TTL) AS LINE_NO
+		  FROM TB_LMS_SRVY SRVY
+		  JOIN TB_LMS_SRVY_TRGT TRGT
+		    ON SRVY.SRVY_ID = TRGT.SRVY_ID
+		  JOIN TB_LMS_SMSTR_CHRT CHRT
+		    ON SRVY.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+		  JOIN TB_LMS_ORG ORG
+		    ON CHRT.ORG_ID = ORG.ORG_ID
+		 WHERE SRVY.SRVY_GBNCD = 'HOMEPAGE_SRVY'
+		   AND SRVY.SRVY_TYCD = 'SRVY_WHOL'
+		   AND SRVY.DELYN = 'N'
+		   AND SRVY.USEYN = 'Y'
+           AND CHRT.ORG_ID = #{orgId}
+		   <if test="smstrChrtId != null and smstrChrtId != ''">
+		   		AND CHRT.SMSTR_CHRT_ID = #{smstrChrtId}
+		   </if>
+		   <if test="dgrsYr != null and dgrsYr != ''">
+		   		AND CHRT.DGRS_YR = #{dgrsYr}
+		   </if>
+		   <if test="searchValue != null and searchValue != ''">
+		   		AND LOWER(SRVY.SRVY_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		   </if>
+		   <if test="srvyTrgtTycd != null and srvyTrgtTycd != ''">
+		   		AND TRGT.SRVY_TRGT_TYCD = #{srvyTrgtTycd}
+		   </if>
+		   <if test="srvyId != null and srvyId != ''">
+		   		AND SRVY.SRVY_ID <![CDATA[ <> ]]> #{srvyId}
+		   </if>
+		   <if test="srvyQstnsCmptnyn != null and srvyQstnsCmptnyn != ''">
+		   		AND SRVY.SRVY_QSTNS_CMPTNYN = #{srvyQstnsCmptnyn}
+		   </if>
+	</select>
+
+	<select id="admSrvyRsltListPaging" parameterType="srvyPageInfo" resultType="egovMap">
+		/*
+             SQL ID : SrvyDAO.admSrvyRsltListPaging
+             설  명  : 관리자전체설문결과목록페이징
+         */
+        <include refid="CommonSQL.pagePrefix2" />
+        SELECT
+			  ROW_NUMBER() OVER(ORDER BY SRVY.DEPTNM, SRVY.USERNM) AS LINE_NO
+			, SRVY.*
+			, COUNT(SRVY.SRVY_ID) OVER() AS TOTAL_CNT
+		  FROM (
+			SELECT
+				  SRVY.*
+				, DEPT.DEPTNM
+				, PTCP.PTCP_SDTTM
+				, PTCP.PTCP_EDTTM
+			  FROM (
+				SELECT DISTINCT
+					  SRVY.SRVY_ID
+					, ORG.ORGNM
+					, ORG.ORG_ID
+					, COALESCE(STDNT.USER_ID, PROF.USER_ID, ADM.USER_ID) AS USER_ID
+					, COALESCE(STDNT.USERNM, PROF.USERNM, ADM.USERNM) AS USERNM
+					, COALESCE(STDNT.DEPT_ID, PROF.DEPT_ID, ADM.DEPT_ID) AS DEPT_ID
+					, AUTHRT.AUTHRTNM
+				  FROM TB_LMS_SRVY SRVY
+				  JOIN TB_LMS_SRVY_TRGT TRGT
+				    ON SRVY.SRVY_ID = TRGT.SRVY_ID
+				  JOIN TB_LMS_SMSTR_CHRT CHRT
+				    ON SRVY.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+				  JOIN TB_LMS_ORG ORG
+				    ON CHRT.ORG_ID = ORG.ORG_ID
+				  JOIN TB_LMS_AUTHRT AUTHRT
+				    ON CASE WHEN TRGT.SRVY_TRGT_TYCD = 'ALL' THEN '1'
+				    		WHEN TRGT.SRVY_TRGT_TYCD = 'ADM' THEN AUTHRT.AUTHRT_GRPCD
+				            ELSE AUTHRT.AUTHRT_CD
+				       END
+				       LIKE
+				       CASE WHEN TRGT.SRVY_TRGT_TYCD = 'ALL' THEN '1'
+				            ELSE FN_LIKE_VAL(TRGT.SRVY_TRGT_TYCD)
+				       END
+				   AND AUTHRT.AUTHRT_CD NOT IN ('AUDIT', 'OBSVR', 'GUEST')
+				  JOIN TB_LMS_USER_AUTHRT USR_AUTHRT
+				    ON AUTHRT.AUTHRT_ID = USR_AUTHRT.AUTHRT_ID
+				  JOIN TB_LMS_SBJCT SBJCT
+				    ON CHRT.SMSTR_CHRT_ID = SBJCT.SMSTR_CHRT_ID
+				   AND SBJCT.DELYN = 'N'
+				   AND SBJCT.USEYN = 'Y'
+				  LEFT JOIN TB_LMS_ATNDLC ATNDLC
+				    ON SBJCT.SBJCT_ID = ATNDLC.SBJCT_ID
+				   AND ATNDLC.AUDITYN = 'N'
+				   AND USR_AUTHRT.USER_ID = ATNDLC.USER_ID
+				  LEFT JOIN TB_LMS_SBJCT_ADM SBJCT_ADM
+				    ON SBJCT.SBJCT_ID = SBJCT_ADM.SBJCT_ID
+				   AND SBJCT_ADM.SBJCT_ADM_TYCD LIKE FN_LIKE_VAL(TRGT.SRVY_TRGT_TYCD)
+				   AND USR_AUTHRT.USER_ID = SBJCT_ADM.USER_ID
+				  LEFT JOIN TB_LMS_USER STDNT
+				    ON ATNDLC.USER_ID = STDNT.USER_ID
+				   AND STDNT.USER_ID_STSCD = 'APRV_CMPTN'
+				  LEFT JOIN TB_LMS_USER PROF
+				    ON SBJCT_ADM.USER_ID = PROF.USER_ID
+				   AND PROF.USER_ID_STSCD = 'APRV_CMPTN'
+				  LEFT JOIN TB_LMS_USER ADM
+				    ON USR_AUTHRT.USER_ID = ADM.USER_ID
+				 WHERE SRVY.SRVY_GBNCD = 'HOMEPAGE_SRVY'
+				   AND SRVY.SRVY_TYCD = 'SRVY_WHOL'
+				   AND SRVY.DELYN = 'N'
+				   AND SRVY.USEYN = 'Y'
+				   AND SRVY.SRVY_ID = #{srvyId}
+				   <if test="orgId != null and orgId != ''">
+				   	AND ORG.ORG_ID = #{orgId}
+				   </if>
+				   <if test="smstrChrtId != null and smstrChrtId != ''">
+				   	AND CHRT.SMSTR_CHRT_ID = #{smstrChrtId}
+				   </if>
+				   <if test="srvyTrgtTycd != null and srvyTrgtTycd != ''">
+				   	AND TRGT.SRVY_TRGT_TYCD = #{srvyTrgtTycd}
+				   </if>
+			  ) SRVY
+			  LEFT JOIN TB_LMS_DEPT DEPT
+			    ON SRVY.DEPT_ID = DEPT.DEPT_ID
+			   AND SRVY.ORG_ID = DEPT.ORG_ID
+			  LEFT JOIN TB_LMS_SRVY_PTCP PTCP
+			    ON SRVY.SRVY_ID = PTCP.SRVY_ID
+			   AND SRVY.USER_ID = PTCP.USER_ID
+			  <if test="searchValue != null and searchValue != ''">
+			  	AND (   LOWER(SRVY.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			  		 OR LOWER(SRVY.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			  	)
+			  </if>
+		  ) SRVY
+		  WHERE 1 = 1
+		  <if test="srvyPtcp != null and srvyPtcp == 'COMPLETED'">
+		  	AND SRVY.PTCP_EDTTM IS NOT NULL
+		  </if>
+		  <if test="srvyPtcp != null and srvyPtcp == 'NOPTCP'">
+		  	AND SRVY.PTCP_EDTTM IS NULL
+		  </if>
+    	<include refid="CommonSQL.pageSuffix2" />
+	</select>
+
+	<select id="stdntMainSrvyLctrEvlList" parameterType="map" resultType="egovMap">
+		/*
+             SQL ID : SrvyDAO.stdntMainSrvyLctrEvlList
+             설  명  : 학생대시보드설문강의평가목록조회
+         */
+        SELECT
+		      ROW_NUMBER() OVER(ORDER BY SBJCT.SBJCT_YR, SBJCT.SBJCT_SMSTR, SBJCT.SBJCT_ID) AS LINE_NO
+		    , SBJCT.SBJCT_YR
+		    , SBJCT.SBJCT_SMSTR
+		    , ORG.ORGNM
+		    , SBJCT.SBJCT_ID
+		    , SBJCT.SBJCTNM
+		    , SBJCT.DVCLAS_NO
+		    , SBJCT.CRDTS
+		    , (SELECT USR.USERNM FROM TB_LMS_SBJCT_ADM ADM JOIN TB_LMS_USER USR ON ADM.USER_ID = USR.USER_ID WHERE ADM.SBJCT_ID = SBJCT.SBJCT_ID AND ADM.SBJCT_ADM_TYCD = 'PROF' AND ROWNUM = 1) AS PROFNM
+		    , (SELECT USR.USERNM FROM TB_LMS_SBJCT_ADM ADM JOIN TB_LMS_USER USR ON ADM.USER_ID = USR.USER_ID WHERE ADM.SBJCT_ID = SBJCT.SBJCT_ID AND ADM.SBJCT_ADM_TYCD = 'TUT'  AND ROWNUM = 1) AS TUTNM
+		    , (SELECT USR.USERNM FROM TB_LMS_SBJCT_ADM ADM JOIN TB_LMS_USER USR ON ADM.USER_ID = USR.USER_ID WHERE ADM.SBJCT_ID = SBJCT.SBJCT_ID AND ADM.SBJCT_ADM_TYCD = 'ASSI' AND ROWNUM = 1) AS ASSINM
+		    , MAX(CASE WHEN SRVY.SRVY_TYCD = 'SRVY_MIDEXAM_AFTR_LCTR_EVL' THEN (SELECT UP_SRVY_ID FROM TB_LMS_SRVY WHERE SRVY_ID = SRVY.SRVY_ID) END) AS MID_UP_SRVY_ID
+		    , MAX(CASE WHEN SRVY.SRVY_TYCD = 'SRVY_MIDEXAM_AFTR_LCTR_EVL' THEN SRVY.SRVY_ID END) AS MID_SRVY_ID
+		    , MAX(CASE WHEN SRVY.SRVY_TYCD = 'SRVY_MIDEXAM_AFTR_LCTR_EVL' THEN (SELECT SRVY_PTCP_ID FROM TB_LMS_SRVY_PTCP WHERE SRVY_ID = SRVY.SRVY_ID AND USER_ID = #{userId}) END) AS MID_SRVY_PTCP_ID
+		    , MAX(CASE WHEN SRVY.SRVY_TYCD = 'SRVY_MIDEXAM_AFTR_LCTR_EVL' THEN (SELECT PTCP_SDTTM FROM TB_LMS_SRVY_PTCP WHERE SRVY_ID = SRVY.SRVY_ID AND USER_ID = #{userId}) END) AS MID_PTCP_SDTTM
+		    , MAX(CASE WHEN SRVY.SRVY_TYCD = 'SRVY_MIDEXAM_AFTR_LCTR_EVL' THEN (SELECT PTCP_EDTTM FROM TB_LMS_SRVY_PTCP WHERE SRVY_ID = SRVY.SRVY_ID AND USER_ID = #{userId}) END) AS MID_PTCP_EDTTM
+		    , MAX(CASE WHEN SRVY.SRVY_TYCD = 'SRVY_MIDEXAM_AFTR_LCTR_EVL'
+	                   THEN CASE
+	                        WHEN SYSDATE BETWEEN TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+	                                         AND TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')
+	                        THEN 'IN_PROGRESS'
+	                        WHEN SYSDATE <![CDATA[ < ]]> TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+	                        THEN 'PRE_SRVY'
+	                        WHEN SYSDATE <![CDATA[ > ]]> TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')
+	                        THEN 'DONE'
+	                        ELSE 'ERROR'
+	                    END
+	              END) AS MID_SRVY_PRGRS_STS
+		    , MAX(CASE WHEN SRVY.SRVY_TYCD = 'SRVY_MIDEXAM_AFTR_LCTR_EVL' THEN SRVY.RSLT_OPEN_TYCD END) AS MID_RSLT_OPEN_TYCD
+		    , MAX(CASE WHEN SRVY.SRVY_TYCD = 'SRVY_LSTEXAM_AFTR_LCTR_EVL' THEN (SELECT UP_SRVY_ID FROM TB_LMS_SRVY WHERE SRVY_ID = SRVY.SRVY_ID) END) AS LST_UP_SRVY_ID
+		    , MAX(CASE WHEN SRVY.SRVY_TYCD = 'SRVY_LSTEXAM_AFTR_LCTR_EVL' THEN SRVY.SRVY_ID END) AS LST_SRVY_ID
+		    , MAX(CASE WHEN SRVY.SRVY_TYCD = 'SRVY_LSTEXAM_AFTR_LCTR_EVL' THEN (SELECT SRVY_PTCP_ID FROM TB_LMS_SRVY_PTCP WHERE SRVY_ID = SRVY.SRVY_ID AND USER_ID = #{userId}) END) AS LST_SRVY_PTCP_ID
+		    , MAX(CASE WHEN SRVY.SRVY_TYCD = 'SRVY_LSTEXAM_AFTR_LCTR_EVL' THEN (SELECT PTCP_SDTTM FROM TB_LMS_SRVY_PTCP WHERE SRVY_ID = SRVY.SRVY_ID AND USER_ID = #{userId}) END) AS LST_PTCP_SDTTM
+		    , MAX(CASE WHEN SRVY.SRVY_TYCD = 'SRVY_LSTEXAM_AFTR_LCTR_EVL' THEN (SELECT PTCP_EDTTM FROM TB_LMS_SRVY_PTCP WHERE SRVY_ID = SRVY.SRVY_ID AND USER_ID = #{userId}) END) AS LST_PTCP_EDTTM
+		    , MAX(CASE WHEN SRVY.SRVY_TYCD = 'SRVY_LSTEXAM_AFTR_LCTR_EVL'
+	                   THEN CASE
+	                        WHEN SYSDATE BETWEEN TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+	                                         AND TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')
+	                        THEN 'IN_PROGRESS'
+	                        WHEN SYSDATE <![CDATA[ < ]]> TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+	                        THEN 'PRE_SRVY'
+	                        WHEN SYSDATE <![CDATA[ > ]]> TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')
+	                        THEN 'DONE'
+	                        ELSE 'ERROR'
+	                    END
+	              END) AS LST_SRVY_PRGRS_STS
+	        , MAX(CASE WHEN SRVY.SRVY_TYCD = 'SRVY_LSTEXAM_AFTR_LCTR_EVL' THEN SRVY.RSLT_OPEN_TYCD END) AS LST_RSLT_OPEN_TYCD
+		  FROM TB_LMS_SRVY SRVY
+		  JOIN TB_LMS_ATNDLC ATNDLC
+		    ON SRVY.SBJCT_ID = ATNDLC.SBJCT_ID
+		   AND ATNDLC.AUDITYN = 'N'
+		   AND ATNDLC.USER_ID = #{userId}
+		  JOIN TB_LMS_SBJCT SBJCT
+		    ON SRVY.SBJCT_ID = SBJCT.SBJCT_ID
+		   AND SBJCT.DELYN = 'N'
+		   AND SBJCT.USEYN = 'Y'
+		  JOIN TB_LMS_SMSTR_CHRT CHRT
+		    ON SBJCT.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+		  JOIN TB_LMS_ORG ORG
+		    ON CHRT.ORG_ID = ORG.ORG_ID
+		 WHERE SRVY.SRVY_GBNCD = 'LCTR_SRVY'
+		   AND SRVY.SRVY_TYCD LIKE '%EXAM%'
+		   AND SRVY.DELYN = 'N'
+		   AND SRVY.USEYN = 'Y'
+		   <if test="dgrsYr != null and dgrsYr != ''">
+		   AND CHRT.DGRS_YR = #{dgrsYr}
+		   </if>
+		   <if test="smstrChrtId != null and smstrChrtId != ''">
+		   AND CHRT.SMSTR_CHRT_ID = #{smstrChrtId}
+		   </if>
+		   <if test="orgId != null and orgId != ''">
+		   AND ORG.ORG_ID = #{orgId}
+		   </if>
+		   <if test="sbjctId != null and sbjctId != ''">
+		   AND SBJCT.SBJCT_ID = #{sbjctId}
+		   </if>
+		 GROUP BY
+		       SBJCT.SBJCT_YR
+		     , SBJCT.SBJCT_SMSTR
+		     , ORG.ORGNM
+		     , SBJCT.SBJCT_ID
+		     , SBJCT.SBJCTNM
+		     , SBJCT.DVCLAS_NO
+		     , SBJCT.CRDTS
+		 ORDER BY SBJCT.SBJCT_YR, SBJCT.SBJCT_SMSTR, SBJCT.SBJCT_ID
+	</select>
+
+	<select id="stdntSrvyLctrEvlSelect" parameterType="srvyVO" resultType="egovMap">
+		/*
+             SQL ID : SrvyDAO.stdntSrvyLctrEvlSelect
+             	설  명 : 학생설문강의평가조회
+         */
+        SELECT
+			  SRVY.SRVY_ID AS UP_SRVY_ID
+			, SUB_SRVY.SRVY_ID AS SRVY_ID
+			, SRVY.SRVY_TTL
+			, SRVY.SRVY_CTS
+			, SUB_SRVY.SBJCT_ID
+			, SRVY.SRVY_SDTTM
+			, SRVY.SRVY_EDTTM
+			, SRVY.SRVY_TYCD
+			, SRVY.RSLT_OPEN_TYCD
+			, SRVY.MRK_OYN
+			, CASE
+					WHEN SYSDATE BETWEEN TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+				                     AND TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')
+				    THEN 'IN_PROGRESS'
+				    WHEN SYSDATE <![CDATA[ < ]]> TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+				    THEN 'PRE_SRVY'
+				    WHEN SYSDATE <![CDATA[ > ]]> TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')
+				    THEN 'DONE'
+				    ELSE 'ERROR'
+				END AS SRVY_PRGRS_STS
+			, PTCP.PTCP_SDTTM
+			, PTCP.PTCP_EDTTM
+			, PTCP.SRVY_PTCP_ID
+			, #{userId} AS USER_ID
+			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = #{userId}) AS USERNM
+			, NVL((SELECT DEPTNM FROM TB_LMS_DEPT DEPT JOIN TB_LMS_USER USR ON DEPT.DEPT_ID = USR.DEPT_ID WHERE USR.USER_ID = #{userId}),'-') AS DEPTNM
+		  FROM TB_LMS_SRVY SRVY
+		  JOIN TB_LMS_SRVY SUB_SRVY
+		    ON SRVY.SRVY_ID = SUB_SRVY.UP_SRVY_ID
+		   AND SUB_SRVY.DELYN = 'N'
+		   AND SUB_SRVY.USEYN = 'Y'
+		  LEFT JOIN TB_LMS_SRVY_PTCP PTCP
+		    ON PTCP.SRVY_ID = SUB_SRVY.SRVY_ID
+		   AND PTCP.USER_ID = #{userId}
+		 WHERE SRVY.DELYN = 'N'
+		   AND SRVY.USEYN = 'Y'
+		   AND SUB_SRVY.SRVY_ID = #{srvyId}
+		   AND SRVY.SRVY_ID = #{upSrvyId}
+	</select>
+
+	<select id="trgtWholSrvyListPaging" parameterType="srvyPageInfo" resultType="egovMap">
+		/*
+             SQL ID : SrvyDAO.trgtWholSrvyListPaging
+             설  명  : 대상전체설문목록페이징
+         */
+        <include refid="CommonSQL.pagePrefix2" />
+        SELECT
+			  ROW_NUMBER() OVER(ORDER BY SRVY.SRVY_SDTTM, SRVY.SRVY_EDTTM) AS LINE_NO
+			, COUNT(SRVY.SRVY_ID) OVER() AS TOTAL_CNT
+			, CHRT.DGRS_YR
+			, CHRT.DGRS_SMSTR_CHRT
+			, ORG.ORGNM
+			, SRVY.SRVY_ID
+			, SRVY.SRVY_TTL
+			, SRVY.SRVY_SDTTM
+			, SRVY.SRVY_EDTTM
+			, (SELECT COUNT(QSTN.SRVY_QSTN_ID) FROM TB_LMS_SRVY_QSTN QSTN JOIN TB_LMS_SRVYPPR PPR ON QSTN.SRVYPPR_ID = PPR.SRVYPPR_ID WHERE QSTN.DELYN = 'N' AND PPR.SRVY_ID = SRVY.SRVY_ID) AS QSTN_CNT
+			, SRVY.RSLT_OPEN_TYCD
+			, CASE
+			   	   WHEN SYSDATE BETWEEN TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+			                        AND TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')
+			       THEN 'IN_PROGRESS'
+			       WHEN SYSDATE <![CDATA[ < ]]> TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+			       THEN 'PRE_SRVY'
+			       WHEN SYSDATE <![CDATA[ > ]]> TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')
+			       THEN 'DONE'
+			       ELSE 'ERROR'
+			   END AS SRVY_PRGRS_STS
+			, PTCP.SRVY_PTCP_ID
+			, PTCP.PTCP_SDTTM
+			, PTCP.PTCP_EDTTM
+		  FROM TB_LMS_SRVY SRVY
+		  JOIN TB_LMS_SMSTR_CHRT CHRT
+		    ON SRVY.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+		  JOIN TB_LMS_ORG ORG
+		    ON CHRT.ORG_ID = ORG.ORG_ID
+		  LEFT JOIN TB_LMS_SRVY_PTCP PTCP
+			ON PTCP.SRVY_ID = SRVY.SRVY_ID
+		   AND PTCP.USER_ID = #{userId}
+		 WHERE SRVY.SRVY_ID IN (
+			SELECT
+				SRVY.SRVY_ID
+			  FROM TB_LMS_SRVY SRVY
+			  JOIN TB_LMS_SRVY_TRGT TRGT
+			    ON SRVY.SRVY_ID = TRGT.SRVY_ID
+			  JOIN TB_LMS_SMSTR_CHRT CHRT
+			    ON SRVY.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+			  JOIN TB_LMS_ORG ORG
+			    ON CHRT.ORG_ID = ORG.ORG_ID
+			  JOIN TB_LMS_AUTHRT AUTHRT
+			 	ON CASE WHEN TRGT.SRVY_TRGT_TYCD = 'ALL' THEN '1'
+			 	 		WHEN TRGT.SRVY_TRGT_TYCD = 'ADM' THEN AUTHRT.AUTHRT_GRPCD
+			 	        ELSE AUTHRT.AUTHRT_CD
+			 	    END
+			 	    LIKE
+			 	    CASE WHEN TRGT.SRVY_TRGT_TYCD = 'ALL' THEN '1'
+			 	         ELSE FN_LIKE_VAL(TRGT.SRVY_TRGT_TYCD)
+			 	    END
+			   AND AUTHRT.AUTHRT_CD NOT IN ('AUDIT', 'OBSVR', 'GUEST')
+			  JOIN TB_LMS_USER_AUTHRT USR_AUTHRT
+			 	ON AUTHRT.AUTHRT_ID = USR_AUTHRT.AUTHRT_ID
+			  JOIN TB_LMS_SBJCT SBJCT
+			    ON CHRT.SMSTR_CHRT_ID = SBJCT.SMSTR_CHRT_ID
+			   AND SBJCT.DELYN = 'N'
+			   AND SBJCT.USEYN = 'Y'
+			  LEFT JOIN TB_LMS_ATNDLC ATNDLC
+			    ON SBJCT.SBJCT_ID = ATNDLC.SBJCT_ID
+			   AND ATNDLC.AUDITYN = 'N'
+			   AND USR_AUTHRT.USER_ID = ATNDLC.USER_ID
+			  LEFT JOIN TB_LMS_SBJCT_ADM SBJCT_ADM
+			    ON SBJCT.SBJCT_ID = SBJCT_ADM.SBJCT_ID
+			   AND SBJCT_ADM.SBJCT_ADM_TYCD LIKE FN_LIKE_VAL(TRGT.SRVY_TRGT_TYCD)
+			   AND USR_AUTHRT.USER_ID = SBJCT_ADM.USER_ID
+			  LEFT JOIN TB_LMS_USER STDNT
+			    ON ATNDLC.USER_ID = STDNT.USER_ID
+			   AND STDNT.USER_ID_STSCD = 'APRV_CMPTN'
+			  LEFT JOIN TB_LMS_USER PROF
+			    ON SBJCT_ADM.USER_ID = PROF.USER_ID
+			   AND PROF.USER_ID_STSCD = 'APRV_CMPTN'
+			  LEFT JOIN TB_LMS_USER ADM
+			    ON USR_AUTHRT.USER_ID = ADM.USER_ID
+			 WHERE SRVY.SRVY_GBNCD = 'HOMEPAGE_SRVY'
+			   AND SRVY.SRVY_TYCD = 'SRVY_WHOL'
+			   AND SRVY.DELYN = 'N'
+			   AND SRVY.USEYN = 'Y'
+			   AND SRVY.SRVY_QSTNS_CMPTNYN = 'Y'
+			   <if test="orgId != null and orgId != ''">
+			   	AND ORG.ORG_ID = #{orgId}
+			   </if>
+			   <if test="smstrChrtId != null and smstrChrtId != ''">
+			   	AND CHRT.SMSTR_CHRT_ID = #{smstrChrtId}
+			   </if>
+			   <if test="dgrsYr != null and dgrsYr != ''">
+			   	AND CHRT.DGRS_YR = #{dgrsYr}
+			   </if>
+			   <if test="searchValue != null and searchValue != ''">
+			  	AND LOWER(SRVY.SRVY_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			   </if>
+			   AND (TRGT.SRVY_TRGT_TYCD LIKE FN_LIKE_VAL(#{searchText})
+			   	 OR TRGT.SRVY_TRGT_TYCD = 'ALL')
+			 GROUP BY SRVY.SRVY_ID
+		  )
+    	<include refid="CommonSQL.pageSuffix2" />
+	</select>
+
+	<select id="trgtWholSrvySelect" parameterType="srvyVO" resultType="egovMap">
+		/*
+             SQL ID : SrvyDAO.trgtWholSrvySelect
+             	설  명 : 대상전체설문조회
+         */
+        SELECT
+			  SRVY.SRVY_ID
+			, SRVY.SRVY_TTL
+			, SRVY.SRVY_CTS
+			, SRVY.SRVY_SDTTM
+			, SRVY.SRVY_EDTTM
+			, SRVY.RSLT_OPEN_TYCD
+			, CASE
+			       WHEN SYSDATE BETWEEN TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+			                        AND TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')
+			       THEN 'IN_PROGRESS'
+			       WHEN SYSDATE <![CDATA[ < ]]> TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+			       THEN 'PRE_SRVY'
+			       WHEN SYSDATE <![CDATA[ > ]]> TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')
+			       THEN 'DONE'
+			       ELSE 'ERROR'
+			   END AS SRVY_PRGRS_STS
+			, PTCP.PTCP_SDTTM
+			, PTCP.PTCP_EDTTM
+			, PTCP.SRVY_PTCP_ID
+			, #{userId} AS USER_ID
+			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = #{userId}) AS USERNM
+			, NVL((SELECT DEPTNM FROM TB_LMS_DEPT DEPT JOIN TB_LMS_USER USR ON DEPT.DEPT_ID = USR.DEPT_ID WHERE USR.USER_ID = #{userId}),'-') AS DEPTNM
+		  FROM TB_LMS_SRVY SRVY
+		  LEFT JOIN TB_LMS_SRVY_PTCP PTCP
+			ON PTCP.SRVY_ID = SRVY.SRVY_ID
+		   AND PTCP.USER_ID = #{userId}
+		 WHERE SRVY.SRVY_ID = #{srvyId}
+		   AND SRVY.DELYN = 'N'
+		   AND SRVY.USEYN = 'Y'
+	</select>
+
+	<select id="stdntSrvyLctrEvlListPaging" parameterType="srvyPageInfo" resultType="egovMap">
+		/*
+             SQL ID : SrvyDAO.stdntSrvyLctrEvlListPaging
+             설  명  : 학생설문강의평가목록페이징
+         */
+        <include refid="CommonSQL.pagePrefix2" />
+        SELECT
+        	  ROW_NUMBER() OVER(ORDER BY SRVY.SRVY_SDTTM, SRVY.SRVY_EDTTM) AS LINE_NO
+			, COUNT(SRVY.SRVY_ID) OVER() AS TOTAL_CNT
+			, SRVY.SRVY_ID
+			, SRVY.UP_SRVY_ID
+			, SRVY.SRVY_TYCD
+			, SRVY.SRVY_TTL
+			, SRVY.SRVY_SDTTM
+			, SRVY.SRVY_EDTTM
+			, SRVY.MRK_OYN
+			, SRVY.RSLT_OPEN_TYCD
+			, CASE
+			       WHEN SYSDATE BETWEEN TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')
+			                        AND TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS') THEN 'IN_PROGRESS'
+			       WHEN SYSDATE <![CDATA[ < ]]> TO_DATE(SRVY.SRVY_SDTTM, 'YYYYMMDDHH24MISS')  THEN 'PRE_SRVY'
+			       WHEN SYSDATE <![CDATA[ > ]]> TO_DATE(SRVY.SRVY_EDTTM, 'YYYYMMDDHH24MISS')  THEN 'DONE'
+			       ELSE 'ERROR'
+			   END AS SRVY_PRGRS_STS
+			, PTCP.PTCP_SDTTM
+			, PTCP.PTCP_EDTTM
+			, PTCP.SRVY_PTCP_ID
+		  FROM TB_LMS_SRVY SRVY
+		  JOIN TB_LMS_SBJCT SBJCT
+		    ON SRVY.SBJCT_ID = SBJCT.SBJCT_ID
+		   AND SBJCT.DELYN = 'N'
+		   AND SBJCT.USEYN = 'Y'
+		  JOIN TB_LMS_SMSTR_CHRT CHRT
+		    ON SBJCT.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+		  JOIN TB_LMS_ORG ORG
+		    ON CHRT.ORG_ID = ORG.ORG_ID
+		  JOIN TB_LMS_SRVY UP_SRVY
+		    ON SRVY.UP_SRVY_ID = UP_SRVY.SRVY_ID
+		   AND UP_SRVY.DELYN = 'N'
+		   AND UP_SRVY.USEYN = 'Y'
+		   AND UP_SRVY.SRVY_QSTNS_CMPTNYN = 'Y'
+		  LEFT JOIN TB_LMS_SRVY_PTCP PTCP
+		    ON PTCP.SRVY_ID = SRVY.SRVY_ID
+		 WHERE SRVY.SRVY_GBNCD = 'LCTR_SRVY'
+		   AND SRVY.SRVY_TYCD LIKE '%EXAM%'
+		   AND SRVY.DELYN = 'N'
+		   AND SRVY.USEYN = 'Y'
+		   AND SRVY.UP_SRVY_ID IS NOT NULL
+		   AND SRVY.SBJCT_ID = #{sbjctId}
+		<include refid="CommonSQL.pageSuffix2" />
+	</select>
+
+	<select id="srvyLctrEvlSbjctPtcpList" parameterType="srvyVO" resultType="egovMap">
+		/*
+             SQL ID : SrvyDAO.srvyLctrEvlSbjctPtcpList
+             설  명 : 설문강의평가과목참여목록
+         */
+        WITH ATNDLC AS (
+		    SELECT ATNDLC.SBJCT_ID
+		         , ATNDLC.USER_ID
+		      FROM TB_LMS_ATNDLC ATNDLC
+		      JOIN TB_LMS_USER USR
+		        ON ATNDLC.USER_ID    = USR.USER_ID
+		       AND USR.USER_ID_STSCD = 'APRV_CMPTN'
+		)
+		SELECT ROW_NUMBER() OVER(ORDER BY SBJCT.SBJCTNM) AS LINE_NO
+			 , SRVY.UP_SRVY_ID
+			 , SRVY.SRVY_ID
+		     , ORG.ORGNM
+		     , SBJCT.SBJCT_YR
+		     , SBJCT.SBJCT_SMSTR
+		     , SBJCT.SBJCT_ID
+		     , SBJCT.CRCLMN_NO AS SBJCT_CD
+		     , SBJCT.SBJCTNM
+		     , SBJCT.DVCLAS_NO
+		     , PROF_USER.USERNM AS PROFNM
+		     , COUNT(A.USER_ID)                		AS STDNT_CNT
+		     , COUNT(P.USER_ID)                  	AS PTCP_CNT
+		     , COUNT(A.USER_ID) - COUNT(P.USER_ID)	AS NOT_PTCP_CNT
+		  FROM TB_LMS_SRVY SRVY
+		  JOIN TB_LMS_SBJCT SBJCT
+		    ON SRVY.SBJCT_ID = SBJCT.SBJCT_ID
+		   AND SBJCT.DELYN = 'N'
+		   AND SBJCT.USEYN = 'Y'
+		  JOIN TB_LMS_SMSTR_CHRT CHRT
+		    ON SBJCT.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+		  JOIN TB_LMS_ORG ORG
+ 			ON CHRT.ORG_ID = ORG.ORG_ID
+		  JOIN TB_LMS_USER USR
+		    ON USR.USER_ID = #{userId}
+		   AND USR.USER_ID_STSCD = 'APRV_CMPTN'
+		   AND USR.USER_TYCD = 'ADM'
+		  JOIN TB_LMS_USER_AUTHRT USR_AUTHRT
+  			ON USR_AUTHRT.USER_ID = USR.USER_ID
+		  JOIN TB_LMS_AUTHRT AUTHRT
+		    ON AUTHRT.AUTHRT_ID = USR_AUTHRT.AUTHRT_ID
+		   AND AUTHRT.AUTHRT_ID = 'AUTHRT_ID00012'
+		  LEFT JOIN (
+		      SELECT SBJCT_ID, USER_ID
+		        FROM (SELECT SBJCT_ID, USER_ID
+		                   , ROW_NUMBER() OVER (PARTITION BY SBJCT_ID ORDER BY ROWNUM) AS RN
+		                FROM TB_LMS_SBJCT_ADM WHERE SBJCT_ADM_TYCD = 'PROF')
+		       WHERE RN = 1
+		  ) PROF
+		    ON SBJCT.SBJCT_ID = PROF.SBJCT_ID
+		  LEFT JOIN TB_LMS_USER PROF_USER
+		    ON PROF.USER_ID = PROF_USER.USER_ID
+		   AND PROF_USER.USER_ID_STSCD = 'APRV_CMPTN'
+		  LEFT JOIN ATNDLC A
+		    ON SBJCT.SBJCT_ID = A.SBJCT_ID
+		  LEFT JOIN TB_LMS_SRVY_PTCP P
+		    ON A.USER_ID = P.USER_ID
+		   AND P.SRVY_ID = SRVY.SRVY_ID
+		   AND P.PTCP_EDTTM IS NOT NULL
+		 WHERE SRVY.SRVY_GBNCD = 'LCTR_SRVY'
+		   AND SRVY.SRVY_TYCD LIKE '%EXAM%'
+		   AND SRVY.DELYN = 'N'
+		   AND SRVY.USEYN = 'Y'
+		   AND SRVY.UP_SRVY_ID = #{srvyId}
+		 GROUP BY SRVY.SRVY_ID, ORG.ORGNM, SBJCT.SBJCT_YR, SBJCT.SBJCT_SMSTR
+		        , SBJCT.SBJCT_ID, SBJCT.CRCLMN_NO, SBJCT.SBJCTNM, SBJCT.DVCLAS_NO, PROF_USER.USERNM, SRVY.UP_SRVY_ID
 	</select>
 
 </mapper>

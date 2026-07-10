@@ -1,11 +1,13 @@
 package knou.lms.exam.service;
 
 import knou.lms.asmt.vo.AsmtVO;
+import knou.lms.common.dto.ResultDTO;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.exam.vo.ExamBscVO;
 import knou.lms.exam.vo.ExamDtlVO;
 import knou.lms.exam.vo.ExamStarePaperVO;
 import knou.lms.exam.vo.ExamVO;
+import knou.lms.exam.web.view.QuizPageInfo;
 import knou.lms.forum.vo.ForumVO;
 import knou.lms.std.vo.StdVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
@@ -19,292 +21,268 @@ public interface ExamService {
     /*****************************************************
      * 신규 작성 Service 영역
      *****************************************************/
-
+    /************************ 교수 ************************/
     // 시험 등록
-    public ExamBscVO examRegist(ExamBscVO vo) throws Exception;
+    public ExamBscVO examRegist(ExamBscVO vo);
 
     // 대체 시험 등록
-    public ExamVO examSbstRegist(ExamVO vo) throws Exception;
+    public ExamVO examSbstRegist(ExamVO vo);
+
+    // 퀴즈 시험 등록
+    public ExamVO examQuizRegist(ExamVO vo);
 
     // 교수 시험목록 페이징
-    public ProcessResultVO<ExamVO> listProfExamPaging(ExamVO vo) throws Exception;
+    public ProcessResultVO<ExamVO> listProfExamPaging(ExamVO vo);
 
     // 교수 시험 상세조회
-    public ExamVO selectProfExamDtl(ExamVO vo) throws Exception;
+    public ExamVO selectProfExamDtl(ExamVO vo);
 
     // 교수 팀 시험 상세조회
-    public List<ExamVO> selectProfExamTeamDtl (ExamVO vo) throws Exception;
+    public List<ExamVO> selectProfExamTeamDtl (ExamVO vo);
 
     // 시험 평가대상자 목록 페이징
-    public ProcessResultVO<ExamVO> listTkexamUserPaging(ExamVO vo) throws Exception;
+    public ProcessResultVO<ExamVO> listTkexamUserPaging(ExamVO vo);
 
     // 시험 평가대상자 목록 카운트
-    public int countTkexamUser(ExamVO vo) throws Exception;
+    public int countTkexamUser(ExamVO vo);
 
     // 시험 평가대상자 목록 조회
-    public List<EgovMap> tkexamUserList(Map<String, Object> vo) throws Exception;
+    public List<EgovMap> tkexamUserList(Map<String, Object> vo);
 
     // 사용자 시험 응시현황 (파이)차트데이터 조회
-    public EgovMap selectUserTkexamStatusForPieChart(String examBscId, String sbjctId) throws Exception;
+    public EgovMap selectUserTkexamStatusForPieChart(String examBscId, String sbjctId);
 
     // 사용자 시험 응시현황 (가로선)차트데이터 조회
-    public List<EgovMap> selectUserTkexamStatusForHrChart(String examBscId, String sbjctId) throws Exception;
+    public List<EgovMap> selectUserTkexamStatusForHrChart(String examBscId, String sbjctId);
 
     // 교수 시험대체 목록 페이징
-    public ProcessResultVO<ExamVO> listProfSbstPaging(ExamVO vo) throws Exception;
+    public ProcessResultVO<ExamVO> listProfSbstPaging(ExamVO vo);
 
     // 교수 시험대체 대상자 목록 페이징
-    public ProcessResultVO<ExamVO> listProfSbstUserPaging(ExamVO vo) throws Exception;
+    public ProcessResultVO<ExamVO> listProfSbstUserPaging(ExamVO vo);
 
     // 교수 시험대체 과제 조회
-    public ExamVO selectProfSbstAsmt(ExamVO vo) throws Exception;
+    public ExamVO selectProfSbstAsmt(ExamVO vo);
 
     // 교수 시험대체 퀴즈 조회
-    public ExamVO selectProfSbstQuiz(ExamVO vo) throws Exception;
+    public ExamVO selectProfSbstQuiz(ExamVO vo);
 
     // 교수 시험 결시자 목록 페이징
-    public ProcessResultVO<ExamVO> listProfAbsnceUserPaging(ExamVO vo) throws Exception;
+    public ProcessResultVO<ExamVO> listProfAbsnceUserPaging(ExamVO vo);
 
     // 교수 시험 결시자 목록 조회
-    public List<EgovMap> listProfAbsnceUser(Map<String, Object> vo) throws Exception;
+    public List<EgovMap> listProfAbsnceUser(Map<String, Object> vo);
 
     // 결시자 결시신청 결과 조회
-    public ExamVO selectAbsnceRslt(ExamVO vo) throws Exception;
+    public ExamVO selectAbsnceRslt(ExamVO vo);
 
     // 결시자 결시신청 이력 목록 페이징
-    public ProcessResultVO<ExamVO> listAbsnceUserHstrPaging(ExamVO vo) throws Exception;
+    public ProcessResultVO<ExamVO> listAbsnceUserHstrPaging(ExamVO vo);
+
+    // 결시자 목록 조회 (과목아이디 기준)
+    public List<EgovMap> listAbsnceBySbjctId(String sbjctId);
 
     // 장애인/고령자 시험 지원 목록 페이징
-    public ProcessResultVO<ExamVO> listDsblUserPaging(ExamVO vo) throws Exception;
+    public ProcessResultVO<ExamVO> listDsblUserPaging(ExamVO vo);
 
     // 장애인/고령자 시험 지원 목록 조회
-    public List<EgovMap> dsblUserList(Map<String, Object> vo) throws Exception;
+    public List<EgovMap> dsblUserList(Map<String, Object> vo);
 
     // 장애인/고령자 시험 지원 상세 조회
-    public ExamVO selectDsblDtl(ExamVO vo) throws Exception;
+    public ExamVO selectDsblDtl(ExamVO vo);
 
     // 교수 퀴즈 관리 퀴즈 목록 페이징
-    public ProcessResultVO<ExamVO> listExamQuizPaging(ExamVO vo) throws Exception;
+    public ProcessResultVO<ExamVO> listExamQuizPaging(ExamVO vo);
 
     // 교수 퀴즈관리 퀴즈 조회
-    public ExamVO selectProfQuizMng (ExamVO vo) throws Exception;
+    public ExamVO selectProfQuizMng (ExamVO vo);
 
     // 수강생 시험 응시현황 목록 페이징
-    public ProcessResultVO<ExamVO> listUserTkexamStatPaging(ExamVO vo) throws Exception;
+    public ProcessResultVO<ExamVO> listUserTkexamStatPaging(ExamVO vo);
 
     // 중간, 기말 시험 ID 목록 조회
-    public List<EgovMap> listExamMidLst(String sbjctId) throws Exception;
+    public List<EgovMap> listExamMidLst(String sbjctId);
+
+    // 퀴즈 시험아이디 조회
+    public String selectExamQuizBscId (String examBscId);
+
+    // 시험지 조회
+    public List<EgovMap> selectExamppr(String examBscId);
 
     // 성적 반영비율 수정
-    public void examMrkRfltrtListModify(List<ExamBscVO> list) throws Exception;
+    public void examMrkRfltrtListModify(List<ExamBscVO> list);
 
     // 성적 공개여부 수정
-    public void updateMrkOyn(ExamVO vo) throws Exception;
+    public void updateMrkOyn(ExamVO vo);
 
     // 시험 수정
-    public void updateExamDtlInfo(ExamVO vo) throws Exception;
+    public void updateExamDtlInfo(ExamVO vo);
 
     // 대체 시험 수정
-    public void updateExamSbst(ExamVO vo) throws Exception;
+    public void updateExamSbst(ExamVO vo);
+
+    // 퀴즈 시험 수정
+    public void modifyExamQuizDtlInfo(ExamVO vo);
 
     // 시험 삭제
-    public void deleteExamBsc(ExamVO vo) throws Exception;
+    public void deleteExamBsc(ExamVO vo);
 
     // 대체 시험 삭제
-    public void deleteExamSbst(ExamVO vo) throws Exception;
+    public void deleteExamSbst(ExamVO vo);
+
+    // 퀴즈 시험 삭제
+    public void removeExamQuiz(ExamVO vo);
+
+    /************************ 학습자 ************************/
+
+    // 학습자 결시신청 등록 (재시험 포함)
+    public ExamVO registStdntAbsnce(ExamVO vo);
+
+    // 학습자 장애인/고령자 시험지원 등록
+    public ExamVO registStdntSprtAply(ExamVO vo);
+
+    // 학습자 시험 목록 페이징
+    public ProcessResultVO<ExamVO> listStdntExamPaging(ExamVO vo);
+
+    // 학습자 장애인/고령자 여부
+    public String stdntDsblSnrYn(String userId);
+
+    // 학습자 대체과제 ID 조회
+    public String selectStdntSbstAsmtId(ExamVO vo);
+
+    // 학습자 대체과제 피드백 기본정보 조회
+    public ExamVO selectStdntSbstAsmtFdbkInfo(ExamVO vo);
+
+    // 학습자 시험 응시기록 조회
+    public List<ExamVO> selectStdntTkexamHist(ExamVO vo);
+
+    // 학습자 시험 응시결과 조회
+    public ExamVO selectStdntTkexamRslt(ExamVO vo);
+
+    // 학습자 시험상세 ID 및 팀 ID 조회
+    public ExamVO selectStdntDtlIdAndTeamId(ExamVO vo);
+
+    // 학습자 퀴즈 상세 아이디 조회
+    public String selectStdntQuizDtlId(ExamVO vo);
+
+    // 학습자 대체 시험 조회
+    public ExamVO selectStdntSbstInfo(ExamVO vo);
+
+    // 학습자 대체 과제 제출기록 조회
+    public List<ExamVO> selectStdntSbstAsmtSbmtHist(ExamVO vo);
+
+    // 학습자 대체 과제 평가결과 조회
+    public ExamVO selectStdntSbstAsmtRslt(ExamVO vo);
+
+    // 학습자 결시신청 목록 페이징
+    public ProcessResultVO<ExamVO> listStdntAbsncePaging(ExamVO vo);
+
+    // 학습자 결시신청 기본정보 조회
+    public ExamVO selectStdntAbsnceInfo(ExamVO vo);
+
+    // 학습자 장애인/고령자 시험지원 신청 목록 페이징
+    public ProcessResultVO<ExamVO> listStdntSprtAplyPaging(ExamVO vo);
+
+    // 학습자 장애인/고령자 시험지원 신청 정보 조회
+    public ExamVO selectStdntSprtAplyInfo(ExamVO vo);
+
+    // 학습자 장애인/고령자 시험지원 취소
+    public void modifyStdntSprtCnclAply(ExamVO vo);
+
+    /************************ 관리자 ************************/
+
+    // 관리자 장애인/고령자 지원관리 신청 목록 페이징
+    public ProcessResultVO<ExamVO> listAdmSprtAplyPaging(ExamVO vo);
+
+    // 관리자 장애인/고령자 지원관리 상세보기
+    public ExamVO selectAdmSprtAplyDtl(ExamVO vo);
+
+    // 관리자 장애인/고령자 지원관리 신청 목록 전체 (엑셀용)
+    public List<ExamVO> listAdmSprtAply(ExamVO vo);
+
+    // 관리자 장애인/고령자 시험지원 신청 승인/반려
+    public void modifySprtAplyStat(ExamVO vo);
+
+    // 관리자 장애인/고령자 시험지원 취소신청 승인/반려
+    public void modifySprtAplyCnclStat(ExamVO vo);
 
     /*****************************************************
      * 기존에 있던 Service 영역
      *****************************************************/
-	/**
-     * 교수퀴즈목록조회
-     *
-     * @param sbjctId	 과목아이디
-     * @param searchValue  검색내용(퀴즈명)
-     * @return 퀴즈목록 페이징
-     * @throws Exception
-     */
-    public ProcessResultVO<EgovMap> profQuizListPaging(ExamBscVO vo) throws Exception;
+	// 교수퀴즈목록조회
+    public ResultDTO<EgovMap> profQuizListPaging(QuizPageInfo pageInfo);
 
-	/**
-	* 퀴즈정보조회
-	*
-	* @param examBscId 퀴즈기본아이디
-	* @return 퀴즈 정보
-	* @throws Exception
-	*/
-	public ExamBscVO quizSelect(ExamBscVO vo) throws Exception;
+	// 퀴즈정보조회
+	public ExamBscVO quizSelect(ExamBscVO vo);
 
-	/**
-	* 퀴즈등록
-	*
-	* @param ExamBscVO
-	* @throws Exception
-	*/
-	public ExamBscVO quizRegist(ExamBscVO vo) throws Exception;
+	// 퀴즈등록
+	public ExamBscVO quizRegist(ExamBscVO vo, Map<String, String> subMap);
 
-	/**
-	 * 퀴즈수정
-	 *
-	 * @param ExamBscVO
-	 * @throws Exception
-	 */
-	public ExamBscVO quizModify(ExamBscVO vo) throws Exception;
+	// 퀴즈수정
+	public ExamBscVO quizModify(ExamBscVO vo, Map<String, String> subMap);
 
-	/**
-	* 시험기본수정
-	*
-	* @param ExamBscVO
-	* @throws Exception
-	*/
-    public void examBscModify(ExamBscVO vo) throws Exception;
+	// 시험기본수정
+    public void examBscModify(ExamBscVO vo);
 
-    /**
-     * 시험상세수정
-     *
-     * @param ExamDtlVO
-     * @throws Exception
-     */
-    public void examDtlModify(ExamDtlVO vo) throws Exception;
+    // 시험상세수정
+    public void examDtlModify(ExamDtlVO vo);
 
-    /**
-     * 퀴즈성적반영비율수정
-     *
-     * @param sbjctId	과목아이디
-     * @param mdfrId	수정자아이디
-     * @throws Exception
-     */
-    public void quizMrkRfltrtModify(ExamBscVO vo) throws Exception;
+    // 퀴즈성적반영비율수정
+    public void quizMrkRfltrtModify(ExamBscVO vo);
 
-    /**
-     * 퀴즈삭제
-     *
-     * @param examBscId		시험기본아이디
-     * @param mdfrId		수정자아이디
-     * @throws Exception
-     */
-    public void quizDelete(ExamBscVO vo) throws Exception;
+    // 퀴즈삭제
+    public void quizDelete(ExamBscVO vo);
 
-    /**
-	* 교수권한과목퀴즈목록조회
-	*
-	* @param userId 		교수아이디
-	* @param smstrChrtId 	학기기수아이디
-	* @param sbjctId 		과목아이디
-	* @param searchValue 	검색내용(퀴즈명)
-	* @return 퀴즈목록
-	* @throws Exception
-	*/
-	public List<EgovMap> profAuthrtSbjctQuizList(Map<String, Object> params) throws Exception;
+    // 교수권한과목퀴즈목록조회
+	public List<EgovMap> profAuthrtSbjctQuizList(Map<String, Object> params);
 
-	/**
-	* 퀴즈그룹과목목록조회
-	*
-	* @param examBscId 	시험기본아이디
-	* @return 과목 목록
-	* @throws Exception
-	*/
-	public List<EgovMap> quizGrpSbjctList(String examBscId) throws Exception;
+	// 퀴즈그룹과목목록조회
+	public List<EgovMap> quizGrpSbjctList(String examBscId);
 
-	/**
-	* 퀴즈학습그룹부과제목록조회
-	*
-	* @param lrnGrpId 	학습그룹아이디
-	* @param examBscId 	시험기본아이디
-	* @return 퀴즈 부과제 목록
-	* @throws Exception
-	*/
-	public List<ExamDtlVO> quizLrnGrpSubAsmtList(ExamDtlVO vo) throws Exception;
+	// 퀴즈팀그룹부퀴즈목록조회
+	public List<ExamDtlVO> quizTeamGrpSubQuizList(ExamDtlVO vo);
 
-	/**
-     * 퀴즈문제출제완료수정
-     *
-     * @param examBscId		시험기본아이디
-     * @param examDtlId		시험상세아이디
-     * @param searchGubun 	수정상태 ( save, edit )
-     * @throws Exception
-     */
-	public void quizQstnsCmptnModify(ExamBscVO vo) throws Exception;
+	// 퀴즈문제출제완료수정
+	public void quizQstnsCmptnModify(ExamBscVO vo);
 
-	/**
-	* 퀴즈팀목록조회
-	*
-	* @param examBscId 	시험기본아이디
-	* @return 퀴즈 팀 목록
-	* @throws Exception
-	*/
-	public List<EgovMap> quizTeamList(String examBscId) throws Exception;
+	// 퀴즈팀목록조회
+	public List<EgovMap> quizTeamList(String examBscId);
 
-	/**
-	* 퀴즈팀문제출제완료여부조회
-	*
-	* @param examBscId 시험기본아이디
-	* @throws Exception
-	*/
-	public Boolean quizTeamQstnsCmptnynSelect(String examBscId) throws Exception;
+	// 퀴즈팀문제출제완료여부조회
+	public Boolean quizTeamQstnsCmptnynSelect(String examBscId);
 
-	/**
-	 * 시험응시시작사용자수조회
-	 *
-	 * @param examBscId 시험기본아이디
-	 * @param examDtlId 시험상세아이디
-	 * @throws Exception
-	 */
-	public Integer tkexamStrtUserCntSelect(ExamDtlVO vo) throws Exception;
+	// 시험응시시작사용자수조회
+	public Integer tkexamStrtUserCntSelect(ExamDtlVO vo);
 
-	/**
-	 * 과목분반목록조회
-	 *
-	 * @param sbjctId		과목아이디
-	 * @return 과목분반목록
-	 * @throws Exception
-	 */
-	public List<EgovMap> sbjctDvclasList(String sbjctId) throws Exception;
+	// 과목분반목록조회
+	public List<EgovMap> sbjctDvclasList(String sbjctId);
 
-	/**
-	 * 퀴즈성적반영비율목록수정
-	 *
-	 * @param List<ExamBscVO>
-	 * @throws Exception
-	 */
-	public void quizMrkRfltrtListModify(List<ExamBscVO> list) throws Exception;
+	// 퀴즈성적반영비율목록수정
+	public void quizMrkRfltrtListModify(List<ExamBscVO> list);
 
-	/**
-	* 시험지일괄엑셀다운퀴즈대상자목록조회
-	*
-	* @param examBscId 	시험기본아이디
-    * @param sbjctId 	과목이이디
-	* @return 시험지일괄엑셀다운퀴즈대상자목록
-	* @throws Exception
-	*/
-	public List<EgovMap> exampprBulkExcelDownQuizTrgtrList(ExamBscVO vo) throws Exception;
+	// 시험지일괄엑셀다운퀴즈대상자목록조회
+	public List<EgovMap> exampprBulkExcelDownQuizTrgtrList(ExamBscVO vo);
 
-	/**
-	* 문제가져오기학기기수목록조회
-	*
-	* @return 학기기수목록
-	* @throws Exception
-	*/
-	public List<EgovMap> qstnCopySmstrList() throws Exception;
+	// 문제가져오기학기기수목록조회
+	public List<EgovMap> qstnCopySmstrList(String orgId, String dgrsYr);
 
-	/**
-	* 문제가져오기과목목록조회
-	*
-	* @param smstrChrtId 	학기기수아이디
-    * @param sbjctId 		과목이이디
-	* @return 과목목록
-	* @throws Exception
-	*/
-	public List<EgovMap> qstnCopySbjctList(String smstrChrtId, String sbjctId) throws Exception;
+	// 문제가져오기과목목록조회
+	public List<EgovMap> qstnCopySbjctList(String smstrChrtId, String sbjctId);
 
-	/**
-	* 문제가져오기퀴즈목록조회
-	*
-    * @param sbjctId 		과목이이디
-	* @return 퀴즈목록
-	* @throws Exception
-	*/
-	public List<ExamDtlVO> qstnCopyQuizList(String sbjctId) throws Exception;
+	// 학기기수과목목록조회
+	public List<EgovMap> smstrChrtSbjctList(String orgId, String smstrChrtId, String sbjctYr);
+
+	// 강의주차목록조회
+	public List<EgovMap> lctrWknoList(String sbjctId);
+
+	// 문제가져오기퀴즈목록조회
+	public List<ExamDtlVO> qstnCopyQuizList(String sbjctId);
+
+	// 학생퀴즈목록조회
+    public ResultDTO<EgovMap> stdntQuizListPaging(QuizPageInfo pageInfo);
+
+    // 학생퀴즈조회
+ 	public EgovMap stdntQuizSelect(Map<String, Object> params);
 
 
 
@@ -553,5 +531,10 @@ public interface ExamService {
      * @throws Exception
      ******************************************************/
     public void setInsRefCancel(ExamVO vo) throws Exception;
+
+
+	public List<EgovMap> bySubjectQuizList(ExamBscVO vo) ;
+
+	public List<EgovMap> bySubjectExamList(ExamBscVO vo) ;
 
 }

@@ -46,3 +46,9 @@
 .dext5-container .dext5-btn-area button:disabled {
     opacity: 1 !important;
 }
+
+/* 다크모드 색상 반전 설정
+body.darkmode .dext5-container {
+    filter: invert(0.9) hue-rotate(180deg) brightness(1.5);
+}
+*/

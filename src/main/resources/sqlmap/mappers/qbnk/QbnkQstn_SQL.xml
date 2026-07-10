@@ -2,75 +2,97 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="knou.lms.qbnk.dao.QbnkQstnDAO">
 
-	<select id="qbnkQstnList" parameterType="map" resultType="egovMap">
+	<select id="qbnkQstnList" parameterType="qbnkPageInfo" resultType="egovMap">
 		/*
              SQL ID : QbnkQstnDAO.qbnkQstnList
              설  명 : 문제은행문항목록조회
          */
-		SELECT * FROM (
-	        SELECT
-				  ROW_NUMBER() OVER(ORDER BY QSTN.REG_DTTM ASC) AS LINE_NO
-				, QSTN.*
-				, COUNT(QSTN.QBNK_QSTN_ID) OVER() AS TOTAL_CNT
-			FROM (
-				SELECT
-					  QSTN.QBNK_QSTN_ID
-					, CASE WHEN CTGR.UP_QBNK_CTGR_ID IS NULL
-						   THEN CTGR.CTGRNM
-						   ELSE (SELECT CTGRNM FROM TB_LMS_QBNK_CTGR WHERE QBNK_CTGR_ID = CTGR.UP_QBNK_CTGR_ID)
-					  END UP_QBNK_CTGRNM
-					, CASE WHEN CTGR.UP_QBNK_CTGR_ID IS NULL
-						   THEN '-'
-						   ELSE CTGR.CTGRNM
-					  END AS CTGRNM
-					, SBJCT.SBJCTNM
-					, SBJCT.DVCLAS_NO
-					, USR.USERNM
-					, QSTN.QSTN_TTL
-					, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'QSTN_RSPNS_TYCD' AND CD = QSTN.QSTN_RSPNS_TYCD) AS QSTN_RSPNS_TYNM
-					, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'QSTN_DFCTLV_TYCD' AND CD = QSTN.QSTN_DFCTLV_TYCD) AS QSTN_DFCTLV_TYNM
-					, QSTN.REG_DTTM
-				  FROM TB_LMS_QBNK_QSTN QSTN
-				  JOIN TB_LMS_QBNK_CTGR CTGR
-				    ON CTGR.QBNK_CTGR_ID = QSTN.QBNK_CTGR_ID
-				   AND CTGR.DELYN = 'N'
-				  LEFT JOIN TB_LMS_SBJCT SBJCT
-				    ON CTGR.SBJCT_ID = SBJCT.SBJCT_ID
-				   AND SBJCT.DELYN = 'N'
-				   AND SBJCT.USEYN = 'Y'
-				  LEFT JOIN TB_LMS_SBJCT_ADM SBJCT_ADM
-				    ON SBJCT_ADM.SBJCT_ID = SBJCT.SBJCT_ID
-				   AND SBJCT_ADM.USER_ID = CTGR.USER_ID
-				   AND SBJCT_ADM.SBJCT_ADM_TYCD = 'PROF'
-				   AND SBJCT_ADM.SBJCT_ADM_SEQNO = 1
-				  LEFT JOIN TB_LMS_USER USR
-				    ON USR.USER_ID = SBJCT_ADM.USER_ID
-				 WHERE QSTN.DELYN = 'N'
-				<if test="upQbnkCtgrId != null and upQbnkCtgrId != ''">
-				  	AND (
-				  		   CTGR.UP_QBNK_CTGR_ID = #{upQbnkCtgrId}
-				  		OR CTGR.QBNK_CTGR_ID = #{upQbnkCtgrId}
-				  	)
-				</if>
-				<if test="qbnkCtgrId != null and qbnkCtgrId != ''">
-				  	AND CTGR.QBNK_CTGR_ID = #{qbnkCtgrId}
-				</if>
-				<if test="sbjctId != null and sbjctId != ''">
-					AND CTGR.SBJCT_ID = #{sbjctId}
-				</if>
-			 	<if test="userRprsId != null and userRprsId != ''">
-			 		AND CTGR.USER_RPRS_ID = #{userRprsId}
-			 	</if>
-			 	<if test="searchValue != null and searchValue != ''">
-				  	AND LOWER(QSTN.QSTN_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
-				</if>
-			) QSTN
-			ORDER BY QSTN.REG_DTTM DESC
+		<include refid="CommonSQL.pagePrefix2" />
+		WITH PROF_USER AS (                         -- 기준 과목의 담당교수(PROF) 단건
+		    SELECT USER_ID
+		      FROM (
+		            SELECT USER_ID,
+		                   ROW_NUMBER() OVER (ORDER BY SBJCT_ADM_SEQNO ASC) AS RNUM
+		              FROM TB_LMS_SBJCT_ADM
+		             WHERE SBJCT_ADM_TYCD = 'PROF'
+		               AND SBJCT_ID = #{searchKey}
+		           )
+		     WHERE RNUM = 1
+		),
+		PROF_SBJCT AS (                             -- 그 교수가 PROF로 등록된 모든 과목
+		    SELECT SBJCT.SBJCT_ID, PU.USER_ID
+		      FROM TB_LMS_SBJCT SBJCT
+		      JOIN TB_LMS_SBJCT_ADM ADM
+		        ON ADM.SBJCT_ID = SBJCT.SBJCT_ID
+		       AND ADM.SBJCT_ADM_TYCD = 'PROF'
+		      JOIN PROF_USER PU
+		        ON PU.USER_ID = ADM.USER_ID
+		     WHERE SBJCT.DELYN = 'N'
+		       AND SBJCT.USEYN = 'Y'
+		)
+		SELECT
+			  A.*
+			, ROW_NUMBER() OVER (ORDER BY A.GRP_QBNK_CTGR_ID DESC,
+		                          CASE WHEN A.UP_QBNK_CTGR_ID IS NULL THEN 0 ELSE 1 END,
+		                          A.CTGR_SEQNO) AS LINE_NO
+			, COUNT(A.QBNK_QSTN_ID) OVER()      AS TOTAL_CNT
+		  FROM (
+			SELECT
+				  QSTN.QBNK_QSTN_ID
+				, CASE WHEN CTGR.UP_QBNK_CTGR_ID IS NULL
+					   THEN CTGR.CTGRNM
+					   ELSE PARENT.CTGRNM
+					   END AS UP_QBNK_CTGRNM
+				, CASE WHEN CTGR.UP_QBNK_CTGR_ID IS NULL
+					   THEN '-'
+					   ELSE CTGR.CTGRNM
+					   END AS CTGRNM
+				, SBJCT.SBJCTNM
+				, SBJCT.DVCLAS_NO
+				, USR.USERNM
+				, QSTN.QSTN_TTL
+				, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'QSTN_RSPNS_TYCD' AND CD = QSTN.QSTN_RSPNS_TYCD) AS QSTN_RSPNS_TYNM
+						, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'QSTN_DFCTLV_TYCD' AND CD = QSTN.QSTN_DFCTLV_TYCD) AS QSTN_DFCTLV_TYNM
+				, CTGR.CTGR_SEQNO
+				, CTGR.UP_QBNK_CTGR_ID
+				, NVL(CTGR.UP_QBNK_CTGR_ID, CTGR.QBNK_CTGR_ID) AS GRP_QBNK_CTGR_ID   -- 상위/하위 분류를 묶어서 정렬하기 위한 그룹핑 키
+			  FROM TB_LMS_QBNK_CTGR CTGR
+			  JOIN TB_LMS_QBNK_QSTN QSTN
+			    ON CTGR.QBNK_CTGR_ID = QSTN.QBNK_CTGR_ID
+			   AND QSTN.DELYN = 'N'
+			  JOIN TB_LMS_SBJCT SBJCT
+			    ON CTGR.SBJCT_ID = SBJCT.SBJCT_ID
+			   AND SBJCT.USEYN = 'Y'
+			   AND SBJCT.DELYN = 'N'
+			  JOIN PROF_SBJCT ADM
+			    ON ADM.SBJCT_ID = SBJCT.SBJCT_ID
+			   AND ADM.USER_ID = QSTN.USER_ID
+			  JOIN TB_LMS_USER USR
+			    ON USR.USER_ID = ADM.USER_ID
+			   AND USR.USER_ID_STSCD = 'APRV_CMPTN'
+			  LEFT JOIN TB_LMS_QBNK_CTGR PARENT        -- 상위 카테고리명 조회용 자기조인
+			    ON PARENT.QBNK_CTGR_ID = CTGR.UP_QBNK_CTGR_ID
+			 WHERE CTGR.DELYN = 'N'
+			 <if test="upQbnkCtgrId != null and upQbnkCtgrId != ''">
+			  	AND (
+			  		   CTGR.UP_QBNK_CTGR_ID = #{upQbnkCtgrId}
+			  		OR CTGR.QBNK_CTGR_ID = #{upQbnkCtgrId}
+			  	)
+			</if>
+			<if test="qbnkCtgrId != null and qbnkCtgrId != ''">
+			  	AND CTGR.QBNK_CTGR_ID = #{qbnkCtgrId}
+			</if>
+			<if test="sbjctId != null and sbjctId != ''">
+				AND CTGR.SBJCT_ID = #{sbjctId}
+			</if>
+		 	<if test="userId != null and userId != ''">
+		 		AND CTGR.USER_ID = #{userId}
+		 	</if>
+		 	<if test="searchValue != null and searchValue != ''">
+			  	AND LOWER(QSTN.QSTN_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			</if>
 		) A
-		WHERE 1=1
-		<if test="listScale != null and listScale > 0">
-		  AND LINE_NO BETWEEN #{firstIndex} +1 AND #{firstIndex} + #{listScale}
-		</if>
+		<include refid="CommonSQL.pageSuffix2" />
 	</select>
 
 	<select id="profQstnCopyQbnkQstnList" parameterType="qbnkQstnVO" resultType="egovMap">
@@ -78,34 +100,69 @@
              SQL ID : QbnkQstnDAO.profQbnkQstnList
              설  명 : 교수문항복사문제은행문항목록조회
          */
-		WITH QBNK_CTGR AS (
-			SELECT
-				  NVL(CTGR.UP_QBNK_CTGR_ID, CTGR.QBNK_CTGR_ID) AS UP_QBNK_CTGR_ID
-				, (SELECT CTGRNM FROM TB_LMS_QBNK_CTGR WHERE QBNK_CTGR_ID = NVL(CTGR.UP_QBNK_CTGR_ID, CTGR.QBNK_CTGR_ID)) AS UP_QBNK_CTGRNM
-				, CASE
-					WHEN CTGR.UP_QBNK_CTGR_ID IS NULL THEN NULL
-					ELSE CTGR.QBNK_CTGR_ID
-				  END AS QBNK_CTGR_ID
-				, CASE
-					WHEN CTGR.UP_QBNK_CTGR_ID IS NULL THEN '-'
-					ELSE CTGR.CTGRNM
-				  END AS QBNK_CTGRNM
-			  FROM TB_LMS_QBNK_CTGR CTGR
-			 WHERE CTGR.DELYN = 'N'
-			 ORDER BY CTGR.CTGR_SEQNO
+		WITH PROF_USER AS (                         -- 기준 과목의 담당교수(PROF) 단건
+		    SELECT USER_ID
+		      FROM (
+		            SELECT USER_ID,
+		                   ROW_NUMBER() OVER (ORDER BY SBJCT_ADM_SEQNO ASC) AS RNUM
+		              FROM TB_LMS_SBJCT_ADM
+		             WHERE SBJCT_ADM_TYCD = 'PROF'
+		               AND SBJCT_ID = #{sbjctId}
+		           )
+		     WHERE RNUM = 1
+		),
+		PROF_SBJCT AS (                             -- 그 교수가 PROF로 등록된 모든 과목
+		    SELECT SBJCT.SBJCT_ID, PU.USER_ID
+		      FROM TB_LMS_SBJCT SBJCT
+		      JOIN TB_LMS_SBJCT_ADM ADM
+		        ON ADM.SBJCT_ID = SBJCT.SBJCT_ID
+		       AND ADM.SBJCT_ADM_TYCD = 'PROF'
+		      JOIN PROF_USER PU
+		        ON PU.USER_ID = ADM.USER_ID
+		     WHERE SBJCT.DELYN = 'N'
+		       AND SBJCT.USEYN = 'Y'
 		)
 		SELECT
-			  QBNK_QSTN.QBNK_QSTN_ID AS QSTN_ID
-			, NVL((SELECT MAX(UP_QBNK_CTGRNM) FROM QBNK_CTGR WHERE QBNK_CTGR_ID = QBNK_QSTN.QBNK_CTGR_ID),
-					(SELECT MAX(UP_QBNK_CTGRNM) FROM QBNK_CTGR WHERE UP_QBNK_CTGR_ID = QBNK_QSTN.QBNK_CTGR_ID)) AS UP_QBNK_CTGRNM
-			, NVL((SELECT QBNK_CTGRNM FROM QBNK_CTGR WHERE QBNK_CTGR_ID = QBNK_QSTN.QBNK_CTGR_ID), '-') AS QBNK_CTGRNM
-			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'QSTN_RSPNS_TYCD' AND CD = QBNK_QSTN.QSTN_RSPNS_TYCD) AS QSTN_RSPNS_TYNM
-			, QBNK_QSTN.QSTN_TTL
-			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'QSTN_DFCTLV_TYCD' AND CD = QBNK_QSTN.QSTN_DFCTLV_TYCD) AS QSTN_DFCTLV_TYNM
-		  FROM TB_LMS_QBNK_QSTN QBNK_QSTN
-		 WHERE QBNK_QSTN.DELYN = 'N'
-		   AND QBNK_QSTN.QBNK_CTGR_ID = #{qbnkCtgrId}
-		 ORDER BY REG_DTTM DESC
+			  A.*
+		  FROM (
+			SELECT
+				  QSTN.QBNK_QSTN_ID AS QSTN_ID
+				, CASE WHEN CTGR.UP_QBNK_CTGR_ID IS NULL
+					   THEN CTGR.CTGRNM
+					   ELSE PARENT.CTGRNM
+					   END AS UP_QBNK_CTGRNM
+				, CASE WHEN CTGR.UP_QBNK_CTGR_ID IS NULL
+					   THEN '-'
+					   ELSE CTGR.CTGRNM
+					   END AS QBNK_CTGRNM
+				, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'QSTN_RSPNS_TYCD' AND CD = QSTN.QSTN_RSPNS_TYCD) AS QSTN_RSPNS_TYNM
+				, QSTN.QSTN_TTL
+				, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'QSTN_DFCTLV_TYCD' AND CD = QSTN.QSTN_DFCTLV_TYCD) AS QSTN_DFCTLV_TYNM
+				, CTGR.CTGR_SEQNO
+				, CTGR.UP_QBNK_CTGR_ID
+				, NVL(CTGR.UP_QBNK_CTGR_ID, CTGR.QBNK_CTGR_ID) AS GRP_QBNK_CTGR_ID   -- 상위/하위 분류를 묶어서 정렬하기 위한 그룹핑 키
+			  FROM TB_LMS_QBNK_CTGR CTGR
+			  JOIN TB_LMS_QBNK_QSTN QSTN
+			    ON CTGR.QBNK_CTGR_ID = QSTN.QBNK_CTGR_ID
+			   AND QSTN.DELYN = 'N'
+			  JOIN TB_LMS_SBJCT SBJCT
+			    ON CTGR.SBJCT_ID = SBJCT.SBJCT_ID
+			   AND SBJCT.USEYN = 'Y'
+			   AND SBJCT.DELYN = 'N'
+			  JOIN PROF_SBJCT ADM
+			    ON ADM.SBJCT_ID = SBJCT.SBJCT_ID
+			   AND ADM.USER_ID = QSTN.USER_ID
+			  JOIN TB_LMS_USER USR
+			    ON USR.USER_ID = ADM.USER_ID
+			   AND USR.USER_ID_STSCD = 'APRV_CMPTN'
+			  LEFT JOIN TB_LMS_QBNK_CTGR PARENT        -- 상위 카테고리명 조회용 자기조인
+			    ON PARENT.QBNK_CTGR_ID = CTGR.UP_QBNK_CTGR_ID
+			 WHERE CTGR.DELYN = 'N'
+			   AND (CTGR.QBNK_CTGR_ID = #{qbnkCtgrId} OR CTGR.UP_QBNK_CTGR_ID = #{qbnkCtgrId})
+		) A
+		ORDER BY A.GRP_QBNK_CTGR_ID DESC,
+		         CASE WHEN A.UP_QBNK_CTGR_ID IS NULL THEN 0 ELSE 1 END,
+		         A.CTGR_SEQNO
 	</select>
 
 	<select id="qbnkQstnSelect" parameterType="qbnkQstnVO" resultType="egovMap">
@@ -126,7 +183,7 @@
 			, CTGR.CTGRNM
 			, (SELECT CTGRNM FROM TB_LMS_QBNK_CTGR WHERE QBNK_CTGR_ID = CTGR.UP_QBNK_CTGR_ID) AS UP_CTGRNM
 			, SBJCT.SBJCTNM
-			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_RPRS_ID = CTGR.USER_RPRS_ID) AS USERNM
+			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = CTGR.USER_ID AND USER_ID = CTGR.USER_ID) AS USERNM
 		  FROM TB_LMS_QBNK_QSTN QSTN
 		  JOIN TB_LMS_QBNK_CTGR CTGR
 		    ON QSTN.QBNK_CTGR_ID = CTGR.QBNK_CTGR_ID

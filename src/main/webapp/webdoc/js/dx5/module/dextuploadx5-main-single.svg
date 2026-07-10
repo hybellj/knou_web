@@ -4,11 +4,17 @@
 	xmlns="http://www.w3.org/2000/svg"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	version="1.1"
+	lang="en"
+	xml:lang="en"
 	id="UIC-DEXTUPLOADX5-MAIN" 	
 	onload="onLoadHandler(evt)"
 	width="100%" height="100%">
 	<script type="application/ecmascript" xlink:href="aes.js"/>
-	<script type="application/ecmascript" xlink:href="dextuploadx5-common.js"/>
+	<script type="application/ecmascript" xlink:href="dextuploadx5-svg-common.js"/>
+	<script type="application/ecmascript" xlink:href="dextuploadx5-svg-dom-common.js"/>
+	<script type="application/ecmascript" xlink:href="dextuploadx5-svg-format.js"/>
+	<script type="application/ecmascript" xlink:href="dextuploadx5-net-common.js"/>
+	<script type="application/ecmascript" xlink:href="dextuploadx5-main-common.js"/>
 	<script type="application/ecmascript" xlink:href="dextuploadx5-engine.js"/>
 	<script type="application/ecmascript" xlink:href="dextuploadx5-application-common.js"/>
     <script type="application/ecmascript" xlink:href="dextuploadx5-application-ui.js"/>

@@ -21,7 +21,7 @@ public class ZoomUserServiceImpl extends ServiceBase implements ZoomUserService 
 
 	// ZOOM사용자목록조회
 	@Override
-	public ZoomUserListVO zoomUserList(String authrtTkn) throws Exception {
+	public ZoomUserListVO zoomUserList(String authrtTkn) {
 		URI uri = URI.create(UsersUrl.LIST_USERS.getUrl());
 
         ResponseEntity<ZoomUserListVO> response = zoomRestTemplateSupporter.exchangePageList(

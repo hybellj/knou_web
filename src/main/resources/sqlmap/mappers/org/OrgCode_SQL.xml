@@ -111,11 +111,11 @@
         */
 	 	<!-- <include refid="CommonSQL.pagePrefix"/>
 	 	<include refid="listQuery"/>
-	 	<include refid="CommonSQL.pageSubfix"/> -->
+	 	<include refid="CommonSQL.pageSuffix"/> -->
 
 	 	<include refid="CommonSQL.pagePrefix"/>
 	 	<include refid="listQuery"/>
-	 	<include refid="CommonSQL.pageSubfix"/>
+	 	<include refid="CommonSQL.pageSuffix"/>
     </select>
 
     <select id="count" parameterType="orgCodeVO" resultType="Integer">

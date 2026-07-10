@@ -2,11 +2,786 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="knou.lms.org.dao.OrgDAO">
-	
-	<select id="orgListSelect" resultType="knou.lms.org.dao.OrgDAO">
+
+	<select id="orgListSelect" resultType="knou.lms.org.vo.OrgVO">
 		SELECT 	*
 		  FROM 	TB_LMS_ORG
 		 WHERE 	USEYN  = 'Y'
 	</select>
-	
+
+    <select id="orgListPaging" parameterType="orgVO" resultType="egovMap">
+        /*
+        SQL ID : OrgDAO.orgListPaging
+        설  명 : 기관 기본 정보 목록 페이징
+        */
+        <include refid="CommonSQL.pagePrefix"/>
+        SELECT
+              ROW_NUMBER() OVER(ORDER BY A.ORG_ID DESC) AS LINE_NO
+            , A.ORG_ID
+            , A.ORGNM
+            , A.ORG_SHRTNM
+            , CMCD.CDNM AS ORG_TYCD
+            , A.CHRGRNM
+            , A.CHRGR_CNTCT
+            , A.CHRGR_EML
+            , NVL(STNG.STNG_VL, 'N') AS ACAD_LINK_YN
+            , COUNT(*) OVER() AS TOTAL_CNT
+            /*, A.ORG_REG_NO*/
+            /*, (
+            SELECT COUNT(1)
+            FROM TB_LMS_USER AA
+            WHERE AA.ORG_ID = A.ORG_ID
+            AND AA.USER_ID_STSCD = 'APRV_CMPTN'
+            AND EXISTS (
+            SELECT 1
+            FROM TB_LMS_AUTHRT CC
+            LEFT OUTER JOIN TB_LMS_USER_AUTHRT DD ON CC.AUTHRT_ID = DD.AUTHRT_ID
+            WHERE DD.USER_ID = AA.USER_ID
+            AND CC.AUTHRT_GRPCD = 'ADM'
+            AND CC.AUTHRT_CD = 'SYS_ADM'
+            )
+            ) AS ADM_CNT*/
+            /*, CASE WHEN A.ORG_ID = 'LMSBASIC' THEN 1 ELSE 2 END AS ODR*/
+        FROM TB_LMS_ORG A
+        JOIN TB_LMS_CMMN_CD CMCD ON A.ORG_TYCD = CMCD.CD
+        LEFT JOIN TB_LMS_ORG_STNG STNG ON A.ORG_ID = STNG.ORG_ID AND STNG.STNG_CD = 'OPTN0001' /*학사연동여부*/
+        WHERE 1=1
+            AND A.USEYN = 'Y'
+        <if test="searchValue != null and searchValue != ''">
+            AND (
+                A.ORG_ID	LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR A.ORGNM LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR A.CHRGRNM LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+        </if>
+        ORDER BY A.ORG_ID DESC
+        <include refid="CommonSQL.pageSuffix"/>
+    </select>
+
+    <select id="orgSelect" resultType="egovMap">
+        /*
+            SQL ID : OrgDAO.orgSelect
+            설  명 : 기관 정보 조회
+        */
+        SELECT
+              A.ORG_ID
+            , A.ORGNM
+            , A.ORG_SHRTNM
+            , A.ORG_TYCD
+            , CMCD.CDNM AS ORG_TYCDNM
+            , A.HMPG_URL
+            , A.CHRGRNM
+            , SUBSTR(A.CHRGR_CNTCT, 1, 3) || '-' || SUBSTR(A.CHRGR_CNTCT, 4, LENGTH(A.CHRGR_CNTCT) - 7) || '-' || SUBSTR(A.CHRGR_CNTCT, -4) AS CHRGR_CNTCT
+            , A.CHRGR_EML
+            , CASE WHEN A.OFC_TELNO LIKE '02%'
+                THEN /*1. 서울(02)로 시작하는 경우*/
+                    SUBSTR(A.OFC_TELNO, 1, 2) || '-' ||                     /*지역번호(2자리)*/
+                    SUBSTR(A.OFC_TELNO, 3, LENGTH(A.OFC_TELNO) - 6) || '-' || /*국번(전체-6자리)*/
+                    SUBSTR(A.OFC_TELNO, -4)                                 /*뒷번호(끝 4자리)*/
+                ELSE /*2. 그 외(010, 032, 042 등) 3자리 지역번호인 경우*/
+                    SUBSTR(A.OFC_TELNO, 1, 3) || '-' ||                     /*지역번호(3자리)*/
+                    SUBSTR(A.OFC_TELNO, 4, LENGTH(A.OFC_TELNO) - 7) || '-' || /*국번(전체-7자리)*/
+                    SUBSTR(A.OFC_TELNO, -4)                                 /*뒷번호(끝 4자리)*/
+              END AS OFC_TELNO
+            , A.ZIP_CD
+            , A.ADDR1
+            , A.ADDR2
+            , CASE WHEN A.RPRS_TELNO LIKE '02%'
+                THEN /*1. 서울(02)로 시작하는 경우*/
+                    SUBSTR(A.RPRS_TELNO, 1, 2) || '-' ||                     /*지역번호(2자리)*/
+                    SUBSTR(A.RPRS_TELNO, 3, LENGTH(A.RPRS_TELNO) - 6) || '-' || /*국번(전체-6자리)*/
+                    SUBSTR(A.RPRS_TELNO, -4)                                 /*뒷번호(끝 4자리)*/
+                ELSE /*2. 그 외(010, 032, 042 등) 3자리 지역번호인 경우*/
+                    SUBSTR(A.RPRS_TELNO, 1, 3) || '-' ||                     /*지역번호(3자리)*/
+                    SUBSTR(A.RPRS_TELNO, 4, LENGTH(A.RPRS_TELNO) - 7) || '-' || /*국번(전체-7자리)*/
+                    SUBSTR(A.RPRS_TELNO, -4)                                 /*뒷번호(끝 4자리)*/
+              END AS RPRS_TELNO
+            , A.CPRGHT_CTS
+            , TMPLT.ORG_TMPLT_ID
+            , TMPLT.LOGO_FILE_ID
+            , DSGN_COLR_TYCD
+        FROM 	TB_LMS_ORG A
+        JOIN    TB_LMS_CMMN_CD CMCD ON A.ORG_TYCD = CMCD.CD
+        LEFT JOIN TB_LMS_ORG_TMPLT TMPLT ON A.ORG_ID = TMPLT.ORG_ID
+        WHERE 	A.USEYN  = 'Y'
+            AND A.ORG_ID = #{orgId}
+    </select>
+
+	<select id="selectSubjectOrg" resultType="knou.lms.org.vo.OrgVO" parameterType="knou.lms.subject.vo.SubjectVO">
+		/*
+            SQL ID : OrgDAO.selectSubjectOrg
+            설  명 : 과목의 기관 정보 조회
+        */
+		SELECT
+			ORG.*
+		FROM TB_LMS_ORG ORG, TB_LMS_SBJCT SBJCT, TB_LMS_SMSTR_CHRT CHRT
+		WHERE 1=1
+			AND ORG.ORG_ID = CHRT.ORG_ID
+			AND SBJCT.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+			AND SBJCT.SBJCT_ID = #{sbjctId}
+	</select>
+
+    <insert id="orgRegist" parameterType="orgVO">
+        /*
+            SQL ID : OrgDAO.orgRegist
+            설  명 : 기관 기본정보 등록
+        */
+        INSERT INTO TB_LMS_ORG
+        (
+          ORG_ID
+        , ORGNM
+        , ORG_SHRTNM
+        , ORG_NCNM
+        , ORG_TYCD
+        , ZIP_CD
+        , ADDR1
+        , ADDR2
+        , USEYN
+        , BSC_LANG_CD
+        , OFC_TELNO
+        , RPRS_TELNO
+        , CHRGRNM
+        , CHRGR_CNTCT
+        , CHRGR_EML
+        , CPRGHT_CTS
+        , HMPG_URL
+        , RGTR_ID
+        , REG_DTTM
+        )
+        VALUES
+        (
+          #{orgId}
+        , #{orgnm}
+        , #{orgShrtnm}
+        , #{orgNcnm}
+        , #{orgTycd}
+        , #{zipCd}
+        , #{addr1}
+        , #{addr2}
+        , #{useyn}
+        , #{bscLangCd}
+        , #{ofcTelno}
+        , #{rprsTelno}
+        , #{chrgrnm}
+        , #{chrgrCntct}
+        , #{chrgrEml}
+        , #{cprghtCts}
+        , #{hmpgUrl}
+        , #{rgtrId}
+        , FN_DTTM()
+        )
+    </insert>
+
+    <update id="orgModify" parameterType="orgVO">
+        /*
+            SQL ID : OrgDAO.orgRegist
+            설  명 : 기관 기본정보 수정
+        */
+        UPDATE TB_LMS_ORG
+        SET ORGNM       = #{orgnm}
+          , ORG_SHRTNM  = #{orgShrtnm}
+          , ORG_TYCD    = #{orgTycd}
+          , ZIP_CD      = #{zipCd}
+          , ADDR1       = #{addr1}
+          , ADDR2       = #{addr2}
+        <if test="useyn != null and useyn != ''">
+          , USEYN       = #{useyn}
+        </if>
+        <if test="bscLangCd != null and bscLangCd != ''">
+          , BSC_LANG_CD = #{bscLangCd}
+        </if>
+          , OFC_TELNO   = #{ofcTelno}
+          , RPRS_TELNO  = #{rprsTelno}
+          , CHRGRNM     = #{chrgrnm}
+          , CHRGR_CNTCT = #{chrgrCntct}
+          , CHRGR_EML   = #{chrgrEml}
+          , CPRGHT_CTS  = #{cprghtCts}
+          , HMPG_URL    = #{hmpgUrl}
+          , MDFR_ID     = #{mdfrId}
+          , MOD_DTTM    = FN_DTTM()
+        WHERE ORG_ID    = #{orgId}
+    </update>
+
+    <delete id="orgDelete">
+        /*
+            SQL ID : OrgDAO.orgDelete
+            설  명 : 기관 삭제
+        */
+        DELETE FROM TB_LMS_ORG
+        WHERE ORG_ID = #{orgId}
+    </delete>
+
+    <select id="orgTmpltListPaging" resultType="egovMap">
+        /*
+            SQL ID : OrgDAO.orgTmpltListPaging
+            설  명 : 기관 템플릿 목록 페이징
+        */
+        <include refid="CommonSQL.pagePrefix2"/>
+        SELECT
+              ROW_NUMBER() OVER(ORDER BY A.ORG_ID DESC) AS LINE_NO
+            , A.*
+            , B.ORGNM
+            , B.ORG_SHRTNM
+            , B.CHRGRNM
+            , B.CHRGR_CNTCT
+            , B.CHRGR_EML
+            , COUNT(*) OVER() AS TOTAL_CNT
+        FROM TB_LMS_ORG_TMPLT A
+        JOIN TB_LMS_ORG B ON A.ORG_ID = B.ORG_ID
+        WHERE 1=1
+            AND A.USEYN = 'Y'
+        <if test="searchValue != null and searchValue != ''">
+            AND (
+                LOWER(B.ORG_ID)	LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR B.ORGNM LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR B.CHRGRNM LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+        </if>
+        <include refid="CommonSQL.pageSuffix2"/>
+    </select>
+
+    <select id="orgTmpltSelect" resultType="orgTemplateVO">
+        /*
+            SQL ID : OrgDAO.orgTmpltSelect
+            설  명 : 기관 템플릿 조회
+        */
+        SELECT *
+        FROM TB_LMS_ORG_TMPLT A
+        WHERE A.ORG_ID = #{orgId}
+    </select>
+
+    <insert id="orgTmpltRegist" parameterType="orgTemplateVO">
+        /*
+            SQL ID : OrgDAO.orgTmpltRegist
+            설  명 : 기관 템플릿 등록
+        */
+        INSERT INTO TB_LMS_ORG_TMPLT
+        (
+            ORG_TMPLT_ID
+          , ORG_ID
+          , LANG_CD
+          , TMPLTNM
+          <if test="logoFileId != null and logoFileId != ''">
+          , LOGO_FILE_ID
+          </if>
+          , DSGN_COLR_TYCD
+          , USEYN
+          , RGTR_ID
+          , REG_DTTM
+        )
+        VALUES
+        (
+            #{orgTmpltId}
+          , #{orgId}
+          , #{langCd}
+          , #{tmpltnm}
+          <if test="logoFileId != null and logoFileId != ''">
+          , #{logoFileId}
+          </if>
+          , #{dsgnColrTycd}
+          , #{useyn}
+          , #{rgtrId}
+          , FN_DTTM()
+        )
+    </insert>
+
+    <update id="orgTmpltModify" parameterType="orgTemplateVO">
+        /*
+            SQL ID : OrgDAO.orgTmpltModify
+            설  명 : 기관 템플릿 수정
+        */
+        UPDATE TB_LMS_ORG_TMPLT
+        SET LANG_CD     = #{langCd}
+          , TMPLTNM     = #{tmpltnm}
+          , LOGO_FILE_ID= #{logoFileId}
+          , DSGN_COLR_TYCD  = #{dsgnColrStng}
+          , USEYN   = #{useyn}
+          , MDFR_ID = #{mdfrId}
+          , MOD_DTTM= FN_DTTM()
+        WHERE 1=1
+          AND ORG_ID = #{orgId}
+          AND ORG_TMPLT_ID = #{orgTmpltId}
+    </update>
+
+    <delete id="orgTmpltDelete">
+        /*
+            SQL ID : OrgDAO.orgTmpltDelete
+            설  명 : 기관 템플릿 삭제
+        */
+        DELETE FROM TB_LMS_ORG_TMPLT
+        WHERE ORG_ID = #{orgId}
+    </delete>
+
+    <select id="orgDsgnColrStngModify">
+        /*
+            SQL ID : OrgDAO.orgDsgnColrStngModify
+            설  명 : 기관 디자인 컬러 설정 수정
+        */
+        UPDATE TB_LMS_ORG_TMPLT
+        SET DSGN_COLR_TYCD  = #{dsgnColrTycd}
+          , MDFR_ID = #{mdfrId}
+          , MOD_DTTM= FN_DTTM()
+        WHERE 1=1
+          AND ORG_ID = #{orgId}
+    </select>
+
+    <select id="orgDashWgtListPaging" resultType="egovMap">
+        /*
+            SQL ID : OrgDAO.orgDashWgtListPaging
+            설  명 : 기관 대시보드 위젯 목록 페이징
+        */
+        <include refid="CommonSQL.pagePrefix"/>
+        SELECT
+              ROW_NUMBER() OVER(ORDER BY A.ORG_ID DESC, A.WIDGET_USER_GBNCD ASC) AS LINE_NO
+            , A.*
+            , B.ORGNM
+            , B.ORG_SHRTNM
+            , B.CHRGRNM
+            , B.CHRGR_CNTCT
+            , B.CHRGR_EML
+            , COUNT(*) OVER() AS TOTAL_CNT
+        FROM TB_LMS_WIDGET A
+        JOIN TB_LMS_ORG B ON A.ORG_ID = B.ORG_ID
+        WHERE 1=1
+        <if test="searchValue != null and searchValue != ''">
+            AND (
+                A.ORG_ID	LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR B.ORGNM LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR B.CHRGRNM LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+        </if>
+        ORDER BY A.ORG_ID DESC, A.WIDGET_USER_GBNCD ASC
+        <include refid="CommonSQL.pageSuffix"/>
+    </select>
+
+    <select id="orgDashWgtStngSelect" parameterType="String" resultType="widgetVO">
+        /*
+            SQL ID : OrgDAO.orgDashWgtStngSelect
+            설  명 : 기관 대시보드 위젯 설정 조회
+        */
+        SELECT A.*
+        FROM TB_LMS_WIDGET A
+        WHERE 1=1
+          AND A.ORG_ID = #{orgId}
+          AND A.WIDGET_USER_GBNCD = #{widgetUserGbncd}
+    </select>
+
+    <insert id="orgWidgetStngRegist" parameterType="widgetVO">
+        /*
+             SQL ID : OrgDAO.orgWidgetStngRegist
+             설  명 : 위젯 기본값 등록
+	    */
+        INSERT INTO TB_LMS_WIDGET
+        (
+          WIDGET_ID
+        , WIDGET_USER_GBNCD
+        , WIDGETNM
+        , WIDGET_EXPLN
+        , WIDGET_VRSN
+        , PVSNYN
+        , WIDGET_STNG_CTS
+        , RGTR_ID
+        , REG_DTTM
+        , ORG_ID
+        )VALUES (
+                  #{widgetId}
+                , #{widgetUserGbncd}
+                , #{widgetnm}
+                , #{widgetExpln}
+                , #{widgetVrsn}
+                , #{pvsnyn}
+                , #{widgetStngCts}
+                , #{rgtrId}
+                , FN_DTTM()
+                , #{orgId}
+                )
+    </insert>
+
+    <insert id="orgWidgetStngListRegist" parameterType="java.util.List">
+        /*
+            SQL ID : OrgDAO.orgWidgetStngListRegist
+            설  명 : 기관 위젯설정 리스트 일괄 등록
+        */
+        <foreach collection="list" item="item" open="BEGIN" close="; END;" separator=";">
+        INSERT INTO TB_LMS_WIDGET(
+              WIDGET_ID
+            , WIDGET_USER_GBNCD
+            , WIDGETNM
+            , WIDGET_EXPLN
+            , WIDGET_VRSN
+            , PVSNYN
+            , WIDGET_STNG_CTS
+            , RGTR_ID
+            , REG_DTTM
+            , ORG_ID
+        ) VALUES (
+              #{item.widgetId}
+            , #{item.widgetUserGbncd}
+            , #{item.widgetnm}
+            , #{item.widgetExpln}
+            , #{item.widgetVrsn}
+            , #{item.pvsnyn}
+            , #{item.widgetStngCts}
+            , #{item.rgtrId}
+            , FN_DTTM()
+            , #{item.orgId}
+        )
+        </foreach>
+    </insert>
+
+    <update id="orgWidgetStngModify" parameterType="widgetVO">
+        /*
+            SQL ID : OrgDAO.orgWidgetStngModify
+            설  명 : 위젯 기본값 수정
+        */
+        UPDATE TB_LMS_WIDGET
+        SET
+          WIDGET_STNG_CTS = #{widgetStngCts}
+        , MDFR_ID = #{mdfrId}
+        , MOD_DTTM = FN_DTTM()
+        <if test="widgetnm != null and widgetnm == ''">
+        , WIDGETNM = #{widgetnm}
+        </if>
+        <if test="widgetExpln != null and widgetExpln == ''">
+        , WIDGET_EXPLN = #{widgetExpln}
+        </if>
+        <if test="widgetVrsn != null and widgetVrsn == ''">
+        , WIDGET_VRSN = #{widgetVrsn}
+        </if>
+        <if test="pvsnyn != null and pvsnyn == ''">
+        , PVSNYN = #{pvsnyn}
+        </if>
+        WHERE ORG_ID = #{orgId}
+        AND WIDGET_USER_GBNCD = #{widgetUserGbncd}
+    </update>
+
+    <delete id="orgWidgetStngDelete">
+        /*
+            SQL ID : OrgDAO.orgWidgetStngDelete
+            설  명 : 기관의 위젯 기본값 삭제
+        */
+        DELETE FROM TB_LMS_WIDGET
+        WHERE ORG_ID = #{orgId}
+    </delete>
+
+    <select id="menuList" parameterType="menuVO" resultType="egovMap">
+        /*
+            SQL ID : OrgDAO.menuList
+            설  명 : 권한과 메뉴 구분에 따른 메뉴 목록 조회
+        */
+        WITH MENU_LIST AS (
+            SELECT
+                  T.UP_MENU_ID
+                , T.MENU_ID
+                , T.MENU_AUTH_TYCD
+                , T.MENU_GBNCD
+                  /* 1차 메뉴는 항상 최상위 부모(ROOT)의 이름을 표시 */
+                , T.FIRST_MENUNM
+                , T.FIRST_MENU_ENNM
+                  /* 2차 메뉴: 본인이 2차면 본인 이름, 3차면 부모 이름을 표시 */
+                , CASE
+                       WHEN T.MENU_LV = 2 THEN T.MENUNM
+                       WHEN T.MENU_LV = 3 THEN T.PARENT_MENUNM
+                       ELSE '-'
+                  END AS "SECOND_MENUNM"
+                , CASE
+                      WHEN T.MENU_LV = 2 THEN T.MENU_ENNM
+                      WHEN T.MENU_LV = 3 THEN T.PARENT_MENUNM
+                      ELSE '-'
+                  END AS "SECOND_MENU_ENNM"
+                  /* 3차 메뉴: 본인이 3차일 때만 본인 이름을 표시 */
+                , CASE
+                       WHEN T.MENU_LV = 3 THEN T.MENUNM
+                       ELSE '-'
+                  END AS "THIRD_MENUNM"
+                , CASE
+                      WHEN T.MENU_LV = 3 THEN T.MENU_ENNM
+                      ELSE '-'
+                  END AS "THIRD_MENU_ENNM"
+            FROM (
+                SELECT
+                      MENU_LV
+                    , MENU_ID
+                    , UP_MENU_ID
+                    , MENUNM
+                    , MENU_ENNM
+                      /* 최상위(1차) 메뉴명을 가져오는 함수 */
+                    , CONNECT_BY_ROOT(MENUNM) AS FIRST_MENUNM
+                    , CONNECT_BY_ROOT(MENU_ENNM) AS FIRST_MENU_ENNM
+                      /* 바로 직전 부모의 메뉴명을 가져오는 키워드 */
+                    , PRIOR MENUNM AS PARENT_MENUNM
+                    , PRIOR MENU_ENNM AS PARENT_MENU_ENNM
+                    , CONNECT_BY_ISLEAF AS IS_LEAF
+                    , MENU_AUTH_TYCD
+                    , MENU_GBNCD
+                     FROM TB_LMS_MENU
+                     WHERE MENU_AUTH_TYCD = #{menuAuthTycd}
+                       AND MENU_GBNCD = #{menuGbncd}
+                     START WITH UP_MENU_ID = 'ROOT'
+                     CONNECT BY PRIOR MENU_ID = UP_MENU_ID
+                     ORDER SIBLINGS BY MENU_SEQ
+                 ) T
+            WHERE T.IS_LEAF = 1 /* 최하위 메뉴만 조회 (부모 노드 제외) */
+        )
+        SELECT
+              A.*
+            , B.MENU_USE_ID
+            , B.USEYN
+        FROM MENU_LIST A
+        JOIN TB_LMS_MENU_USE_ORG B
+            ON A.MENU_ID = B.MENU_ID
+            AND A.MENU_AUTH_TYCD = B.MENU_AUTH_TYCD
+            AND A.MENU_GBNCD = B.MENU_GBNCD
+            AND B.ORG_ID = #{orgId}
+    </select>
+
+    <update id="orgMenuUseynModify" parameterType="menuVO">
+        /*
+            SQL ID : OrgDAO.orgMenuUseynModify
+            설  명 : 메뉴 사용여부 변경
+        */
+        UPDATE TB_LMS_MENU_USE_ORG
+        SET USEYN    = #{useyn},
+            MDFR_ID  = #{mdfrId},
+            MOD_DTTM = FN_DTTM()
+        WHERE MENU_USE_ID = #{menuUseId}
+    </update>
+
+    <delete id="orgMenuDeleteAll">
+        /*
+            SQL ID : OrgDAO.orgMenuDeleteAll
+            설  명 : 기관 메뉴 전체 삭제
+        */
+        DELETE FROM TB_LMS_MENU_USE_ORG
+        WHERE ORG_ID = #{orgId}
+    </delete>
+
+    <select id="orgLmsOptnList" parameterType="String" resultType="orgSettingVO">
+        /*
+            SQL ID : OrgDAO.orgLmsOptnList
+            설  명 : 기관 LMS 옵션 목록 조회
+        */
+        SELECT *
+        FROM TB_LMS_ORG_STNG A
+        WHERE A.ORG_ID = #{orgId}
+          AND A.STNG_CTGRCD = #{stngCtgrCd}
+    </select>
+
+    <insert id="orgOptnRegist" parameterType="orgSettingVO">
+        /*
+            SQL ID : OrgDAO.orgOptnRegist
+            설  명 : 기관 LMS 옵션 등록
+        */
+        INSERT INTO TB_LMS_ORG_STNG
+        (
+            ORG_STNG_ID
+          , ORG_ID
+          , STNG_CTGRCD
+          , STNG_CD
+          , STNGNM
+          , STNG_VL
+          , STNG_EXPLN
+          , USEYN
+          , RGTR_ID
+          , REG_DTTM
+        )
+        VALUES
+        (
+            #{orgStngId}
+          , #{orgId}
+          , #{stngCtgrCd}
+          , #{stngCd}
+          , #{stngnm}
+          , #{stngVl}
+          , #{stngExpln}
+          , #{useyn}
+          , #{rgtrId}
+          , FN_DTTM()
+        )
+    </insert>
+
+    <insert id="orgOptnListRegist" parameterType="orgSettingVO">
+        /*
+            SQL ID : OrgDAO.orgOptnListRegist
+            설  명 : 기관 LMS 옵션목록 일괄 등록
+        */
+        <foreach collection="list" item="item" open="BEGIN" close="; END;" separator=";">
+        INSERT INTO TB_LMS_ORG_STNG
+        (
+            ORG_STNG_ID
+          , ORG_ID
+          , STNG_CTGRCD
+          , STNG_CD
+          , STNGNM
+          , STNG_VL
+          , STNG_EXPLN
+          , USEYN
+          , RGTR_ID
+          , REG_DTTM
+        )
+        VALUES
+        (
+            #{item.orgStngId}
+          , #{item.orgId}
+          , #{item.stngCtgrCd}
+          , #{item.stngCd}
+          , #{item.stngnm}
+          , #{item.stngVl}
+          , #{item.stngExpln}
+          , #{item.useyn}
+          , #{item.rgtrId}
+          , FN_DTTM()
+        )
+        </foreach>
+    </insert>
+
+    <update id="orgOptnModify" parameterType="orgSettingVO">
+        /*
+            SQL ID : OrgDAO.orgOptnModify
+            설  명 : 기관 LMS 옵션 수정
+        */
+        UPDATE TB_LMS_ORG_STNG
+        SET STNG_VL = #{stngVl}
+          , MDFR_ID = #{mdfrId}
+          , MOD_DTTM = FN_DTTM()
+        WHERE ORG_STNG_ID = #{orgStngId}
+          AND ORG_ID = #{orgId}
+          AND STNG_CD = #{stngCd}
+    </update>
+
+    <update id="orgOptnListModify" parameterType="java.util.List">
+        /*
+            SQL ID : OrgDAO.orgOptnListModify
+            설  명 : 기관 LMS 옵션 리스트 통합 수정
+        */
+        <foreach collection="list" item="item" open="BEGIN" close="; END;" separator=";">
+            UPDATE TB_LMS_ORG_STNG
+            SET STNG_VL = #{item.stngVl}
+              , MDFR_ID = #{item.mdfrId}
+              , MOD_DTTM = FN_DTTM()
+            WHERE ORG_STNG_ID = #{item.orgStngId}
+              AND ORG_ID = #{item.orgId}
+              AND STNG_CD = #{item.stngCd}
+        </foreach>
+    </update>
+
+    <delete id="orgOptnDelete" >
+        /*
+            SQL ID : OrgDAO.orgOptnDelete
+            설  명 : 기관 LMS 옵션 리스트 삭제
+        */
+        DELETE FROM TB_LMS_ORG_STNG
+        WHERE ORG_ID = #{orgId}
+    </delete>
+
+    <select id="orgAisLinkInfoSelect" resultType="orgAisLinkVO">
+        /*
+            SQL ID : OrgDAO.orgAisLinkInfoSelect
+            설  명 : 기관 학사연동 정보 단건 조회
+        */
+        SELECT A.*
+             , B.CDNM AS AIS_LINK_TYNM
+        FROM TB_LMS_AIS_LINK A
+        JOIN TB_LMS_CMMN_CD B ON A.AIS_LINK_TYCD = B.CD
+        WHERE A.AIS_LINK_TYCD = #{aisLinkTycd}
+          AND A.ORG_ID = #{orgId}
+    </select>
+
+    <select id="orgAisLinkList" resultType="orgAisLinkVO">
+        /*
+            SQL ID : OrgDAO.orgAisLinkList
+            설  명 : 기관 학사연동 정보 목록 조회
+        */
+        SELECT A.*
+             , B.CDNM AS AIS_LINK_TYNM
+        FROM TB_LMS_AIS_LINK A
+        JOIN TB_LMS_CMMN_CD B ON A.AIS_LINK_TYCD = B.CD
+        WHERE A.ORG_ID = #{orgId}
+        ORDER BY AIS_LINK_TYCD ASC
+    </select>
+
+    <insert id="aisLinkListRegist" parameterType="java.util.List">
+        /*
+            SQL ID : OrgDAO.aisLinkListRegist
+            설  명 : 기관 학사정보시스템연동 정보 일괄 등록
+        */
+        <foreach collection="list" item="item" open="BEGIN" close="; END;" separator=";">
+            INSERT INTO TB_LMS_AIS_LINK
+            (
+                AIS_LINK_ID
+              , ORG_ID
+              , AUTO_LINKYN
+              , AIS_LINK_TYCD
+              , USEYN
+              , RGTR_ID
+              , REG_DTTM
+            )
+            VALUES
+            (
+                #{item.aisLinkId}
+              , #{item.orgId}
+              , #{item.autoLinkyn}
+              , #{item.aisLinkTycd}
+              , #{item.useyn}
+              , #{item.rgtrId}
+              , FN_DTTM()
+            )
+        </foreach>
+    </insert>
+
+    <update id="aisLinkInfoModify" parameterType="orgAisLinkVO">
+        /*
+            SQL ID : OrgDAO.aisLinkInfoModify
+            설  명 : 기관 학사정보시스템연동 정보 수정
+        */
+        UPDATE TB_LMS_AIS_LINK
+        SET AUTO_LINKYN     = #{autoLinkyn}
+          , AIS_LINK_TYCD   = #{aisLinkTycd}
+          , MANL_URL    = #{manlUrl}
+          , MDFR_ID     = #{mdfrId}
+          , MOD_DTTM    = FN_DTTM()
+        WHERE ORG_ID    = #{orgId}
+          AND AIS_LINK_TYCD = #{aisLinkTycd}
+    </update>
+
+    <delete id="aisLinkDeleteAll">
+        /*
+            SQL ID : OrgDAO.aisLinkDeleteAll
+            설  명 : 기관 학사정보시스템연동 정보 일괄 삭제
+        */
+        DELETE FROM TB_LMS_AIS_LINK
+        WHERE ORG_ID = #{orgId}
+    </delete>
+
+    <select id="defaultWgtList" resultType="widgetVO">
+        /*
+            SQL ID : OrgDAO.defaultWgtList
+            설  명 : 위젯 기초 데이터 조회
+        */
+        SELECT *
+        FROM TB_LMS_WIDGET
+        WHERE ORG_ID = 'SYSTEM_DEFAULT'
+    </select>
+
+    <select id="defaultLmsOptnList" resultType="orgSettingVO">
+        /*
+            SQL ID : OrgDAO.defaultLmsOptnList
+            설  명 : LMS 옵션 기초 데이터 조회
+        */
+        SELECT *
+        FROM TB_LMS_ORG_STNG
+        WHERE ORG_ID = 'SYSTEM_DEFAULT'
+    </select>
+
+    <select id="defaultAisLinkList" resultType="orgAisLinkVO">
+        /*
+            SQL ID : OrgDAO.defaultAisLinkList
+            설  명 : 학사정보시스템연동 기초 데이터 조회
+        */
+        SELECT *
+        FROM TB_LMS_AIS_LINK
+        WHERE ORG_ID = 'SYSTEM_DEFAULT'
+    </select>
+
+
 </mapper>

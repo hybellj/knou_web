@@ -8,18 +8,20 @@
              설  명  : 퀴즈응시목록
          */
          SELECT
-         	  ROW_NUMBER() OVER(ORDER BY A.USERNM) AS LINE_NO
+         	  ROW_NUMBER() OVER(ORDER BY A.TEAM_ID, A.USERNM) AS LINE_NO
          	, A.*
          	, CASE WHEN A.TKEXAM_SDTTM IS NULL
-         		   THEN CASE WHEN A.RETKEXAM_YN = 'Y' THEN 'INIT' ELSE 'NOTKEXAM' END
-         		   WHEN A.TKEXAM_CMPTNYN = 'Y'
-         		   THEN 'COMPLETED'
-         		   ELSE 'TKEXAMING'
-         		   END AS TKEXAM_CMPTN_GBNCD
+         		   	THEN CASE WHEN A.RETKEXAM_YN = 'Y'
+         		   			  THEN CASE WHEN SYSDATE > TO_DATE(A.REEXAM_PSBL_EDTTM, 'YYYYMMDDHH24MISS') THEN 'NORETKEXAM' ELSE 'INIT' END
+         		   			  ELSE 'NOTKEXAM' END
+         		   	WHEN A.TKEXAM_CMPTNYN = 'Y'
+         		   	THEN CASE WHEN A.RETKEXAM_YN = 'Y' THEN 'RECOMPLETED' ELSE 'COMPLETED' END
+         		   	ELSE 'TKEXAMING' END AS TKEXAM_CMPTN_GBNCD
            FROM (
            	 WITH DTL AS (
            	 	SELECT
-           	 		EXAM_DTL_ID
+           	 		  EXAM_DTL_ID
+           	 		, REEXAM_PSBL_EDTTM
            	 	  FROM TB_LMS_EXAM_DTL
            	 	 WHERE DELYN = 'N'
            	 	   AND USEYN = 'Y'
@@ -27,6 +29,7 @@
            	 ), TEAM AS (
 				SELECT
 					  EXAM_TRGTR.EXAM_DTL_ID
+					, EXAM_DTL.REEXAM_PSBL_EDTTM
 					, TEAM.TEAM_ID
 					, TEAM.TEAMNM
 					, TEAM_MBR.USER_ID
@@ -36,6 +39,8 @@
 				    ON TEAM.TEAM_ID = EXAM_TRGTR.TEAM_ID
 				  JOIN TB_LMS_TEAM_MBR TEAM_MBR
 				    ON TEAM.TEAM_ID = TEAM_MBR.TEAM_ID
+				  JOIN TB_LMS_EXAM_DTL EXAM_DTL
+        			ON EXAM_DTL.EXAM_DTL_ID = EXAM_TRGTR.EXAM_DTL_ID
 				 WHERE TEAM.TEAM_CPST_CMPTNYN = 'Y'
 				   AND EXAM_TRGTR.EXAM_DTL_ID IN (SELECT EXAM_DTL_ID FROM DTL)
 			), TKEXAM AS (
@@ -75,15 +80,15 @@
 				  ATNDLC.SBJCT_ID
 				, TM.TEAM_ID
 				, TM.TEAMNM
-				, NVL((SELECT DEPTNM FROM TB_LMS_DEPT WHERE ORG_ID = USR.ORG_ID AND DEPT_ID = USR.DEPT_ID),'-') AS DEPTNM
+				, NVL((SELECT DEPTNM FROM TB_LMS_DEPT WHERE DEPT_ID = USR.DEPT_ID),'-') AS DEPTNM
 				, NVL(USR.STDNT_NO,'-') AS STDNT_NO
 				, (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'MBL_PHN' AND USER_ID = ATNDLC.USER_ID) AS MOBILE_NO
 				, (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'INDV_EML' AND USER_ID = ATNDLC.USER_ID) AS EMAIL
 				, ATNDLC.USER_ID
-				, USR.USER_RPRS_ID
 				, USR.USERNM
 				, TM.LDRYN
 				, CASE WHEN EXAM_BSC.EXAM_GBNCD = 'QUIZ_TEAM' THEN TM.EXAM_DTL_ID ELSE (SELECT EXAM_DTL_ID FROM DTL) END EXAM_DTL_ID
+				, CASE WHEN EXAM_BSC.EXAM_GBNCD = 'QUIZ_TEAM' THEN TM.REEXAM_PSBL_EDTTM ELSE (SELECT REEXAM_PSBL_EDTTM FROM DTL) END REEXAM_PSBL_EDTTM
 			 	, CASE WHEN EXAM_BSC.EXAM_GBNCD = 'QUIZ_TEAM' THEN TKEXAM_TEAM.TKEXAM_ID ELSE TKEXAM_INDI.TKEXAM_ID END AS TKEXAM_ID
 			    , NVL(CASE WHEN EXAM_BSC.EXAM_GBNCD = 'QUIZ_TEAM' THEN TKEXAM_TEAM.QUIZ_SCR ELSE TKEXAM_INDI.QUIZ_SCR END, 0) AS QUIZ_SCR
 			    , NVL(CASE WHEN EXAM_BSC.EXAM_GBNCD = 'QUIZ_TEAM' THEN TKEXAM_TEAM.TOT_SCR ELSE TKEXAM_INDI.TOT_SCR END, 0) AS TOT_SCR
@@ -110,7 +115,7 @@
 			  LEFT JOIN TKEXAM TKEXAM_INDI
 			    ON TKEXAM_INDI.USER_ID = ATNDLC.USER_ID
 			 WHERE ATNDLC.AUDITYN = 'N'
-			   AND ATNDLC.ATNDLC_STSCD = 'ATNDLC'
+			   AND ATNDLC.ATNDLC_STSCD = 'APPROVE'
 			   AND EXAM_BSC.EXAM_BSC_ID = #{examBscId}
 			   <if test="userId != null and userId != ''">
 			   		AND USR.USER_ID = #{userId}
@@ -149,7 +154,7 @@
              설  명  : 퀴즈응시자조회
          */
          SELECT
-			  NVL((SELECT DEPTNM FROM TB_LMS_DEPT WHERE ORG_ID = USR.ORG_ID AND DEPT_ID = USR.DEPT_ID),'-') AS DEPTNM
+			  NVL((SELECT DEPTNM FROM TB_LMS_DEPT WHERE DEPT_ID = USR.DEPT_ID),'-') AS DEPTNM
 			, NVL(USR.STDNT_NO,'-') AS STDNT_NO
 			, USR.USERNM
 			, USR.USER_ID
@@ -337,12 +342,12 @@
 		                WHEN EXAM_BSC.EXAM_GBNCD IN ('QUIZ_EXAM_MID', 'QUIZ_EXAM_LST') THEN
 		                    CASE WHEN SBJCT_USER.USER_ID NOT IN (
 		                        SELECT USER_ID FROM TB_LMS_EXAM_ABSNCE
-		                         WHERE APLY_STSCD = 'APRV' AND EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID
+		                         WHERE ABSNCE_APLY_STSCD = 'APRV' AND EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID
 		                    ) THEN 'Y' ELSE 'N' END
-		                WHEN EXAM_BSC.EXAM_GBNCD IN ('QUIZ_SBST_EXAM_MID', 'QUIZ_SBST_EXAM_LST') THEN
+		                WHEN EXAM_BSC.EXAM_GBNCD IN ('EXAM_MID_SBST_QUIZ', 'EXAM_LST_SBST_QUIZ') THEN
 		                    CASE WHEN SBJCT_USER.USER_ID IN (
 		                        SELECT USER_ID FROM TB_LMS_EXAM_ABSNCE
-		                         WHERE APLY_STSCD = 'APRV' AND EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID
+		                         WHERE ABSNCE_APLY_STSCD = 'APRV' AND EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID
 		                    ) THEN 'Y' ELSE 'N' END
 		            END AS IS_TARGET
 		        FROM TB_LMS_EXAM_BSC EXAM_BSC
@@ -385,5 +390,80 @@
 		)
 		GROUP BY CNT
 	</select>
+
+	<select id="stdntQuizTkexamInfoSelect" parameterType="map" resultType="egovMap">
+		/*
+             SQL ID : TkexamDAO.stdntQuizTkexamInfoSelect
+             설  명  : 학생퀴즈응시정보조회
+         */
+        SELECT
+			  CASE WHEN BSC.EXAMTM_ALLOC_GBNCD = 'REMAINDER'
+			       THEN LEAST((TO_DATE(CASE WHEN TKEXAM.RETKEXAM_YN = 'Y' THEN DTL.REEXAM_PSBL_EDTTM ELSE DTL.EXAM_PSBL_EDTTM END, 'YYYYMMDDHH24MISS') - SYSDATE) * 86400, NVL(DTL.EXAM_MNTS, 0) * 60 - NVL(TKEXAM.TKEXAM_MNTS, 0))
+			       ELSE NVL(DTL.EXAM_MNTS, 0) * 60 - NVL(TKEXAM.TKEXAM_MNTS, 0)
+			  END AS REMAINDER_TM
+			, TKEXAM.TKEXAM_EDTTM
+			, CASE WHEN SYSDATE BETWEEN TO_DATE(DTL.EXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS') AND TO_DATE(DTL.EXAM_PSBL_EDTTM, 'YYYYMMDDHH24MISS')
+				     	OR (TKEXAM.RETKEXAM_YN = 'Y' AND SYSDATE BETWEEN TO_DATE(DTL.REEXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS') AND TO_DATE(DTL.REEXAM_PSBL_EDTTM, 'YYYYMMDDHH24MISS'))
+				   THEN 'Y'
+				   ELSE 'N'
+			  END AS TKEXAM_PERIODYN
+			, TKEXAM.TKEXAM_ID
+		  FROM TB_LMS_TKEXAM TKEXAM
+		  JOIN TB_LMS_EXAM_DTL DTL
+		    ON TKEXAM.EXAM_DTL_ID = DTL.EXAM_DTL_ID
+		   AND DTL.DELYN = 'N'
+		   AND DTL.USEYN = 'Y'
+		  JOIN TB_LMS_EXAM_BSC BSC
+		    ON DTL.EXAM_BSC_ID = BSC.EXAM_BSC_ID
+		   AND BSC.DELYN = 'N'
+		   AND BSC.USEYN = 'Y'
+		 WHERE TKEXAM.DELYN = 'N'
+		   AND TKEXAM.EXAM_DTL_ID = #{examDtlId}
+		   AND TKEXAM.USER_ID = #{userId}
+	</select>
+
+	<update id="stdntQuizTkexam" parameterType="map">
+		/*
+             SQL ID : TkexamDAO.stdntQuizTkexam
+             설  명  : 학생퀴즈응시
+         */
+        UPDATE TB_LMS_TKEXAM SET
+         	  MDFR_ID = #{userId}
+         	, MOD_DTTM = FN_DTTM()
+         	, TKEXAM_CNT = TKEXAM_CNT + 1
+			, TKEXAM_SDTTM = FN_DTTM()
+          WHERE TKEXAM_ID = #{tkexamId}
+		    AND EXAM_DTL_ID = #{examDtlId}
+			AND USER_ID = #{userId}
+	</update>
+
+	<update id="stdntQuizTkexamMntsModify" parameterType="map">
+		/*
+             SQL ID : TkexamDAO.stdntQuizTkexamMntsModify
+             설  명  : 학생퀴즈응시시간수정
+         */
+        UPDATE TB_LMS_TKEXAM SET
+         	  MDFR_ID = #{userId}
+         	, MOD_DTTM = FN_DTTM()
+         	, TKEXAM_MNTS = TKEXAM_MNTS + #{tkexamMnts}
+          WHERE TKEXAM_ID = #{tkexamId}
+		    AND EXAM_DTL_ID = #{examDtlId}
+			AND USER_ID = #{userId}
+	</update>
+
+	<update id="stdntQuizExampprSbmsn" parameterType="map">
+		/*
+             SQL ID : TkexamDAO.stdntQuizExampprSbmsn
+             설  명  : 학생퀴즈시험지제출
+         */
+        UPDATE TB_LMS_TKEXAM SET
+         	  MDFR_ID = #{userId}
+         	, MOD_DTTM = FN_DTTM()
+         	, TKEXAM_EDTTM = FN_DTTM()
+         	, TKEXAM_CMPTNYN = 'Y'
+          WHERE TKEXAM_ID = #{tkexamId}
+		    AND EXAM_DTL_ID = #{examDtlId}
+			AND USER_ID = #{userId}
+	</update>
 
 </mapper>

@@ -17,6 +17,10 @@ public class BoardViewModel {
 	List<EgovMap>	stdntDashSubjectNoticeList;
 	List<EgovMap>	stdntDashLctrQnaList;
 	List<EgovMap>	stdntDashDatarmList;
+
+    List<EgovMap>   admDashSysNoticeList;
+    List<EgovMap>   admDashAllNoticeList;
+    List<EgovMap>   admDashAllSrvyList;
 	
 	EgovMap			badge;
 	
@@ -100,7 +104,31 @@ public class BoardViewModel {
 		this.stdntDashDatarmList = stdntDashDatarmList;
 	}
 
-	public EgovMap getBadge() {
+    public List<EgovMap> getAdmDashSysNoticeList() {
+        return admDashSysNoticeList;
+    }
+
+    public void setAdmDashSysNoticeList(List<EgovMap> admDashSysNoticeList) {
+        this.admDashSysNoticeList = admDashSysNoticeList;
+    }
+
+    public List<EgovMap> getAdmDashAllNoticeList() {
+        return admDashAllNoticeList;
+    }
+
+    public void setAdmDashAllNoticeList(List<EgovMap> admDashAllNoticeList) {
+        this.admDashAllNoticeList = admDashAllNoticeList;
+    }
+
+    public List<EgovMap> getAdmDashAllSrvyList() {
+        return admDashAllSrvyList;
+    }
+
+    public void setAdmDashAllSrvyList(List<EgovMap> admDashAllSrvyList) {
+        this.admDashAllSrvyList = admDashAllSrvyList;
+    }
+
+    public EgovMap getBadge() {
 		return badge;
 	}
 

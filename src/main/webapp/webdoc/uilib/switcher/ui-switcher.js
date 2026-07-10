@@ -20,7 +20,10 @@ function UiSwitcher() {
 			$checkbox.attr("id", id);
 		}
 
-		let $switcher = $(`<div id="sw_${id}" class="ui-switcher" aria-checked="${$checkbox.is(':checked')}"></div>`);
+		let dataText = $checkbox.attr("data-text");
+		if (!dataText) dataText = "";
+
+		let $switcher = $(`<div id="sw_${id}" class="ui-switcher" aria-checked="${$checkbox.is(':checked')}" data-text="${dataText}"></div>`);
 		let cssClass = $checkbox.attr('class');
 		if (cssClass != undefined) {
 			$switcher.addClass(cssClass);
@@ -44,9 +47,24 @@ function UiSwitcher() {
 			}
 		};
 
+
+
 		$switcher.on('click', toggleSwitch);
 		$checkbox.on('click', toggleSwitch);
 		$switcher.insertBefore($checkbox);
+
+		if (dataText !== "") {
+			let $temp = $(`<span class="tmpText">${dataText}</span>`);
+			$switcher.append($temp);
+			let textWidth = $temp.width() + 32;
+			$temp.remove();
+
+			if (cssClass.indexOf("small") > -1) {
+				textWidth -= 5;
+			}
+
+			$switcher.css("width", textWidth+"px");
+		}
     });
 
 

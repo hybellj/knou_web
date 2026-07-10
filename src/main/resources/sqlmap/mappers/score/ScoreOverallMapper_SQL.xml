@@ -134,6 +134,7 @@
 				AND AA.MRK_RFLTYN = 'Y'
 				AND AA.MRK_RFLTRT &gt; 0
 			), 0) + NVL((
+			
 				SELECT 
 					SUM(
 						CASE WHEN EXISTS(SELECT 1 FROM TB_LMS_EXAM_BSC WHERE EXAM_ID = AA.EXAM_SBST_REF_ID AND DELYN = 'N')
@@ -338,6 +339,8 @@
 			AND A.SBJCT_ID = #{crsCreCd}
 		) A
 	</sql>
+	
+	
 	
 	<sql id="scoreOverallQuery">
 		SELECT 

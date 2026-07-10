@@ -773,5 +773,4 @@
                                  AND A.TKEXAM_TYCD = 'L') THEN 'Y' ELSE 'N' END AS LAST_APPLICATE_YN
         FROM DUAL
     </select>
-
 </mapper>

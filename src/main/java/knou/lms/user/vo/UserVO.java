@@ -11,9 +11,13 @@ public class UserVO implements Serializable {
     private String userId;
     private String userRprsId;
     private String orgId;
+    private String orgnm;
     private String usernm;
     private String userEnnm;
     private String userTycd;
+    private String authrtGrpcd;
+    private String authrtCd;
+    private String userTycdnm;
     private String userStngCts;
     private String deptId;
     private String photoFileId;
@@ -48,8 +52,17 @@ public class UserVO implements Serializable {
     private String userNcnm;
     private String stdntNo;
     private String dsblyn;
-    
+
     public UserVO() {}
+
+    public UserVO(String userId) {
+    	this.userId = userId;
+    }
+
+    public UserVO(String userId, String userTycd) {
+    	this.userId = userId;
+    	this.userTycd = userTycd;
+    }
 
 	public UserVO(LoginParam param) {
 		this.setUserId(param.getUserId());
@@ -175,8 +188,44 @@ public class UserVO implements Serializable {
 
     public String getDsblyn() { return dsblyn; }
     public void setDsblyn(String dsblyn) { this.dsblyn = dsblyn; }
-    
+
     public String	toString() {
     	return "userId =" + userId + ", userRprsId=" + userRprsId;
     }
+
+	public String getUserTycdnm() {
+		return userTycdnm;
+	}
+
+	public void setUserTycdnm(String userTycdnm) {
+		this.userTycdnm = userTycdnm;
+	}	
+
+	public String getAuthrtGrpcd() {
+		return authrtGrpcd;
+	}
+
+	public void setAuthrtGrpCd(String authrtGrpcd) {
+		this.authrtGrpcd = authrtGrpcd;
+	}
+
+	public String getAuthrtCd() {
+		return authrtCd;
+	}
+
+	public void setAuthrtCd(String authrtCd) {
+		this.authrtCd = authrtCd;
+	}
+
+	public static long getSerialversionuid() {
+		return serialVersionUID;
+	}
+
+	public String getOrgnm() {
+		return orgnm;
+	}
+
+	public void setOrgnm(String orgnm) {
+		this.orgnm = orgnm;
+	}
 }

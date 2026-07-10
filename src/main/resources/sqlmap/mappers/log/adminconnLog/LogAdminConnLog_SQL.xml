@@ -51,7 +51,7 @@
 		FROM TB_LMS_LOG_USER_ACTV		        			
 		WHERE USER_ID LIKE CONCAT('%',IFNULL(#{userId}, USER_ID),'%') COLLATE utf8mb4_general_ci
 		ORDER BY USER_ACTV_ID DESC
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 	
 	<select id="selectLastSn" parameterType="logAdminConnLogVO" resultType="logAdminConnLogVO">

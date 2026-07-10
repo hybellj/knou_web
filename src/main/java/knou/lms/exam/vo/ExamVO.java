@@ -1,6 +1,7 @@
 package knou.lms.exam.vo;
 
 import java.util.List;
+import java.util.Map;
 
 import knou.lms.common.vo.DefaultVO;
 
@@ -22,6 +23,8 @@ public class ExamVO extends DefaultVO {
     private String  tkexamMthdNm;       // 시험응시방법코드명
     private String  examTtl;            // 시험제목
     private String  examPsblSdttm;      // 시험 시작일
+    private String  midExamPsblSdttm;   // 중간고사 시험 시작일
+    private String  lstExamPsblSdttm;   // 기말고사 시험 시작일
     private String  examPsblEdttm;      // 시험 종료일
     private String  examDrtn;           // 시험일시(기간)
     private Integer examMnts;           // 시험시간(분)
@@ -45,7 +48,7 @@ public class ExamVO extends DefaultVO {
     private String  mrkRfltyn;          // 성적반영여부
     private String  exampprOyn;         // 시험지공개여부
     private String  byteamSubrexamUseyn; // 팀시험여부
-    private String  lrnGrpSubsbjctUseyn; // 부 주제여부
+    private String  teamGrpSubsbjctUseyn; // 부 주제여부
     private String  examSbstTynm;       // 시험대체코드명
     private String  examSbstTycd;       // 시험대체코드명
     private Integer absnceTot;          // 결시인원 COUNT
@@ -72,15 +75,19 @@ public class ExamVO extends DefaultVO {
     private String  tkexamId;           // 시험 응시 ID
     private String  tkexamSdttm;        // 시험 응시 시작일
     private String  tkexamEdttm;        // 시험 응시 종료일
+    private String  tkexamDrtn;         // 시험 응시 상태코드
     private String  tkexamCmptnGbncd;   // 시험 응시 상태코드
+    private String  examHstryGbnnm;     // 시험 응시 상태코드
+    private String  tkexamMnts;         // 시험 응시 시간
 
-    private String  lrnGrpId;           // 그룹 ID
-    private String  lrnGrpnm;           // 그룹 명
+    private String  teamGrpId;           // 그룹 ID
+    private String  teamGrpnm;           // 그룹 명
     private String  ldrnm;              // 리더 명
     private Integer teamMbrTot;         // 팀 인원 COUNT
 
     private ExamDtlVO examDtlVO;        // 시험상세정보VO
-    private List<String> lrnGrpIds;		// 팀 시험 등록용 학습그룹아이디:개설과목아이디 목록
+    private List<String> teamGrpIds;		// 팀 시험 등록용 학습그룹아이디:개설과목아이디 목록
+    private List<Map<String, Object>> dtlInfos;  // 팀별 주제 목록
 
     private String  examEvlSbstId;      // 시험 대체 평가 ID
     private String  examEvlSbstnm;      // 시험 대체 평가명
@@ -90,24 +97,31 @@ public class ExamVO extends DefaultVO {
     private String  asmtTtl;            // 과제 제목
     private String  asmtCts;            // 과제 내용
     private String  asmtGbncd;          // 과제 구분코드
-    private String  rublicId;           // 루브릭 ID
+    private String  rubricId;           // 루브릭 ID
     private String  asmtSbmsnSdttm;     // 과제 제출 시작일시
     private String  asmtSbmsnEdttm;     // 과제 제출 종료일시
     private String  sbasmtTycd;         // 대체과제 유형코드
     private String  sbmsnFileMimeTycd;  // 제출 파일 MIME 유형코드
+    private String  sbmsnDttm;          // 제출 일자
     private String  evlScrTycd;         // 평가점수유형코드
     private String  evlScrTynm;         // 평가점수유형명
     private String  regDttm;            // 등록일시
     private String  qstnDsplyGbncd;     // 문항 표시 구분코드
+    private String  qstnDsplyGbnnm;     // 문항 표시 구분코드명
     private String  qstnRndmyn;         // 문항 랜덤 여부
     private String  qstnVwitmRndmyn;    // 문항 보기 항목 랜덤 여부
 
-    private String  absnceTtl;          // 결시 사유
-    private String  absnceCts;          // 결시 사유
+    private String  examAbsnceId;       // 시험 결시 ID
+    private String  absnceAplyStscd;    // 결시 승인 상태코드
+    private String  absnceAplyStsnm;    // 결시 승인 상태코드명
+    private String  absnceTtl;          // 결시 제목
+    private String  absnceCts;          // 결시 내용
     private String  absnceRfltrt;       // 결시 반영비율
     private String  aplyStsStts;        // 신청 승인 상태 (Y/N)
 
     private String  aplyStscd;          // 신청상태 코드
+    private String  midAplyStscd;       // 중간고사 신청상태 코드
+    private String  lstAplyStscd;       // 기말고사 신청상태 코드
     private String  aplyStsnm;          // 신청상태명 (1:신청, 2:재신청, 3:승인, 4:거절)
     private String  aprvCts;            // 승인내용
     private String  aprvdttm;           // 승인일시
@@ -116,6 +130,9 @@ public class ExamVO extends DefaultVO {
     private String  profnm;             // 교수 이름
     private String  tutnm;              // 튜터 이름
 
+    private String  examSprtAplyId;     // 시험 지원 ID
+    private String  midExamSprtAplyId;  // 중간고사 시험 지원 ID
+    private String  lstExamSprtAplyId;  // 기말고사 시험 지원 ID
     private String  userStatus;         // 사용자 구분 (Seniors / Disabled)
     private String  dsblTynm;           // 장애 유형명
     private String  dsblGrdnm;          // 장애 등급명
@@ -126,23 +143,54 @@ public class ExamVO extends DefaultVO {
     private String  midExam;            // 중간시험 응시 여부 (Y/N)
     private String  flnExam;            // 기말시험 응시 여부 (Y/N)
     private String  examSprtAplyTynm;   // 시험지원신청 유형명
+    private String  addMnts;            // 시험지원 추가시간(분)
     private String  sprtMidAddMnts;     // 중간시험 추가시간(분)
     private String  sprtLstAddMnts;     // 기말시험 추가시간(분)
     private String  midCnclAplyStscd;   // 중간시험 취소신청 상태코드
     private String  lstCnclAplyStscd;   // 기말시험 취소신청 상태코드
+    private String  cnclAplyStscd;      // 취소신청 상태코드
+    private String  cnclAplyStsnm;      // 취소신청 상태코드명
     private String  midExamBscId;       // 중간시험 기본 ID
     private String  lstExamBscId;       // 기말시험 기본 ID
-    private String  quizBscId;          // 시험 그룹 ID
+    private String  quizBscId;          // 퀴즈기본 ID
+    private String  sprtAplyCts;        // 신청 내용 (시험지원)
+    private String  examSprtAplyGrpId;  // 시험 지원 그룹ID (첨부파일 조회용도)
 
-    private String  midExamScr;            // 중간고사 점수 (재시험이면 '점수(재시험)')
-    private String  midAbsnceScr;          // 중간고사 대체시험 점수
-    private String  lstExamScr;            // 기말고사 점수 (재시험이면 '점수(재시험)')
-    private String  lstAbsnceScr;          // 기말고사 대체시험 점수
+    private String  onlnExamquizId;     // 온라인시험퀴즈ID
+    private String  onlnExampprUrl;     // 온라인시험지URL
+
+    private String  midExamScr;         // 중간고사 점수 (재시험이면 '점수(재시험)')
+    private String  midAbsnceScr;       // 중간고사 대체시험 점수
+    private String  lstExamScr;         // 기말고사 점수 (재시험이면 '점수(재시험)')
+    private String  lstAbsnceScr;       // 기말고사 대체시험 점수
+
+    private String  nowDttm;            // 현재날짜
+    private String  tkexamYn;           // 응시여부
+    private String  absnceYn;           // 결시여부
+    private String  dsblYn;             // 결시여부
+
+    private Integer fdbkCnt;            // 피드백 cnt
+    private Integer asmtScr;            // 과제 평가점수
+    private String  filenm;             // 첨부파일명
+    private String  asmtSbmsnId;        // 과제 제출 ID
+    private String  asmtEvlId;          // 과제 평가 ID
+
+    /* 관리자에서 사용중 추후 분리해야 한다. */
+    private String dgrsYr;
+    private String dgrsSmstrChrt;
+    private String crclmnNo;
+    private String gubun;
+    private String sprtRslt;
+    private String cnclAplyYn;
+//    private String midExamSprtAplyId;
+    private String midSprtAplyTycd;
+//    private String lstExamSprtAplyId;
+    private String lstSprtAplyTycd;
+    private String sprtAprvCts;
 
     /*****************************************************
      * Getter / Setter
      *****************************************************/
-
     public String getExamBscId() {
         return examBscId;
     }
@@ -312,6 +360,18 @@ public class ExamVO extends DefaultVO {
     public void setExamPsblSdttm(String examPsblSdttm) {
         this.examPsblSdttm = examPsblSdttm;
     }
+    public String getMidExamPsblSdttm() {
+        return midExamPsblSdttm;
+    }
+    public void setMidExamPsblSdttm(String midExamPsblSdttm) {
+        this.midExamPsblSdttm = midExamPsblSdttm;
+    }
+    public String getLstExamPsblSdttm() {
+        return lstExamPsblSdttm;
+    }
+    public void setLstExamPsblSdttm(String lstExamPsblSdttm) {
+        this.lstExamPsblSdttm = lstExamPsblSdttm;
+    }
     public String getExamPsblEdttm() {
         return examPsblEdttm;
     }
@@ -330,11 +390,11 @@ public class ExamVO extends DefaultVO {
     public void setByteamSubrexamUseyn(String byteamSubrexamUseyn) {
         this.byteamSubrexamUseyn = byteamSubrexamUseyn;
     }
-    public String getLrnGrpSubsbjctUseyn() {
-        return lrnGrpSubsbjctUseyn;
+    public String getTeamGrpSubsbjctUseyn() {
+        return teamGrpSubsbjctUseyn;
     }
-    public void setLrnGrpSubsbjctUseyn(String lrnGrpSubsbjctUseyn) {
-        this.lrnGrpSubsbjctUseyn = lrnGrpSubsbjctUseyn;
+    public void setTeamGrpSubsbjctUseyn(String teamGrpSubsbjctUseyn) {
+        this.teamGrpSubsbjctUseyn = teamGrpSubsbjctUseyn;
     }
     public String getExamSbstTynm() {
         return examSbstTynm;
@@ -468,17 +528,17 @@ public class ExamVO extends DefaultVO {
     public void setMdfrId(String mdfrId) {
         this.mdfrId = mdfrId;
     }
-    public String getLrnGrpId() {
-        return lrnGrpId;
+    public String getTeamGrpId() {
+        return teamGrpId;
     }
-    public void setLrnGrpId(String lrnGrpId) {
-        this.lrnGrpId = lrnGrpId;
+    public void setTeamGrpId(String teamGrpId) {
+        this.teamGrpId = teamGrpId;
     }
-    public String getLrnGrpnm() {
-        return lrnGrpnm;
+    public String getTeamGrpnm() {
+        return teamGrpnm;
     }
-    public void setLrnGrpnm(String lrnGrpnm) {
-        this.lrnGrpnm = lrnGrpnm;
+    public void setTeamGrpnm(String teamGrpnm) {
+        this.teamGrpnm = teamGrpnm;
     }
     public String getLdrnm() {
         return ldrnm;
@@ -516,17 +576,41 @@ public class ExamVO extends DefaultVO {
     public void setTkexamCmptnGbncd(String tkexamCmptnGbncd) {
         this.tkexamCmptnGbncd = tkexamCmptnGbncd;
     }
+    public String getTkexamDrtn() {
+        return tkexamDrtn;
+    }
+    public void setTkexamDrtn(String tkexamDrtn) {
+        this.tkexamDrtn = tkexamDrtn;
+    }
+    public String getExamHstryGbnnm() {
+        return examHstryGbnnm;
+    }
+    public void setExamHstryGbnnm(String examHstryGbnnm) {
+        this.examHstryGbnnm = examHstryGbnnm;
+    }
+    public String getTkexamMnts() {
+        return tkexamMnts;
+    }
+    public void setTkexamMnts(String tkexamMnts) {
+        this.tkexamMnts = tkexamMnts;
+    }
     public ExamDtlVO getExamDtlVO() {
         return examDtlVO;
     }
     public void setExamDtlVO(ExamDtlVO examDtlVO) {
         this.examDtlVO = examDtlVO;
     }
-    public List<String> getLrnGrpIds() {
-        return lrnGrpIds;
+    public List<String> getTeamGrpIds() {
+        return teamGrpIds;
     }
-    public void setLrnGrpIds(List<String> lrnGrpIds) {
-        this.lrnGrpIds = lrnGrpIds;
+    public void setTeamGrpIds(List<String> teamGrpIds) {
+        this.teamGrpIds = teamGrpIds;
+    }
+    public List<Map<String, Object>> getDtlInfos() {
+        return dtlInfos;
+    }
+    public void setDtlInfos(List<Map<String, Object>> dtlInfos) {
+        this.dtlInfos = dtlInfos;
     }
     public String getExamEvlSbstId() {
         return examEvlSbstId;
@@ -577,11 +661,11 @@ public class ExamVO extends DefaultVO {
     public void setAsmtGbncd(String asmtGbncd) {
         this.asmtGbncd = asmtGbncd;
     }
-    public String getRublicId() {
-        return rublicId;
+    public String getRubricId() {
+        return rubricId;
     }
-    public void setRublicId(String rublicId) {
-        this.rublicId = rublicId;
+    public void setRubricId(String rubricId) {
+        this.rubricId = rubricId;
     }
     public String getAsmtSbmsnSdttm() {
         return asmtSbmsnSdttm;
@@ -607,11 +691,23 @@ public class ExamVO extends DefaultVO {
     public void setSbmsnFileMimeTycd(String sbmsnFileMimeTycd) {
         this.sbmsnFileMimeTycd = sbmsnFileMimeTycd;
     }
+    public String getSbmsnDttm() {
+        return sbmsnDttm;
+    }
+    public void setSbmsnDttm(String sbmsnDttm) {
+        this.sbmsnDttm = sbmsnDttm;
+    }
     public String getQstnDsplyGbncd() {
         return qstnDsplyGbncd;
     }
     public void setQstnDsplyGbncd(String qstnDsplyGbncd) {
         this.qstnDsplyGbncd = qstnDsplyGbncd;
+    }
+    public String getQstnDsplyGbnnm() {
+        return qstnDsplyGbnnm;
+    }
+    public void setQstnDsplyGbnnm(String qstnDsplyGbnnm) {
+        this.qstnDsplyGbnnm = qstnDsplyGbnnm;
     }
     public String getQstnRndmyn() {
         return qstnRndmyn;
@@ -650,6 +746,24 @@ public class ExamVO extends DefaultVO {
     public void setAbsnceTtl(String absnceTtl) {
         this.absnceTtl = absnceTtl;
     }
+    public String getExamAbsnceId() {
+        return examAbsnceId;
+    }
+    public void setExamAbsnceId(String examAbsnceId) {
+        this.examAbsnceId = examAbsnceId;
+    }
+    public String getAbsnceAplyStscd() {
+        return absnceAplyStscd;
+    }
+    public void setAbsnceAplyStscd(String absnceAplyStscd) {
+        this.absnceAplyStscd = absnceAplyStscd;
+    }
+    public String getAbsnceAplyStsnm() {
+        return absnceAplyStsnm;
+    }
+    public void setAbsnceAplyStsnm(String absnceAplyStsnm) {
+        this.absnceAplyStsnm = absnceAplyStsnm;
+    }
     public String getAbsnceCts() {
         return absnceCts;
     }
@@ -673,6 +787,18 @@ public class ExamVO extends DefaultVO {
     }
     public void setAplyStscd(String aplyStscd) {
         this.aplyStscd = aplyStscd;
+    }
+    public String getMidAplyStscd() {
+        return midAplyStscd;
+    }
+    public void setMidAplyStscd(String midAplyStscd) {
+        this.midAplyStscd = midAplyStscd;
+    }
+    public String getLstAplyStscd() {
+        return lstAplyStscd;
+    }
+    public void setLstAplyStscd(String lstAplyStscd) {
+        this.lstAplyStscd = lstAplyStscd;
     }
     public String getAplyStsnm() {
         return aplyStsnm;
@@ -709,6 +835,24 @@ public class ExamVO extends DefaultVO {
     }
     public void setTutnm(String tutnm) {
         this.tutnm = tutnm;
+    }
+    public String getExamSprtAplyId() {
+        return examSprtAplyId;
+    }
+    public void setExamSprtAplyId(String examSprtAplyId) {
+        this.examSprtAplyId = examSprtAplyId;
+    }
+    public String getMidExamSprtAplyId() {
+        return midExamSprtAplyId;
+    }
+    public void setMidExamSprtAplyId(String midExamSprtAplyId) {
+        this.midExamSprtAplyId = midExamSprtAplyId;
+    }
+    public String getLstExamSprtAplyId() {
+        return lstExamSprtAplyId;
+    }
+    public void setLstExamSprtAplyId(String lstExamSprtAplyId) {
+        this.lstExamSprtAplyId = lstExamSprtAplyId;
     }
     public String getUserStatus() {
         return userStatus;
@@ -770,6 +914,12 @@ public class ExamVO extends DefaultVO {
     public void setExamSprtAplyTynm(String examSprtAplyTynm) {
         this.examSprtAplyTynm = examSprtAplyTynm;
     }
+    public String getAddMnts() {
+        return addMnts;
+    }
+    public void setAddMnts(String addMnts) {
+        this.addMnts = addMnts;
+    }
     public String getSprtMidAddMnts() {
         return sprtMidAddMnts;
     }
@@ -794,6 +944,18 @@ public class ExamVO extends DefaultVO {
     public void setLstCnclAplyStscd(String lstCnclAplyStscd) {
         this.lstCnclAplyStscd = lstCnclAplyStscd;
     }
+    public String getCnclAplyStscd() {
+        return cnclAplyStscd;
+    }
+    public void setCnclAplyStscd(String cnclAplyStscd) {
+        this.cnclAplyStscd = cnclAplyStscd;
+    }
+    public String getCnclAplyStsnm() {
+        return cnclAplyStsnm;
+    }
+    public void setCnclAplyStsnm(String cnclAplyStsnm) {
+        this.cnclAplyStsnm = cnclAplyStsnm;
+    }
     public String getMidExamBscId() {
         return midExamBscId;
     }
@@ -811,6 +973,30 @@ public class ExamVO extends DefaultVO {
     }
     public void setQuizBscId(String quizBscId) {
         this.quizBscId = quizBscId;
+    }
+    public String getSprtAplyCts() {
+        return sprtAplyCts;
+    }
+    public void setSprtAplyCts(String sprtAplyCts) {
+        this.sprtAplyCts = sprtAplyCts;
+    }
+    public String getExamSprtAplyGrpId() {
+        return examSprtAplyGrpId;
+    }
+    public void setExamSprtAplyGrpId(String examSprtAplyGrpId) {
+        this.examSprtAplyGrpId = examSprtAplyGrpId;
+    }
+    public String getOnlnExamquizId() {
+        return onlnExamquizId;
+    }
+    public void setOnlnExamquizId(String onlnExamquizId) {
+        this.onlnExamquizId = onlnExamquizId;
+    }
+    public String getOnlnExampprUrl() {
+        return onlnExampprUrl;
+    }
+    public void setOnlnExampprUrl(String onlnExampprUrl) {
+        this.onlnExampprUrl = onlnExampprUrl;
     }
     public String getMidExamScr() {
         return midExamScr;
@@ -835,6 +1021,116 @@ public class ExamVO extends DefaultVO {
     }
     public void setLstAbsnceScr(String lstAbsnceScr) {
         this.lstAbsnceScr = lstAbsnceScr;
+    }
+    public String getNowDttm() {
+        return nowDttm;
+    }
+    public void setNowDttm(String nowDttm) {
+        this.nowDttm = nowDttm;
+    }
+    public String getTkexamYn() {
+        return tkexamYn;
+    }
+    public void setTkexamYn(String tkexamYn) {
+        this.tkexamYn = tkexamYn;
+    }
+    public String getAbsnceYn() {
+        return absnceYn;
+    }
+    public void setAbsnceYn(String absnceYn) {
+        this.absnceYn = absnceYn;
+    }
+    public Integer getFdbkCnt() {
+        return fdbkCnt;
+    }
+    public void setFdbkCnt(Integer fdbkCnt) {
+        this.fdbkCnt = fdbkCnt;
+    }
+    public Integer getAsmtScr() {
+        return asmtScr;
+    }
+    public void setAsmtScr(Integer asmtScr) {
+        this.asmtScr = asmtScr;
+    }
+    public String getDsblYn() {
+        return dsblYn;
+    }
+    public void setDsblYn(String dsblYn) {
+        this.dsblYn = dsblYn;
+    }
+    public String getFilenm() {
+        return filenm;
+    }
+    public void setFilenm(String filenm) {
+        this.filenm = filenm;
+    }
+    public String getAsmtSbmsnId() {
+        return asmtSbmsnId;
+    }
+    public void setAsmtSbmsnId(String asmtSbmsnId) {
+        this.asmtSbmsnId = asmtSbmsnId;
+    }
+    public String getAsmtEvlId() {
+        return asmtEvlId;
+    }
+    public void setAsmtEvlId(String asmtEvlId) {
+        this.asmtEvlId = asmtEvlId;
+    }
+
+    /* 관리자에서 사용중 추후 분리해야 한다. */
+    public String getDgrsYr() {
+        return dgrsYr;
+    }
+    public void setDgrsYr(String dgrsYr) {
+        this.dgrsYr = dgrsYr;
+    }
+    public String getDgrsSmstrChrt() {
+        return dgrsSmstrChrt;
+    }
+    public void setDgrsSmstrChrt(String dgrsSmstrChrt) {
+        this.dgrsSmstrChrt = dgrsSmstrChrt;
+    }
+    public String getCrclmnNo() {
+        return crclmnNo;
+    }
+    public void setCrclmnNo(String crclmnNo) {
+        this.crclmnNo = crclmnNo;
+    }
+    public String getGubun() {
+        return gubun;
+    }
+    public void setGubun(String gubun) {
+        this.gubun = gubun;
+    }
+    public String getSprtRslt() {
+        return sprtRslt;
+    }
+    public void setSprtRslt(String sprtRslt) {
+        this.sprtRslt = sprtRslt;
+    }
+    public String getCnclAplyYn() {
+        return cnclAplyYn;
+    }
+    public void setCnclAplyYn(String cnclAplyYn) {
+        this.cnclAplyYn = cnclAplyYn;
+    }
+    public String getMidSprtAplyTycd() {
+        return midSprtAplyTycd;
+    }
+    public void setMidSprtAplyTycd(String midSprtAplyTycd) {
+        this.midSprtAplyTycd = midSprtAplyTycd;
+    }
+    public String getLstSprtAplyTycd() {
+        return lstSprtAplyTycd;
+    }
+    public void setLstSprtAplyTycd(String lstSprtAplyTycd) {
+        this.lstSprtAplyTycd = lstSprtAplyTycd;
+    }
+    public String getSprtAprvCts() {
+        return sprtAprvCts;
+    }
+    public void setSprtAprvCts(String sprtAprvCts) {
+        this.sprtAprvCts = sprtAprvCts;
     }
 
     /*****************************************************
@@ -862,7 +1158,7 @@ public class ExamVO extends DefaultVO {
     private String  tmLimitYn;              // 제한시간 배정 여부
     private String  gradeViewYn;            // 시험지 공개 여부
     private String  declsRegYn;             // 분반 등록 여부
-    private String  pushNoticeYn;           // 푸시 알림 여부
+    private String  pushAlimyn;             // 푸시 알림 여부
     private String  avgScoreOpenYn;         // 평균 성적 공개 여부
     private String  stareTmUseYn;           // 응시 시간 사용 여부
     private Integer stareLimitCnt;          // 응시 제한 횟수
@@ -1105,11 +1401,11 @@ public class ExamVO extends DefaultVO {
     public void setDeclsRegYn(String declsRegYn) {
         this.declsRegYn = declsRegYn;
     }
-    public String getPushNoticeYn() {
-        return pushNoticeYn;
+    public String getPushAlimyn() {
+        return pushAlimyn;
     }
-    public void setPushNoticeYn(String pushNoticeYn) {
-        this.pushNoticeYn = pushNoticeYn;
+    public void setPushAlimyn(String pushAlimyn) {
+        this.pushAlimyn = pushAlimyn;
     }
     public String getAvgScoreOpenYn() {
         return avgScoreOpenYn;

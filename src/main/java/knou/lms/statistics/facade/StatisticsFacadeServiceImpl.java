@@ -29,7 +29,7 @@ public class StatisticsFacadeServiceImpl extends ServiceBase implements Statisti
 	private UsrDeptCdService usrDeptCdService;
 	
 	@Override
-	public EgovMap loadFilterOptions(UserContext userCtx) throws Exception {
+	public EgovMap loadFilterOptions(UserContext userCtx) {
 		
 		EgovMap filterOptions = new EgovMap();
 		

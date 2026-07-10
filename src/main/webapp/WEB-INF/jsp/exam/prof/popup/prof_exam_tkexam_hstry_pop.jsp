@@ -40,12 +40,12 @@
                     <thead>
                         <tr>
                             <th>NO.</th>
-                            <th>학과</th>
-                            <th>대표아이디</th>
-                            <th>학번</th>
-                            <th>이름</th>
-                            <th>로그</th>
-                            <th>등록일시</th>
+                            <th><spring:message code='exam.label.dept' /></th>          <!-- 학과 -->
+                            <th><spring:message code='exam.label.user.rprs.id' /></th>  <!-- 대표아이디 -->
+                            <th><spring:message code='exam.label.user.no' /></th>       <!-- 학번 -->
+                            <th><spring:message code='exam.label.user.nm' /></th>       <!-- 이름 -->
+                            <th><spring:message code='exam.label.log' /></th>           <!-- 로그 -->
+                            <th><spring:message code='exam.label.reg.dttm' /></th>      <!-- 등록일시 -->
                             <th>IP</th>
                         </tr>
                     </thead>

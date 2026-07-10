@@ -24,7 +24,7 @@ public class MsgSndngCostServiceImpl extends ServiceBase implements MsgSndngCost
      * @return List<MsgSndngCostVO>
      ******************************************************/
     @Override
-    public List<MsgSndngCostVO> selectSndngCostList() throws Exception {
+    public List<MsgSndngCostVO> selectSndngCostList() {
         return msgSndngCostDAO.selectSndngCostList(new MsgSndngCostVO());
     }
 
@@ -32,10 +32,9 @@ public class MsgSndngCostServiceImpl extends ServiceBase implements MsgSndngCost
      * 발송단가 등록
      * @param vo
      * @return int
-     * @throws Exception
      ******************************************************/
     @Override
-    public int insertSndngCost(MsgSndngCostVO vo) throws Exception {
+    public int insertSndngCost(MsgSndngCostVO vo) {
         String sndngCostId = IdGenerator.getNewId(IdPrefixType.MSCOS.getCode());
         vo.setSndngCostId(sndngCostId);
         return msgSndngCostDAO.insertSndngCost(vo);
@@ -45,10 +44,9 @@ public class MsgSndngCostServiceImpl extends ServiceBase implements MsgSndngCost
      * 발송단가 수정
      * @param vo
      * @return int
-     * @throws Exception
      ******************************************************/
     @Override
-    public int updateSndngCost(MsgSndngCostVO vo) throws Exception {
+    public int updateSndngCost(MsgSndngCostVO vo) {
         return msgSndngCostDAO.updateSndngCost(vo);
     }
 }

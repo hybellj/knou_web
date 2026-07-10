@@ -8,20 +8,17 @@ import java.util.Locale;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
-import org.egovframe.rte.psl.dataaccess.util.EgovMap;
-import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
 import knou.framework.common.CommConst;
+import knou.framework.common.PageInfo;
 import knou.framework.common.ServiceBase;
 import knou.framework.common.SessionInfo;
-import knou.framework.context2.UserContext;
-import knou.framework.common.ControllerBase;
-import knou.framework.common.PageInfo;
-import knou.framework.exception.BadRequestUrlException;
 import knou.framework.util.IdGenerator;
 import knou.framework.util.LocaleUtil;
 import knou.framework.util.StringUtil;
@@ -30,13 +27,16 @@ import knou.lms.bbs.dao.BbsInfoDAO;
 import knou.lms.bbs.dao.BbsInfoLangDAO;
 import knou.lms.bbs.dao.BbsRltnDAO;
 import knou.lms.bbs.service.BbsInfoService;
+import knou.lms.bbs.vo.BbsAtclVO;
 import knou.lms.bbs.vo.BbsInfoLangVO;
 import knou.lms.bbs.vo.BbsInfoVO;
 import knou.lms.bbs.vo.BbsRltnVO;
 import knou.lms.bbs.vo.BbsVO;
 import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.crs.semester.vo.SmstrChrtVO;
 import knou.lms.lesson.service.LessonScheduleService;
 import knou.lms.lesson.vo.LessonScheduleVO;
+import knou.lms.org.vo.OrgInfoVO;
 import knou.lms.team.service.TeamService;
 import knou.lms.team.vo.TeamVO;
 
@@ -66,34 +66,40 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
     /*****************************************************
      * 게시판 정보
      * @param vo
-     * @return BbsInfoVO
+     * @return BbsVO
      * @throws Exception
      ******************************************************/
     @Override
-    public BbsInfoVO selectBbsInfo(BbsInfoVO vo) throws Exception {
+    public BbsVO selectBbsInfo(BbsVO vo) throws Exception {
         return bbsInfoDAO.selectBbsInfo(vo);
+    }
+
+    // 삭제 예정
+    @Override
+    public BbsInfoVO selectBbsInfo(BbsInfoVO vo) throws Exception {
+        return null;
     }
 
     /*****************************************************
      * 게시판 목록
      * @param vo
-     * @return List<BbsInfoVO>
+     * @return List<BbsVO>
      * @throws Exception
      ******************************************************/
     @Override
-    public List<BbsInfoVO> listBbsInfo(BbsInfoVO vo) throws Exception {
+    public List<BbsVO> listBbsInfo(BbsVO vo) throws Exception {
         return bbsInfoDAO.listBbsInfo(vo);
     }
 
     /*****************************************************
      * 게시판 목록 페이징
      * @param vo
-     * @return ProcessResultVO<BbsInfoVO>
+     * @return ProcessResultVO<BbsVO>
      * @throws Exception
      ******************************************************/
     @Override
-    public ProcessResultVO<BbsInfoVO> listBbsInfoPaging(BbsInfoVO vo) throws Exception {
-        ProcessResultVO<BbsInfoVO> processResultVO = new ProcessResultVO<>();
+    public ProcessResultVO<BbsVO> listBbsInfoPaging(BbsVO vo) throws Exception {
+        ProcessResultVO<BbsVO> processResultVO = new ProcessResultVO<>();
 
         PaginationInfo paginationInfo = new PaginationInfo();
         paginationInfo.setCurrentPageNo(vo.getPageIndex());
@@ -107,7 +113,7 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
 
         paginationInfo.setTotalRecordCount(totCnt);
 
-        List<BbsInfoVO> resultList = bbsInfoDAO.listBbsInfoPaging(vo);
+        List<BbsVO> resultList = bbsInfoDAO.listBbsInfoPaging(vo);
 
         processResultVO.setReturnList(resultList);
         processResultVO.setPageInfo(paginationInfo);
@@ -121,7 +127,7 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
      * @throws Exception
      ******************************************************/
     @Override
-    public void insertBbsInfo(BbsInfoVO vo) throws Exception {
+    public void insertBbsInfo(BbsVO vo) throws Exception {
         String crsCreCd = vo.getCrsCreCd();
         String bbsCd = vo.getBbsId();
 
@@ -143,7 +149,7 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
         LOGGER.debug("goodUseYn         : " + vo.getGoodUseYn());
         LOGGER.debug("atchUseYn         : " + vo.getAtflUseyn());
         LOGGER.debug("atchFileCnt       : " + vo.getAtflMaxCnt());
-        LOGGER.debug("atchFileSizeLimit : " + vo.getAtflMaxSz());
+        LOGGER.debug("atchFileSizeLimit : " + vo.getAtflMaxsz());
         LOGGER.debug("atchCvsnUseYn     : " + vo.getAtchCvsnUseYn());
         LOGGER.debug("editorUseYn       : " + vo.getEditorUseYn());
         LOGGER.debug("mobileUseYn       : " + vo.getMobileUseYn());
@@ -193,7 +199,7 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
      * @throws Exception
      ******************************************************/
     @Override
-    public void updateBbsInfo(BbsInfoVO vo) throws Exception {
+    public void updateBbsInfo(BbsVO vo) throws Exception {
         String bbsCd = vo.getBbsId();
 
         LOGGER.debug("bbsId             : " + vo.getBbsId());
@@ -214,7 +220,7 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
         LOGGER.debug("goodUseYn         : " + vo.getGoodUseYn());
         LOGGER.debug("atchUseYn         : " + vo.getAtflUseyn());
         LOGGER.debug("atchFileCnt       : " + vo.getAtflMaxCnt());
-        LOGGER.debug("atchFileSizeLimit : " + vo.getAtflMaxSz());
+        LOGGER.debug("atchFileSizeLimit : " + vo.getAtflMaxsz());
         LOGGER.debug("atchCvsnUseYn     : " + vo.getAtchCvsnUseYn());
         LOGGER.debug("editorUseYn       : " + vo.getEditorUseYn());
         LOGGER.debug("mobileUseYn       : " + vo.getMobileUseYn());
@@ -252,7 +258,7 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
      * @throws Exception
      ******************************************************/
     @Override
-    public void deleteBbsInfo(BbsInfoVO vo) throws Exception {
+    public void deleteBbsInfo(BbsVO vo) throws Exception {
         bbsInfoDAO.deleteBbsInfo(vo);
     }
 
@@ -262,7 +268,7 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
      * @throws Exception
      ******************************************************/
     @Override
-    public void updateBbsInfoUseYn(BbsInfoVO vo) throws Exception {
+    public void updateBbsInfoUseYn(BbsVO vo) throws Exception {
         bbsInfoDAO.updateBbsInfoUseYn(vo);
     }
 
@@ -271,7 +277,7 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
      * @param vo
      * @throws Exception
      ******************************************************/
-    public void updateBbsInfoStdViewYn(BbsInfoVO vo) throws Exception {
+    public void updateBbsInfoStdViewYn(BbsVO vo) throws Exception {
         bbsInfoDAO.updateBbsInfoStdViewYn(vo);
     }
 
@@ -340,7 +346,7 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
      * @return List<EgovMap>
      * @throws Exception
      ******************************************************/
-    public List<EgovMap> listBbsInfoCourseStudentTab(BbsInfoVO vo) throws Exception {
+    public List<EgovMap> listBbsInfoCourseStudentTab(BbsVO vo) throws Exception {
         return bbsInfoDAO.listBbsInfoCourseStudentTab(vo);
     }
 
@@ -385,7 +391,7 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
      * @throws Exception
      ******************************************************/
     @Override
-    public List<EgovMap> listBbsInfoCouncelProf(BbsInfoVO vo) throws Exception {
+    public List<EgovMap> listBbsInfoCouncelProf(BbsVO vo) throws Exception {
         return bbsInfoDAO.listBbsInfoCouncelProf(vo);
     }
 
@@ -396,7 +402,7 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
      * @throws Exception
      ******************************************************/
     @Override
-    public List<EgovMap> listBbsInfoDecls(BbsInfoVO vo) throws Exception {
+    public List<EgovMap> listBbsInfoDecls(BbsVO vo) throws Exception {
         return bbsInfoDAO.listBbsInfoDecls(vo);
     }
 
@@ -407,7 +413,7 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
      * @throws Exception
      ******************************************************/
     @Override
-    public List<EgovMap> listQnaSecretCountByLsnOdr(BbsInfoVO vo) throws Exception {
+    public List<EgovMap> listQnaSecretCountByLsnOdr(BbsVO vo) throws Exception {
         String crsCreCd = vo.getCrsCreCd();
 
         // 주차 목록 조회
@@ -454,11 +460,11 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
     /*****************************************************
      * 팀 게시판 등록
      * @param vo
-     * @return BbsInfoVO
+     * @return BbsVO
      * @throws Exception
      ******************************************************/
     @Override
-    public BbsInfoVO insertTeamBbs(BbsInfoVO vo) throws Exception {
+    public BbsVO insertTeamBbs(BbsVO vo) throws Exception {
         String orgId = vo.getOrgId();
         String rgtrId = vo.getRgtrId();
         String teamCd = vo.getTeamCd();
@@ -479,29 +485,29 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
 
         String bbsId = IdGenerator.getNewId("BBS");
 
-        BbsInfoVO bbsInfoVO = new BbsInfoVO();
-        bbsInfoVO.setBbsId(bbsId);
-        bbsInfoVO.setOrgId(orgId);
-        bbsInfoVO.setBbsId("TEAM");
-        bbsInfoVO.setBbsnm(teamBbsNm);
-        bbsInfoVO.setBbsTycd("BOARD");
-        bbsInfoVO.setBbsBscLangCd(langCd);
-        bbsInfoVO.setSysUseYn("N");
-        bbsInfoVO.setSysDefaultYn("N");
-        bbsInfoVO.setWriteUseYn("Y");   // 학생 글쓰기 여부
-        bbsInfoVO.setCmntUseYn("Y");    // 댓글 사용여부
-        bbsInfoVO.setAnsrUseYn("N");    // 답글 사용여부
-        bbsInfoVO.setNotiUseYn("N");    // 공지 사용여부
-        bbsInfoVO.setGoodUseYn("N");    // 좋아요 사용여부
-        bbsInfoVO.setAtflUseyn("Y");    // 첨부파일 사용여부
-        bbsInfoVO.setAtflMaxCnt(3);    // 첨부파일 최대수
-        bbsInfoVO.setAtflMaxSz(1000);
-        bbsInfoVO.setHeadUseYn("N");    // 말머리 사용여부
-        bbsInfoVO.setUseYn("Y");
-        bbsInfoVO.setLockUseYn("Y");    // 비밀글 사용여부
-        bbsInfoVO.setRgtrId(rgtrId);
+        BbsVO bbsVO = new BbsVO();
+        bbsVO.setBbsId(bbsId);
+        bbsVO.setOrgId(orgId);
+        bbsVO.setBbsId("TEAM");
+        bbsVO.setBbsnm(teamBbsNm);
+        bbsVO.setBbsTycd("BOARD");
+        bbsVO.setBbsBscLangCd(langCd);
+        bbsVO.setSysUseYn("N");
+        bbsVO.setSysDefaultYn("N");
+        bbsVO.setWriteUseYn("Y");   // 학생 글쓰기 여부
+        bbsVO.setCmntUseYn("Y");    // 댓글 사용여부
+        bbsVO.setAnsrUseYn("N");    // 답글 사용여부
+        bbsVO.setNotiUseYn("N");    // 공지 사용여부
+        bbsVO.setGoodUseYn("N");    // 좋아요 사용여부
+        bbsVO.setAtflUseyn("Y");    // 첨부파일 사용여부
+        bbsVO.setAtflMaxCnt(3);    // 첨부파일 최대수
+        bbsVO.setAtflMaxsz(1000);
+        bbsVO.setHeadUseYn("N");    // 말머리 사용여부
+        bbsVO.setUseYn("Y");
+        bbsVO.setLockUseYn("Y");    // 비밀글 사용여부
+        bbsVO.setRgtrId(rgtrId);
 
-        bbsInfoDAO.insertBbsInfo(bbsInfoVO);
+        bbsInfoDAO.insertBbsInfo(bbsVO);
 
         // 게시판 언어 저장
         BbsInfoLangVO bbsInfoLangVO = new BbsInfoLangVO();
@@ -518,38 +524,38 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
         bbsRltnVO.setRltnType("TEAM");
         bbsRltnDAO.insertBbsRltn(bbsRltnVO);
 
-        return bbsInfoVO;
+        return bbsVO;
     }
 
     /*****************************************************
      * 게시판 팀 카테고리 목록
      * @param vo
-     * @return List<BbsInfoVO>
+     * @return List<BbsVO>
      * @throws Exception
      ******************************************************/
     @Override
-    public List<BbsInfoVO> listBbsInfoTeamCtgr(BbsInfoVO vo) throws Exception {
+    public List<BbsVO> listBbsInfoTeamCtgr(BbsVO vo) throws Exception {
         return bbsInfoDAO.listBbsInfoTeamCtgr(vo);
     }
 
     /*****************************************************
      * 게시판 팀 목록
      * @param vo
-     * @return List<BbsInfoVO>
+     * @return List<BbsVO>
      * @throws Exception
      ******************************************************/
     @Override
-    public List<BbsInfoVO> listTeamBbsId(BbsInfoVO vo) throws Exception {
+    public List<BbsVO> listTeamBbsId(BbsVO vo) throws Exception {
         return bbsInfoDAO.listTeamBbsId(vo);
     }
 
     /*****************************************************
      * 팀 게시판 조회
      * @param vo
-     * @return BbsInfoVO
+     * @return BbsVO
      * @throws Exception
      ******************************************************/
-    public BbsInfoVO selectTeamBbsInfo(BbsInfoVO vo) throws Exception {
+    public BbsVO selectTeamBbsInfo(BbsVO vo) throws Exception {
         return bbsInfoDAO.selectTeamBbsInfo(vo);
     }
 
@@ -567,11 +573,11 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
     /*****************************************************
      * 게시판 코드별 생성일 빠른 게시판 조회
      * @param vo
-     * @return BbsInfoVO
+     * @return BbsVO
      * @throws Exception
      ******************************************************/
     @Override
-    public BbsInfoVO selectBbsInfoByOldRegDttm(BbsInfoVO vo) throws Exception {
+    public BbsVO selectBbsInfoByOldRegDttm(BbsVO vo) throws Exception {
         return bbsInfoDAO.selectBbsInfoByOldRegDttm(vo);
     }
 
@@ -619,10 +625,10 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
      * @throws Exception
      ******************************************************/
     @Override
-    public BbsVO isValidBbsLectInfo(BbsVO vo, boolean isAdmin) throws Exception {
+    public BbsVO isValidBbsLectInfo(BbsVO vo, boolean isStudent) throws Exception {
     	vo.setSysUseYn("Y"); // 시스템 게시판 여부
 
-        if (!isAdmin) {
+        if (!isStudent) {
         	vo.setUseYn("Y");
         }
 
@@ -638,9 +644,12 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
      ******************************************************/
     @Override
     public void bbsInfoRegist(BbsVO vo) throws Exception {
+    	String bbsId = vo.getBbsId();
 
-    	String bbsId = IdGenerator.getNewId("BBS");
-        vo.setBbsId(bbsId);
+    	if(bbsId == null) {
+    		bbsId = IdGenerator.getNewId("BBS");
+    		vo.setBbsId(bbsId);
+    	}
 
     	bbsInfoDAO.bbsInfoRegist(vo);
     }
@@ -680,7 +689,7 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
     /*****************************************************
      * 게시판 목록 페이징
      * @param vo
-     * @return ProcessResultVO<BbsInfoVO>
+     * @return ProcessResultVO<BbsVO>
      * @throws Exception
      ******************************************************/
     @Override
@@ -706,7 +715,10 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
     @Override
     public void bbsMngInfoRegist(BbsVO vo) throws Exception {
 
+    	// 게시판 추가
     	String bbsId = vo.getBbsId();
+    	String bbsOptnId = vo.getBbsOptnId();
+
     	if(bbsId == null) {
     		bbsId = IdGenerator.getNewId("BBS");
     	}
@@ -714,14 +726,19 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
 
         bbsInfoDAO.bbsMngInfoRegist(vo);
 
+        // 게시판 옵션 추가
         List<String> optnList = new ArrayList<>();
         if (vo.getOptnCd() != null && !vo.getOptnCd().isEmpty()) {
             optnList = new ArrayList<>(Arrays.asList(vo.getOptnCd().split(",")));
         }
 
+        bbsInfoDAO.bbsMngInfoOptnDelete(vo); // 게시판 옵션 삭제
+
         if (optnList != null) {
             for (String optnCd : optnList) {
-                String bbsOptnId = IdGenerator.getNewId("BBOPT");
+            	bbsOptnId = IdGenerator.getNewId("BBOPT");
+
+            	vo.setBbsId(bbsId);
                 vo.setBbsOptnId(bbsOptnId);
                 vo.setOptnCd(optnCd);
 
@@ -758,5 +775,94 @@ public class BbsInfoServiceImpl extends ServiceBase implements BbsInfoService {
     @Override
     public String getBbsId(BbsVO vo) throws Exception {
     	return bbsInfoDAO.getBbsId(vo);
+    }
+
+    /**
+     * 토론성적공개여부 수정
+     * @param vo
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public ProcessResultVO<BbsVO> modifyBbsUseyn(BbsVO vo) throws Exception {
+        ProcessResultVO<BbsVO> resultVO = new ProcessResultVO<>();
+
+        int affected = bbsInfoDAO.modifyBbsUseyn(vo);
+        if (affected > 0) {
+            resultVO.setReturnVO(vo);
+            resultVO.setResultSuccess();
+        } else {
+            resultVO.setResultFailed("update target not found");
+        }
+
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 학습그룹 목록 조회
+     * @param vo
+     * @return List<BbsVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public List<BbsVO> listTeamGrp(BbsVO vo) throws Exception {
+    	return bbsInfoDAO.listTeamGrp(vo);
+    }
+
+    /*****************************************************
+     * 학습그룹 팀 목록 조회
+     * @param vo
+     * @return List<BbsVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public List<BbsVO> listLrnTeam(BbsVO vo) throws Exception {
+    	return bbsInfoDAO.listLrnTeam(vo);
+    }
+
+    /*****************************************************
+     * 과제 목록 조회
+     * @param vo
+     * @return List<BbsVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public List<BbsVO> listLrnElemtList(BbsVO vo) throws Exception {
+    	return bbsInfoDAO.listLrnElemtList(vo);
+    }
+
+    @Override
+    public List<BbsAtclVO> listWkno(BbsAtclVO vo) throws Exception {
+    	return bbsInfoDAO.listWkno(vo);
+    }
+
+    /*****************************************************
+     * 교수 운영 학기 목록을 조회한다.
+     * @param ClsVO
+     * @return List<SmstrChrtVO>
+     ******************************************************/
+    @Override
+    public List<SmstrChrtVO> selectBbsTermList(BbsVO vo) {
+        return bbsInfoDAO.selectBbsTermList(vo);
+    }
+
+    /*****************************************************
+     * 교수 운영 기관 목록을 조회한다.
+     * @param ClsVO
+     * @return List<OrgInfoVO>
+     ******************************************************/
+    @Override
+    public List<OrgInfoVO> selectBbsOrgList(BbsVO vo) {
+        return bbsInfoDAO.selectBbsOrgList(vo);
+    }
+
+    /*****************************************************
+     * 운영과목 드롭다운 목록을 조회한다.
+     * @param ClsVO
+     * @return List<ClsVO>
+     ******************************************************/
+    @Override
+    public List<BbsVO> selectBbsSubjectList(BbsVO vo) {
+        return bbsInfoDAO.selectBbsSubjectList(vo);
     }
 }

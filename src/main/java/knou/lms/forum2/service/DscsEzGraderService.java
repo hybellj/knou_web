@@ -11,11 +11,12 @@ import java.util.List;
 
 public interface DscsEzGraderService {
 
-    public abstract List<DscsJoinUserVO> listDscsJoinUser(DscsJoinUserVO vo) throws Exception;
-    public abstract List<DscsEzGraderTeamVO> listDscsJoinTeam(DscsJoinUserVO vo, String byteamDscsUseyn) throws Exception;
-    public abstract ProcessResultVO<DefaultVO> saveEvalScore(DscsEzGraderRsltVO vo, HttpServletRequest request) throws Exception;
-    public abstract DscsEzGraderRsltVO selectEzgEvalRslt(DscsEzGraderRsltVO vo) throws Exception;
-    public abstract ProcessResultVO<DefaultVO> deleteEvalScore(DscsEzGraderRsltVO vo, HttpServletRequest request) throws Exception;
-    public abstract ProcessResultVO<DefaultVO> saveScore(DscsEzGraderRsltVO vo, HttpServletRequest request) throws Exception;
-    public abstract ProcessResultVO<DefaultVO> deleteScore(DscsEzGraderRsltVO vo, HttpServletRequest request) throws Exception;
+    // 토론 참여자 리스트 조회
+    public abstract List<DscsJoinUserVO> listDscsJoinUser(DscsJoinUserVO vo);
+    // 토론 참여 팀 리스트 조회
+    public abstract List<DscsEzGraderTeamVO> listDscsJoinTeam(DscsJoinUserVO vo);
+    // 총점 저장
+    public abstract ProcessResultVO<DefaultVO> saveScore(DscsEzGraderRsltVO vo, HttpServletRequest request);
+    // 총점 삭제
+    public abstract ProcessResultVO<DefaultVO> deleteScore(DscsEzGraderRsltVO vo, HttpServletRequest request);
 }

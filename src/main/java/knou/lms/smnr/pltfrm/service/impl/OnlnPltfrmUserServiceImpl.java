@@ -9,11 +9,13 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.stereotype.Service;
 
 import knou.framework.common.IdPrefixType;
 import knou.framework.common.ServiceBase;
 import knou.framework.util.IdGenUtil;
+import knou.lms.common.dto.ResultDTO;
 import knou.lms.smnr.pltfrm.dao.OnlnPltfrmUserDAO;
 import knou.lms.smnr.pltfrm.service.OnlnPltfrmUserService;
 import knou.lms.smnr.pltfrm.vo.OnlnPltfrmAuthrtVO;
@@ -21,6 +23,7 @@ import knou.lms.smnr.pltfrm.vo.OnlnPltfrmUserVO;
 import knou.lms.smnr.pltfrm.zoom.api.users.service.ZoomUserService;
 import knou.lms.smnr.pltfrm.zoom.api.users.vo.ZoomUserListVO;
 import knou.lms.smnr.pltfrm.zoom.api.users.vo.ZoomUserVO;
+import knou.lms.smnr.web.view.SmnrPageInfo;
 
 @Service("onlnPltfrmUserService")
 public class OnlnPltfrmUserServiceImpl extends ServiceBase implements OnlnPltfrmUserService {
@@ -36,9 +39,8 @@ public class OnlnPltfrmUserServiceImpl extends ServiceBase implements OnlnPltfrm
      *
      * @param OnlnPltfrmAuthrtVO	온라인플랫폼권한
      * @param userId				사용자아이디
-     * @throws Exception
      */
-	public void onlnPltfrmUserBulkRegist(OnlnPltfrmAuthrtVO authrtVO, String userId) throws Exception {
+	public int onlnPltfrmUserBulkRegist(OnlnPltfrmAuthrtVO authrtVO, String userId) {
 		// ZOOM 사용자 목록 조회
         ZoomUserListVO userListVO = zoomUserService.zoomUserList(authrtVO.getAuthrtTkn());
         List<ZoomUserVO> users = userListVO.getObjects();
@@ -48,14 +50,14 @@ public class OnlnPltfrmUserServiceImpl extends ServiceBase implements OnlnPltfrm
             .filter(u -> u.getType() == 2)
             .collect(Collectors.toList());
 
-        // 온라인플랫폼사용자일괄삭제 ( 이메일 불일치시 )
+        // 온라인플랫폼사용자목록삭제 ( 이메일 불일치시 )
         Map<String, Object> param = new HashMap<>();
         List<String> emailList = licensedUsers.stream()
         		.map(ZoomUserVO::getEmail)
         		.collect(Collectors.toList());
         param.put("list", emailList);
         param.put("onlnPltfrmAuthrtId", authrtVO.getOnlnPltfrmAuthrtId());
-        onlnPltfrmUserDAO.onlnPltfrmUserBulkDelete(param);
+        if(emailList.size() > 0) onlnPltfrmUserDAO.onlnPltfrmUserListDelete(param);
 
         // 온라인플랫폼사용자목록
         List<OnlnPltfrmUserVO> userList = onlnPltfrmUserDAO.onlnPltfrmUserList(authrtVO.getOnlnPltfrmAuthrtId());
@@ -83,16 +85,16 @@ public class OnlnPltfrmUserServiceImpl extends ServiceBase implements OnlnPltfrm
             pltfrmUserList.add(userVO);
         }
         if(pltfrmUserList.size() > 0) onlnPltfrmUserDAO.onlnPltfrmUserBulkRegist(pltfrmUserList);	// 온라인플랫폼사용자일괄등록
+        return licensedUsers.size();
 	}
 
 	/**
      * 온라인플랫폼사용자목록조회
      *
      * @param onlnPltfrmAuthrtId	온라인플랫폼권한아이디
-     * @throws Exception
      */
 	@Override
-	public List<OnlnPltfrmUserVO> onlnPltfrmUserList(String onlnPltfrmAuthrtId) throws Exception {
+	public List<OnlnPltfrmUserVO> onlnPltfrmUserList(String onlnPltfrmAuthrtId) {
 		return onlnPltfrmUserDAO.onlnPltfrmUserList(onlnPltfrmAuthrtId);
 	}
 
@@ -103,10 +105,9 @@ public class OnlnPltfrmUserServiceImpl extends ServiceBase implements OnlnPltfrm
 	* @param meetngrmSdttm		회의실시작일시
 	* @param meetngrmEdttm		회의실종료일시
 	* @return 대기중온라인플랫폼사용자정보
-	* @throws Exception
 	*/
 	@Override
-	public OnlnPltfrmUserVO pendingOnlnPltfrmUserSelect(String onlnPltfrmStngId, String meetngrmSdttm, String meetngrmEdttm) throws Exception {
+	public OnlnPltfrmUserVO pendingOnlnPltfrmUserSelect(String onlnPltfrmStngId, String meetngrmSdttm, String meetngrmEdttm) {
 		return onlnPltfrmUserDAO.pendingOnlnPltfrmUserSelect(onlnPltfrmStngId, meetngrmSdttm, meetngrmEdttm);
 	}
 
@@ -117,11 +118,41 @@ public class OnlnPltfrmUserServiceImpl extends ServiceBase implements OnlnPltfrm
 	* @param meetngrmSdttm	회의실시작일시
 	* @param meetngrmEdttm	회의실종료일시
 	* @return 대기중온라인플랫폼사용자수
-	* @throws Exception
 	*/
 	@Override
-	public int pendingOnlnPltfrmUserCntSelect(List<Map<String, Object>> subSmnrs) throws Exception {
+	public int pendingOnlnPltfrmUserCntSelect(List<Map<String, Object>> subSmnrs) {
 		return onlnPltfrmUserDAO.pendingOnlnPltfrmUserCntSelect(subSmnrs);
+	}
+
+	/**
+	 * 온라인플랫폼기관사용자목록
+	 *
+	 * @param orgId 		기관아이디
+	 * @param searchValue 	검색어(계정이메일)
+	 * @param pltfrmGbncd 	플랫폼구분코드
+	 * @return ResultDTO<EgovMap>
+	 */
+	@Override
+	public ResultDTO<EgovMap> onlnPltfrmOrgUserList(SmnrPageInfo pageInfo) {
+        ResultDTO<EgovMap> resultDto = new ResultDTO<EgovMap>(pageInfo);
+		resultDto.setReturnList(onlnPltfrmUserDAO.onlnPltfrmOrgUserList(pageInfo));
+		if(resultDto.getReturnList().size() > 0) {
+			resultDto.getPageInfo().setTotalRecordCount(Integer.parseInt(resultDto.getReturnList().get(0).get("totalCnt").toString()));
+		} else {
+			resultDto.getPageInfo().setTotalRecordCount(0);
+		}
+
+        return resultDto;
+	}
+
+	/**
+	 * 온라인플랫폼사용자일괄삭제
+	 *
+	 * @param onlnPltfrmStngId	온라인플랫폼설정아이디
+	 */
+	@Override
+	public void onlnPltfrmUserBulkDelete(String onlnPltfrmStngId) {
+		onlnPltfrmUserDAO.onlnPltfrmUserBulkDelete(onlnPltfrmStngId);
 	}
 
 }

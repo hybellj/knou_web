@@ -6,6 +6,10 @@ public class AsmtTrgtVO extends DefaultVO {
     private String asmtSbmsnTrgtId;
     private String asmtId;
     private String teamId;
+    private String resbmsnPrmyn;
+
+    /* 내부 로직용 */
+    private String[] userIdArray;
 
     public String getAsmtSbmsnTrgtId() {
         return asmtSbmsnTrgtId;
@@ -29,5 +33,21 @@ public class AsmtTrgtVO extends DefaultVO {
 
     public void setTeamId(String teamId) {
         this.teamId = teamId;
+    }
+
+    public String getResbmsnPrmyn() {
+        return resbmsnPrmyn;
+    }
+
+    public void setResbmsnPrmyn(String resbmsnPrmyn) {
+        this.resbmsnPrmyn = resbmsnPrmyn;
+    }
+
+    public String[] getUserIdArray() {
+        return userIdArray;
+    }
+
+    public void setUserIdArray(String[] userIdArray) {
+        this.userIdArray = userIdArray;
     }
 }

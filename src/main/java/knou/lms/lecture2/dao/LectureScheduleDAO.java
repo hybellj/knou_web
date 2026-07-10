@@ -1,23 +1,23 @@
 package knou.lms.lecture2.dao;
 
-import knou.lms.common.dto.BaseParam;
-import knou.lms.lecture2.vo.LectureScheduleVO;
-import org.apache.ibatis.annotations.Param;
+import java.util.List;
+
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
-import java.util.List;
+import knou.lms.common.dto.CommonDTO;
+import knou.lms.lecture2.vo.LectureScheduleVO;
 
 @Mapper("lectureScheduleDAO")
 public interface LectureScheduleDAO {
 
-    public List<EgovMap> lectureScheduleList(BaseParam param) throws Exception;
+    public List<EgovMap> lectureScheduleList(CommonDTO cmmnDto);
 
-    public EgovMap thisWeekLectureSelect(BaseParam param) throws Exception;
+    public EgovMap thisWeekLectureSelect(CommonDTO cmmnDto);
 
-    public List<EgovMap> profLectureScheduleList(BaseParam param) throws Exception;
+    public List<EgovMap> profLectureScheduleList(CommonDTO cmmnDto);
 
-    public List<EgovMap> byWeeknoLectureSchdlList(BaseParam param) throws Exception;
+    public List<EgovMap> byWeeknoLectureSchdlList(CommonDTO cmmnDto);
 
     int wknoSchdlForPlandocModify(LectureScheduleVO vo) throws Exception;
 }

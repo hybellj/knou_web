@@ -4,9 +4,10 @@
 
 	<sql id="selectQuery">
 		SELECT A.ATFL_REPO_ID
-		     , A.UP_TBLNM
-		     , A.UP_CLMNNM
+		     --, A.UP_TBLNM
+		     --, A.UP_CLMNNM
 		     , A.ATFL_REPO_PATH
+		     , A.ATFL_REPO_EXPLN
 		     , A.RGTR_ID
 		     , A.REG_DTTM
 		     , (SELECT COUNT(*) FROM TB_LMS_ATFL WHERE ATFL_REPO_ID = A.ATFL_REPO_ID)  AS FILE_CNT
@@ -46,7 +47,7 @@
 	 	*/
 	 	<include refid="CommonSQL.pagePrefix"/>
 	 	<include refid="listQuery"/>
-	 	<include refid="CommonSQL.pageSubfix"/>
+	 	<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="count"  parameterType="sysFileRepoVO" resultType="Integer">

@@ -24,8 +24,8 @@
     } else {
         win.dextuploadx5Configuration = {
             // authkey: Authentication Key string,
-			authkey:"MsCdtzaN2RZmQxq6KwtpJ6fOfXdfoz+RYTwUzaCzHQ1F3nV3SYyY7YWJXCuwbJ5yNeq2V1v/UwNaaM5h0ugdRBKtOoUvjOhG3DgAHJFUGaTY8eAw4f1wXE3nDSlexfz6/ft796HjvNsqt2rUMAXihXzhKqwhUf4RrkU+xjpwkMw=",
-            version: "4.3.5.0",
+			authkey:"7KuPVFq4XnHYLFiM9zEkYEFBDGkbLFelqg9Z2HdKudPEZ1Tuix6Mn7ACjkEhGi7WDvy2oZYXOCp1UbZAMZDY/0msxHGAXOiXeSGLFoGsSsPerSRjL4oVbvTS0V12ZIL6fhJeLXK3lBlFScxbBW4kC64d7OiA3d4S+eFN+RG6zT8=",
+            version: "4.5.1.0",
             // productPath: DEXTUploadX5 location path (It MUST be a web address started with http or https.)
             productPath: location.origin + productPath
         };

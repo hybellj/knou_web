@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import knou.framework.common.ServiceBase;
 import knou.lms.crs.semester.dao.SemesterDAO;
 import knou.lms.crs.semester.service.SemesterService;
+import knou.lms.crs.semester.vo.SmstrChrtSchdlVO;
 import knou.lms.crs.semester.vo.SmstrChrtVO;
 
 @Service("semesterService")
@@ -46,8 +47,19 @@ public class SemesterServiceImpl extends ServiceBase implements SemesterService 
 	 * @throws Exception
 	 */
 	@Override
-	public List<SmstrChrtVO> listSmstrChrtByDgrsYr(SmstrChrtVO smstrChrtVO) throws Exception {
+	public List<SmstrChrtVO> listSmstrChrtByDgrsYr(SmstrChrtVO smstrChrtVO) {
 		return semesterDAO.listSmstrChrtByDgrsYr(smstrChrtVO);
+	}
+
+	/**
+	 * 학기기수 일정 주차 목록 조회
+	 * @param smstrChrtSchdlVO
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public List<SmstrChrtSchdlVO> listSmstrChrtSchdlWkno(SmstrChrtSchdlVO smstrChrtSchdlVO) {
+		return semesterDAO.listSmstrChrtSchdlWkno(smstrChrtSchdlVO);
 	}
 
 }

@@ -1348,6 +1348,7 @@ gfn_renderPaging = function (params) {
 let AJAX_CALL_NO = 0;
 
 function ajaxCall(url, param, succCallback, errCallback, disploading, options) {
+	console.log('ajaxCall 본체 js/common.js');
     var ajaxOption = $.extend({
         url: url,
         data: param,

@@ -1,0 +1,245 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.sbjctinfo.dao.SbjctInfoDAO">
+
+    <!-- =========================
+         과목 기본정보 resultMap
+         ========================= -->
+    <resultMap id="sbjctInfoMap" type="knou.lms.sbjctinfo.vo.SbjctInfoVO">
+        <result property="sbjctId"      column="SBJCT_ID"/>
+        <result property="sbjctnm"      column="SBJCTNM"/>
+        <result property="sbjctExpln"   column="SBJCT_EXPLN"/>
+        <result property="sbjctTycd"    column="SBJCT_TYCD"/>
+        <result property="lctrGbncd"    column="LCTR_GBNCD"/>
+        <result property="orgId"        column="ORG_ID"/>
+        <result property="orgNm"        column="ORG_NM"/>
+        <result property="creYear"      column="SBJCT_YR"/>
+        <result property="creTerm"      column="SBJCT_SMSTR"/>
+        <result property="sbjctCd"      column="CRCLMN_NO"/>
+        <result property="dvclasNo"     column="DVCLAS_NO"/>
+        <result property="dvclasNcknm"  column="DVCLAS_NCKNM"/>
+        <result property="useYn"        column="USEYN"/>
+        <result property="lowFileNm"    column="LOW_FILE_NM"/>
+        <result property="highFileNm"   column="HIGH_FILE_NM"/>
+        <result property="totalPlaySec" column="TOTAL_PLAY_SEC"/>
+        <result property="playMin"      column="PLAY_MIN"/>
+        <result property="playSec"      column="PLAY_SEC"/>
+    </resultMap>
+
+    <!-- =========================
+         분반별칭 resultMap
+         ========================= -->
+    <resultMap id="sbjctInfoAliasMap" type="knou.lms.sbjctinfo.vo.SbjctInfoAliasVO">
+        <result property="sbjctId"     column="SBJCT_ID"/>
+        <result property="dvclasNo"    column="DVCLAS_NO"/>
+        <result property="dvclasNcknm" column="DVCLAS_NCKNM"/>
+    </resultMap>
+
+    <!-- =========================
+         돌발퀴즈 미리보기 목록 resultMap
+         ========================= -->
+    <resultMap id="sbjctInfoQuizPreviewListMap" type="knou.lms.sbjctinfo.vo.SbjctInfoQuizPreviewVO">
+        <result property="quizId"  column="QUIZ_ID"/>
+        <result property="quizTtl" column="QUIZ_TTL"/>
+        <result property="quizSec" column="QUIZ_SEC"/>
+    </resultMap>
+
+    <!-- =========================
+         돌발퀴즈 미리보기 상세 resultMap
+         ========================= -->
+    <resultMap id="sbjctInfoQuizPreviewDetailMap" type="knou.lms.sbjctinfo.vo.SbjctInfoQuizPreviewVO">
+        <result property="quizId"  column="QUIZ_ID"/>
+        <result property="quizTtl" column="QUIZ_TTL"/>
+        <result property="quizSec" column="QUIZ_SEC"/>
+
+        <result property="qstnId"        column="QSTN_ID"/>
+        <result property="qstnSeqno"     column="QSTN_SEQNO"/>
+        <result property="qstnRspnsTycd" column="QSTN_RSPNS_TYCD"/>
+        <result property="qstnTtl"       column="QSTN_TTL"/>
+        <result property="qstnCts"       column="QSTN_CTS"/>
+
+        <result property="qstnVwitmId"    column="QSTN_VWITM_ID"/>
+        <result property="qstnVwitmSeqno" column="QSTN_VWITM_SEQNO"/>
+        <result property="exCts"          column="EX_CTS"/>
+        <result property="cransYn"        column="CRANS_YN"/>
+        <result property="cransExpln"     column="CRANS_EXPLN"/>
+    </resultMap>
+
+    <!-- =========================
+         다국어 자막(스크립트) resultMap
+         ========================= -->
+    <resultMap id="sbjctInfoSrtMap" type="knou.lms.sbjctinfo.vo.SbjctInfoSrtVO">
+        <result property="taskTycd" column="TASK_TYCD"/>
+        <result property="key"      column="KEY_COL"/>
+        <result property="keyMsg"   column="KEY_MSG"/>
+        <result property="msg"      column="MSG"/>
+        <result property="langCd"   column="LANG_CD"/>
+    </resultMap>
+
+    <!-- =========================
+         1) 과목 기본정보 조회
+         ========================= -->
+    <select id="selectSbjctInfo"
+            parameterType="knou.lms.sbjctinfo.vo.SbjctInfoVO"
+            resultMap="sbjctInfoMap">
+        SELECT
+              S.SBJCT_ID
+            , S.SBJCTNM
+            , S.SBJCT_EXPLN
+            , S.SBJCT_TYCD
+            , S.LCTR_GBNCD
+            , S.DVCLAS_NO
+            , S.DVCLAS_NCKNM
+            , S.USEYN
+            , S.SBJCT_YR
+            , S.SBJCT_SMSTR
+            , S.CRCLMN_NO
+            , NVL(CM.ORG_ID, CHRT.ORG_ID) AS ORG_ID
+            , O.ORGNM AS ORG_NM
+            , LC.LOW_FILE_NM
+            , LC.HIGH_FILE_NM
+            , NVL(LC.TOTAL_PLAY_SEC, 0) AS TOTAL_PLAY_SEC
+            , FLOOR(NVL(LC.TOTAL_PLAY_SEC, 0) / 60) AS PLAY_MIN
+            , MOD(NVL(LC.TOTAL_PLAY_SEC, 0), 60) AS PLAY_SEC
+        FROM TB_LMS_SBJCT S
+                 LEFT JOIN TB_LMS_CRS_MSTR CM
+                           ON CM.CRS_MSTR_ID = S.CRS_MSTR_ID
+                 LEFT JOIN TB_LMS_SMSTR_CHRT CHRT
+                           ON CHRT.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID
+                 LEFT JOIN TB_LMS_ORG O
+                           ON O.ORG_ID = NVL(CM.ORG_ID, CHRT.ORG_ID)
+                 LEFT JOIN (
+            SELECT
+                  W.SBJCT_ID
+                /* TB_LMS_LCTR_CONTS에는 저화질/고화질 파일명 컬럼이 확인되지 않아
+                   데이터 출처가 확정될 때까지 화면에서는 '-'로 표시하도록 null 유지. */
+                , CAST(NULL AS VARCHAR2(200)) AS LOW_FILE_NM
+                , CAST(NULL AS VARCHAR2(200)) AS HIGH_FILE_NM
+                , SUM(NVL(C.VDO_MNTS, 0) * 60) AS TOTAL_PLAY_SEC
+            FROM TB_LMS_LCTR_WKNO_SCHDL W
+                     JOIN TB_LMS_LCTR L
+                          ON L.LCTR_WKNO_SCHDL_ID = W.LCTR_WKNO_SCHDL_ID
+                              AND NVL(L.DELYN, 'N') = 'N'
+                     JOIN TB_LMS_LCTR_CONTS C
+                          ON C.LCTR_ID = L.LCTR_ID
+                             AND NVL(C.DELYN, 'N') = 'N'
+            WHERE NVL(W.DELYN, 'N') = 'N'
+            GROUP BY W.SBJCT_ID
+        ) LC
+            ON LC.SBJCT_ID = S.SBJCT_ID
+        WHERE S.SBJCT_ID = #{sbjctId}
+          AND S.DELYN = 'N'
+    </select>
+
+    <!-- =========================
+         2) 분반별칭 목록 조회
+         ========================= -->
+    <select id="selectSbjctInfoAliasList"
+            parameterType="knou.lms.sbjctinfo.vo.SbjctInfoAliasVO"
+            resultMap="sbjctInfoAliasMap">
+        SELECT
+              S.SBJCT_ID
+            , S.DVCLAS_NO
+            , S.DVCLAS_NCKNM
+        FROM TB_LMS_SBJCT S
+        WHERE S.DELYN = 'N'
+          AND NVL(S.CRS_MSTR_ID, S.SBJCT_ID) = (
+            SELECT NVL(B.CRS_MSTR_ID, B.SBJCT_ID)
+            FROM TB_LMS_SBJCT B
+            WHERE B.SBJCT_ID = #{sbjctId}
+              AND B.DELYN = 'N'
+        )
+        ORDER BY S.DVCLAS_NO
+    </select>
+
+    <!-- =========================
+         3) 분반별칭 수정
+         ========================= -->
+    <update id="updateSbjctInfoAlias"
+            parameterType="knou.lms.sbjctinfo.vo.SbjctInfoAliasVO">
+        UPDATE TB_LMS_SBJCT
+        SET DVCLAS_NCKNM = #{dvclasNcknm}
+          , MDFR_ID      = #{mdfrId}
+          , MOD_DTTM     = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        WHERE SBJCT_ID = #{sbjctId}
+          AND DVCLAS_NO = #{dvclasNo}
+          AND DELYN = 'N'
+    </update>
+
+    <!-- =========================
+         4) 돌발퀴즈 미리보기 목록 조회
+         - 노출 시점은 해당 기능 연동 전까지 null placeholder 유지
+         ========================= -->
+    <select id="selectQuizPreviewList"
+            parameterType="knou.lms.sbjctinfo.vo.SbjctInfoQuizPreviewVO"
+            resultMap="sbjctInfoQuizPreviewListMap">
+        SELECT
+              B.EXRCS_SDDN_QSTN_BSC_ID AS QUIZ_ID
+            , B.QSTN_TTL AS QUIZ_TTL
+            , CAST(NULL AS NUMBER(7, 0)) AS QUIZ_SEC
+        FROM TB_LMS_EXRCS_SDDN_QSTN_BSC B
+        WHERE B.SBJCT_ID = #{sbjctId}
+          AND B.DELYN = 'N'
+          AND B.QSTN_GBNCD = 'SURPRISE_QUIZ'
+        ORDER BY B.REG_DTTM DESC
+    </select>
+
+    <!-- =========================
+         5) 돌발퀴즈 미리보기 상세 조회
+         ========================= -->
+    <select id="selectQuizPreviewDetail"
+            parameterType="knou.lms.sbjctinfo.vo.SbjctInfoQuizPreviewVO"
+            resultMap="sbjctInfoQuizPreviewDetailMap">
+        SELECT
+              B.EXRCS_SDDN_QSTN_BSC_ID AS QUIZ_ID
+            , B.QSTN_TTL AS QUIZ_TTL
+            , CAST(NULL AS NUMBER(7, 0)) AS QUIZ_SEC
+            , Q.QSTN_ID AS QSTN_ID
+            , Q.QSTN_SEQNO AS QSTN_SEQNO
+            , Q.QSTN_RSPNS_TYCD AS QSTN_RSPNS_TYCD
+            , Q.QSTN_TTL AS QSTN_TTL
+            , DBMS_LOB.SUBSTR(Q.QSTN_CTS, 4000, 1) AS QSTN_CTS
+            , Q.CRANS_EXPLN AS CRANS_EXPLN
+            , V.QSTN_VWITM_ID AS QSTN_VWITM_ID
+            , V.QSTN_VWITM_SEQNO AS QSTN_VWITM_SEQNO
+            , V.QSTN_VWITM_CTS AS EX_CTS
+            , V.CRANS_YN AS CRANS_YN
+        FROM TB_LMS_EXRCS_SDDN_QSTN_BSC B
+                 LEFT JOIN TB_LMS_QSTN Q
+                           ON Q.EXRCS_SDDN_QSTN_BSC_ID = B.EXRCS_SDDN_QSTN_BSC_ID
+                              AND Q.DELYN = 'N'
+                              AND Q.QSTN_GBNCD = 'SURPRISE_QUIZ'
+                 LEFT JOIN TB_LMS_QSTN_VWITM V
+                           ON V.QSTN_ID = Q.QSTN_ID
+        WHERE B.EXRCS_SDDN_QSTN_BSC_ID = #{quizId}
+          AND B.SBJCT_ID = #{sbjctId}
+          AND B.DELYN = 'N'
+          AND B.QSTN_GBNCD = 'SURPRISE_QUIZ'
+        ORDER BY Q.QSTN_SEQNO, V.QSTN_VWITM_SEQNO
+    </select>
+
+    <!-- =========================
+         6) 다국어 자막(스크립트) 목록 조회
+         ========================= -->
+    <select id="selectSrtList"
+            parameterType="knou.lms.sbjctinfo.vo.SbjctInfoSrtVO"
+            resultMap="sbjctInfoSrtMap">
+        SELECT
+              A.TASK_TYCD
+            , A."KEY" AS KEY_COL
+            , A.KEY_MSG
+            , A.MSG
+            , A.LANG_CD
+        FROM TB_LMS_MLTLANG_SRPT_MSG A
+        WHERE 1 = 1
+        <if test="taskTycd != null and taskTycd != ''">
+            AND A.TASK_TYCD = #{taskTycd}
+        </if>
+        <if test="key != null and key != ''">
+            AND A."KEY" = #{key}
+        </if>
+        ORDER BY A.LANG_CD, A.KEY_MSG
+    </select>
+
+</mapper>

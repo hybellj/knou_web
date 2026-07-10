@@ -10,7 +10,20 @@ import java.util.List;
 @Mapper("markObjectionApplyDAO")
 public interface MarkObjectionApplyDAO {
 
-    MarkObjectionApplyVO mrkObjctAplySelect(@Param("sbjctId")String sbjctid, @Param("userId")String userId);
+    MarkObjectionApplyVO mrkObjctAplySelect(String mrkObjctAplyId);
 
-    List<EgovMap> mrkObjctAplyList(String sbjctId);
+    List<EgovMap> profMrkObjctAplyList(String sbjctId);
+
+    List<EgovMap> stdMrkObjctAplyList(@Param("sbjctId")String sbjctId, @Param("userId")String userId);
+
+    int countMrkObjctAply(MarkObjectionApplyVO vo);
+
+    List<EgovMap> markObjctAplyListPaging(MarkObjectionApplyVO vo);
+
+    void stdMrkObjctAplyRegist(MarkObjectionApplyVO vo);
+
+    void stdMrkObjctAplyModify(MarkObjectionApplyVO vo);
+
+    void stdMrkObjctAplyDelete(String mrkObjctAplyId);
+
 }

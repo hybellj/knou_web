@@ -1,18 +1,24 @@
 package knou.lms.subject.vo;
 
-import knou.lms.common.vo.DefaultVO;
 
 import java.math.BigDecimal;
+
+import org.apache.ibatis.type.Alias;
+
+import knou.lms.common.vo.DefaultVO;
 
 /**
  *
  * TB_LMS_SBJCT - 과목
  *
  */
+
+@Alias("subjectVO")
 public class SubjectVO extends DefaultVO {
-
     private static final long serialVersionUID = -1164386279694378535L;
-
+    
+    private String orgId;
+    private	String	orgTycd; // sorry by jinkoon
     private String sbjctId;
     private String profId;
     private String sbjctRefTycd;
@@ -22,7 +28,7 @@ public class SubjectVO extends DefaultVO {
     private String sbjctTycd;
     private String eduMthdTycd;
     private String rgLryn;
-    private Integer crclmnNo;
+    private String crclmnNo;
     private String sbjctnm;
     private String sbjctExpln;
     private String sbjctEnnm;
@@ -73,7 +79,27 @@ public class SubjectVO extends DefaultVO {
     private String lctrFrmtGbncd;
 
     private int atndlcStdntCnt = 0;
-    
+    private String dgrsYr;            // 학위연도
+    private String dgrsSmstrChrt;    // 학위학기기수
+    private String smstrChrtnm;        // 학기기수명
+    private String sbjctAuth;        // 과목권한
+
+    public SubjectVO() {
+    }
+
+    public SubjectVO(String sbjctId, String orgId) {
+        this.sbjctId = sbjctId;
+        this.orgId = orgId;
+    }
+
+    public String getOrgId() {
+        return orgId;
+    }
+
+    public void setOrgId(String orgId) {
+        this.orgId = orgId;
+    }
+
     public String getSbjctId() {
         return sbjctId;
     }
@@ -146,11 +172,11 @@ public class SubjectVO extends DefaultVO {
         this.rgLryn = rgLryn;
     }
 
-    public Integer getCrclmnNo() {
+    public String getCrclmnNo() {
         return crclmnNo;
     }
 
-    public void setCrclmnNo(Integer crclmnNo) {
+    public void setCrclmnNo(String crclmnNo) {
         this.crclmnNo = crclmnNo;
     }
 
@@ -545,4 +571,44 @@ public class SubjectVO extends DefaultVO {
     public void setDeptnm(String deptnm) {
         this.deptnm = deptnm;
     }
+
+    public String getDgrsYr() {
+        return dgrsYr;
+    }
+
+    public void setDgrsYr(String dgrsYr) {
+        this.dgrsYr = dgrsYr;
+    }
+
+    public String getDgrsSmstrChrt() {
+        return dgrsSmstrChrt;
+    }
+
+    public void setDgrsSmstrChrt(String dgrsSmstrChrt) {
+        this.dgrsSmstrChrt = dgrsSmstrChrt;
+    }
+
+    public String getSmstrChrtnm() {
+        return smstrChrtnm;
+    }
+
+    public void setSmstrChrtnm(String smstrChrtnm) {
+        this.smstrChrtnm = smstrChrtnm;
+    }
+
+    public String getSbjctAuth() {
+        return sbjctAuth;
+    }
+
+    public void setSbjctAuth(String sbjctAuth) {
+        this.sbjctAuth = sbjctAuth;
+    }
+
+	public String getOrgTycd() {
+		return orgTycd;
+	}
+
+	public void setOrgTycd(String orgTycd) {
+		this.orgTycd = orgTycd;
+	}
 }

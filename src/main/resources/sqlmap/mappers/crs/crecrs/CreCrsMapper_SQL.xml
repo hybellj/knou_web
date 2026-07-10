@@ -3,6 +3,743 @@
 
 <mapper namespace="knou.lms.crs.crecrs.dao.CrecrsDAO">
 
+    <!-- 신규 작성 SQL 영역 -->
+
+    <!-- 이전학기 게시판 등록 -->
+    <insert id="prevBbsRegist" parameterType="CreCrsVO">
+        /*
+            SQL ID : CreCrsDAO.prevBbsRegist
+            설  명  : 이전학기 게시판 등록
+         */
+        INSERT INTO
+            TB_LMS_BBS
+                ( BBS_ID
+                , ORG_ID
+                , SBJCT_ID
+                , BBSNM
+                , BBS_ENNM
+                , BBS_EXPLN
+                , BBS_TYCD
+                , BBS_LANG_CD
+                , LIST_CNT
+                , ATFL_MAX_CNT
+                , ATFL_MAXSZ
+                , ATFL_USEYN
+                , RGTR_ID
+                , REG_DTTM
+                , PREV_SMSTR_IMPORTYN )
+        VALUES
+                ( #{bbsId}
+                , #{orgId}
+                , #{sbjctId}
+                , #{bbsnm}
+                , #{bbsEnnm}
+                , #{bbsExpln}
+                , #{bbsTycd}
+                , #{bbsLangCd}
+                , #{listCnt}
+                , #{atflMaxCnt}
+                , #{atflMaxsz}
+                , #{atflUseyn}
+                , #{rgtrId}
+                , FN_DTTM()
+                , 'Y' )
+    </insert>
+
+    <!-- 이전학기 게시판 게시글 등록 -->
+    <insert id="prevBbsAtclRegist" parameterType="CreCrsVO">
+        /*
+            SQL ID : CreCrsDAO.prevBbsAtclRegist
+            설  명  : 이전학기 게시판 게시글 등록
+         */
+        INSERT INTO
+            TB_LMS_BBS_ATCL
+                ( ATCL_ID
+                , BBS_ID
+                , USER_ID
+                , ATCL_TTL
+                , ATCL_CTS
+                , ATCL_LV
+                , FVRT_CNT
+                , INQ_CNT
+                , THMB_FILE_ID
+                , PROC_STSCD
+                , DEPT_ID
+                , RGTR_ID
+                , REG_DTTM )
+        VALUES
+                ( #{atclId}
+                , #{bbsId}
+                , #{userId}
+                , #{atclTtl}
+                , #{atclCts}
+                , #{atclLv}
+                , #{fvrtCnt}
+                , #{inqCnt}
+                , #{thmbFileId}
+                , #{procStscd}
+                , #{deptId}
+                , #{rgtrId}
+                , FN_DTTM() )
+    </insert>
+
+    <!-- 이전학기 과제 등록 -->
+    <insert id="prevAsmtRegist" parameterType="CreCrsVO">
+        /*
+            SQL ID : CreCrsDAO.prevAsmtRegist
+            설명 : 이전학기 과제 등록
+        */
+        INSERT INTO
+            TB_LMS_ASMT
+                ( ASMT_ID
+                , ASMT_TTL
+                , ASMT_CTS
+                , ASMT_GBNCD
+                , SBASMT_TYCD
+                , EVL_SCR_TYCD
+                , SBMSN_FILE_MIME_TYCD
+                , MRK_RFLTRT
+                , MRK_OYN
+                , SBJCT_ID
+                , BYTEAM_ASMT_USEYN
+                , RGTR_ID
+                , REG_DTTM
+                , PREV_SMSTR_IMPORTYN )
+        VALUES
+                ( #{asmtId}
+                , #{asmtTtl}
+                , #{asmtCts}
+                , #{asmtGbncd}
+                , #{sbasmtTycd}
+                , #{evlScrTycd}
+                , #{sbmsnFileMimeTycd}
+                , #{mrkRfltrt}
+                , #{mrkOyn}
+                , #{sbjctId}
+                , 'N'
+                , #{rgtrId}
+                , FN_DTTM()
+                , 'Y' )
+
+    </insert>
+
+    <!-- 이전학기 퀴즈 기본정보 등록 -->
+    <insert id="prevQuizBscRegist" parameterType="CreCrsVO">
+        /*
+            SQL ID : CreCrsDAO.prevQuizBscRegist
+            설명 : 이전학기 퀴즈 기본정보 등록
+        */
+        INSERT INTO
+            TB_LMS_EXAM_BSC
+                ( EXAM_BSC_ID
+                , EXAM_TYCD
+                , EXAM_GBNCD
+                , EXAM_TTL
+                , EXAM_CTS
+                , TKEXAM_MTHD_CD
+                , QSTN_DSPLY_GBNCD
+                , EXAMPPR_OYN
+                , AVG_MRK_OYN
+                , MAX_TKEXAM_CNT
+                , QSTNS_DLGTNYN
+                , MRK_OYN
+                , RGTR_ID
+                , REG_DTTM
+                , SBJCT_ID
+                , DVCLAS_REGYN
+                , QSTN_RNDMYN
+                , QSTN_VWITM_RNDMYN
+                , QSTN_CNDDT_USEYN
+                , MRK_RFLTYN
+                , MRK_RFLTRT
+                , EXAMTM_ALLOC_GBNCD
+                , EXAMTM_EXPSR_TYCD
+                , PREV_SMSTR_IMPORTYN
+                , EXAM_QSTNS_CMPTNYN)
+        VALUES
+                ( #{examBscId}
+                , 'QUIZ'
+                , #{examGbncd}
+                , #{examTtl}
+                , #{examCts}
+                , #{tkexamMthdCd}
+                , #{qstnDsplyGbncd}
+                , #{exampprOyn}
+                , #{avgMrkOyn}
+                , #{maxTkexamCnt}
+                , #{qstnsDlgtnyn}
+                , #{mrkOyn}
+                , #{rgtrId}
+                , FN_DTTM()
+                , #{sbjctId}
+                , 'N'
+                , #{qstnRndmyn}
+                , #{qstnVwitmRndmyn}
+                , #{qstnCnddtUseyn}
+                , #{mrkRfltyn}
+                , #{mrkRfltrt}
+                , #{examtmAllocGbncd}
+                , #{examtmExpsrTycd}
+                , 'Y'
+                , 'N' )
+    </insert>
+
+    <!-- 이전학기 퀴즈 상세정보 등록 -->
+    <insert id="prevQuizDtlRegist" parameterType="CreCrsVO">
+        /*
+            SQL ID : CreCrsDAO.prevQuizDtlRegist
+            설명 : 이전학기 퀴즈 상세정보 등록
+        */
+        INSERT INTO
+            TB_LMS_EXAM_DTL
+                ( EXAM_DTL_ID
+                , EXAM_BSC_ID
+                , EXAM_MNTS
+                , EXAMTM_LMTYN
+                , EXAM_PSBL_SDTTM
+                , EXAM_PSBL_EDTTM
+                , EXAM_QSTNS_CMPTNYN
+                , CNSDR_ADD_MNTS
+                , RGTR_ID
+                , REG_DTTM)
+        VALUES
+                ( #{examDtlId}
+                , #{examBscId}
+                , #{examMnts}
+                , #{examtmLmtyn}
+                , FN_DTTM()
+                , FN_DTTM()
+                , 'N'
+                , #{cnsdrAddMnts}
+                , #{rgtrId}
+                , FN_DTTM())
+    </insert>
+
+    <!-- 이전학기 설문 등록 -->
+    <insert id="prevSrvyRegist" parameterType="CreCrsVO">
+        /*
+            SQL ID : CreCrsDAO.prevSrvyRegist
+            설명 : 이전학기 설문 등록
+        */
+        INSERT INTO
+            TB_LMS_SRVY
+                ( SRVY_ID
+                , SRVY_WRT_TYCD
+                , SRVY_GBNCD
+                , SRVY_TYCD
+                , SRVY_TRGT_GBNCD
+                , SRVY_TTL
+                , SRVY_CTS
+                , RSLT_OPEN_TYCD
+                , SRVY_SDTTM
+                , SRVY_EDTTM
+                , EVL_SCR_TYCD
+                , MRK_RFLTYN
+                , MRK_RFLTRT
+                , MRK_OYN
+                , SBJCT_ID
+                , RGTR_ID
+                , REG_DTTM
+                , PREV_SMSTR_IMPORTYN
+                , SRVY_QSTNS_CMPTNYN )
+        VALUES
+                ( #{srvyId}
+                , #{srvyWrtTycd}
+                , #{srvyGbncd}
+                , #{srvyTycd}
+                , #{srvyTrgtGbncd}
+                , #{srvyTtl}
+                , #{srvyCts}
+                , #{rsltOpenTycd}
+                , FN_DTTM()
+                , FN_DTTM()
+                , #{evlScrTycd}
+                , #{mrkRfltyn}
+                , #{mrkRfltrt}
+                , #{mrkOyn}
+                , #{sbjctId}
+                , #{rgtrId}
+                , FN_DTTM()
+                , 'Y'
+                , 'N' )
+    </insert>
+
+    <!-- 이전학기 토론 등록 -->
+    <insert id="prevDscsRegist" parameterType="CreCrsVO">
+        /*
+            SQL ID : CreCrsDAO.prevDscsRegist
+            설명 : 이전학기 토론 등록
+        */
+        INSERT INTO
+            TB_LMS_DSCS
+                ( DSCS_ID
+                , DSCS_TYCD
+                , DSCS_GBNCD
+                , DSCS_UNIT_TYCD
+                , EVL_SCR_TYCD
+                , DSCS_TTL
+                , DSCS_CTS
+                , DSCS_SDTTM
+                , DSCS_EDTTM
+                , OATCL_INQYN
+                , OKNOKRT_OYN
+                , OKNOK_MODYN
+                , MLT_OPNN_REGYN
+                , CMNT_RSPNS_REQYN
+                , MRK_RFLTYN
+                , MRK_RFLTRT
+                , MRK_OYN
+                , RGTR_ID
+                , REG_DTTM
+                , SBJCT_ID
+                , OKNOK_RGTR_OYN
+                , OKNOK_STNGYN
+                , BYTEAM_DSCS_USEYN
+                , TEAM_DSCS_OYN
+                , PREV_SMSTR_IMPORTYN )
+        VALUES
+                ( #{dscsId}
+                , #{dscsTycd}
+                , #{dscsGbncd}
+                , 'GNRL'
+                , #{evlScrTycd}
+                , #{dscsTtl}
+                , #{dscsCts}
+                , FN_DTTM()
+                , FN_DTTM()
+                , #{oatclInqyn}
+                , #{oknokrtOyn}
+                , #{oknokModyn}
+                , #{mltOpnnRegyn}
+                , #{cmntRspnsReqyn}
+                , #{mrkRfltyn}
+                , #{mrkRfltrt}
+                , #{mrkOyn}
+                , #{rgtrId}
+                , FN_DTTM()
+                , #{sbjctId}
+                , #{oknokRgtrOyn}
+                , #{oknokStngyn}
+                , 'N'
+                , 'N'
+                , 'Y')
+    </insert>
+
+    <!-- 이전학기 연습문제, 돌발퀴즈 등록 -->
+    <insert id="prevQstnRegist" parameterType="CreCrsVO">
+        /*
+            SQL ID : CreCrsDAO.prevQstnRegist
+            설명 : 이전학기 연습문제, 돌발퀴즈 등록
+        */
+        INSERT INTO
+            TB_LMS_EXRCS_SDDN_QSTN_BSC
+                ( EXRCS_SDDN_QSTN_BSC_ID
+                , SBJCT_ID
+                , QSTN_TTL
+                , QSTN_CTS
+                , QSTNS_CMPTNYN
+                , QSTN_GBNCD
+                , RGTR_ID
+                , REG_DTTM
+                , PREV_SMSTR_IMPORTYN )
+        VALUES
+                ( #{exrcsSddnQstnBscId}
+                , #{sbjctId}
+                , #{qstnTtl}
+                , #{qstnCts}
+                , 'N'
+                , #{qstnGbncd}
+                , #{rgtrId}
+                , FN_DTTM()
+                , 'Y')
+    </insert>
+
+    <!-- 이전학기 과목코드 조회 -->
+    <select id="selectBeforeSbjctId" parameterType="CreCrsVO" resultType="String">
+        /*
+            SQL ID : CreCrsDAO.selectBeforeSbjctId
+            설명 : 이전학기 과목코드 조회
+        */
+        SELECT
+            PRV_SBJCT.SBJCT_ID AS "SBJCT_ID"
+        FROM
+            TB_LMS_SBJCT CUR_SBJCT
+            /* 사용자 기관 추출용도 */
+            JOIN TB_LMS_USER USR
+                ON CUR_SBJCT.PROF_ID = USR.USER_ID
+                AND CUR_SBJCT.PROF_ID = #{userId}
+            /* 현재 학기 기수인지 */
+            JOIN TB_LMS_SMSTR_CHRT CHRT
+                ON CUR_SBJCT.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+                AND CHRT.NOW_SMSTRYN = 'Y'
+            JOIN TB_LMS_SBJCT PRV_SBJCT
+                ON PRV_SBJCT.PROF_ID = #{userId}
+                AND PRV_SBJCT.CRCLMN_NO = CUR_SBJCT.CRCLMN_NO
+                AND PRV_SBJCT.SBJCT_ID != CUR_SBJCT.SBJCT_ID
+                AND (PRV_SBJCT.SBJCT_YR || PRV_SBJCT.SBJCT_SMSTR) = (SELECT
+                                                                        MAX(p.SBJCT_YR || p.SBJCT_SMSTR)
+                                                                    FROM
+                                                                        TB_LMS_SBJCT p
+                                                                    WHERE
+                                                                        p.PROF_ID = #{userId}
+                                                                        AND p.CRCLMN_NO = CUR_SBJCT.CRCLMN_NO
+<![CDATA[                                                               AND (p.SBJCT_YR || p.SBJCT_SMSTR) < (CUR_SBJCT.SBJCT_YR || CUR_SBJCT.SBJCT_SMSTR))    ]]>
+        WHERE
+            CUR_SBJCT.SBJCT_ID = #{sbjctId}
+    </select>
+
+    <!-- 이전학기 현재학기 데이터 목록 카운트 -->
+    <select id="countPrevCurrDataList" parameterType="CreCrsVO" resultType="Integer">
+        /*
+            SQL ID : CreCrsDAO.countPrevCurrDataList
+            설명 : 이전학기 현재학기 데이터 목록 카운트
+        */
+        SELECT
+            COUNT(1) AS "CNT"
+        FROM
+            (SELECT
+                 *
+            FROM
+        <choose>
+            <!-- 공지사항, 자료실 -->
+            <when test="importType == 1 or importType == 2">
+                TB_LMS_BBS
+            </when>
+            <!-- 학습자료 -->
+            <!-- Todo... 해당 table 및 조건 확인 -->
+            <when test="importType == 3">
+                TB_LMS_BBS  /* 임시 */
+            </when>
+            <!-- 과제 -->
+            <when test="importType == 4">
+                TB_LMS_ASMT
+            </when>
+            <!-- 퀴즈 -->
+            <when test="importType == 5">
+                TB_LMS_EXAM_BSC
+            </when>
+            <!-- 설문 -->
+            <when test="importType == 6">
+                TB_LMS_SRVY
+            </when>
+            <!-- 토론 -->
+            <when test="importType == 7">
+                TB_LMS_DSCS
+            </when>
+            <!-- 연습문제, 돌발퀴즈 -->
+            <when test="importType == 8 or importType == 9">
+                TB_LMS_EXRCS_SDDN_QSTN_BSC
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+            WHERE
+        <choose>
+            <!-- 공지사항 -->
+            <when test="importType == 1">
+                BBS_TYCD = 'NTC'    /* 공지사항 */
+                AND DELYN = 'N'
+            <if test='"Y".equals(isCurr)'>
+                AND PREV_SMSTR_IMPORTYN = 'Y'
+            </if>
+            </when>
+            <!-- 자료실 -->
+            <when test="importType == 2">
+                BBS_TYCD = 'DATARM' /* 자료실 */
+                AND DELYN = 'N'
+            <if test='"Y".equals(isCurr)'>
+                AND PREV_SMSTR_IMPORTYN = 'Y'
+            </if>
+            </when>
+            <!-- 학습자료 -->
+            <!-- Todo... 해당 table 및 조건 확인 -->
+            <when test="importType == 3">
+                1=1
+            <if test='"Y".equals(isCurr)'>
+                AND PREV_SMSTR_IMPORTYN = 'Y'
+            </if>
+            </when>
+            <!-- 과제 -->
+            <when test="importType == 4">
+                ASMT_GBNCD NOT LIKE '%SBST%'    /* 대체 과제 제외 */
+                AND DELYN = 'N'
+            <if test='"Y".equals(isCurr)'>
+                AND PREV_SMSTR_IMPORTYN = 'Y'
+            </if>
+            </when>
+            <!-- 퀴즈 -->
+            <when test="importType == 5">
+                EXAM_TYCD = 'QUIZ'  /* 퀴즈만 */
+                AND NOT (EXAM_GBNCD LIKE '%MID%'
+                        OR EXAM_GBNCD LIKE '%LST%'
+                        OR EXAM_GBNCD LIKE '%CMP%'
+                        OR EXAM_GBNCD LIKE '%SBST%')    /* 중간, 기말, 종합, 대체 제외 */
+                AND DELYN = 'N'
+            <if test='"N".equals(isCurr)'>
+                AND EXAM_QSTNS_CMPTNYN = 'Y'    /* 출제 완료만 */
+            </if>
+            <if test='"Y".equals(isCurr)'>
+                AND PREV_SMSTR_IMPORTYN = 'Y'
+            </if>
+            </when>
+            <!-- 설문 -->
+            <when test="importType == 6">
+                DELYN = 'N'
+                AND UP_SRVY_ID IS NULL      /* 상위 설문만 (팀 여부 때문에) */
+            <if test='"N".equals(isCurr)'>
+                AND SRVY_QSTNS_CMPTNYN = 'Y'    /* 출제 완료만 */
+            </if>
+            <if test='"Y".equals(isCurr)'>
+                AND PREV_SMSTR_IMPORTYN = 'Y'
+            </if>
+            </when>
+            <!-- 토론 -->
+            <when test="importType == 7">
+                DELYN = 'N'
+                AND UP_DSCS_ID IS NULL  /* 상위 토론만 (팀 여부 때문에) */
+            <if test='"Y".equals(isCurr)'>
+                AND PREV_SMSTR_IMPORTYN = 'Y'
+            </if>
+            </when>
+            <!-- 연습문제 -->
+            <when test="importType == 8">
+                DELYN = 'N'
+                AND QSTN_GBNCD = 'EXRCS_QSTN'   /* 연습문제 */
+            <if test='"N".equals(isCurr)'>
+                AND QSTNS_CMPTNYN = 'Y'    /* 출제 완료만 */
+            </if>
+            <if test='"Y".equals(isCurr)'>
+                AND PREV_SMSTR_IMPORTYN = 'Y'
+            </if>
+            </when>
+            <!-- 돌발퀴즈 -->
+            <when test="importType == 9">
+                DELYN = 'N'
+                AND QSTN_GBNCD = 'SURPRISE_QUIZ'    /* 돌발 퀴즈 */
+            <if test='"N".equals(isCurr)'>
+                AND QSTNS_CMPTNYN = 'Y'    /* 출제 완료만 */
+            </if>
+            <if test='"Y".equals(isCurr)'>
+                AND PREV_SMSTR_IMPORTYN = 'Y'
+            </if>
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+                AND SBJCT_ID = #{sbjctId}) /* 이전학기 과목ID or 현재학기 과목ID */
+    </select>
+
+    <!-- 이전학기 게시판 목록 조회 -->
+    <select id="selectPrevBbsDataList" parameterType="CreCrsVO" resultType="egovMap">
+        /*
+            SQL ID : CreCrsDAO.selectPrevBbsDataList
+            설  명  : 이전학기 게시판 목록 조회
+        */
+        SELECT
+            BBS.BBS_ID
+            /* 게시판 table */
+            , BBS.BBSNM
+            , BBS.BBS_ENNM
+            , BBS.BBS_EXPLN
+            , BBS.BBS_TYCD
+            , BBS.BBS_LANG_CD
+            , BBS.LIST_CNT
+            , BBS.ATFL_MAX_CNT
+            , BBS.ATFL_MAXSZ
+            , BBS.ATFL_USEYN
+            /* 게시판 게시글 table */
+            , ATCL.ATCL_TTL
+            , ATCL.ATCL_CTS
+            , ATCL.ATCL_LV
+            , 0 AS "FVRT_CNT"
+            , 0 AS "INQ_CNT"
+            , ATCL.THMB_FILE_ID
+            , ATCL.PROC_STSCD
+            , ATCL.DEPT_ID
+        FROM
+            TB_LMS_BBS BBS
+            JOIN TB_LMS_BBS_ATCL ATCL
+                ON BBS.BBS_ID = ATCL.BBS_ID
+                AND ATCL.DELYN = 'N'
+        WHERE
+            BBS.SBJCT_ID = #{sbjctId}
+            AND BBS.DELYN = 'N'
+        <if test="importType == 1">
+            AND BBS.BBS_TYCD = 'NTC'    /* 공지사항 */
+        </if>
+        <if test="importType == 2">
+            AND BBS.BBS_TYCD = 'DATARM' /* 자료실 */
+        </if>
+        ORDER BY
+            BBS.BBS_ID
+    </select>
+
+    <!-- 이전학기 과제 목록 조회 -->
+    <select id="selectPrevAsmtDataList" parameterType="CreCrsVO" resultType="egovMap">
+        /*
+            SQL ID : CreCrsDAO.selectPrevAsmtDataList
+            설  명  : 이전학기 과제 목록 조회
+         */
+        SELECT
+            ASMT_ID
+            , ASMT_TTL
+            , ASMT_CTS
+            , ASMT_GBNCD
+            , SBASMT_TYCD
+            , EVL_SCR_TYCD
+            , SBMSN_FILE_MIME_TYCD
+            , MRK_RFLTRT
+            , MRK_OYN
+            , BYTEAM_ASMT_USEYN
+        FROM
+            TB_LMS_ASMT
+        WHERE
+            ASMT_GBNCD NOT LIKE '%SBST%'    /* 대체과제 제외 */
+            AND DELYN = 'N'
+            AND SBJCT_ID = #{sbjctId}
+    </select>
+
+    <!-- 이전학기 퀴즈 목록 조회 -->
+    <select id="selectPrevQuizDataList" parameterType="CreCrsVO" resultType="egovMap">
+        /*
+            SQL ID : CreCrsDAO.selectPrevQuizDataList
+            설  명  : 이전학기 퀴즈 목록 조회
+        */
+        SELECT
+            BSC.EXAM_BSC_ID
+            /* 시험 기본 */
+            , BSC.EXAM_TYCD
+            , BSC.EXAM_GBNCD
+            , BSC.EXAM_TTL
+            , BSC.EXAM_CTS
+            , BSC.TKEXAM_MTHD_CD
+            , BSC.QSTN_DSPLY_GBNCD
+            , BSC.EXAMPPR_OYN
+            , BSC.AVG_MRK_OYN
+            , BSC.MAX_TKEXAM_CNT
+            , BSC.QSTNS_DLGTNYN
+            , BSC.MRK_OYN
+            , BSC.DVCLAS_REGYN
+            , BSC.QSTN_RNDMYN
+            , BSC.QSTN_VWITM_RNDMYN
+            , BSC.QSTN_CNDDT_USEYN
+            , BSC.MRK_RFLTYN
+            , BSC.MRK_RFLTRT
+            , BSC.EXAMTM_ALLOC_GBNCD
+            , BSC.EXAMTM_EXPSR_TYCD
+            /* 시험 상세 */
+            , DTL.EXAM_MNTS
+            , DTL.EXAMTM_LMTYN
+            , DTL.CNSDR_ADD_MNTS
+        FROM
+            TB_LMS_EXAM_BSC BSC
+            JOIN (SELECT DISTINCT
+                      A.EXAM_BSC_ID
+                      , B.EXAM_MNTS
+                      , B.EXAMTM_LMTYN
+                      , B.CNSDR_ADD_MNTS
+                  FROM
+                      TB_LMS_EXAM_BSC A
+                      JOIN TB_LMS_EXAM_DTL B
+                          ON A.EXAM_BSC_ID = B.EXAM_BSC_ID) DTL
+                ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+        WHERE
+            BSC.EXAM_TYCD = 'QUIZ'  /* 퀴즈만 */
+            AND NOT (BSC.EXAM_GBNCD LIKE '%MID%'
+                OR BSC.EXAM_GBNCD LIKE '%LST%'
+                OR BSC.EXAM_GBNCD LIKE '%CMP%'
+                OR BSC.EXAM_GBNCD LIKE '%SBST%')    /* 중간, 기말, 종합, 대체 제외 */
+            AND BSC.EXAM_QSTNS_CMPTNYN = 'Y'    /* 출제 완료만 */
+            AND BSC.DELYN = 'N'
+            AND BSC.SBJCT_ID = #{sbjctId}
+    </select>
+
+    <!-- 이전학기 설문 목록 조회 -->
+    <select id="selectPrevSrvyDataList" parameterType="CreCrsVO" resultType="egovMap">
+        /*
+            SQL ID : CreCrsDAO.selectPrevSrvyDataList
+            설  명  : 이전학기 설문 목록 조회
+        */
+        SELECT
+            SRVY_ID
+            , SRVY_WRT_TYCD
+            , SRVY_GBNCD
+            , SRVY_TYCD
+            , SRVY_TRGT_GBNCD
+            , SRVY_TTL
+            , SRVY_CTS
+            , RSLT_OPEN_TYCD
+            , EVL_SCR_TYCD
+            , MRK_RFLTYN
+            , MRK_RFLTRT
+            , MRK_OYN
+        FROM
+            TB_LMS_SRVY
+        WHERE
+            DELYN = 'N'
+            AND SRVY_QSTNS_CMPTNYN = 'Y'    /* 출제 완료만 */
+            AND UP_SRVY_ID IS NULL  /* 상위 설문만 (팀 여부 때문에) */
+            AND SBJCT_ID = #{sbjctId}
+    </select>
+
+    <!-- 이전학기 토론 목록 조회 -->
+    <select id="selectPrevDscsDataList" parameterType="CreCrsVO" resultType="egovMap">
+        /*
+            SQL ID : CreCrsDAO.selectPrevDscsDataList
+            설  명  : 이전학기 토론 목록 조회
+        */
+        SELECT
+            DSCS_ID
+            , DSCS_TYCD
+            , DSCS_GBNCD
+            , DSCS_UNIT_TYCD
+            , EVL_SCR_TYCD
+            , DSCS_TTL
+            , DSCS_CTS
+            , OATCL_INQYN
+            , OKNOKRT_OYN
+            , OKNOK_MODYN
+            , MLT_OPNN_REGYN
+            , CMNT_RSPNS_REQYN
+            , MRK_RFLTYN
+            , MRK_RFLTRT
+            , MRK_OYN
+            , OKNOK_RGTR_OYN
+            , OKNOK_STNGYN
+        FROM
+            TB_LMS_DSCS
+        WHERE
+            DELYN = 'N'
+            AND UP_DSCS_ID IS NULL  /* 상위 토론만 (팀 여부 때문에) */
+            AND SBJCT_ID = #{sbjctId}
+    </select>
+
+    <!-- 이전학기 연습문제, 돌발퀴즈 목록 조회 -->
+    <select id="selectPrevQstnDataList" parameterType="CreCrsVO" resultType="egovMap">
+        /*
+            SQL ID : CreCrsDAO.selectPrevQstnDataList
+            설  명  : 이전학기 연습문제, 돌발퀴즈 목록 조회
+        */
+        SELECT
+            EXRCS_SDDN_QSTN_BSC_ID
+            , QSTN_TTL
+            , DBMS_LOB.SUBSTR(QSTN_CTS, 4000, 1) AS QSTN_CTS
+            , QSTN_GBNCD
+        FROM
+            TB_LMS_EXRCS_SDDN_QSTN_BSC
+        WHERE
+            DELYN = 'N'
+            AND QSTNS_CMPTNYN = 'Y'
+        <if test="importType == 8">
+            AND QSTN_GBNCD = 'EXRCS_QSTN'    /* 연습문제 */
+        </if>
+        <if test="importType == 9">
+            AND QSTN_GBNCD = 'SURPRISE_QUIZ' /* 돌발퀴즈 */
+        </if>
+            AND SBJCT_ID = #{sbjctId}
+    </select>
+
+    <!-- 기존 SQL 영역 -->
 	<sql id="selectQuery">
 		SELECT
 		      A.*
@@ -166,7 +903,7 @@
 		FROM (
 			<include refid="listQuery" />
 		) A
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="listCrsCreDropdown" parameterType="creCrsVO" resultType="creCrsVO">
@@ -1108,7 +1845,7 @@
 		   AND B.SBJCTNM LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
 		</if>
 		 ORDER BY B.SBJCTNM, B.DEPT_ID, B.DVCLAS_NO
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="creMypageStdList" parameterType="creCrsVO" resultType="creCrsVO">
@@ -1203,7 +1940,7 @@
 		   AND B.SBJCTNM LIKE FN_LIKE_VAL(#{searchValue})
 		</if>
 		 ORDER BY A.SBJCTNM, A.DEPT_ID, A.DVCLAS_NO
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="selectCrecrsTch" parameterType="creCrsTchRltnVO" resultType="creCrsTchRltnVO">
@@ -1310,7 +2047,7 @@
 		  	 OR LOWER(A.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
 		  )
 		</if>
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<insert id="insertCrecrsTch" parameterType="creCrsTchRltnVO">
@@ -1821,7 +2558,7 @@
 		</if>
 		ORDER BY A.CRS_ID, A.SBJCTNM, A.DVCLAS_NO
 		<if test='pagingYn == null or pagingYn == "".toString() or pagingYn == "Y".toString()'>
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 		</if>
 	</select>
 
@@ -1932,7 +2669,7 @@
 	    	  	)
     	  </if>
     	  ORDER BY A.SBJCT_ID DESC
-    	  <include refid="CommonSQL.pageSubfix"/>
+    	  <include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<insert id="insert" parameterType="creCrsVO" >
@@ -2563,7 +3300,7 @@
     	  	AND LOWER(A.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
     	  </if>
     	  ORDER BY SBJCT_ID DESC
-    	  <include refid="CommonSQL.pageSubfix"/>
+    	  <include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<update id="updateUseYn" parameterType="creCrsVO">
@@ -2813,7 +3550,7 @@
              ORDER BY A.SBJCTNM, A.DEPT_ID, A.DVCLAS_NO ASC
             ) R
          ORDER BY LINE_NO DESC
-        <include refid="CommonSQL.pageSubfix"/>
+        <include refid="CommonSQL.pageSuffix"/>
     </select>
 
 	<update id="update" parameterType="creCrsVO" >
@@ -3077,7 +3814,7 @@
             <when test="sortKey == 'EMAIL_DESC'">ORDER BY A.EMAIL DESC</when>
             <otherwise>ORDER BY A.USERNM ASC</otherwise>
        </choose>
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="coList" parameterType="creCrsVO" resultType="creCrsVO">
@@ -3262,7 +3999,7 @@
 			FROM (
 				<include refid="manageCourseQuery" />
 			) A
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="infoCreCrs" parameterType="creCrsVO" resultType="creCrsVO">
@@ -3803,7 +4540,7 @@
 		WHERE SBJCT_ID = #{crsCreCd}
 	</update>
 
-	<select id="listSbjctOfring" parameterType="knou.lms.subject.vo.SubjectVO" resultType="egovMap">
+	<select id="listSbjctPaging" parameterType="knou.lms.subject.vo.SubjectVO" resultType="egovMap">
 		/*
 			 SQL ID : CreCrsDAO.listSbjctOfring
 			 설  명 : 학위연도,기관,학기기수,학과에 따른 개설과목 조회
@@ -3834,7 +4571,10 @@
 			WHERE 1=1
 				AND A.DELYN = 'N'
 		)
-		SELECT *
+        <include refid="CommonSQL.pagePrefix"/>
+        SELECT A.*
+            , ROW_NUMBER() OVER(ORDER BY A.SBJCT_YR ASC, A.SBJCT_SMSTR ASC, A.SBJCTNM ASC) AS LINE_NO
+            , COUNT(*) OVER() AS TOTAL_CNT
 		FROM SBJ_LIST A
 		WHERE 1=1
 			AND A.SBJCT_YR  = #{sbjctYr}
@@ -3847,5 +4587,6 @@
 		<if test="deptId != null and deptId != ''">
 			AND A.DEPT_ID = #{deptId}
 		</if>
+        <include refid="CommonSQL.pageSuffix"/>
 	</select>
 </mapper>

@@ -1,44 +1,51 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
 <%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
 
-	<ul class="dash_item_listA">
-	    <li>                                       
-	        <a href="#0" class="item_txt">                                            
-	            <p class="tit">1주차 강의자료 업로드​</p>
-	            <p class="desc">
-	                <span class="name">[대학원] 경영수리와 통계1반</span> 
-	                <span class="date">2025.05.17</span> 
-	            </p>
-	        </a>
-	        <div class="state">
-	            <a href="#0" class="btn btn_down">다운로드</a>
-	        </div>
-	    </li>
-	    <li>                                       
-	        <a href="#0" class="item_txt">                                            
-	            <p class="tit">실전 NoSQL 데이터베이스 활용 자료입니다.</p>
-	            <p class="desc">
-	                <span class="name">[대학원] 데이터베이스의 이해와 활용</span> 
-	                <span class="date">2025.05.17</span> 
-	            </p>
-	        </a>
-	        <div class="state">
-	            <a href="#0" class="btn btn_down">다운로드</a>
-	        </div>
-	    </li>
-	    <li>                                        
-	        <a href="#0" class="item_txt">                                            
-	            <p class="tit">New TEPS 공식기출문제집 정리 파일</p>
-	            <p class="desc">
-	                <span class="name">[평생교육] New TEPS 실전 연습-기본편</span> 
-	                <span class="date">2025.05.17</span> 
-	            </p>
-	        </a>
-	        <div class="state">
-	            <a href="#0" class="btn btn_down">다운로드</a>
-	        </div>
-	    </li>
-	</ul>
+					
+                          <!-- box_content -->
+                          <div class="box_content">
+                              <ul class="dash_item_listA">
+                              <c:choose>
+								    <c:when test="${empty dashVM.stdntDashDatarmList}">
+								        <li>강의자료가 없습니다</li>
+								    </c:when>
+	                               	<c:otherwise>
+	                               		<c:set var="cnt" value="0"/>
+	                                	<c:forEach var="item" items="${dashVM.stdntDashDatarmList}">                                	
+											<c:if test="${item.topic eq 'STDNT_DASH_DATARM' and cnt lt 3}">
+			                                    <li>
+			                                        <div class="user">
+			                                           <span class="user_img"></span>
+			                                        </div>   
+												    	<a class="item_txt"
+														   href="javascript:void(0)"
+														   onclick='moveMenu(
+														       this,
+														       "/bbs/bbsHome/bbsAtclView.do?bbsTycd=DATARM&bbsId=${item.bbsId}&atclId=${item.atclId}&templateUrl=bbsHome",
+														       "ROOT",
+														       "STDMAIN000011",
+														       "강의자료실",
+														       "tab"
+														   )'
+														   title="강의자료실" style="color: currentColor;">
+			                                            <p class="tit">${item.atclTtl}</p>
+			                                            <p class="desc">
+			                                                <span class="name">[${item.orgnm}] ${item.sbjctnm}</span>
+			                                                <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/>
+			                                            </p>
+			                                        </a>
+			                                        <div class="state">
+				                                        <a href="#0" class="btn btn_down">다운로드</a>
+										         	</div>
+			                                    </li>
+			                                    <c:set var="cnt" value="${cnt + 1}"/>
+		                                    </c:if>
+	                                  	</c:forEach>
+								    </c:otherwise>
+								</c:choose>
+                              	</ul>
+                          </div>
+                          <!--//box_content -->
 
 <script>
 
@@ -56,7 +63,8 @@ function setPdsWidget() {
 
 // 더보기 이동
 function movePdsWidgetMore() {
-	//moveMenu(null, "URL", "upMenuId", "menuId", "강의자료실");
+	// 강의자료실
+	moveMenu(this, "/bbs/bbsHome/bbsAtclListView.do?bbsTycd=DATARM", "ROOT", "STDMAIN000011", "강의자료실", "tab");
 }
 
 setPdsWidget();

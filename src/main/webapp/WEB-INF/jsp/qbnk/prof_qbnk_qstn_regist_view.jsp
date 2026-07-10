@@ -11,77 +11,32 @@
 
 	<script type="text/javascript">
 		$(document).ready(function () {
-			qstnRspnsTycdChgChange();
+			qstnOption.qstnRspnsTycdChgChange("qstnWriteForm");	// 문항답변유형코드변경
 
 			if(${not empty qbnkQstnVO.qbnkQstnId}) {
-				qbnkQstnSetting();
+				qbnkQstnSetting();	// 문제은행문항설정
 			}
 		});
 
-		/**
-		 * 문제은행 화면 이동
-		 * @param {String}  sbjctId 	- 과목아이디
-		 */
-		function qbnkViewMv(tab) {
-			var urlMap = {
-				"1" : "/qbnk/profQbnkListView.do",		// 문제은행 목록 화면
-				"2" : "/qbnk/profQbnkCtgrMngView.do"	// 분류코드 관리 화면
-			};
-
-			var kvArr = [];
-			kvArr.push({'key' : 'sbjctId', 		'val' : "${vo.sbjctId}"});
-
-			submitForm(urlMap[tab], kvArr);
-		}
-
-	    // 문항답변유형코드 변경
-	    function qstnRspnsTycdChgChange() {
-			$("#qstnTypeDiv > table > tbody").empty();	// 문항보기항목 비우기
-
-			var type = $("#qbnkRegistForm select[name=qstnRspnsTycd]").val();	// 문항답변유형코드
-			// 단일선택형, 다중선택형
-	        if(type == "ONE_CHC" || type == "MLT_CHC") {
-	        	formOption.createVwitmCntHTML(type);	// 보기항목 수 HTML 추가
-	        	formOption.createChgQstnHTML();			// 단일, 다중선택형 문항 HTML 추가
-	        	createVwitmCntChgHTML(type);			// 보기항목 수 변경 HTML 추가
-
-	        // 단답형
-	        } else if(type == "SHORT_TEXT") {
-	        	formOption.createTextQstnHTML();		// 단답형 문항 HTML 추가
-
-	        // OX선택형
-	        } else if(type == "OX_CHC") {
-	        	formOption.createOxQstnHTML();			// OX선택형 문항 HTML 추가
-
-	        // 연결형
-	        } else if(type == "LINK") {
-	        	formOption.createVwitmCntHTML(type);	// 보기항목 수 HTML 추가
-	        	formOption.createLinkQstnHTML();		// 연결형 문항 HTML 추가
-	        	createVwitmCntChgHTML(type);			// 보기항목 수 변경 HTML 추가
-	        }
-
-	        formOption.createQstnDfctlvHTML();			// 문항 난이도 HTML 추가
-	    }
-
 	    /**
 		 * 문제은행하위분류목록조회
-		 * @param {Integer} qbnkCtgrId 	- 문제은행분류아이디
-		 * @param {String}  userRprsId 	- 사용자대표아이디
-		 * @param {String}  sbjctId 	- 과목아이디
-		 * @returns {list} 문제은행하위분류 목록
+		 * @param qbnkCtgrId 	- 문제은행분류아이디
 		 */
 	    function subQbnkCtgrList(qbnkCtgrId) {
-	    	var url  = "/qbnk/profQbnkCtgrListAjax.do";
-			var data = {
-				"upQbnkCtgrId" 	: qbnkCtgrId,
-				"userRprsId"	: "${qbnkSbjct.userRprsId}",
-				"sbjctId"		: "${qbnkSbjct.sbjctId}"
+	    	const extData = {
+				upQbnkCtgrId 	: qbnkCtgrId,
 			};
 
-			ajaxCall(url, data, function(data) {
+	    	const url   = "/qbnk/profQbnkCtgrListAjax.do";
+	    	const param = {
+				encParams	: EPARAM,
+				addParams	: UiComm.makeEncParams(extData)
+			};
+
+			ajaxCall(url, param, function(data) {
 				if (data.result > 0) {
-	        		var returnList = data.returnList || [];
-	        		html = "<option value=''><spring:message code='exam.label.sub.categori' /></option>";/* 하위분류 */
+	        		let returnList = data.returnList || [];
+	        		let html = "<option value=''><spring:message code='quiz.label.sub.category' /></option>";/* 하위분류 */
 
 	        		if(returnList.length > 0 && qbnkCtgrId != "") {
 	        			returnList.forEach(function(v, i) {
@@ -89,10 +44,7 @@
 		        		});
 	        		}
 
-	        		var ctgrId = "";
-	        		if(${not empty qbnkQstnVO.upQbnkCtgrId}) {
-						ctgrId = "${qbnkQstnVO.qbnkCtgrId}";
-	        		}
+	        		let ctgrId = "${not empty qbnkQstnVO.upQbnkCtgrId ? qbnkQstnVO.qbnkCtgrId : ''}";
 	        		$("#selectQbnkCtgrId").empty().append(html);
 	        		$("#selectQbnkCtgrId").val(ctgrId).trigger("chosen:updated");
 	        		$("#selectQbnkCtgrId").val(ctgrId).prop("selected", true).trigger("change");
@@ -100,438 +52,123 @@
 	            	UiComm.showMessage(data.message, "error");
 	            }
 			}, function(xhr, status, error) {
-				UiComm.showMessage("<spring:message code='exam.error.list' />", "error");/* 리스트 조회 중 에러가 발생하였습니다. */
+				UiComm.showMessage("<spring:message code='quiz.error.list' />", "error");/* 리스트 조회 중 에러가 발생하였습니다. */
 			}, true);
 	    }
 
-		var formOption = {
-			/**
-			 * 보기항목 수 HTML 추가
-			 * @param {String}  type 		- 문항답변유형코드
-			 */
-			createVwitmCntHTML: function(type) {
-				var html  = "<tr>";
-		    		html += "	<th>보기 개수</th>";
-		    		html += "	<td class='t_left'>";
-		    		html += "		<select class='form-select' name='vwitmCnt' onchange='createVwitmCntChgHTML(\"" + type + "\")' required='true'>";
-		    						for(var idx = 2; idx <= 10; idx++) {
-		    							var selected = (type == "ONE_CHC" || type == "MLT_CHC") && idx == 2 ? "selected" : "";
-		    		html += "			<option value=\"" + idx + "\" " + selected + ">" + idx + "개</option>";
-		    						}
-		    		html += "		</select>";
-		    		html += "	</td>";
-		    		html += "</tr>";
-		    	$("#qstnTypeDiv > table > tbody").append(html);
-		    	$("#qstnTypeDiv select[name=vwitmCnt]").chosen({disable_search: true});
-			},
-			/**
-			 * 단일, 다중선택형 문항 HTML 추가
-			 */
-			createChgQstnHTML: function() {
-				var html  = "<tr>";
-		    		html += "	<th>보기 입력</th>";
-		    		html += "	<td class='t_left'>";
-		    		html += "		<table class='table-type2'>";
-		    		html += "			<colgroup>";
-		    		html += "				<col class='width-20per' />";
-		    		html += "				<col class='' />";
-		    		html += "			</colgroup>";
-		    		html += "			<tbody class='qstnItemTbody'></tbody>";
-		    		html += "		</table>";
-		    		html += "	</td>";
-		    		html += "</tr>";
-		    		html += "<tr>";
-		    		html += "	<th>전체 정답처리</th>";
-		    		html += "	<td class='t_left'>";
-			    	html += "		<input type='checkbox' value='Y' name='wholCrans' class='switch'>";
-		    		html += "	</td>";
-		    		html += "</tr>";
-		    	$("#qstnTypeDiv > table > tbody").append(html);
-		    	UiSwitcher();
-			},
-			/**
-			 * 단답형 문항 HTML 추가
-			 */
-			 createTextQstnHTML: function() {
-				var html  = "<tr>";
-		    		html += "	<th>정답 입력</th>";
-		    		html += "	<td class='t_left' id='qstnDiv'>";
-		    		html += "		<div class='shortInput flex gap-1'>";
-		    		for(var i = 0; i < 5; i++) {
-		    		html += "			<input type='text' name='vwitmCts' class='w100' " + (i == 0 ? "required='true'" : "") + ">";
-		    		}
-		    		html += "			<button class='btn basic icon' onclick='formOption.createTextQstnAddHTML()'><i class='xi-plus'></i></button>";
-		    		html += "		</div>";
-		    		html += "	</td>";
-		    		html += "</tr>";
-		    		html += "<tr id='shortGubun'>";
-		    		html += "	<th>정답 유형</th>";
-		    		html += "	<td class='t_left'>";
-		    		html += "		<span class='custom-input'>";
-		    		html += "			<input type='radio' name='cransTycd' id='cransI' value='cransInorder' checked='checked'>";
-		    		html += "			<label for='cransI'>순서에 맞게 정답</label>";
-		    		html += "		</span>";
-		    		html += "		<span class='custom-input'>";
-		    		html += "			<input type='radio' name='cransTycd' id='cransN' value='cransNotInorder'>";
-		    		html += "			<label for='cransN'>순서에 상관없이 정답</label>";
-		    		html += "		</span>";
-		    		html += "	</td>";
-		    		html += "</tr>";
-		    	$("#qstnTypeDiv > table > tbody").append(html);
-			},
-			/**
-			 * OX선택형 문항 HTML 추가
-			 */
-			 createOxQstnHTML: function() {
-				var html  = "<tr>";
-		    		html += "	<th>정답 입력</th>";
-		    		html += "	<td class='t_left'>";
-		    		html += "		<div class='list_view_box width-50per'>";
-		    		html += "			<span class='checkImg'>";
-		    							for(var idx = 1; idx <= 2; idx++) {
-		    								var oxClass = idx == 1 ? "true" : "false";
-		    		html += "				<input type='radio' name='vwitmCts' id='ox_"+oxClass+"' value='" + (idx == 1 ? "O" : "X") + "' >";
-		    		html += "				<label for='ox_"+oxClass+"' class='imgChk "+oxClass+"'></label>";
-		    							}
-		    		html += "			</span>";
-		    		html += "		</div>";
-		    		html += "	</td>";
-		    		html += "</tr>";
-		    	$("#qstnTypeDiv > table > tbody").append(html);
-			},
-			/**
-			 * 연결형 문항 HTML 추가
-			 */
-			 createLinkQstnHTML: function() {
-				var html  = "<tr>";
-		    		html += "	<th>정답 입력</th>";
-		    		html += "	<td>";
-		    		html += "		<table class='table-type2'>";
-					html += "			<colgroup>";
-					html += "				<col class='width-5per' />";
-					html += "				<col class='width-45per' />";
-					html += "				<col class='width-45per' />";
-					html += "			</colgroup>";
-					html += "			<tbody id='linkTbody'>";
-					html += "			</tbody>";
-					html += "		</table>";
-		    		html += "	</td>";
-		    		html += "</tr>";
-		    	$("#qstnTypeDiv > table > tbody").append(html);
-			},
-			/**
-			 * 단답형 문항 추가 HTML 추가
-			 */
-			 createTextQstnAddHTML: function() {
-				var shortInputCnt = $(".shortInput").length;
-				if(shortInputCnt == 5) {
-					return false;
-				}
-				var html  = "<div class='shortInput flex gap-1 margin-top-2' id='shortInput"+shortInputCnt+"'>";
-					for(var i = 0; i < 5; i ++) {
-					html += "	<input type='text' name='vwitmCts' class='w100' " + (i == 0 ? "required='true'" : "") + " />";
-					}
-					html += "	<button class='btn basic icon' onclick='formOption.textQstnDelHTML("+shortInputCnt+")'><i class='xi-minus'></i></button>";
-					html += "	<button class='btn basic icon' onclick='formOption.createTextQstnAddHTML()'><i class='xi-plus'></i></button>";
-					html += "</div>";
-				$("#qstnDiv").append(html);
-			},
-			/**
-			 * 단답형 문항 HTML 삭제
-			 * @param {Integer} cnt 		- 삭제할 문항 줄 값
-			 */
-		    textQstnDelHTML: function(cnt) {
-		    	$("#shortInput"+cnt).remove();
-		    },
-		    /**
-			 * 문항 난이도 HTML 추가
-			 */
-		    createQstnDfctlvHTML: function() {
-		    	var html  = "<tr>";
-		    		html += "	<th>난이도</th>";
-		    		html += "	<td class='t_left'>";
-		    		html += "		<select class='form-select' name='qstnDfctlvTycd' required='true'>";
-		    						<c:forEach var="code" items="${qstnDfctlvTycdList }">
-		    		html += "			<option value='${code.cd }'>${code.cdnm }</option>";
-		    						</c:forEach>
-		    		html += "		</select>";
-		    		html += "	</td>";
-		    		html += "</tr>";
-		    	$("#qstnTypeDiv > table > tbody").append(html);
-		    	$("#qstnTypeDiv select[name=qstnDfctlvTycd]").chosen({disable_search: true});
-		    }
-		};
-
-		/**
-		 * 보기항목 수 변경 HTML 추가
-		 * @param {String}  type - 문항답변유형코드 ( ONE_CHC : 단일선택형, MLT_CHC : 다중선택형, LINK : 연결형 )
-		 */
-	    function createVwitmCntChgHTML(type) {
-		    var vwitmCnt   = $("#qstnTypeDiv select[name=vwitmCnt]").val();	// 보기 항목 개수 selectBox
-	    	// 단일, 다중선택형
-	    	if(type == "ONE_CHC" || type == "MLT_CHC") {
-		    	var vwitmLiCnt = $("#qstnTypeDiv .qstnItemTbody .vwitmTr").length;	// 기존 보기항목 수
-
-		    	if(vwitmLiCnt < vwitmCnt) {
-			    	for(var i = vwitmLiCnt; i < vwitmCnt; i++) {
-					   	var html  = "<tr class='vwitmTr'>";
-					   		html += "	<th>";
-							html += "		<span class='custom-input'>";
-					   		// 다중선택형
-					   		if(type == "MLT_CHC") {
-					   		html += "			<input type='checkbox' name='vwitmSeqno' id='vwitmSeqno_"+(i+1)+"' value='"+(i+1)+"' >";
-					   		// 단일선택형
-					   		} else if(type == "ONE_CHC") {
-					   		html += "			<input type='radio' name='vwitmSeqno' id='vwitmSeqno_"+(i+1)+"' value='"+(i+1)+"' >";
-					   		}
-					   		html += "			<label for='vwitmSeqno_"+(i+1)+"'>보기"+(i+1)+"</label>";
-					   		html += "		</span>";
-					   		html += "	</th>";
-					   		html += "	<td class='t_left'><input type='text' class='width-100per' name='vwitmCts' id='vwitm_"+(i+1)+"' required='true' /></td>";
-					   		html += "</tr>";
-				    	$("#qstnTypeDiv .qstnItemTbody").append(html);
-			    	}
-		    	} else if(vwitmLiCnt > vwitmCnt) {
-			    	for(var i = vwitmLiCnt; i > vwitmCnt-1; i--) {
-			    	 	$("#qstnTypeDiv .qstnItemTbody .vwitmTr:eq("+i+")").remove();
-			    	}
-		    	}
-
-		    // 연결형
-	    	} else if(type == "LINK") {
-	    		var vwitmDivCnt = $("#linkTbody .vwitmTr").length;
-
-	    		if(vwitmDivCnt < vwitmCnt) {
-	    			for(var i = vwitmDivCnt; i < vwitmCnt; i++) {
-						var html  = "<tr class='vwitmTr'>";
-							html += "	<td>" + (i+1) + "</td>";
-							html += "	<td><input type='text' name='qstnVwitmTtl' id='vwitmTtl_"+(i+1)+"' placeholder='보기 입력' required='true' /></td>";
-							html += "	<td><input type='text' name='vwitmCts' id='vwitmCts_"+(i+1)+"' placeholder='정답 입력' required='true' /></td>";
-							html += "</tr>";
-		    			$("#linkTbody").append(html);
-	    			}
-	    		} else if(vwitmDivCnt > vwitmCnt) {
-	    			for(var i = vwitmDivCnt; i > vwitmCnt-1; i--) {
-	    				$("#linkTbody .vwitmTr:eq("+i+")").remove();
-	    			}
-	    		}
-	    	}
+	    function setValue() {
+			if($("#selectQbnkCtgrId").val() == "") {
+				$("#qbnkCtgrId").val($("#upQbnkCtgrId").val());
+			} else {
+				$("#qbnkCtgrId").val($("#selectQbnkCtgrId").val());
+			}
 	    }
 
 		// 문제은행문항등록
 		function qbnkQstnRegist() {
-			UiValidator("qbnkRegistForm").then(function(result) {
+			UiValidator("qstnWriteForm").then(function(result) {
 				if (result) {
-					if(!isValidQuizQstn()) {
-					 	return false;
+					if(!qstnOption.isValidQstn("")) {
+						return false;
 					}
 
-					UiComm.showLoading(true);
-					var url = "/qbnk/qbnkQstnRegistAjax.do";
+					setValue();
+
+					let url = "/qbnk/qbnkQstnRegistAjax.do";
 					if(${not empty qbnkQstnVO.qbnkQstnId}) {
 						url = "/qbnk/qbnkQstnModifyAjax.do";
 					}
 
-					$.ajax({
-						url 	 : url,
-					    async	 : false,
-					    type 	 : "POST",
-					    dataType : "json",
-					    data 	 : $("#qbnkRegistForm").serialize(),
-					}).done(function(data) {
-						UiComm.showLoading(false);
-					 	if (data.result > 0) {
-					 		qbnkViewMv(1);
-					    } else {
-					    	UiComm.showMessage(data.message, "error");
-					    }
-					}).fail(function() {
-						 UiComm.showLoading(false);
-						 if(${not empty qbnkQstnVO.qbnkQstnId}) {
-							 UiComm.showMessage("문항 수정 중 에러가 발생하였습니다.", "error");
+					ajaxCall(url, $("#qstnWriteForm").serialize(), function (data) {
+		                if (data.result > 0) {
+		                	quizViewMv("", "QBNKLIST");
+		                } else {
+		                	UiComm.showMessage(data.message, "error");
+		                }
+		            }, function () {
+		            	if(${not empty qbnkQstnVO.qbnkQstnId}) {
+							 UiComm.showMessage("<spring:message code='quiz.error.qstn.update' />", "error");/* 문항 수정 중 에러가 발생하였습니다. */
 						 } else {
-							 UiComm.showMessage("문항 등록 중 에러가 발생하였습니다.", "error");
+							 UiComm.showMessage("<spring:message code='quiz.error.qstn.insert' />", "error");/* 문항 등록 중 에러가 발생하였습니다. */
 						 }
-					});
+		            }, true);
 				}
 			});
 		}
 
-		function isValidQuizQstn() {
-	    	var formId = "qbnkRegistForm";
-
-	    	if($("#"+formId+" select[name=selectQbnkCtgrId]").val() == "") {
-				$("#qbnkCtgrId").val($("#"+formId+" select[name=upQbnkCtgrId]").val());
-	    	} else {
-	    		$("#qbnkCtgrId").val($("#"+formId+" select[name=selectQbnkCtgrId]").val());
-	    	}
-
-			var qstnRspnsTycd = $("#"+formId+" select[name=qstnRspnsTycd]").val();	// 문항답변유형코드
-			$("#"+formId).find("input[type=hidden][name=cransTycd]").remove();
-			$("#"+formId).find("input[name=qstns]").remove();
-
-			const qstns = [];	// 문항 등록용
-
-			// 단일, 다중선택형
-			if(qstnRspnsTycd == "ONE_CHC" || qstnRspnsTycd == "MLT_CHC") {
-				var isWholCrans = $("#"+formId).find("input[name=wholCrans]").prop("checked");	// 전체 정답처리 체크 여부
-				if(!isWholCrans && $("#"+formId).find("input[name=vwitmSeqno]:checked").length == 0) {
-					UiComm.showMessage("<spring:message code='exam.alert.select.answer' />", "info");/* 정답을 선택하세요. */
-					return false;
-				}
-
-				// 다중정답 처리
-				if($("#"+formId).find("input[name=vwitmSeqno]:checked").length > 1 || isWholCrans) {
-					$("#"+formId).append("<input type='hidden' name='cransTycd' value='CRANS_MLT' />");
-				}
-
-				var vwitmCnt = $("#"+formId+" select[name=vwitmCnt]").val();	// 보기항목수
-				for(var i = 1; i <= vwitmCnt; i++) {
-					const map = {
-						vwitmSeqno: i,
-						cransyn: $("#vwitmSeqno_"+i).prop("checked") || $("#"+formId).find("input[name=wholCrans]").prop("checked") ? "Y" : "N",
-						vwitmCts: $("#vwitm_"+i).val()
-					};
-
-					qstns.push(map);
-				}
-
-			// 단답형
-			} else if(qstnRspnsTycd == "SHORT_TEXT") {
-				$("#"+formId+" .shortInput").each(function(i) {
-					var vwitmCts = "";
-					$(this).find("input[name=vwitmCts]").each(function(ii) {
-						if($.trim($(this).val()) != "") {
-							if(vwitmCts != "") {
-								vwitmCts += "|";
-							}
-							vwitmCts += $(this).val();
-						}
-					});
-
-					const map = {
-			       	vwitmSeqno: (i + 1),
-			       	cransyn: "Y",
-			       	vwitmCts: vwitmCts
-			    };
-
-			    qstns.push(map);
-				});
-
-			// OX선택형
-			} else if(qstnRspnsTycd == "OX_CHC") {
-				if($("#"+formId).find("input[name=vwitmCts]:checked").length == 0) {
-					UiComm.showMessage("<spring:message code='exam.alert.select.answer' />", "info");/* 정답을 선택하세요. */
-					return false;
-				}
-
-			    for(var i = 1; i <= 2; i++) {
-			    	const map = {
-			    		vwitmSeqno: i,
-			    		cransyn: $("#"+formId).find("input[name=vwitmCts]").eq(i-1).prop("checked") ? "Y" : "N",
-			    		vwitmCts: $("#"+formId).find("input[name=vwitmCts]").eq(i-1).val()
-			    	};
-
-			    	qstns.push(map);
-			    }
-
-			// 연결형
-			} else if(qstnRspnsTycd == "LINK") {
-				var vwitmCnt = $("#"+formId+" select[name=vwitmCnt]").val();	// 보기항목수
-				for(var i = 1; i <= vwitmCnt; i++) {
-					const map = {
-						vwitmSeqno: i,
-						cransyn: "Y",
-						vwitmCts: $("#vwitmTtl_"+i).val() + "|" + $("#vwitmCts_"+i).val()
-					};
-
-					qstns.push(map);
-				}
-			}
-
-			$("#"+formId).append("<input type='hidden' name='qstns' />");
-			$("#"+formId+" input[name=qstns]").val(JSON.stringify(qstns));
-
-			return true;
-	    }
-
 		// 문제은행문항설정
 		function qbnkQstnSetting() {
 			// 상위, 하위분류 disabled
-			if(${not empty qbnkQstnVO.upQbnkCtgrId}) {
-				$("#upQbnkCtgrId").val("${qbnkQstnVO.upQbnkCtgrId}").trigger("chosen:updated");
-			   	$("#upQbnkCtgrId").val("${qbnkQstnVO.upQbnkCtgrId}").prop("selected", true).trigger("change");
-			} else {
-				$("#upQbnkCtgrId").val("${qbnkQstnVO.qbnkCtgrId}").trigger("chosen:updated");
-				$("#upQbnkCtgrId").val("${qbnkQstnVO.qbnkCtgrId}").prop("selected", true).trigger("change");
-			}
-			$("#upQbnkCtgrId").prop("disabled", true).trigger("chosen:updated");
+			let qbnkCtgrId = "${not empty qbnkQstnVO.upQbnkCtgrId ? qbnkQstnVO.upQbnkCtgrId : qbnkQstnVO.qbnkCtgrId}";
+			$("#upQbnkCtgrId").val(qbnkCtgrId).trigger("change").prop("disabled", true).trigger("chosen:updated");
 			$("#selectQbnkCtgrId").prop("disabled", true).trigger("chosen:updated");
 
-		    const vwitmList = JSON.parse('${qbnkQstnVwitmList}');
-		    vwitmList.forEach(function(v, i) {
-				var qstnRspnsTycd = "${qbnkQstnVO.qstnRspnsTycd}";
+			const formId 		= "qstnWriteForm";
+			const qstnRspnsTycd = "${qbnkQstnVO.qstnRspnsTycd}";
 
-				// 난이도
-				$("#qbnkRegistForm select[name=qstnDfctlvTycd]").val("${qbnkQstnVO.qstnDfctlvTycd}").trigger("chosen:updated");
-				$("#qbnkRegistForm select[name=qstnDfctlvTycd]").val("${qbnkQstnVO.qstnDfctlvTycd}").prop("selected", true).trigger("change");
+		    // 난이도
+		    $("#"+formId+"QstnDfctlvTycd").val("${qbnkQstnVO.qstnDfctlvTycd}").trigger("change").trigger("chosen:updated");
 
-				// 단일, 다중선택형
-        		if(qstnRspnsTycd == "ONE_CHC" || qstnRspnsTycd == "MLT_CHC") {
-        			$("#qbnkRegistForm select[name=vwitmCnt]").val(vwitmList.length).trigger("chosen:updated");
-    				$("#qbnkRegistForm select[name=vwitmCnt]").val(vwitmList.length).prop("selected", true).trigger("change");
-    				$("#vwitm_"+v.vwitmSeqno).val(v.vwitmCts);
-    				$("#vwitmSeqno_"+v.vwitmSeqno).prop("checked", v.cransyn == "Y" ? true : false);
+			// 단일, 다중선택형
+	        if(qstnRspnsTycd == "ONE_CHC" || qstnRspnsTycd == "MLT_CHC") {
+	        	$("#"+formId+" select[name=vwitmCnt]").val("${fn:length(qbnkQstnVwitmList)}").trigger("chosen:updated");
+	    		$("#"+formId+" select[name=vwitmCnt]").val("${fn:length(qbnkQstnVwitmList)}").trigger("change");
+	    		<c:forEach var="vwitm" items="${qbnkQstnVwitmList}">
+	    			$("#"+formId+"Vwitm_${vwitm.vwitmSeqno}").val("${vwitm.vwitmCts}");
+    				$("#"+formId+"VwitmSeqno_${vwitm.vwitmSeqno}").prop("checked", "${vwitm.cransyn}" == "Y" ? true : false);
+			    </c:forEach>
 
-        		// OX선택형
-        		} else if(qstnRspnsTycd == "OX_CHC") {
-        			if(v.cransyn == "Y") {
-						$("#qbnkRegistForm input[name=vwitmCts]").val(v.vwitmCts).trigger("click");
-					}
+	        // OX선택형
+	        } else if(qstnRspnsTycd == "OX_CHC") {
+	        	<c:forEach var="vwitm" items="${qbnkQstnVwitmList}">
+	        		if("${vwitm.cransyn}" == "Y") $("#"+formId+" input[name='qstnVwitmCts'][value='${vwitm.vwitmCts}']").trigger("click");
+			    </c:forEach>
 
-        		// 연결형
-        		} else if(qstnRspnsTycd == "LINK") {
-        			$("#qbnkRegistForm select[name=vwitmCnt]").val(vwitmList.length).trigger("chosen:updated");
-    				$("#qbnkRegistForm select[name=vwitmCnt]").val(vwitmList.length).prop("selected", true).trigger("change");
-    				$("#vwitmTtl_"+v.vwitmSeqno).val(v.vwitmCts.split("|")[0]);
-    				$("#vwitmCts_"+v.vwitmSeqno).val(v.vwitmCts.split("|")[1]);
+	        // 연결형
+	        } else if(qstnRspnsTycd == "LINK") {
+	        	$("#"+formId+" select[name=vwitmCnt]").val("${fn:length(qbnkQstnVwitmList)}").trigger("chosen:updated");
+    			$("#"+formId+" select[name=vwitmCnt]").val("${fn:length(qbnkQstnVwitmList)}").trigger("change");
+    			<c:forEach var="vwitm" items="${qbnkQstnVwitmList}">
+	        		if("${vwitm.cransyn}" == "Y") {
+	    				$("#"+formId+"VwitmTtl_${vwitm.vwitmSeqno}").val("${fn:split(vwitm.vwitmCts, '|')[0]}");
+	    				$("#"+formId+"VwitmCts_${vwitm.vwitmSeqno}").val("${fn:split(vwitm.vwitmCts, '|')[1]}");
+	        		}
+			    </c:forEach>
 
-        		// 단답형
-        		} else if(qstnRspnsTycd == "SHORT_TEXT") {
-        			if(i > 0) {
-						formOption.createTextQstnAddHTML();	// 단답형 문항 추가 HTML 추가
-					}
-					v.vwitmCts.split("|").forEach(function(el, index) {
-        				$("#qstnDiv .shortInput:nth-child("+(i+1)+")").find("input[name=vwitmCts]:eq("+index+")").val(el);
-        			});
-					$('input[name="fruit"][value="banana"]').prop('checked', true);
-					$("#shortGubun input[name=cransTycd][value='${qbnkQstnVO.cransTycd}']").prop("checked", true);
+	        // 단답형
+	        } else if(qstnRspnsTycd == "SHORT_TEXT") {
+	        	$("#"+formId+" input[name=cransTycd]:input[value='${qbnkQstnVO.cransTycd}']").trigger("click");
+	        	<c:forEach var="vwitm" items="${qbnkQstnVwitmList}" varStatus="status">
+	        		if("${status.index}" > "0") qstnOption.createTextQstnAddHTML(formId, "");	// 단답형 문항 추가 HTML 추가
 
-        		}
-		    });
+	        		<c:forEach items="${fn:split(vwitm.vwitmCts, '|')}" var="cts" varStatus="ctsStatus">
+	        			$("."+formId+"_shortTr:eq(${status.index})").find("input[name=qstnVwitmCts]:eq(${ctsStatus.index})").val("${cts}");
+		        	</c:forEach>
+			    </c:forEach>
+	        }
 		}
 
 		// 문제은행문항삭제
 		function qbnkQstnDelete() {
-			var url  = "/qbnk/qbnkQstnDeleteAjax.do";
-			var data = {
-				  "qbnkQstnId" 	: "${qbnkQstnVO.qbnkQstnId}"
+			const url  = "/qbnk/qbnkQstnDeleteAjax.do";
+			const data = {
+				qbnkQstnId 	: "${qbnkQstnVO.qbnkQstnId}"
 			};
 
 			ajaxCall(url, data, function(data) {
 				if (data.result > 0) {
-					qbnkViewMv(1)
+					quizViewMv("", "QBNKLIST");
 	            } else {
 	             	UiComm.showMessage(data.message, "error");
 	            }
     		}, function(xhr, status, error) {
-    			UiComm.showMessage("<spring:message code='exam.error.delete' />", "error");/* 삭제 중 에러가 발생하였습니다. */
+    			UiComm.showMessage("<spring:message code='quiz.error.qstn.delete' />", "error");/* 문항 삭제 중 에러가 발생하였습니다. */
     		}, true);
 		}
 	</script>
 </head>
 
-<body class="class colorA">
+<body class="class ${uiex:getTheme()}">
     <div id="wrap" class="main">
         <!-- common header -->
         <jsp:include page="/WEB-INF/jsp/common_new/class_header.jsp"/>
@@ -546,136 +183,121 @@
 
             <!-- content -->
             <div id="content" class="content-wrap common">
-            	<div class="class_sub_top">
-					<div class="navi_bar">
-						<ul>
-							<li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-							<li>강의실</li>
-							<li><span class="current">내강의실</span></li>
-						</ul>
-					</div>
-					<div class="btn-wrap">
-						<div class="first">
-							<select class="form-select">
-								<option value="2025년 2학기">2025년 2학기</option>
-								<option value="2025년 1학기">2025년 1학기</option>
-							</select>
-							<select class="form-select wide">
-								<option value="">강의실 바로가기</option>
-								<option value="2025년 2학기">2025년 2학기</option>
-								<option value="2025년 1학기">2025년 1학기</option>
-							</select>
-						</div>
-						<div class="sec">
-							<button type="button" class="btn type1"><i class="xi-book-o"></i>교수 매뉴얼</button>
-							<button type="button" class="btn type1"><i class="xi-info-o"></i>학습안내정보</button>
-						</div>
-					</div>
-				</div>
+				<!-- class_sub_top -->
+				<jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+				<!-- //class_sub_top -->
 
 				<div class="class_sub">
+					<!-- class_info -->
+					<jsp:include page="/WEB-INF/jsp/common_new/class_info.jsp"/>
+					<!-- //class_info -->
+
 					<div class="sub-content">
 						<div class="listTab">
 					        <ul>
-					            <li class="select mw120"><a onclick="qbnkViewMv(1)">문제은행</a></li>
-					            <li class="mw120"><a onclick="qbnkViewMv(2)">분류코드 관리</a></li>
+					            <li class="select mw120"><a onclick="quizViewMv('', 'QBNKLIST')"><spring:message code="quiz.common.qbnk" /><!-- 문제은행 --></a></li>
+					            <li class="mw120"><a onclick="quizViewMv('', 'QBNKCTGR')"><spring:message code="quiz.tab.category" /><!-- 분류코드 관리 --></a></li>
 					        </ul>
 					    </div>
 		        		<div class="page-info">
 				        	<h2 class="page-title">
-                                <spring:message code="exam.label.qbank" /><!-- 문제은행 -->
+                                <spring:message code="quiz.common.qbnk" /><!-- 문제은행 -->
                             </h2>
 				        </div>
 				        <div class="board_top">
-				        	등록
+				        	<h3 class="board-title"><spring:message code="common.button.create" /><!-- 등록 --></h3>
 				        	<div class="right-area">
-				        		<button type="button" class="btn type2" onclick="qbnkQstnRegist()">저장</button>
+				        		<button type="button" class="btn type2" onclick="qbnkQstnRegist()"><spring:message code="common.button.save" /><!-- 저장 --></button>
 				        		<c:if test="${not empty qbnkQstnVO.qbnkQstnId }">
-				        			<button type="hidden" class="btn type2" onclick="qbnkQstnDelete()">삭제</button>
+				        			<button type="button" class="btn type2" onclick="qbnkQstnDelete()"><spring:message code="common.button.delete" /><!-- 삭제 --></button>
 				        		</c:if>
-				        		<button type="button" class="btn type2" onclick="qbnkViewMv(1)">목록</button>
+				        		<button type="button" class="btn type2" onclick="quizViewMv('', 'QBNKLIST')"><spring:message code="common.button.list" /><!-- 목록 --></button>
 				        	</div>
 				        </div>
 
-				        <form id="qbnkRegistForm" onsubmit="return false;" novalidate>
+				        <form id="qstnWriteForm" onsubmit="return false;">
 				        	<input type="hidden" name="qbnkCtgrId" 	id="qbnkCtgrId" value="${qbnkQstnVO.qbnkCtgrId }" />
 				        	<input type="hidden" name="qbnkQstnId"	id="qbnkQstnId"	value="${qbnkQstnVO.qbnkQstnId }" />
-				        	<input type="hidden" name="qstnSeqno"	id="qstnSeqno"	value="${qbnkQstnVO.qstnSeqno }" />
 				        	<input type="hidden" name="qstnScr"		value="0" />
-				        	<table class="table-type5">
-				        		<colgroup>
-				        			<col class="width-20per" />
-				        			<col class="" />
-				        		</colgroup>
-				        		<tbody>
-				        			<tr>
-				        				<th><label for="upQbnkCtgrId" class="req">분류</label></th>
-				        				<td>
-				        					<select class="form-select" name="upQbnkCtgrId" id="upQbnkCtgrId" onchange="subQbnkCtgrList(this.value)" required="true">
-		                                		<option value=""><spring:message code="exam.label.upper.categori" /></option><!-- 상위분류 -->
-			                                    <c:forEach var="item" items="${upQbnkCtgrList }">
-									            	<option value="${item.qbnkCtgrId }">${item.ctgrnm }</option>
-									            </c:forEach>
-			                                </select>
-		                                	<select class="form-select" name="selectQbnkCtgrId" id="selectQbnkCtgrId">
-		                                		<option value=""><spring:message code="exam.label.sub.categori" /></option><!-- 하위분류 -->
-			                                </select>
-				        				</td>
-				        			</tr>
-				        			<tr>
-					        			<th><label class="req">과목코드/과목</label></th>
-					        			<td>
-					        				<input class="form-control" type="text" name="sbjctId" value="${qbnkSbjct.sbjctId }" readonly="true" autocomplete="off" required="true">
-					        				<span>( ${qbnkSbjct.sbjctnm } ${qbnkSbjct.dvclasNo }반 )</span>
-					        			</td>
-					        		</tr>
-					        		<tr>
-					        			<th><label class="req">대표아이디</label></th>
-					        			<td><input class="form-control" type="text" name="userRprsId" value="${qbnkSbjct.userRprsId }" readonly="true" autocomplete="off" required="true"></td>
-					        		</tr>
-					        		<tr>
-					        			<th><label>교수번호/교수명</label></th>
-					        			<td>
-					        				<input class="form-control" type="text" name="userId" value="${qbnkSbjct.profId }" readonly="true" autocomplete="off">
-					        				<span>( ${qbnkSbjct.usernm } 교수 )</span>
-					        			</td>
-					        		</tr>
-				        		</tbody>
-				        	</table>
-							<div class="margin-top-4" id="qstnRegistDiv">
-								<h3>[ 문제 추가 ]</h3>
-								<div class="content margin-top-3">
-									<div class="flex gap-1 margin-bottom-3">
-										<div class="flex-1">
-											<input type="text" class="width-100per" inputmask="byte" maxLen="200" name="qstnTtl" required="true" value="${qbnkQstnVO.qstnTtl }" />
-										</div>
-										<select class="form-select" name="qstnRspnsTycd" onchange="qstnRspnsTycdChgChange()" required="true">
-											<c:forEach var="code" items="${qstnRspnsTycdList }">
-												<option value="${code.cd }" ${qbnkQstnVO.qstnRspnsTycd eq code.cd ? 'selected' : '' }>${code.cdnm }</option>
-											</c:forEach>
-										</select>
-									</div>
-									<p class="fcRed margin-bottom-3">* 기본 설정된 제목 대신 다른 제목을 넣으시면 좀 더 쉽게 문제를 구분하실 수 있습니다.</p>
-									<div class="editor-box">
-										<textarea name="qstnCts" id="qstnEditor" required="true">${qbnkQstnVO.qstnCts }</textarea>
-										<script>
-											// HTML 에디터
-											var editor = UiEditor({
-																	targetId: "qstnEditor",
-																	uploadPath: "/qbnk",
-																	height: "400px"
-																});
-										</script>
-									</div>
-									<div class="margin-top-4" id="qstnTypeDiv">
-										<table class="table-type2">
-											<colgroup>
-												<col class="width-20per" />
-												<col class="" />
-											</colgroup>
-											<tbody></tbody>
-										</table>
-									</div>
+				        	<div class="table-wrap">
+					        	<table class="table-type5">
+					        		<colgroup>
+					        			<col class="width-15per" />
+					        			<col class="" />
+					        		</colgroup>
+					        		<tbody>
+					        			<tr>
+					        				<th><label for="upQbnkCtgrId" class="req"><spring:message code="common.label.ctgr" /><!-- 분류 --></label></th>
+					        				<td>
+					        					<select class="form-select" name="upQbnkCtgrId" id="upQbnkCtgrId" onchange="subQbnkCtgrList(this.value)" required="true">
+			                                		<option value=""><spring:message code="quiz.label.upper.category" /></option><!-- 상위분류 -->
+				                                    <c:forEach var="item" items="${upQbnkCtgrList }">
+										            	<option value="${item.qbnkCtgrId }">${item.ctgrnm }</option>
+										            </c:forEach>
+				                                </select>
+			                                	<select class="form-select" name="selectQbnkCtgrId" id="selectQbnkCtgrId">
+			                                		<option value=""><spring:message code="quiz.label.sub.category" /></option><!-- 하위분류 -->
+				                                </select>
+					        				</td>
+					        			</tr>
+					        			<tr>
+						        			<th><label class="req"><spring:message code="common.label.crsauth.crscd" /><!-- 과목코드 -->/<spring:message code="common.subject" /><!-- 과목 --></label></th>
+						        			<td>
+						        				<input class="form-control" type="text" name="sbjctId" value="${qbnkSbjct.sbjctId }" readonly="true" autocomplete="off" required="true">
+						        				<span>( ${qbnkSbjct.sbjctnm } ${qbnkSbjct.dvclasNo }<spring:message code="quiz.label.decls" /><!-- 반 --> )</span>
+						        			</td>
+						        		</tr>
+						        		<tr>
+						        			<th><label><spring:message code="common.label.prof.no" /><!-- 교수사번 -->/<spring:message code="common.label.prof.nm" /><!-- 교수명 --></label></th>
+						        			<td>
+						        				<input class="form-control" type="text" name="userId" value="${qbnkSbjct.userId }" readonly="true" autocomplete="off">
+						        				<span>( ${qbnkSbjct.usernm } <spring:message code="common.professor" /><!-- 교수 --> )</span>
+						        			</td>
+						        		</tr>
+					        		</tbody>
+					        	</table>
+				        	</div>
+							<div class="board_top" id="qstnRegistDiv">
+								<h3>[ <spring:message code="quiz.button.qstn.add" /><!-- 문제 추가 --> ]</h3>
+								<div class="table-wrap qstnTypeDiv">
+									<table class="table-type5">
+										<colgroup>
+											<col class="width-15per">
+											<col class="">
+										</colgroup>
+										<tbody>
+											<tr class="titleTr notEmptyTr">
+												<th><spring:message code="quiz.label.qstn" /><!-- 문제 --></th>
+												<td>
+													<div class="form-row gap-2">
+														<input type="text" class="form-control width-80per" inputmask="byte" maxLen="200" name="qstnTtl" required="true" value="${qbnkQstnVO.qstnTtl }" />
+														<select class="form-select width-20per" name="qstnRspnsTycd" onchange="qstnOption.qstnRspnsTycdChgChange('qstnWriteForm')" required="true">
+															<c:forEach var="code" items="${qstnRspnsTycdList }">
+																<option value="${code.cd }" ${qbnkQstnVO.qstnRspnsTycd eq code.cd ? 'selected' : '' }>${code.cdnm }</option>
+															</c:forEach>
+														</select>
+													</div>
+													<small class="note2"><spring:message code="quiz.label.another.title" /><!-- ! 기본 설정된 제목 대신 다른 제목을 넣으시면 좀 더 쉽게 문제를 구분하실 수 있습니다. --></small>
+												</td>
+											</tr>
+											<tr class="notEmptyTr">
+												<th><spring:message code="common.label.contents" /><!-- 내용 --></th>
+												<td>
+													<div class="editor-box">
+														<textarea name="qstnCts" id="qstnCts" required="true">${qbnkQstnVO.qstnCts }</textarea>
+														<script>
+															// HTML 에디터
+															var editor = UiEditor({
+																					targetId: "qstnCts",
+																					uploadPath: "${vo.uploadPath}",
+																					height: "300px"
+																				});
+														</script>
+													</div>
+												</td>
+											</tr>
+										</tbody>
+									</table>
 								</div>
 							</div>
 				        </form>

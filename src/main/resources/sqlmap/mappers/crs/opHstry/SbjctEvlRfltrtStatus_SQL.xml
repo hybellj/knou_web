@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.crs.opHstry.dao.SbjctEvlRfltrtStatusDAO">
+
+    <sql id="sbjctEvlRfltrtStatusQuery">
+        WITH BASIC AS (
+            SELECT
+                  CHRT.ORG_ID
+                , ORG.ORGNM
+                , CHRT.DGRS_YR
+                , CHRT.DGRS_SMSTR_CHRT
+                , CHRT.SMSTR_CHRTNM
+                , SBJCT.SBJCT_ID
+                , SBJCT.CRCLMN_NO
+                , SBJCT.SBJCTNM
+                , SBJCT.DVCLAS_NO
+                , SBJCT_ADM.PROF_USER_ID
+                , SBJCT_ADM.PROF_USERNM
+                , SBJCT_ADM.TUT_USER_ID
+                , SBJCT_ADM.TUT_USERNM
+            FROM TB_LMS_SBJCT SBJCT
+            JOIN TB_LMS_SMSTR_CHRT CHRT ON CHRT.SMSTR_CHRT_ID = SBJCT.SMSTR_CHRT_ID
+            LEFT JOIN TB_LMS_ORG ORG ON ORG.ORG_ID = CHRT.ORG_ID
+            LEFT JOIN (
+                SELECT
+                      ADM.SBJCT_ID
+                    , MAX(CASE WHEN ADM.SBJCT_ADM_TYCD = 'PROF' THEN USR.USER_ID END) AS PROF_USER_ID
+                    , MAX(CASE WHEN ADM.SBJCT_ADM_TYCD = 'PROF' THEN USR.USERNM END) AS PROF_USERNM
+                    , MAX(CASE WHEN ADM.SBJCT_ADM_TYCD = 'TUT' THEN USR.USER_ID END) AS TUT_USER_ID
+                    , MAX(CASE WHEN ADM.SBJCT_ADM_TYCD = 'TUT' THEN USR.USERNM END) AS TUT_USERNM
+                FROM TB_LMS_SBJCT_ADM ADM
+                JOIN TB_LMS_USER USR ON USR.USER_ID = ADM.USER_ID
+                GROUP BY ADM.SBJCT_ID
+            ) SBJCT_ADM ON SBJCT_ADM.SBJCT_ID = SBJCT.SBJCT_ID
+            WHERE SBJCT.DELYN = 'N'
+            <if test="orgId != null and orgId != ''">
+                AND CHRT.ORG_ID = #{orgId}
+            </if>
+            <if test="smstrChrtId != null and smstrChrtId != ''">
+                AND CHRT.SMSTR_CHRT_ID = #{smstrChrtId}
+            </if>
+            <if test="searchValue != null and searchValue != ''">
+                AND (
+                       LOWER(TO_CHAR(SBJCT.CRCLMN_NO)) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                    OR LOWER(SBJCT.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                    OR LOWER(SBJCT_ADM.PROF_USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                )
+            </if>
+        ), MRK AS (
+            SELECT
+                  SBJCT_ID
+                , MAX(CASE WHEN MRK_ITM_TYCD = 'ASMT' AND NVL(MRK_ITM_USEYN, 'N') = 'Y' AND NVL(MRK_RFLTRT, 0) &gt; 0 THEN 'Y' ELSE 'N' END) AS ASMT_WGT_YN
+                , MAX(CASE WHEN MRK_ITM_TYCD = 'ASMT' AND NVL(MRK_ITM_USEYN, 'N') = 'Y' AND NVL(MRK_RFLTRT, 0) &gt; 0 THEN MRK_RFLTRT END) AS ASMT_RFLTRT
+                , MAX(CASE WHEN MRK_ITM_TYCD = 'DSCS' AND NVL(MRK_ITM_USEYN, 'N') = 'Y' AND NVL(MRK_RFLTRT, 0) &gt; 0 THEN 'Y' ELSE 'N' END) AS DSCS_WGT_YN
+                , MAX(CASE WHEN MRK_ITM_TYCD = 'DSCS' AND NVL(MRK_ITM_USEYN, 'N') = 'Y' AND NVL(MRK_RFLTRT, 0) &gt; 0 THEN MRK_RFLTRT END) AS DSCS_RFLTRT
+                , MAX(CASE WHEN MRK_ITM_TYCD = 'QUIZ' AND NVL(MRK_ITM_USEYN, 'N') = 'Y' AND NVL(MRK_RFLTRT, 0) &gt; 0 THEN 'Y' ELSE 'N' END) AS QUIZ_WGT_YN
+                , MAX(CASE WHEN MRK_ITM_TYCD = 'QUIZ' AND NVL(MRK_ITM_USEYN, 'N') = 'Y' AND NVL(MRK_RFLTRT, 0) &gt; 0 THEN MRK_RFLTRT END) AS QUIZ_RFLTRT
+                , MAX(CASE WHEN MRK_ITM_TYCD = 'SRVY' AND NVL(MRK_ITM_USEYN, 'N') = 'Y' AND NVL(MRK_RFLTRT, 0) &gt; 0 THEN 'Y' ELSE 'N' END) AS SRVY_WGT_YN
+                , MAX(CASE WHEN MRK_ITM_TYCD = 'SRVY' AND NVL(MRK_ITM_USEYN, 'N') = 'Y' AND NVL(MRK_RFLTRT, 0) &gt; 0 THEN MRK_RFLTRT END) AS SRVY_RFLTRT
+                , MAX(CASE WHEN MRK_ITM_TYCD = 'SMNR' AND NVL(MRK_ITM_USEYN, 'N') = 'Y' AND NVL(MRK_RFLTRT, 0) &gt; 0 THEN 'Y' ELSE 'N' END) AS SMNR_WGT_YN
+                , MAX(CASE WHEN MRK_ITM_TYCD = 'SMNR' AND NVL(MRK_ITM_USEYN, 'N') = 'Y' AND NVL(MRK_RFLTRT, 0) &gt; 0 THEN MRK_RFLTRT END) AS SMNR_RFLTRT
+                , MAX(CASE WHEN MRK_ITM_TYCD = 'EXAM' AND NVL(MRK_ITM_USEYN, 'N') = 'Y' AND NVL(MRK_RFLTRT, 0) &gt; 0 THEN 'Y' ELSE 'N' END) AS EXAM_WGT_YN
+                , MAX(CASE WHEN MRK_ITM_TYCD = 'EXAM' AND NVL(MRK_ITM_USEYN, 'N') = 'Y' AND NVL(MRK_RFLTRT, 0) &gt; 0 THEN MRK_RFLTRT END) AS EXAM_RFLTRT
+            FROM TB_LMS_MRK_ITM_STNG
+            GROUP BY SBJCT_ID
+        ), ASMT_CNT AS (
+            SELECT
+                  SBJCT_ID
+                , COUNT(1) AS OPEN_CNT
+            FROM TB_LMS_ASMT
+            WHERE DELYN = 'N'
+              AND UP_ASMT_ID IS NULL
+              AND ASMT_GBNCD NOT LIKE '%SBST%'
+            GROUP BY SBJCT_ID
+        ), DSCS_CNT AS (
+            SELECT
+                  SBJCT_ID
+                , COUNT(1) AS OPEN_CNT
+            FROM TB_LMS_DSCS
+            WHERE DELYN = 'N'
+              AND UP_DSCS_ID IS NULL
+              AND DSCS_GBNCD NOT LIKE '%SBST%'
+            GROUP BY SBJCT_ID
+        ), QUIZ_CNT AS (
+            SELECT
+                  SBJCT_ID
+                , COUNT(1) AS OPEN_CNT
+            FROM TB_LMS_EXAM_BSC
+            WHERE DELYN = 'N'
+              AND NVL(USEYN, 'N') = 'Y'
+              AND EXAM_TYCD = 'QUIZ'
+              AND EXAM_GBNCD IN ('QUIZ', 'QUIZ_TEAM')
+            GROUP BY SBJCT_ID
+        ), SRVY_CNT AS (
+            SELECT
+                  SBJCT_ID
+                , COUNT(1) AS OPEN_CNT
+            FROM TB_LMS_SRVY
+            WHERE DELYN = 'N'
+              AND NVL(USEYN, 'N') = 'Y'
+              AND UP_SRVY_ID IS NULL
+            GROUP BY SBJCT_ID
+        ), SMNR_CNT AS (
+            SELECT
+                  SBJCT_ID
+                , COUNT(1) AS OPEN_CNT
+            FROM TB_LMS_SMNR
+            WHERE DELYN = 'N'
+              AND UP_SMNR_ID IS NULL
+            GROUP BY SBJCT_ID
+        ), EXAM_CNT AS (
+            SELECT
+                  SBJCT_ID
+                , COUNT(1) AS OPEN_CNT
+            FROM TB_LMS_EXAM_BSC
+            WHERE DELYN = 'N'
+              AND NVL(USEYN, 'N') = 'Y'
+              AND NVL(REGYN, 'N') = 'Y'
+              AND EXAM_TYCD = 'EXAM'
+              AND EXAM_GBNCD IN ('EXAM', 'EXAM_TEAM')
+            GROUP BY SBJCT_ID
+        ), STATUS AS (
+            SELECT
+                  B.*
+                , MRK.ASMT_RFLTRT
+                , NVL(ASMT_CNT.OPEN_CNT, 0) AS ASMT_OPEN_CNT
+                , CASE WHEN NVL(MRK.ASMT_WGT_YN, 'N') = 'Y' AND NVL(ASMT_CNT.OPEN_CNT, 0) = 0 THEN 'MISS' WHEN NVL(MRK.ASMT_WGT_YN, 'N') = 'N' AND NVL(ASMT_CNT.OPEN_CNT, 0) &gt; 0 THEN 'WRONG' WHEN NVL(ASMT_CNT.OPEN_CNT, 0) &gt; 0 THEN 'OPEN' ELSE 'NONE' END AS ASMT_STATUS_CD
+                , MRK.DSCS_RFLTRT
+                , NVL(DSCS_CNT.OPEN_CNT, 0) AS DSCS_OPEN_CNT
+                , CASE WHEN NVL(MRK.DSCS_WGT_YN, 'N') = 'Y' AND NVL(DSCS_CNT.OPEN_CNT, 0) = 0 THEN 'MISS' WHEN NVL(MRK.DSCS_WGT_YN, 'N') = 'N' AND NVL(DSCS_CNT.OPEN_CNT, 0) &gt; 0 THEN 'WRONG' WHEN NVL(DSCS_CNT.OPEN_CNT, 0) &gt; 0 THEN 'OPEN' ELSE 'NONE' END AS DSCS_STATUS_CD
+                , MRK.QUIZ_RFLTRT
+                , NVL(QUIZ_CNT.OPEN_CNT, 0) AS QUIZ_OPEN_CNT
+                , CASE WHEN NVL(MRK.QUIZ_WGT_YN, 'N') = 'Y' AND NVL(QUIZ_CNT.OPEN_CNT, 0) = 0 THEN 'MISS' WHEN NVL(MRK.QUIZ_WGT_YN, 'N') = 'N' AND NVL(QUIZ_CNT.OPEN_CNT, 0) &gt; 0 THEN 'WRONG' WHEN NVL(QUIZ_CNT.OPEN_CNT, 0) &gt; 0 THEN 'OPEN' ELSE 'NONE' END AS QUIZ_STATUS_CD
+                , MRK.SRVY_RFLTRT
+                , NVL(SRVY_CNT.OPEN_CNT, 0) AS SRVY_OPEN_CNT
+                , CASE WHEN NVL(MRK.SRVY_WGT_YN, 'N') = 'Y' AND NVL(SRVY_CNT.OPEN_CNT, 0) = 0 THEN 'MISS' WHEN NVL(MRK.SRVY_WGT_YN, 'N') = 'N' AND NVL(SRVY_CNT.OPEN_CNT, 0) &gt; 0 THEN 'WRONG' WHEN NVL(SRVY_CNT.OPEN_CNT, 0) &gt; 0 THEN 'OPEN' ELSE 'NONE' END AS SRVY_STATUS_CD
+                , MRK.SMNR_RFLTRT
+                , NVL(SMNR_CNT.OPEN_CNT, 0) AS SMNR_OPEN_CNT
+                , CASE WHEN NVL(MRK.SMNR_WGT_YN, 'N') = 'Y' AND NVL(SMNR_CNT.OPEN_CNT, 0) = 0 THEN 'MISS' WHEN NVL(MRK.SMNR_WGT_YN, 'N') = 'N' AND NVL(SMNR_CNT.OPEN_CNT, 0) &gt; 0 THEN 'WRONG' WHEN NVL(SMNR_CNT.OPEN_CNT, 0) &gt; 0 THEN 'OPEN' ELSE 'NONE' END AS SMNR_STATUS_CD
+                , MRK.EXAM_RFLTRT
+                , NVL(EXAM_CNT.OPEN_CNT, 0) AS EXAM_OPEN_CNT
+                , CASE WHEN NVL(MRK.EXAM_WGT_YN, 'N') = 'Y' AND NVL(EXAM_CNT.OPEN_CNT, 0) = 0 THEN 'MISS' WHEN NVL(MRK.EXAM_WGT_YN, 'N') = 'N' AND NVL(EXAM_CNT.OPEN_CNT, 0) &gt; 0 THEN 'WRONG' WHEN NVL(EXAM_CNT.OPEN_CNT, 0) &gt; 0 THEN 'OPEN' ELSE 'NONE' END AS EXAM_STATUS_CD
+            FROM BASIC B
+            LEFT JOIN MRK ON MRK.SBJCT_ID = B.SBJCT_ID
+            LEFT JOIN ASMT_CNT ON ASMT_CNT.SBJCT_ID = B.SBJCT_ID
+            LEFT JOIN DSCS_CNT ON DSCS_CNT.SBJCT_ID = B.SBJCT_ID
+            LEFT JOIN QUIZ_CNT ON QUIZ_CNT.SBJCT_ID = B.SBJCT_ID
+            LEFT JOIN SRVY_CNT ON SRVY_CNT.SBJCT_ID = B.SBJCT_ID
+            LEFT JOIN SMNR_CNT ON SMNR_CNT.SBJCT_ID = B.SBJCT_ID
+            LEFT JOIN EXAM_CNT ON EXAM_CNT.SBJCT_ID = B.SBJCT_ID
+        )
+        SELECT
+              A.*
+        FROM STATUS A
+        WHERE 1=1
+        <if test="missingTyCds != null and missingTyCds != ''">
+            AND (
+                (INSTR(',' || #{missingTyCds} || ',', ',ASMT,') &gt; 0 AND A.ASMT_STATUS_CD = 'MISS')
+                OR (INSTR(',' || #{missingTyCds} || ',', ',DSCS,') &gt; 0 AND A.DSCS_STATUS_CD = 'MISS')
+                OR (INSTR(',' || #{missingTyCds} || ',', ',QUIZ,') &gt; 0 AND A.QUIZ_STATUS_CD = 'MISS')
+                OR (INSTR(',' || #{missingTyCds} || ',', ',SRVY,') &gt; 0 AND A.SRVY_STATUS_CD = 'MISS')
+                OR (INSTR(',' || #{missingTyCds} || ',', ',SMNR,') &gt; 0 AND A.SMNR_STATUS_CD = 'MISS')
+                OR (INSTR(',' || #{missingTyCds} || ',', ',EXAM,') &gt; 0 AND A.EXAM_STATUS_CD = 'MISS')
+            )
+        </if>
+        <if test="wrongTyCds != null and wrongTyCds != ''">
+            AND (
+                (INSTR(',' || #{wrongTyCds} || ',', ',ASMT,') &gt; 0 AND A.ASMT_STATUS_CD = 'WRONG')
+                OR (INSTR(',' || #{wrongTyCds} || ',', ',DSCS,') &gt; 0 AND A.DSCS_STATUS_CD = 'WRONG')
+                OR (INSTR(',' || #{wrongTyCds} || ',', ',QUIZ,') &gt; 0 AND A.QUIZ_STATUS_CD = 'WRONG')
+                OR (INSTR(',' || #{wrongTyCds} || ',', ',SRVY,') &gt; 0 AND A.SRVY_STATUS_CD = 'WRONG')
+                OR (INSTR(',' || #{wrongTyCds} || ',', ',SMNR,') &gt; 0 AND A.SMNR_STATUS_CD = 'WRONG')
+                OR (INSTR(',' || #{wrongTyCds} || ',', ',EXAM,') &gt; 0 AND A.EXAM_STATUS_CD = 'WRONG')
+            )
+        </if>
+    </sql>
+
+    <select id="listSbjctEvlRfltrtStatus" parameterType="sbjctEvlRfltrtStatusVO" resultType="egovMap">
+        /*
+            SQL ID : SbjctEvlRfltrtStatusDAO.listSbjctEvlRfltrtStatus
+            내용 : 과목별 평가비중 시행현황 목록 조회
+        */
+        SELECT
+              BASE.ORG_ID
+            , BASE.ORGNM
+            , BASE.DGRS_YR
+            , BASE.DGRS_SMSTR_CHRT
+            , BASE.SMSTR_CHRTNM
+            , BASE.SBJCT_ID
+            , BASE.CRCLMN_NO
+            , BASE.SBJCTNM
+            , BASE.DVCLAS_NO
+            , BASE.PROF_USER_ID
+            , BASE.PROF_USERNM
+            , BASE.TUT_USER_ID
+            , BASE.TUT_USERNM
+            , BASE.ASMT_RFLTRT
+            , BASE.ASMT_OPEN_CNT
+            , BASE.ASMT_STATUS_CD
+            , BASE.DSCS_RFLTRT
+            , BASE.DSCS_OPEN_CNT
+            , BASE.DSCS_STATUS_CD
+            , BASE.QUIZ_RFLTRT
+            , BASE.QUIZ_OPEN_CNT
+            , BASE.QUIZ_STATUS_CD
+            , BASE.SRVY_RFLTRT
+            , BASE.SRVY_OPEN_CNT
+            , BASE.SRVY_STATUS_CD
+            , BASE.SMNR_RFLTRT
+            , BASE.SMNR_OPEN_CNT
+            , BASE.SMNR_STATUS_CD
+            , BASE.EXAM_RFLTRT
+            , BASE.EXAM_OPEN_CNT
+            , BASE.EXAM_STATUS_CD
+        FROM (
+            <include refid="sbjctEvlRfltrtStatusQuery"/>
+        ) BASE
+        ORDER BY
+              BASE.DGRS_YR DESC
+            , BASE.DGRS_SMSTR_CHRT DESC
+            , BASE.ORG_ID
+            , BASE.CRCLMN_NO
+    </select>
+</mapper>

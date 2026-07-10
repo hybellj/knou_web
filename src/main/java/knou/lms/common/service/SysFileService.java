@@ -35,4 +35,6 @@ public interface SysFileService {
     public void convertToHtmlViewerFileList(List<FileVO> list) throws Exception;
 
     public void removeConvertFile(FileVO vo) throws Exception;
+
+    public void bbsZipFileDown(String fileDownNm, List<FileVO> list, HttpServletRequest request, HttpServletResponse response) throws Exception;
 }

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.smnr.dao.SmnrAtndHstryDAO">
+
+	<insert id="smnrAtndHstryRegist" parameterType="smnrAtndHstryVO">
+		/*
+             SQL ID : SmnrAtndHstryDAO.smnrAtndHstryRegist
+             설  명  : 세미나참석이력등록
+         */
+        INSERT INTO TB_LMS_SMNR_ATND_HSTRY (
+        	  SMNR_ATND_HSTRY_ID
+			, SMNR_ID
+			, ATNDE_ID
+			, ATND_SDTTM
+			, ATND_EDTTM
+			, ATND_SCNDS
+			, ATND_STSCD
+			, CNTN_DVC_TYCD
+			, ATNDE_IP
+			, RGTR_ID
+			, REG_DTTM
+        ) VALUES (
+        	  #{smnrAtndHstryId}
+			, #{smnrId}
+			, #{atndeId}
+			, #{atndSdttm}
+			, #{atndEdttm}
+			, #{atndScnds}
+			, #{atndStscd}
+			, #{cntnDvcTycd}
+			, #{atndeIp}
+			, #{rgtrId}
+			, FN_DTTM()
+        )
+	</insert>
+
+	<select id="smnrAtndHstryList" parameterType="smnrVO" resultType="egovMap">
+		/*
+             SQL ID : SmnrAtndHstryDAO.smnrAtndHstryList
+             설  명  : 세미나참석이력목록
+         */
+        SELECT
+			  ROW_NUMBER() OVER(ORDER BY HSTRY.REG_DTTM DESC) AS LINE_NO
+			, USR.STDNT_NO
+			, USR.USERNM
+			, HSTRY.ATND_SDTTM
+			, HSTRY.ATND_EDTTM
+			, HSTRY.ATND_SCNDS
+			, HSTRY.CNTN_DVC_TYCD
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'CNTN_DVC_TYCD' AND CD = HSTRY.CNTN_DVC_TYCD) AS CNTN_DVC_TYNM
+		  FROM TB_LMS_SMNR_ATND_HSTRY HSTRY
+		  JOIN TB_LMS_SMNR SMNR
+		    ON SMNR.SMNR_ID = HSTRY.SMNR_ID
+		   AND SMNR.DELYN = 'N'
+		  JOIN TB_LMS_ATNDLC ATNDLC
+		    ON HSTRY.ATNDE_ID = ATNDLC.USER_ID
+		   AND ATNDLC.SBJCT_ID = SMNR.SBJCT_ID
+		   AND ATNDLC.AUDITYN = 'N'
+		  JOIN TB_LMS_USER USR
+		    ON ATNDLC.USER_ID = USR.USER_ID
+		   AND USR.USER_STSCD = 'ACTV'
+		 WHERE (SMNR.SMNR_ID = #{smnrId} OR SMNR.UP_SMNR_ID = #{smnrId})
+		 <if test="searchValue != null and searchValue != ''">
+           AND (
+         			   LOWER(USR.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+         			OR LOWER(USR.STDNT_NO) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+         			OR LOWER(USR.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+         		)
+         </if>
+           AND HSTRY.ATND_SDTTM IS NOT NULL
+	</select>
+
+	<insert id="userListAtndHstryBulkRegist" parameterType="java.util.List">
+		/*
+             SQL ID : SmnrAtndHstryDAO.userListAtndHstryBulkRegist
+             설  명  : 사용자목록참석이력일괄등록
+         */
+        INSERT ALL
+		<foreach item="item" collection="list">
+			INTO TB_LMS_SMNR_ATND_HSTRY (
+	         	  SMNR_ATND_HSTRY_ID
+				, SMNR_ID
+				, ATNDE_ID
+				, ATND_STSCD
+				, RGTR_ID
+				, REG_DTTM
+	         ) VALUES (
+	         	  #{item.smnrAtndHstryId}
+				, #{item.smnrId}
+				, #{item.userId}
+				, #{item.atndStscd}
+				, #{item.rgtrId}
+				, FN_DTTM()
+	         )
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+
+	<select id="userSmnrAtndHstryList" parameterType="smnrAtndHstryVO" resultType="egovMap">
+		/*
+             SQL ID : SmnrAtndHstryDAO.userSmnrAtndHstryList
+             설  명  : 사용자세미나참석이력목록
+         */
+        SELECT
+			  ROW_NUMBER() OVER(ORDER BY HSTRY.REG_DTTM DESC) AS LINE_NO
+			, HSTRY.ATND_SDTTM
+			, HSTRY.ATND_EDTTM
+			, HSTRY.ATND_SCNDS
+			, HSTRY.ATNDE_IP
+			, HSTRY.CNTN_DVC_TYCD
+			, HSTRY.ATND_STSCD
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'CNTN_DVC_TYCD' AND CD = HSTRY.CNTN_DVC_TYCD) AS CNTN_DVC_TYNM
+		  FROM TB_LMS_SMNR_ATND_HSTRY HSTRY
+		  JOIN TB_LMS_SMNR SMNR
+		    ON SMNR.SMNR_ID = HSTRY.SMNR_ID
+		   AND SMNR.DELYN = 'N'
+		  JOIN TB_LMS_ATNDLC ATNDLC
+		    ON HSTRY.ATNDE_ID = ATNDLC.USER_ID
+		   AND ATNDLC.SBJCT_ID = SMNR.SBJCT_ID
+		   AND ATNDLC.AUDITYN = 'N'
+		  JOIN TB_LMS_USER USR
+		    ON ATNDLC.USER_ID = USR.USER_ID
+		   AND USR.USER_STSCD = 'ACTV'
+		 WHERE SMNR.SMNR_ID = #{smnrId}
+		   AND HSTRY.ATNDE_ID = #{atndeId}
+	</select>
+
+	<select id="trgtrSmnrAtndHstryListByEzGrader" parameterType="map" resultType="egovMap">
+		/*
+             SQL ID : SmnrAtndHstryDAO.trgtrSmnrAtndHstryListByEzGrader
+             설  명  : 대상자세미나참석이력목록조회 ( Ez-Grader )
+         */
+        SELECT
+        	A.*
+          FROM (
+	        <foreach item="item" collection="list" separator="UNION ALL">
+		        SELECT
+		        	  ROW_NUMBER() OVER(ORDER BY HSTRY.REG_DTTM DESC) AS LINE_NO
+					, HSTRY.SMNR_ID
+					, HSTRY.ATNDE_ID
+					, HSTRY.ATND_SDTTM
+					, HSTRY.ATND_EDTTM
+					, HSTRY.ATND_SCNDS
+					, HSTRY.ATNDE_IP
+					, HSTRY.CNTN_DVC_TYCD
+					, HSTRY.ATND_STSCD
+					, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'CNTN_DVC_TYCD' AND CD = HSTRY.CNTN_DVC_TYCD) AS CNTN_DVC_TYNM
+					, HSTRY.REG_DTTM
+				  FROM TB_LMS_SMNR_ATND_HSTRY HSTRY
+				  JOIN TB_LMS_SMNR SMNR
+				    ON SMNR.SMNR_ID = HSTRY.SMNR_ID
+				   AND SMNR.DELYN = 'N'
+				  JOIN TB_LMS_ATNDLC ATNDLC
+				    ON HSTRY.ATNDE_ID = ATNDLC.USER_ID
+				   AND ATNDLC.SBJCT_ID = SMNR.SBJCT_ID
+				   AND ATNDLC.AUDITYN = 'N'
+				  JOIN TB_LMS_USER USR
+				    ON ATNDLC.USER_ID = USR.USER_ID
+				   AND USR.USER_STSCD = 'ACTV'
+				 WHERE SMNR.SMNR_ID = #{item.smnrId}
+				   AND HSTRY.ATNDE_ID = #{item.userId}
+				   AND HSTRY.ATND_SDTTM IS NOT NULL
+	        </foreach>
+		) A
+		ORDER BY A.ATNDE_ID
+	</select>
+
+</mapper>

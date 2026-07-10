@@ -4,7 +4,7 @@
 <%@ include file="../dm_inc/home_common.jsp" %>
 <link rel="stylesheet" type="text/css" href="/webdoc/dm_assets/css/dashboard.css" />
 
-<body class="home colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="home ${uiex:getTheme()} "><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
         <%@ include file="../dm_inc/home_header.jsp" %>

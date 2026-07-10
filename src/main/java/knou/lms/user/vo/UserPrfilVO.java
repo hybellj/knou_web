@@ -10,7 +10,6 @@ public class UserPrfilVO extends DefaultVO {
 
     private String usernm;            // 사용자명
     private String photoFileId;       // 프로필사진파일ID
-    private String deptId;            // 학과/부서아이디
     private String shrtntAlimRcvyn;   // 쪽지수신여부
     private String emlAlimRcvyn;      // 이메일알림수신여부
     private String pushTalkSmsFlag;     // 푸시톡문자수신플래그
@@ -49,24 +48,21 @@ public class UserPrfilVO extends DefaultVO {
     private String photoFileDelyn;  // 사진파일삭제여부
 
     /* ================= 임시 ================= */
-    private String orgnm;
     private String userAuthrtId;    // 사용자권한아이디
     private String authrtId;    // 권한아이디
 
+    public	UserPrfilVO() {}
+    
+    public 	UserPrfilVO(String userId) {
+    	setUserId(userId);
+    }
+    
     public String getUsernm() {
         return usernm;
     }
 
     public void setUsernm(String usernm) {
         this.usernm = usernm;
-    }
-
-    public String getDeptId() {
-        return deptId;
-    }
-
-    public void setDeptId(String deptId) {
-        this.deptId = deptId;
     }
 
     public String getPhotoFileId() {
@@ -211,15 +207,6 @@ public class UserPrfilVO extends DefaultVO {
 
     public void setPushTalkSmsFlag(String pushTalkSmsFlag) {
         this.pushTalkSmsFlag = pushTalkSmsFlag;
-    }
-
-
-    public String getOrgnm() {
-        return orgnm;
-    }
-
-    public void setOrgnm(String orgnm) {
-        this.orgnm = orgnm;
     }
 
     public String getGndrTycd() {

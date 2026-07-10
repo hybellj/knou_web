@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.log.haksa.dao.AisLinkLogDAO">
+
+    <select id="selectAisLinkId" parameterType="AisLinkLogVO" resultType="string">
+        /*
+            SQL ID : AisLinkLogDAO.selectAisLinkId
+            설  명 : 기관/연동유형코드 기준 학사정보시스템연동 아이디 조회
+        */
+        SELECT AIS_LINK_ID
+        FROM TB_LMS_AIS_LINK
+        WHERE ORG_ID = #{orgId}
+          AND AIS_LINK_TYCD = #{aisLinkTycd}
+          AND USEYN = 'Y'
+          AND ROWNUM = 1
+    </select>
+
+    <insert id="insertAisLinkLog" parameterType="AisLinkLogVO">
+        /*
+            SQL ID : AisLinkLogDAO.insertAisLinkLog
+            설  명 : 학사정보시스템연동 로그 적재 (RSLT_CD : OK/FAIL)
+        */
+        INSERT INTO TB_LMS_LOG_AIS_LINK (
+              LOG_AIS_LINK_ID
+            , AIS_LINK_ID
+            , AIS_LINK_DTTM
+            , AIS_LINK_SCSYN
+            , RSLT_CD
+            , AIS_LINK_RSLT_CTS
+            , ADDCNT
+            , MODCNT
+            , DELCNT
+            , RGTR_ID
+            , REG_DTTM
+        ) VALUES (
+              #{logAisLinkId}
+            , #{aisLinkId}
+            , FN_DTTM()
+            , #{aisLinkScsyn}
+            , #{rsltCd}
+            , #{aisLinkRsltCts}
+            , #{addCnt}
+            , #{modCnt}
+            , #{delCnt}
+            , #{rgtrId}
+            , FN_DTTM()
+        )
+    </insert>
+
+</mapper>

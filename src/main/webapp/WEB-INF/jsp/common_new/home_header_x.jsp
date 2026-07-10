@@ -19,7 +19,7 @@
 
 	<h1 class="logo">
 		<a href="#0">
-			<img src="<%=request.getContextPath()%>/webdoc/assets/img/logo.png" aria-hidden="true" alt="한국방송통신대학교">
+			<img src="<%=request.getContextPath()%>/webdoc/assets/img/logo.svg" aria-hidden="true" alt="한국방송통신대학교">
 		</a>
 	</h1>
 	<div class="option-univ"><!-- 버튼 클릭시 on 클래스 추가 -->		
@@ -80,8 +80,8 @@
 							<label for="wcolor">기본</label>
 						</span>
 						<span class="custom-input">
-							<input type="radio" name="wcolor" id="wcolorA">
-							<label for="wcolorA">블루</label>
+							<input type="radio" name="wcolor" id="w${uiex:getTheme()}">
+							<label for="w${uiex:getTheme()}">블루</label>
 						</span>
 						<span class="custom-input">
 							<input type="radio" name="wcolor" id="wcolorB">

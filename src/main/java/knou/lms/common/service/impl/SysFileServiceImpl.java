@@ -219,7 +219,6 @@ public class SysFileServiceImpl extends ServiceBase implements SysFileService {
         	vo.setParFieldNm(sfrvo.getParFieldNm());
 
         	List<FileVO> fileList = sysFileDAO.list(vo);
-
         	for(int i = 0; i < fileList.size(); i++) {
         		fileList.get(i).setFileView(CommConst.WEBDATA_CONTEXT + fileList.get(i).getFilePath() + "/" + fileList.get(i).getFileSaveNm());
         	}
@@ -850,6 +849,109 @@ public class SysFileServiceImpl extends ServiceBase implements SysFileService {
             } catch(IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void bbsZipFileDown(String fileDownNm, List<FileVO> list, HttpServletRequest request, HttpServletResponse response) throws Exception {
+
+        // 다운로드할 파일이 없으면 종료
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+
+        // 파일이 1개면 압축 없이 원본 파일 그대로 다운로드
+        if (list.size() == 1) {
+            singleFileDown(list.get(0), response);
+            return;
+        }
+
+        // 2개 이상이면 zip 으로 묶어서 다운로드
+        String zipFileName = "files.zip";
+
+        response.setHeader("Content-Type", "application/octet-stream");
+        response.setHeader("Content-Transfer-Coding", "binary");
+        response.setHeader("Pragma", "no-cache;");
+        response.setHeader("Expires", "-1;");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + java.net.URLEncoder.encode(zipFileName, "UTF-8").replaceAll("\\+", "%20") + "\";charset=\"UTF-8\"");
+
+        ServletOutputStream binaryOut = response.getOutputStream();
+
+        ZipArchiveOutputStream zos = new ZipArchiveOutputStream(binaryOut);
+        zos.setEncoding(Charset.defaultCharset().name());
+        FileInputStream fis = null;
+
+        try {
+            int length;
+            ZipArchiveEntry ze;
+            byte[] buf = new byte[8 * 1024];
+
+            String fileNm;
+
+            for (FileVO fileVO : list) {
+                String path = CommConst.WEBDATA_PATH + fileVO.getFilePath() + "/" + fileVO.getFileSaveNm();
+                path = path.replace("/\\/g", "/");
+
+                File file = new File(path);
+
+                if (!file.isDirectory()) {
+                    fileNm = fileVO.getFileNm();
+
+                    ze = new ZipArchiveEntry(fileNm);
+                    zos.putArchiveEntry(ze);
+                    fis = new FileInputStream(file);
+                    while ((length = fis.read(buf, 0, buf.length)) >= 0) {
+                        zos.write(buf, 0, length);
+                    }
+                    fis.close();
+                    zos.closeArchiveEntry();
+                }
+            }
+
+            zos.flush();
+            zos.close();
+            binaryOut.flush();
+            binaryOut.close();
+        } catch (Exception e) {
+        } finally {
+            if (fis != null) try { fis.close(); } catch (Exception e) {}
+            if (zos != null) try { zos.flush(); zos.close(); } catch (Exception e) {}
+            if (binaryOut != null) try { binaryOut.flush(); binaryOut.close(); } catch (Exception e) {}
+        }
+    }
+
+    // 단일 파일 원본 그대로 다운로드
+    private void singleFileDown(FileVO fileVO, HttpServletResponse response) throws Exception {
+        String path = CommConst.WEBDATA_PATH + fileVO.getFilePath() + "/" + fileVO.getFileSaveNm();
+        path = path.replace("/\\/g", "/");
+
+        File file = new File(path);
+        System.out.println("file.exists() = " + file.exists());
+        if (!file.exists() || file.isDirectory()) {
+            return;
+        }
+
+        String fileNm = fileVO.getFileNm();
+
+        response.setHeader("Content-Type", "application/octet-stream");
+        response.setHeader("Content-Transfer-Coding", "binary");
+        response.setHeader("Pragma", "no-cache;");
+        response.setHeader("Expires", "-1;");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + java.net.URLEncoder.encode(fileNm, "UTF-8").replaceAll("\\+", "%20") + "\";charset=\"UTF-8\"");
+
+        FileInputStream fis = null;
+        ServletOutputStream out = null;
+        try {
+            fis = new FileInputStream(file);
+            out = response.getOutputStream();
+            byte[] buf = new byte[8 * 1024];
+            int length;
+            while ((length = fis.read(buf, 0, buf.length)) >= 0) {
+                out.write(buf, 0, length);
+            }
+            out.flush();
+        } finally {
+            if (fis != null) try { fis.close(); } catch (Exception e) {}
+            if (out != null) try { out.flush(); out.close(); } catch (Exception e) {}
         }
     }
 }

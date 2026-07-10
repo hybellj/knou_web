@@ -8,7 +8,7 @@ import java.util.List;
 
 @Mapper("markItemSettingDAO")
 public interface MarkItemSettingDAO {
-    List<EgovMap> mrkItmStngList(MarkItemSettingVO vo) throws Exception;
+    List<EgovMap> mrkItmStngList(MarkItemSettingVO vo) ;
 
     int mrkItmStngForProfModify(MarkItemSettingVO vo) throws Exception;
 

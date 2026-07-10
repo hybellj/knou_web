@@ -26,10 +26,9 @@ public class SrvyVwitmServiceImpl extends ServiceBase implements SrvyVwitmServic
 	 * 설문문항목록보기항목삭제
 	 *
 	 * @param List<SrvyQstnVO>
-	 * @throws Exception
 	 */
 	@Override
-	public void srvyQstnListVwitmDelete(List<SrvyQstnVO> list) throws Exception {
+	public void srvyQstnListVwitmDelete(List<SrvyQstnVO> list) {
 		srvyVwitmDAO.srvyQstnListVwitmDelete(list);
 	}
 
@@ -38,10 +37,9 @@ public class SrvyVwitmServiceImpl extends ServiceBase implements SrvyVwitmServic
 	 *
 	 * @param SrvyQstnVO
 	 * @param List<Map<String, Object>> qstns
-	 * @throws Exception
 	 */
 	@Override
-	public void srvyVwitmRegist(SrvyQstnVO vo, List<Map<String, Object>> qstns) throws Exception {
+	public void srvyVwitmRegist(SrvyQstnVO vo, List<Map<String, Object>> qstns) {
 		if (qstns != null && !qstns.isEmpty()) {
 			List<SrvyVwitmVO> vwitmList = new ArrayList<SrvyVwitmVO>();
 
@@ -50,10 +48,10 @@ public class SrvyVwitmServiceImpl extends ServiceBase implements SrvyVwitmServic
 				SrvyVwitmVO vwitm = new SrvyVwitmVO();
 				vwitm.setSrvyVwitmId(IdGenUtil.genNewId(IdPrefixType.SRVW));
 				vwitm.setSrvyQstnId(vo.getSrvyQstnId());
-				vwitm.setVwitmGbncd(vo.getQstnGbncd());
+				vwitm.setVwitmGbncd("TXT");
 				vwitm.setVwitmCts(vwitmCts);
 				vwitm.setVwitmSeqno((Integer) map.get("vwitmSeqno"));
-				vwitm.setMvmnSrvyQstnId((String) map.get("mvmnSrvyQstnId"));
+				vwitm.setMvmnSrvypprId((String) map.get("mvmnSrvypprId"));
 				vwitm.setEtcInptyn("ETC".equals(vwitmCts) ? "Y" : "N");
 				vwitm.setRgtrId(vo.getRgtrId());
 				vwitmList.add(vwitm);
@@ -68,10 +66,9 @@ public class SrvyVwitmServiceImpl extends ServiceBase implements SrvyVwitmServic
 	 *
 	 * @param SrvyQstnVO
 	 * @param List<Map<String, Object>> qstns
-	 * @throws Exception
 	 */
 	@Override
-	public void srvyVwitmModify(SrvyQstnVO vo, List<Map<String, Object>> qstns) throws Exception {
+	public void srvyVwitmModify(SrvyQstnVO vo, List<Map<String, Object>> qstns) {
 		// 설문보기항목삭제
 		srvyVwitmDAO.srvyVwitmDelete(vo.getSrvyQstnId());
 
@@ -84,10 +81,10 @@ public class SrvyVwitmServiceImpl extends ServiceBase implements SrvyVwitmServic
 				SrvyVwitmVO vwitm = new SrvyVwitmVO();
 				vwitm.setSrvyVwitmId(IdGenUtil.genNewId(IdPrefixType.SRVW));
 				vwitm.setSrvyQstnId(vo.getSrvyQstnId());
-				vwitm.setVwitmGbncd(vo.getQstnGbncd());
+				vwitm.setVwitmGbncd("TXT");
 				vwitm.setVwitmCts(vwitmCts);
 				vwitm.setVwitmSeqno((Integer) map.get("vwitmSeqno"));
-				vwitm.setMvmnSrvyQstnId((String) map.get("mvmnSrvyQstnId"));
+				vwitm.setMvmnSrvypprId((String) map.get("mvmnSrvypprId"));
 				vwitm.setEtcInptyn("ETC".equals(vwitmCts) ? "Y" : "N");
 				vwitm.setRgtrId(vo.getRgtrId());
 				vwitmList.add(vwitm);
@@ -102,10 +99,9 @@ public class SrvyVwitmServiceImpl extends ServiceBase implements SrvyVwitmServic
 	 *
 	 * @param srvyQstnId 설문문항아이디
 	 * return 설문보기항목목록
-	 * @throws Exception
 	 */
 	@Override
-	public List<SrvyVwitmVO> srvyVwitmList(String srvyQstnId) throws Exception {
+	public List<SrvyVwitmVO> srvyVwitmList(String srvyQstnId) {
 		return srvyVwitmDAO.srvyVwitmList(srvyQstnId);
 	}
 
@@ -116,10 +112,9 @@ public class SrvyVwitmServiceImpl extends ServiceBase implements SrvyVwitmServic
 	 * @param qstnRspnsTycd 문항답변유형코드
 	 * @param searchType 	조회유형
 	 * return 설문보기항목목록
-	 * @throws Exception
 	 */
 	@Override
-	public List<SrvyVwitmVO> srvyVwitmBulkList(String srvyId, String qstnRspnsTycd, String searchType) throws Exception {
+	public List<SrvyVwitmVO> srvyVwitmBulkList(String srvyId, String qstnRspnsTycd, String searchType) {
 		return srvyVwitmDAO.srvyVwitmBulkList(srvyId, qstnRspnsTycd, searchType);
 	}
 

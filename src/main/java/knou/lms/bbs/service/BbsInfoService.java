@@ -6,70 +6,74 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
+import knou.lms.bbs.vo.BbsAtclVO;
 import knou.lms.bbs.vo.BbsInfoVO;
 import knou.lms.bbs.vo.BbsVO;
 import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.crs.semester.vo.SmstrChrtVO;
+import knou.lms.org.vo.OrgInfoVO;
 
 public interface BbsInfoService {
 
     /*****************************************************
      * 게시판 정보
      * @param vo
-     * @return BbsInfoVO
+     * @return BbsVO
      * @throws Exception
      ******************************************************/
-    public BbsInfoVO selectBbsInfo(BbsInfoVO vo) throws Exception;
+    public BbsVO selectBbsInfo(BbsVO vo) throws Exception;
+    public BbsInfoVO selectBbsInfo(BbsInfoVO vo) throws Exception; // 삭제 예정
 
     /*****************************************************
      * 게시판 목록
      * @param vo
-     * @return List<BbsInfoVO>
+     * @return List<BbsVO>
      * @throws Exception
      ******************************************************/
-    public List<BbsInfoVO> listBbsInfo(BbsInfoVO vo) throws Exception;
+    public List<BbsVO> listBbsInfo(BbsVO vo) throws Exception;
 
     /*****************************************************
      * 게시판 목록 페이징
      * @param vo
-     * @return ProcessResultVO<BbsInfoVO>
+     * @return ProcessResultVO<BbsVO>
      * @throws Exception
      ******************************************************/
-    public ProcessResultVO<BbsInfoVO> listBbsInfoPaging(BbsInfoVO vo) throws Exception;
+    public ProcessResultVO<BbsVO> listBbsInfoPaging(BbsVO vo) throws Exception;
 
     /*****************************************************
      * 게시판 정보 저장
      * @param vo
      * @throws Exception
      ******************************************************/
-    public void insertBbsInfo(BbsInfoVO vo) throws Exception;
+    public void insertBbsInfo(BbsVO vo) throws Exception;
 
     /*****************************************************
      * 게시판 수정
      * @param vo
      * @throws Exception
      ******************************************************/
-    public void updateBbsInfo(BbsInfoVO vo) throws Exception;
+    public void updateBbsInfo(BbsVO vo) throws Exception;
 
     /*****************************************************
      * 게시판 삭제
      * @param vo
      * @throws Exception
      ******************************************************/
-    public void deleteBbsInfo(BbsInfoVO vo) throws Exception;
+    public void deleteBbsInfo(BbsVO vo) throws Exception;
 
     /*****************************************************
      * 게시판 사용여부 수정
      * @param vo
      * @throws Exception
      ******************************************************/
-    public void updateBbsInfoUseYn(BbsInfoVO vo) throws Exception;
+    public void updateBbsInfoUseYn(BbsVO vo) throws Exception;
 
     /*****************************************************
      * 게시판 학생 공개 여부 수정
      * @param vo
      * @throws Exception
      ******************************************************/
-    public void updateBbsInfoStdViewYn(BbsInfoVO vo) throws Exception;
+    public void updateBbsInfoStdViewYn(BbsVO vo) throws Exception;
 
     /*****************************************************
      * 게시판 강의실 탭
@@ -85,7 +89,7 @@ public interface BbsInfoService {
      * @return List<EgovMap>
      * @throws Exception
      ******************************************************/
-    public List<EgovMap> listBbsInfoCourseStudentTab(BbsInfoVO vo) throws Exception;
+    public List<EgovMap> listBbsInfoCourseStudentTab(BbsVO vo) throws Exception;
 
     /*****************************************************
      * 게시판 선택된 탭 조회
@@ -101,7 +105,7 @@ public interface BbsInfoService {
      * @return List<EgovMap>
      * @throws Exception
      ******************************************************/
-    public List<EgovMap> listBbsInfoCouncelProf(BbsInfoVO vo) throws Exception;
+    public List<EgovMap> listBbsInfoCouncelProf(BbsVO vo) throws Exception;
 
     /*****************************************************
      * 게시판 분반 목록
@@ -109,7 +113,7 @@ public interface BbsInfoService {
      * @return List<EgovMap>
      * @throws Exception
      ******************************************************/
-    public List<EgovMap> listBbsInfoDecls(BbsInfoVO vo) throws Exception;
+    public List<EgovMap> listBbsInfoDecls(BbsVO vo) throws Exception;
 
     /*****************************************************
      * 게시판 문의, 상담 현황 목록
@@ -117,39 +121,39 @@ public interface BbsInfoService {
      * @return List<EgovMap>
      * @throws Exception
      ******************************************************/
-    public List<EgovMap> listQnaSecretCountByLsnOdr(BbsInfoVO vo) throws Exception;
+    public List<EgovMap> listQnaSecretCountByLsnOdr(BbsVO vo) throws Exception;
 
     /*****************************************************
      * 팀 게시판 등록
      * @param vo
-     * @return BbsInfoVO
+     * @return BbsVO
      * @throws Exception
      ******************************************************/
-    public BbsInfoVO insertTeamBbs(BbsInfoVO vo) throws Exception;
+    public BbsVO insertTeamBbs(BbsVO vo) throws Exception;
 
     /*****************************************************
      * 게시판 팀 카테고리 목록
      * @param vo
-     * @return List<BbsInfoVO>
+     * @return List<BbsVO>
      * @throws Exception
      ******************************************************/
-    public List<BbsInfoVO> listBbsInfoTeamCtgr(BbsInfoVO vo) throws Exception;
+    public List<BbsVO> listBbsInfoTeamCtgr(BbsVO vo) throws Exception;
 
     /*****************************************************
      * 게시판 팀 목록
      * @param vo
-     * @return List<BbsInfoVO>
+     * @return List<BbsVO>
      * @throws Exception
      ******************************************************/
-    public List<BbsInfoVO> listTeamBbsId(BbsInfoVO vo) throws Exception;
+    public List<BbsVO> listTeamBbsId(BbsVO vo) throws Exception;
 
     /*****************************************************
      * 팀 게시판 조회
      * @param vo
-     * @return BbsInfoVO
+     * @return BbsVO
      * @throws Exception
      ******************************************************/
-    public BbsInfoVO selectTeamBbsInfo(BbsInfoVO vo) throws Exception;
+    public BbsVO selectTeamBbsInfo(BbsVO vo) throws Exception;
 
     /*****************************************************
      * 게시판 팀원여부 체크
@@ -165,7 +169,7 @@ public interface BbsInfoService {
      * @return int
      * @throws Exception
      ******************************************************/
-    public BbsInfoVO selectBbsInfoByOldRegDttm(BbsInfoVO vo) throws Exception;
+    public BbsVO selectBbsInfoByOldRegDttm(BbsVO vo) throws Exception;
 
 
 
@@ -251,4 +255,54 @@ public interface BbsInfoService {
      * @throws Exception
      ******************************************************/
     public String getBbsId(BbsVO vo) throws Exception;
+
+    /*****************************************************
+     * 게시판 정보 > 게시판 사용 여부 수정
+     * @param vo
+     * @return String
+     * @throws Exception
+     ******************************************************/
+    ProcessResultVO<BbsVO> modifyBbsUseyn(BbsVO vo) throws Exception;
+
+    /*****************************************************
+     * 학습그룹 목록 조회
+     * @param vo
+     * @return List<BbsVO>
+     * @throws Exception
+     ******************************************************/
+    public List<BbsVO> listTeamGrp(BbsVO vo) throws Exception;
+
+    /*****************************************************
+     * 학습그룹 팀 목록 조회
+     * @param vo
+     * @return List<BbsVO>
+     * @throws Exception
+     ******************************************************/
+    public List<BbsVO> listLrnTeam(BbsVO vo) throws Exception;
+
+    /*****************************************************
+     * 과제 목록 조회
+     * @param vo
+     * @return List<BbsVO>
+     * @throws Exception
+     ******************************************************/
+    public List<BbsVO> listLrnElemtList(BbsVO vo) throws Exception;
+
+    /*****************************************************
+     * 과제 목록 조회
+     * @param vo
+     * @return List<BbsVO>
+     * @throws Exception
+     ******************************************************/
+    public List<BbsAtclVO> listWkno(BbsAtclVO vo) throws Exception;
+
+    /*****************************************************
+     * 필터 옵션
+     * @param vo
+     * @return List<BbsVO>
+     * @throws Exception
+     ******************************************************/
+    public List<SmstrChrtVO> selectBbsTermList(BbsVO vo);
+    public List<OrgInfoVO> selectBbsOrgList(BbsVO vo);
+    public List<BbsVO> selectBbsSubjectList(BbsVO vo);
 }

@@ -44,8 +44,8 @@
 	var TEMPLATE_URL 	= '<c:out value="${templateUrl}" />';
 	
 	$(document).ready(function() {
-		var ansrUseYn = '<c:out value="${bbsInfoVO.ansrUseYn}" />';		// 게시판 정보 답글사용여부
-		var cmntUseYn = '<c:out value="${bbsInfoVO.cmntUseYn}" />';		// 게시판 정보 댓글 사용여부
+		var ansrUseYn = '<c:out value="${bbsVO.ansrUseYn}" />';		// 게시판 정보 답글사용여부
+		var cmntUseYn = '<c:out value="${bbsVO.cmntUseYn}" />';		// 게시판 정보 댓글 사용여부
 		var atclCmntUseYn = '<c:out value="${bbsAtclVO.cmntUseYn}" />';	// 게시글 댓글 사용여부
 		
 		// 답글 사용
@@ -1185,7 +1185,7 @@
 								
 								var bbsSubTitle;
 								var bbsCd = '<c:out value="${param.bbsCd}" />';
-								var bbsNm = '<c:out value="${bbsInfoVO.bbsNm}" />';
+								var bbsNm = '<c:out value="${bbsVO.bbsNm}" />';
 								var tab = '<c:out value="${param.tab}" />';
 	
 								if(bbsCd == "TEAM") {
@@ -1235,7 +1235,7 @@
 		                            				<spring:message code="bbs.label.alarm.bbs" /><!-- 통합게시판 -->
 		                            			</c:when>
 		                            			<c:otherwise>
-		                            				<c:out value="${bbsInfoVO.bbsNm}" />
+		                            				<c:out value="${bbsVO.bbsNm}" />
 		                            			</c:otherwise>
 		                            		</c:choose>
 		                            	</c:when>
@@ -1290,7 +1290,7 @@
 												<c:choose>
 													<c:when test="${bbsAtclVO.noticeYn eq 'Y'}">
 														<c:choose>
-															<c:when test="${bbsInfoVO.bbsCd eq 'PDS'}">
+															<c:when test="${bbsVO.bbsCd eq 'PDS'}">
 																<label class="ui brown label w50 small mr5 tc"><spring:message code="bbs.label.fix" /></label><!-- 공지 -->
 															</c:when>
 															<c:otherwise>
@@ -1304,7 +1304,7 @@
 												</c:choose>
 												<strong>
 												<c:choose>
-													<c:when test="${bbsInfoVO.bbsCd eq 'TEAM'}">
+													<c:when test="${bbsVO.bbsCd eq 'TEAM'}">
 														[<c:out value="${bbsAtclVO.teamCtgrNm}" />&nbsp;>&nbsp;<c:out value="${bbsAtclVO.teamNm}" />]
 													</c:when>
 													<c:otherwise>
@@ -1321,7 +1321,7 @@
 												<small>
 													<span class="desktop-elem"><spring:message code="bbs.label.reg_user" />&nbsp;:&nbsp;</span>
 													<c:choose>
-														<c:when test="${menuType.contains('PROFESSOR') and (bbsInfoVO.bbsCd eq 'QNA' or bbsInfoVO.bbsCd eq 'SECRET') and not empty bbsAtclVO.regMenuType and bbsAtclVO.regMenuType.contains('STUDENT')}">
+														<c:when test="${menuType.contains('PROFESSOR') and (bbsVO.bbsCd eq 'QNA' or bbsVO.bbsCd eq 'SECRET') and not empty bbsAtclVO.regMenuType and bbsAtclVO.regMenuType.contains('STUDENT')}">
 															<c:out value="${bbsAtclVO.regNm}" />
 															(<c:out value="${bbsAtclVO.rgtrId}" />)
 															<a href="javascript:userInfoPop('<c:out value="${bbsAtclVO.rgtrId}" />')"><i class="ico icon-info" style="width: 1.5em; height: 1.5em;"></i></a>
@@ -1350,7 +1350,7 @@
 												<small>
 													<span class="desktop-elem"><spring:message code="bbs.label.public_yn" />&nbsp;:&nbsp;</span><!-- 공개여부 -->
 													<c:choose>
-														<c:when test="${bbsAtclVO.lockYn eq 'Y' or bbsInfoVO.bbsCd eq 'SECRET'}">
+														<c:when test="${bbsAtclVO.lockYn eq 'Y' or bbsVO.bbsCd eq 'SECRET'}">
 															<spring:message code="bbs.label.public_n" /><!-- 비공개 -->
 														</c:when>
 														<c:otherwise>
@@ -1394,7 +1394,7 @@
 										</div>
 									</div>
 									
-									<c:if test="${bbsInfoVO.bbsCd eq 'PHOTO' and not empty bbsAtclVO.contentUrlList}">
+									<c:if test="${bbsVO.bbsCd eq 'PHOTO' and not empty bbsAtclVO.contentUrlList}">
 										<div class="ui divider"></div>
 		                            	<div class="post_album">
 											<div class="ui five stackable cards">
@@ -1427,13 +1427,13 @@
 		                            </div>
 									
 								<!-- 댓글 -->
-								<c:if test="${bbsInfoVO.cmntUseYn eq 'Y' and bbsAtclVO.cmntUseYn eq 'Y'}">
+								<c:if test="${bbsVO.cmntUseYn eq 'Y' and bbsAtclVO.cmntUseYn eq 'Y'}">
 									<div class="ui divider"></div>
 									<div id="commentArea"></div>
 				                </c:if>
 				                
 				                 <!-- 답변글 -->
-								<c:if test="${bbsInfoVO.ansrUseYn eq 'Y'}">
+								<c:if test="${bbsVO.ansrUseYn eq 'Y'}">
 									<div class="ui divider"></div>
 									<div id="answerViewArea" class="comment border0"></div>
 									<div class="mt10">

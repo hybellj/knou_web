@@ -15,7 +15,8 @@ public enum IdPrefixType {
     SRVW("SRVW", "설문보기항목"),
     SREVL("SREVL", "설문평가"),
     SRPCT("SRPCT", "설문참여"),
-    SRRSP("SRRSP", "설문응답"),
+    SRPTH("SRPTH", "설문참여이력"),
+    SRRSP("SRRSP", "설문답변"),
     SRTGT("SRTGT", "설문대상"),
     SRGRP("SRGRP", "설문그룹"),
     SRQVL("SRQVL", "설문문항보기항목레벨"),
@@ -35,16 +36,18 @@ public enum IdPrefixType {
     TE("TE", "팀"),
     TEMBR("TEMBR", "팀멤버"),
     TEAM("TEAM", "팀"),
-    LRNGR("LRNGR", "학습그룹"),
+    TEMGR("TEMGR", "학습그룹"),
 
     // 세미나
     SM("SM", "세미나"),
     SMNR("SMNR", "세미나"),
+    SMFDK("SMFDK", "세미나피드백"),
     SMATN("SMATN", "세미나참석"),
     SMPRE("SMPRE", "세미나사전등록"),
     SMZTK("SMZTK", "세미나줌토큰"),
     SMTE("SMTE", "세미나팀"),
     SMTGT("SMTGT", "세미나대상자"),
+    SMATH("SMATH", "세미나참석이력"),
 
     // 플랫폼
     OPSTG("OPSTG", "온라인플랫폼설정"),
@@ -84,6 +87,7 @@ public enum IdPrefixType {
     SYJSC("SYJSC", "시스템작업일정"),
     SYJSE("SYJSE", "시스템작업일정예외"),
     SYJSR("SYJSR", "시스템작업일정예외기록"),
+    SYERR("SYERR", "시스템에러"),
 
     // 권한
     AU("AU", "권한"),
@@ -130,6 +134,7 @@ public enum IdPrefixType {
     QSTN("QSTN", "문항"),
     QSVW("QSVW", "보기항목"),
     QSTNS("QSTNS", "문제출제"),
+    EXQSB("EXQSB", "연습돌발문항기본"),
 
     // 응시
     TK("TK", "응시"),
@@ -149,6 +154,8 @@ public enum IdPrefixType {
     EXTGT("EXTGT", "시험대상자"),
     EXGRP("EXGRP", "시험그룹"),
     EXSBS("EXSBS", "시험대체"),
+    EXSPG("EXSPG", "시험지원그룹"),
+    ONQZ("ONQZ", "온라인시험퀴즈"),
 
     // 성적
     MR("MR", "성적"),
@@ -161,6 +168,8 @@ public enum IdPrefixType {
     MRSBJ("MRSBJ", "성적과목"),
     MRSBD("MRSBD", "성적과목상세"),
     MRACT("MRACT", "성적누계"),
+    MRHTR("MRHTR", "성적처리이력"),
+    MRPEP("MRPEP", "성적처리예외처리"),
 
     // 과제
     AS("AS", "과제"),
@@ -203,6 +212,7 @@ public enum IdPrefixType {
     // 과목
     SB("SB", "과목"),
     SBJCT("SBJCT", "과목"),
+    SBTML("SBTML", "과목템플릿"),
     SBLCS("SBLCS", "과목강의일정"),
     SBLCC("SBLCC", "과목강의차시"),
     SBCON("SBCON", "과목강의콘텐츠"),
@@ -210,9 +220,13 @@ public enum IdPrefixType {
     SBMXS("SBMXS", "과목첨부파일최대크기"),
     SBMEV("SBMEV", "과목성적평가비율"),
     SBMED("SBMED", "과목성적평가비율상세"),
+    SBLPD("SBLPD", "강의계획서"),
+    SBRTE("SBRTE", "실시간시험"),
     SBLCP("SBLCP", "과목강의콘텐츠페이지"),
     SBLCF("SBLCF", "과목강의콘텐츠파일"),
     SBSCH("SBSCH", "과목일정"),
+    SBADM("SBADM", "과목관리자"),
+    SBCSC("SBCSC", "수업일정"),
 
     // 기관
     OR("OR", "기관"),
@@ -221,7 +235,9 @@ public enum IdPrefixType {
     ORTML("ORTML", "기관템플릿"),
     ORSCO("ORSCO", "기관학기기수"),
     ORSCS("ORSCS", "기관학기기수일정"),
-
+    ORSET("ORSET", "기관설정"),
+    ORASC("ORASC", "학사일정"), // OR Academic Schedule
+    
     // 과정
     CR("CR", "과정"),
     CRS("CRS", "과정"),
@@ -262,6 +278,11 @@ public enum IdPrefixType {
     // 교재
     TB("TB", "교재"),
     TBK("TBK", "교재"),
+
+    // 루브릭
+    RBRC("RBRC", "루브릭"),
+    RBQST("RBQST", "루브릭문항"),
+    RBVTM("RBVTM", "루브릭보기항목"),
 
     // 팝업공지
     PNTC("PNTC", "팝업공지");

@@ -35,8 +35,8 @@ $(function () {
     // cookie 확인하여 dark 모드 설정 knou
     var darkYN = getCookie("darkYN");
 
-    if (darkYN == "Y" && !$("body").hasClass("dark")) {
-        $("body").addClass("dark");
+    if (darkYN == "Y" && !$("body").hasClass("darkmode")) {
+        $("body").addClass("darkmode");
         var themeMode = "dark";
 
         let param = {
@@ -517,8 +517,8 @@ $(function () {
     /********** dark Mode toggle_btn **********/
     function darkToggle(button, elem) {
         $(".dark-btn").unbind('click').bind('click', function (e) {
-            $(this).closest('body').toggleClass('dark');
-            $(elem).contents().find('body').toggleClass('dark');
+            $(this).closest('body').toggleClass('darkmode');
+            $(elem).contents().find('body').toggleClass('darkmode');
             //            if ($(this).text() == "다크 모드로 보기")
             //                $(this).text("라이트 모드로 보기")
             //            else
@@ -704,7 +704,7 @@ $(function () {
         $(".designImg label").removeClass('on');
         $(this).addClass('on');
         var $radio = $(this).find('input[type="radio"]');
-        $radio.prop("checked", !$radio.prop("checked"));
+        $radio.prop("checked", true).trigger("change"); // 상태 변경 후 이벤트 강제 발생
 
         e.preventDefault();
     });
@@ -995,16 +995,32 @@ const throttle = (callback, timeout = 600) => {
     };
 };
 
-// function testUi(){  console.log("exe testUi")
-// 	if (document.querySelector('html').scrollTop > 0) {
-// 		document.querySelector('header').classList.add("on") ;
-// 		document.querySelector('.go_top').classList.add("fixed") ;
-// 	} else {
-// 		document.querySelector('header').classList.remove("on") ;
-// 		document.querySelector('.go_top').classList.remove("fixed") ;
-// 	}
-// }
-// window.addEventListener('scroll', throttle(testUi))
+// Top버튼
+function syncScrollUiState(){
+    const header = document.querySelector('header');
+    const goTop = document.querySelector('.go_top');
+
+    if (!goTop) {
+        return;
+    }
+
+    const scrollTop = window.pageYOffset
+        || (document.scrollingElement && document.scrollingElement.scrollTop)
+        || document.documentElement.scrollTop
+        || document.body.scrollTop
+        || 0;
+    const isScrolled = scrollTop > 0;
+
+    if (header) {
+        header.classList.toggle("on", isScrolled);
+    }
+    goTop.classList.toggle("fixed", isScrolled);
+}
+window.addEventListener('scroll', throttle(syncScrollUiState));
+
+$(document).on('click', '.go_top', function() {
+    $('html, body').stop().animate({ scrollTop: 0 }, 400);
+});
 
 
 /* 리사이즈 이벤트 */
@@ -1055,6 +1071,28 @@ function tempCheckedModalOpened(target) {
  태그에 data-medi-ui 속성을 사용한 ui만 해당
 */
 document.addEventListener("click", clickUiDataSetHandler);
+
+/* 헤더 .mode 메뉴 : 컬러/테마 선택
+   - 컬러 라디오(name="wcolor") 변경 시 data-theme 값으로 body 테마 클래스 적용
+   - 기본="" / 블루=colorA / 민트=colorB / 오렌지=colorC / 레드=colorD / 퍼플=colorE / 다크모드=darkmode */
+document.addEventListener("change", function (e) {
+    const input = e.target.closest('.util .mode .menu input[name="wcolor"]');
+    if (!input) return;
+
+    const theme = input.dataset.theme || "";
+    const themeClasses = ["colorA", "colorB", "colorC", "colorD", "colorE", "darkmode"];
+    document.body.classList.remove(...themeClasses);
+    if (theme) document.body.classList.add(theme);
+
+    // 다크모드 iframe 동기화 (기존 mode 동작 유지)
+    const isDark = theme === "darkmode";
+    $("iframe").each(function () {
+        try {
+            const iframeBody = $(this.contentDocument || this.contentWindow.document).find("body");
+            if (iframeBody.length) iframeBody.toggleClass("darkmode", isDark);
+        } catch (err) { }
+    });
+});
 
 function clickUiDataSetHandler(e) {
 
@@ -1125,13 +1163,8 @@ function clickUiDataSetHandler(e) {
         case "alrim":
         case "langs":
         case "mail":
-            clickElem.parentNode.classList.toggle("on");
-            break;
-
         case "mode":
-            console.log("closest test")
-            document.querySelector("body").classList.toggle("dark");
-            //clickElem.parentNode.classList.toggle("on");
+            clickElem.parentNode.classList.toggle("on");
             break;
 
         case "gotop":
@@ -1365,9 +1398,12 @@ gfn_renderPaging = function (params) {
 let AJAX_CALL_NO = 0;
 
 function ajaxCall(url, param, succCallback, errCallback, disploading) {
+	console.log('ajaxCall 본체 assets/js/common.js');
     $.ajax({
         url: url,
         data: param,
+        dataType: "json",
+        headers: {"X-Requested-With": "XMLHttpRequest"},
         type: "POST",
         // dataType : "json",
         // contentType: 'application/json',
@@ -1386,6 +1422,13 @@ function ajaxCall(url, param, succCallback, errCallback, disploading) {
             }
         },
         error: function (xhr, status, error) {
+			// 세션 만료 공통 처리
+		    if (xhr.status === 401) {
+		        alert('세션이 만료되었습니다.');
+		        location.href = '/login.do';
+		        return;
+		    }
+
             if (typeof errCallback == "function") {
                 errCallback(xhr, status, error);
             }
@@ -1647,7 +1690,7 @@ function applyAdminCrsMode() {
 
 // 관리자 과목지원모드 종료
 function closeAdminCrsMode() {
-    document.location.href = "/dashboard/adminDashboard.do";
+    document.location.href = "/dashboard/adminDashboardV2.do";
 }
 
 
@@ -1694,4 +1737,3 @@ function setJapaneseInput() {
         JAPAN_INPUT.init = true;
     }
 }
-

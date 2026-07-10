@@ -1,7 +1,7 @@
 package knou.lms.msg.facade;
 
+import knou.framework.context2.UserContext;
 import knou.lms.common.vo.ProcessResultVO;
-import knou.lms.file.vo.AtflVO;
 import knou.lms.msg.vo.MsgShrtntVO;
 import knou.lms.org.vo.OrgInfoVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
@@ -11,25 +11,25 @@ import java.util.List;
 
 public interface MsgShrtntFacadeService {
 
-    List<OrgInfoVO> selectActiveOrgListByAuth(String orgId, boolean isAdmin) throws Exception;
+    List<OrgInfoVO> selectActiveOrgListByAuth(String userId, boolean isAdmin) throws Exception;
 
-    List<AtflVO> selectAtflListByRefId(String refId) throws Exception;
+    List<OrgInfoVO> selectProfSbjctOrgList(String userId);
 
-    ProcessResultVO<MsgShrtntVO> selectShrtntRcvnListPage(MsgShrtntVO vo);
+    ProcessResultVO<MsgShrtntVO> selectShrtntRcvnListPage(MsgShrtntVO vo) throws Exception;
 
-    MsgShrtntVO selectShrtntRcvnDetailWithFiles(MsgShrtntVO vo) throws Exception;
+    MsgShrtntVO selectShrtntRcvnDtlWithFiles(MsgShrtntVO vo);
 
-    int updateShrtntReadDttm(MsgShrtntVO vo);
+    int modifyShrtntReadDttm(MsgShrtntVO vo);
 
-    int updateShrtntRcvrDelyn(MsgShrtntVO vo);
+    int modifyShrtntRcvrDelyn(MsgShrtntVO vo);
 
-    ProcessResultVO<MsgShrtntVO> selectShrtntSndngListPage(MsgShrtntVO vo);
+    ProcessResultVO<MsgShrtntVO> selectShrtntSndngListPage(MsgShrtntVO vo) throws Exception;
 
-    MsgShrtntVO selectShrtntSndngDetailWithFiles(MsgShrtntVO vo) throws Exception;
+    MsgShrtntVO selectShrtntSndngDtlWithFiles(MsgShrtntVO vo);
 
-    ProcessResultVO<MsgShrtntVO> selectShrtntSndngRcvrListPage(MsgShrtntVO vo);
+    ProcessResultVO<MsgShrtntVO> selectShrtntSndngRcvrListPage(MsgShrtntVO vo) throws Exception;
 
-    int updateShrtntSndngrDelyn(MsgShrtntVO vo);
+    int modifyShrtntSndngrDelyn(MsgShrtntVO vo);
 
     List<MsgShrtntVO> selectShrtntSndngRcvrExcelList(MsgShrtntVO vo);
 
@@ -39,25 +39,25 @@ public interface MsgShrtntFacadeService {
 
     List<MsgShrtntVO> parseExcelAndSearchRcvr(InputStream excelInputStream, String orgId) throws Exception;
 
-    int updateMsgRsrvCncl(MsgShrtntVO vo);
-
-    ProcessResultVO<MsgShrtntVO> selectShrtntRcvrSearchListPage(MsgShrtntVO vo);
+    int modifyMsgRsrvCncl(MsgShrtntVO vo);
 
     List<MsgShrtntVO> selectMsgRcvTrgtrList(MsgShrtntVO vo);
 
-    List<MsgShrtntVO> selectShrtntYrList(MsgShrtntVO vo);
+    MsgShrtntVO loadListViewInfo(MsgShrtntVO vo) throws Exception;
 
-    List<EgovMap> selectShrtntSmstrList(MsgShrtntVO vo);
+    EgovMap loadFilterOptions(MsgShrtntVO vo) throws Exception;
 
-    List<MsgShrtntVO> selectShrtntDeptList(MsgShrtntVO vo);
+    EgovMap loadStdntFilterOptions(MsgShrtntVO vo);
 
-    List<MsgShrtntVO> selectShrtntSbjctList(MsgShrtntVO vo);
+    EgovMap loadSndngRegistViewInfo(String msgId, String userId, boolean hasSndngAuth);
 
-    List<MsgShrtntVO> selectShrtntRcvrByUserIds(MsgShrtntVO vo);
+    EgovMap loadSndngRegistFilterOptions(UserContext userCtx) throws Exception;
 
-    MsgShrtntVO loadListViewInfo(MsgShrtntVO vo, boolean isAdmin) throws Exception;
+    EgovMap loadReplyLinkInfo(String replyMsgShrtntSndngId, UserContext userCtx) throws Exception;
 
-    EgovMap loadFilterOptions(MsgShrtntVO vo, boolean isAdmin) throws Exception;
+    EgovMap loadEditLinkInfo(String msgId, UserContext userCtx);
 
-    EgovMap loadSndngRegistViewInfo(String msgId, String userId, boolean hasSndngAuth) throws Exception;
+    void applyOriginalToFilterOptions(EgovMap filterOptions, MsgShrtntVO original);
+
+    EgovMap selectRcptnRjctCnt(String rcvrListJson) throws Exception;
 }

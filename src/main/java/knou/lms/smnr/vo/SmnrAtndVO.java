@@ -11,6 +11,7 @@ public class SmnrAtndVO extends DefaultVO {
 	// TB_LMS_SMNR_ATND ( 세미나참석 )
 	private String  	smnrAtndId;			// 세미나참석아이디
 	private String  	smnrId;             // 세미나아이디
+	private String		atndeId;			// 참석자아이디
 	private String  	atndSdttm;          // 참석시작일시
 	private String  	atndEdttm;          // 참석종료일시
 	private Integer 	atndScnds;          // 참석시간
@@ -18,7 +19,7 @@ public class SmnrAtndVO extends DefaultVO {
 	private String  	cntnDvcTycd;        // 접속기기유형코드
 	private String  	smnrCntnGbncd;      // 세미나접속구분코드
 	private String  	atndMemo;           // 참석메모
-	private String  	rgtrIp;             // 등록자아이피
+	private String  	atndeIp;            // 참석자아이피
 	private BigDecimal 	atndEvlScr;			// 참석평가점수
 	private String  	atndEvlyn;          // 참석평가여부
 	private String  	atndEvlDttm;        // 참석평가일시
@@ -28,6 +29,9 @@ public class SmnrAtndVO extends DefaultVO {
 	}
 	public String getSmnrId() {
 		return smnrId;
+	}
+	public String getAtndeId() {
+		return atndeId;
 	}
 	public String getAtndSdttm() {
 		return atndSdttm;
@@ -50,8 +54,8 @@ public class SmnrAtndVO extends DefaultVO {
 	public String getAtndMemo() {
 		return atndMemo;
 	}
-	public String getRgtrIp() {
-		return rgtrIp;
+	public String getAtndeIp() {
+		return atndeIp;
 	}
 	public BigDecimal getAtndEvlScr() {
 		return atndEvlScr;
@@ -67,6 +71,9 @@ public class SmnrAtndVO extends DefaultVO {
 	}
 	public void setSmnrId(String smnrId) {
 		this.smnrId = smnrId;
+	}
+	public void setAtndeId(String atndeId) {
+		this.atndeId = atndeId;
 	}
 	public void setAtndSdttm(String atndSdttm) {
 		this.atndSdttm = atndSdttm;
@@ -89,8 +96,8 @@ public class SmnrAtndVO extends DefaultVO {
 	public void setAtndMemo(String atndMemo) {
 		this.atndMemo = atndMemo;
 	}
-	public void setRgtrIp(String rgtrIp) {
-		this.rgtrIp = rgtrIp;
+	public void setAtndeIp(String atndeIp) {
+		this.atndeIp = atndeIp;
 	}
 	public void setAtndEvlScr(BigDecimal atndEvlScr) {
 		this.atndEvlScr = atndEvlScr;

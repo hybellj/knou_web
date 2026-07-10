@@ -29,10 +29,9 @@ public class SrvypprServiceImpl extends ServiceBase implements SrvypprService {
 	* @param srvyId		설문아이디
 	* @param searchType	조회유형
 	* @return 설문지목록
-	* @throws Exception
 	*/
 	@Override
-	public List<SrvypprVO> srvypprList(String srvyId, String searchType) throws Exception {
+	public List<SrvypprVO> srvypprList(String srvyId, String searchType) {
 		return srvypprDAO.srvypprList(srvyId, searchType);
 	}
 
@@ -41,10 +40,9 @@ public class SrvypprServiceImpl extends ServiceBase implements SrvypprService {
 	*
 	* @param srvypprId	설문지아이디
 	* @return 설문지정보
-	* @throws Exception
 	*/
 	@Override
-	public SrvypprVO srvypprSelect(String srvypprId) throws Exception {
+	public SrvypprVO srvypprSelect(String srvypprId) {
 		return srvypprDAO.srvypprSelect(srvypprId);
 	}
 
@@ -52,13 +50,10 @@ public class SrvypprServiceImpl extends ServiceBase implements SrvypprService {
 	 * 설문지등록
 	 *
 	 * @param SrvypprVO
-	 * @throws Exception
 	 */
 	@Override
-	public void srvypprRegist(SrvypprVO vo) throws Exception {
-		if("".equals(vo.getSrvypprId())) {
-			vo.setSrvypprId(IdGenUtil.genNewId(IdPrefixType.SRPPR));
-		}
+	public void srvypprRegist(SrvypprVO vo) {
+		if("".equals(vo.getSrvypprId())) vo.setSrvypprId(IdGenUtil.genNewId(IdPrefixType.SRPPR));
 		srvypprDAO.srvypprRegist(vo);
 	}
 
@@ -69,10 +64,9 @@ public class SrvypprServiceImpl extends ServiceBase implements SrvypprService {
 	* @param srvyId		설문아이디
 	* @param srvypprId	설문지아이디
 	* @return 설문지참여수
-	* @throws Exception
 	*/
 	@Override
-	public int srvypprPtcpCntSelect(SrvypprVO vo) throws Exception {
+	public int srvypprPtcpCntSelect(SrvypprVO vo) {
 		return srvypprDAO.srvypprPtcpCntSelect(vo);
 	}
 
@@ -80,10 +74,9 @@ public class SrvypprServiceImpl extends ServiceBase implements SrvypprService {
 	* 설문지삭제
 	*
 	* @param SrvypprVO
-	* @throws Exception
 	*/
 	@Override
-	public void srvypprDelete(SrvypprVO vo) throws Exception {
+	public void srvypprDelete(SrvypprVO vo) {
 		// 설문지삭제
 		srvypprDAO.srvypprDelete(vo.getSrvypprId());
 
@@ -100,10 +93,9 @@ public class SrvypprServiceImpl extends ServiceBase implements SrvypprService {
      * @param srvyId 	설문아이디
      * @param srvySeqno 변경할 설문지순번
      * @param searchKey 설문지순번
-     * @throws Exception
      */
 	@Override
-	public void srvySeqnoModify(SrvypprVO vo) throws Exception {
+	public void srvySeqnoModify(SrvypprVO vo) {
 		// 설문지순번수정
 		srvypprDAO.srvySeqnoModify(vo);
 

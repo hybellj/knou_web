@@ -17,15 +17,15 @@
 		$(document).ready(function() {
 		});
 
-		function teamList(lrnGrpId) {
-			if(lrnGrpId == "") {
+		function teamList(teamGrpId) {
+			if(teamGrpId == "") {
 				teamListTable.clearData();
 				return;
 			}
 
 			var url  = "/team/teamHome/listTeam.do";
 			var data = {
-				"teamCtgrCd"  : lrnGrpId
+				"teamCtgrCd"  : teamGrpId
 			};
 
 			ajaxCall(url, data, function(data) {
@@ -72,15 +72,18 @@
 
 	<body class="modal-page">
         <div id="wrap">
-        	<small class="note2 margin-3">! 학습그룹 배정이 완료된 학습그룹만 조회됩니다.</small>
-        	<div class="board_top">
-        		<select class="form-select" id="teamCtgrCd" onchange="teamList(this.value)">
-                    <option value="" hidden>학습그룹 지정</option>
-            		<c:forEach var="item" items="${teamCtgrList }">
-						<option value="${item.lrnGrpId }">${item.lrnGrpnm }</option>
+        	<div class="msg-box warning">
+            	<p class="txt"><i class="xi-error" aria-hidden="true"></i> 팀 그룹 배정이 완료된 팀 그룹만 조회됩니다.</p>
+            </div>
+
+            <div class="board_top">
+                <select class="form-select wide" id="teamCtgrCd" onchange="teamList(this.value)">
+                    <option value="" hidden>팀 그룹 지정</option>
+                    <c:forEach var="item" items="${teamCtgrList }">
+						<option value="${item.teamGrpId }">${item.teamGrpnm }</option>
 					</c:forEach>
                 </select>
-        	</div>
+            </div>
 
 			<div id="list"></div>
 
@@ -98,8 +101,8 @@
 				});
 			</script>
 
-			<div class="btns">
-                <button class="btn type2" onclick="selectTeamCtgr();"><spring:message code='team.common.select'/><!-- 선택 --></button>
+			<div class="modal_btns">
+                <button class="btn type1" onclick="selectTeamCtgr();"><spring:message code='common.button.ok'/><!-- 확인 --></button>
                 <button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code='team.common.close'/><!-- 닫기 --></button>
 			</div>
         </div>

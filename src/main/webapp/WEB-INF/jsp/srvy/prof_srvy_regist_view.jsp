@@ -10,80 +10,69 @@
 	</jsp:include>
 
 	<script type="text/javascript">
-		var dialog;
 		const editors = {};	// 에디터 목록 저장용
 
 		$(window).on('load', function() {
+			// 팀설문수정시
 			if(${not empty vo.srvyId && vo.srvyGbn eq 'SRVY_TEAM' }) {
-				// 부과제 조회
 				$("input[name='byteamSubsrvyUseyns']").each(function(i, e) {
-					var lrnGrpId = $("#lrnGrpId" + e.id.split("_")[1]).val().split(":")[0];	// 학습그룹아이디
-					var lrnGrpnm = $("#lrnGrpnm" + e.id.split("_")[1]).val();				// 학습그룹명
-					var dvclasNo = e.id.split("_")[1];										// 분반 순서
-					var sbjctId = e.value.split(":")[1];									// 과목아이디
+					let sbjctId 	= e.value.split(":")[1];							// 과목아이디
+					let teamGrpId 	= $("#teamGrpId" + sbjctId).val().split(":")[0];	// 팀그룹아이디
+					let teamGrpnm 	= $("#teamGrpnm" + sbjctId).val();					// 팀그룹명
 
-					selectTeam(lrnGrpId, lrnGrpnm, dvclasNo+":"+sbjctId);
+					// 팀선택
+					selectTeam(teamGrpId, teamGrpnm, e.value);
 				});
 			}
 
+			// 분반선택변경
 			dvclasChcChange($("#allDeclas")[0]);
 
-			// 설문 등록 분반 클릭 이벤트 해제
+			// 설문등록 분반 클릭이벤트 해제
 			const checkbox = document.querySelector('input[name="sbjctIds"].readonly');
-			checkbox.addEventListener('click', (e) => {
-				e.preventDefault();
-			});
+			checkbox.addEventListener('click', (e) => e.preventDefault());
 		});
 
-	 	// 이전 설문 가져오기 팝업
+	 	/*
+		 * 이전설문가져오기팝업
+		 * @param sbjctId	과목아이디
+		 */
 		function bfrSrvyCopyPopup() {
-			var data = "sbjctId=${sbjctId}";
-
 			dialog = UiDialog("dialog1", {
-				title: "이전설문 가져오기",
-				width: 800,
-				height: 450,
-				url: "/srvy/profBfrSrvyCopyPopup.do?"+data,
-				autoresize: true
+				title	: "<spring:message code='srvy.label.prev.srvy.copy' />",/* 이전설문 가져오기 */
+				width	: 800,
+				height	: 600,
+				url		: "/srvy/profBfrSrvyCopyPopup.do?encParams="+$("#encParams").val()
 			});
 		}
 
 	 	/**
 		 * 설문복사
-		 * @param {String}  srvyId 	- 설문아이디
-		 * @returns {vo} 설문정보
+		 * @param srvyId - 설문아이디
 		 */
 	 	function srvyCopy(srvyId) {
-	 		var url  = "/srvy/srvySelectAjax.do";
-			var data = {
-				"srvyId" : srvyId
+	 		const url  = "/srvy/srvySelectAjax.do";
+	 		const data = {
+				srvyId : srvyId
 			};
 
 			ajaxCall(url, data, function(data) {
 				if (data.result > 0) {
-	        		var srvy = data.returnVO;
+					let srvy = data.data;
 
-	        		// 설문명
-	        		$("#srvyTtl").val(srvy.srvyTtl);
-	        		// 설문 내용
-	        		$("#srvyCts").val(srvy.srvyCts);
-	        		$("#new_srvyCts .se-contents").html($.trim(srvy.srvyCts) == "" ? " " : srvy.srvyCts);
-	        		// 성적반영
-	        		var mrkRfltId = srvy.mrkRfltyn == "Y" ? "mrkRfltynY" : "mrkRfltynN";
-	        		$("#"+mrkRfltId).trigger("click");
-	        		// 평가방법
-	        		var evlScrId = srvy.evlScrTycd == "SCR" ? "scrEvlTycd" : "ptcpEvlTycd";
-	        		$("#"+evlScrId).trigger("click");
-	        		// 설문결과 조회가능
-	        		var rsltOpenId = srvy.rsltOpenTycd == "WHOL_OPEN" ? "rsltOpen" : "rsltClose";
-	        		$("#"+rsltOpenId).trigger("click");
+	        		$("#srvyTtl").val(srvy.srvyTtl);													// 설문명
+	        		editors['editor'].openHTML($.trim(srvy.srvyCts) == "" ? " " : srvy.srvyCts);		// 설문 내용
+	        		$("input[name=mrkRfltyn][value='" + srvy.mrkRfltyn + "']").trigger("click");		// 성적 반영 여부
+	        		$("input[name=evlScrTycd][value='" + srvy.evlScrTycd + "']").trigger("click");		// 평가방법
+	        		$("input[name=rsltOpenTycd][value='" + srvy.rsltOpenTycd + "']").trigger("click");	// 설문결과 조회가능
+	        		$("#searchValue").val(srvy.srvyId);													// 복사 설문 아이디
 	        		dialog.close();
 	            } else {
 	            	UiComm.showMessage(data.message, "error");
 	            }
 			}, function(xhr, status, error) {
-				UiComm.showMessage("<spring:message code='exam.error.copy' />", "error");/* 가져오기 중 에러가 발생하였습니다. */
-			});
+				UiComm.showMessage("<spring:message code='srvy.error.copy' />", "error");/* 가져오기 중 에러가 발생하였습니다. */
+			}, true);
 	 	}
 
 	    // 설문 등록, 수정
@@ -91,309 +80,237 @@
 	    	let validator = UiValidator("writeSrvyForm");
 			validator.then(function(result) {
 				if (result) {
-					if(!isNull()) {
-						return false;
-					}
-
 					setValue();
-					UiComm.showLoading(true);
 
-					var url = "/srvy/srvyRegistAjax.do";
+					let url = "/srvy/srvyRegistAjax.do";
 					if(${not empty vo.srvyId}) {
 						url = "/srvy/srvyModifyAjax.do";
 					}
-					$.ajax({
-					    url 	 : url,
-					    async	 : false,
-					    type 	 : "POST",
-					    dataType : "json",
-					    data 	 : $("#writeSrvyForm").serialize(),
-					}).done(function(data) {
-						UiComm.showLoading(false);
-						if (data.result > 0) {
-							if(${empty vo.srvyId} || ${vo.srvyQstnsCmptnyn ne 'Y'}) {
-								UiComm.showMessage("<spring:message code='resh.alert.already.resh.qstn.submit' />", "info")	/* 설문 문항관리에서 문항을 출제 해 주세요. */
+
+					ajaxCall(url, $("#writeSrvyForm").serialize(), function (data) {
+		                if (data.result > 0) {
+							// 등록 or 문항출제미완료시
+		                	if(${empty vo.srvyId} || ${vo.srvyQstnsCmptnyn ne 'Y'}) {
+								UiComm.showMessage("<spring:message code='srvy.alert.already.srvy.qstn.submit' />", "info")	/* 설문 문항관리에서 문항을 출제 해 주세요. */
 								.then(function(result) {
-									srvyViewMv("qstn", data.returnVO.srvyId);
+									srvyViewMv(data.data.srvyId, "PROFQSTN");	// 교수 설문 문항 관리 화면
 								});
 							} else {
-								srvyViewMv("list", '');
+								srvyViewMv("", "PROFLIST");	// 교수 설문 목록 화면
 							}
-					    } else {
-					     	UiComm.showMessage(data.message, "error");
-					    }
-					}).fail(function() {
-						UiComm.showLoading(false);
-						if(${empty vo.srvyId}) {
-							UiComm.showMessage("<spring:message code='exam.error.insert' />", "error");	/* 저장 중 에러가 발생하였습니다. */
+		                } else {
+		                    UiComm.showMessage(data.message, "error");
+		                }
+		            }, function () {
+		            	if(${empty vo.srvyId}) {
+							UiComm.showMessage("<spring:message code='srvy.error.insert' />", "error");	/* 저장 중 에러가 발생하였습니다. */
 						} else {
-							UiComm.showMessage("<spring:message code='exam.error.update' />", "error");	/* 수정 중 에러가 발생하였습니다. */
+							UiComm.showMessage("<spring:message code='srvy.error.update' />", "error");	/* 수정 중 에러가 발생하였습니다. */
 						}
-					});
+		            }, true);
 				}
 			});
 	    }
 
-	    // 빈 값 체크
-	    function isNull() {
-			// 팀 설문 설정시
-			if($("#srvyTeamynY").is(":checked")) {
-				var isResult = true;
-				var alertMsg = "";
-				$("input[name=lrnGrpnm]:visible").each(function(i, e) {
-					if(e.value == "") {
-						isResult = false;
-						alertMsg = "학습그룹을 지정하세요.";
-						return false;
-					}
-				});
-
-				// 팀 설문 학습그룹별 부 과제 설정시
-				$("input[name='byteamSubsrvyUseyns']:checked").each(function(i, e) {
-					if(!isResult) return false;
-					$("#subInfoDiv"+e.id.split("_")[1]+" tr.subSrvyTr").each(function(index, element) {
-						var ttl = $(element).find("input[name='subSrvyTtl']");
-						if($.trim($(ttl).val()) == "") {
-							isResult = false;
-							alertMsg = "<spring:message code='exam.alert.input.title' />"	/* 제목을 입력하세요. */
-							return false;
-						}
-
-						var teamId = ttl[0].id.split("_")[0];
-						if(editors[teamId+'_editor'+index].isEmpty() || editors[teamId+'_editor'+index].getTextContent().trim() === "") {
-							isResult = false;
-							alertMsg = "<spring:message code='exam.alert.input.contents' />";	/* 내용을 입력하세요. */
-				 			return false;
-				 		}
-					});
-				});
-				if(!isResult) {
-					UiComm.showMessage(alertMsg, "warning");
-					return false;
-				}
-			}
-
-			return true;
-	    }
-
 	    // 값 채우기
 	    function setValue() {
-			// 설문 시작일시
-			$("#srvySdttm").val(UiComm.getDateTimeVal("dateSt", "timeSt") + "00");
+			$("#srvySdttm").val(UiComm.getDateTimeVal("dateSt", "timeSt") + "00");						// 설문 시작일시
+			$("#srvyEdttm").val(UiComm.getDateTimeVal("dateEd", "timeEd") + "59");						// 설문 종료일시
+			$("#dvclasRegyn").val($("input:checkbox[name=sbjctIds]:checked").length > 1 ? "Y" : "N");	// 분반 체크 여부
 
-			// 설문 종료일시
-			$("#srvyEdttm").val(UiComm.getDateTimeVal("dateEd", "timeEd") + "59");
-
-			// 분반 체크 여부
-			$("#dvclasRegyn").val($("input:checkbox[name=sbjctIds]:checked").length > 1 ? "Y" : "N");
-
-			// 팀 설문 학습그룹별 부 과제 설정시
+			// 팀설문시
 	    	if($("#srvyTeamynY").is(":checked")) {
 				const subSrvys = [];
+				// 팀그룹별설문설정시
 	    		$("input[name='byteamSubsrvyUseyns']:checked").each(function(i, e) {
 	    			$("#subInfoDiv"+e.id.split("_")[1]+" tr.subSrvyTr").each(function(index, element) {
-						var ttl = $(element).find("input[name='subSrvyTtl']");
-						var teamId = ttl[0].id.split("_")[0];
-
-						const map = {
-							id: teamId,
-							ttl: $.trim($(ttl).val()),
-							cts: editors[teamId+'_editor'+index].getPublishingHtml()
-						};
-						subSrvys.push(map);
+						let ttl 	= $(element).find("input[name='subSrvyTtl']");
+						let teamId  = ttl[0].id.split("_")[0];
+						subSrvys.push({
+							id	: teamId,									// 팀아이디
+							ttl	: $.trim($(ttl).val()),						// 부주제
+							cts	: $("#"+teamId+'_subSrvyCts_'+index).val()	// 부내용
+						});
 	    			});
 	    		});
 	    		$("#subSrvys").val(JSON.stringify(subSrvys));
 	    	}
 	    }
 
-		/**
-		 * 설문 화면 이동
-		 * @param {String}  srvyId 	- 설문아이디
-		 * @param {String}  sbjctId - 과목아이디
-		 */
-		function srvyViewMv(type, srvyId) {
-			var urlMap = {
-				"qstn" : "/srvy/profSrvyQstnMngView.do",	// 설문 문항 관리 화면
-				"list" : "/srvy/profSrvyListView.do"		// 설문 목록 화면
-			}
-			var kvArr = [];
-			kvArr.push({'key' : 'srvyId',   	'val' : srvyId});
-			kvArr.push({'key' : 'sbjctId', 		'val' : "${sbjctId}"});
-
-			submitForm(urlMap[type], kvArr);
-		}
-
-		/**
-		 * 분반 선택 변경
-		 * @param {obj}  obj - 선택한 분반 체크박스
+		/*
+		 * 분반선택변경
+		 * @param obj	선택한 분반 체크박스
 		 */
 		function dvclasChcChange(obj) {
 			if(obj.value == "all") {
 				$("input[name=sbjctIds]").not(".readonly").prop("checked", obj.checked);
 
 				if(obj.checked) {
-					$("div[id^='lrnGrpView']").css("display", "flex");
+					$("div[id^='teamGrpView']").css("display", "flex");
 					$("input[name='byteamSubsrvyUseyns']:checked").each(function(i, e) {
-						$("#setSrvyDiv"+e.id.split("_")[1]).show();
+						$("#setSrvyDiv" + e.value).show();
 					});
 				} else {
-					var fixDvclas = $("input[name=sbjctIds]").filter(".readonly")[0].id.split("_")[1];
-					$("div[id^='lrnGrpView']").not("#lrnGrpView"+fixDvclas).hide();
-					$("div[id^='setSrvyDiv']").not("#setSrvyDiv"+fixDvclas).hide();
+					let fixSbjct = $("input[name=sbjctIds]").filter(".readonly")[0].value;
+					$("div[id^='teamGrpView']").not("#teamGrpView"+fixSbjct).hide();
+					$("div[id^='setSrvyDiv']").not("#setSrvyDiv"+fixSbjct).hide();
 				}
 			} else {
 				$("#allDeclas").prop("checked", $("input[name=sbjctIds]").length == $("input[name=sbjctIds]:checked").length);
+				$("#setSrvyDiv" + obj.value).toggle(obj.checked);
 
 				if(obj.checked) {
-					$("#lrnGrpView" + obj.id.split("_")[1]).css("display", "flex");
-					$("#setSrvyDiv"+obj.id.split("_")[1]).show();
+					$("#teamGrpView" + obj.value).css("display", "flex");
 				} else {
-					$("#lrnGrpView" + obj.id.split("_")[1]).hide();
-					$("#setSrvyDiv"+obj.id.split("_")[1]).hide();
+					$("#teamGrpView" + obj.value).hide();
 				}
 			}
-		}
 
-		/**
-		 * 팀 설문 여부 변경
-		 * @param {String}  value - 팀 설문 여부
-		 */
-		function teamynChange(value) {
-			if(value == "Y") {
-				$("#teamSrvyDiv").show();
-			} else {
-				$("#teamSrvyDiv").hide();
-			}
-		}
-
-		/**
-		 * 학습그룹지정 팝업
-		 * @param {Integer} i 		- 분반 순서
-		 * @param {String}  sbjctId - 과목아이디
-		 */
-	    function teamGrpChcPopup(i, sbjctId) {
-			dialog = UiDialog("dialog1", {
-				title: "학습그룹지정",
-				width: 600,
-				height: 500,
-				url: "/team/teamHome/teamCtgrSelectPop.do?sbjctId="+sbjctId+"&searchFrom="+i + ":" + sbjctId,
-				autoresize: true
+			// 팀그룹 필수변경
+			document.querySelectorAll('#teamSrvyDiv input[name=teamGrpnm]').forEach(input => {
+				if($("#srvyTeamynY").is(":checked")) {
+					input.setAttribute("required", $(input).is(':visible') ? "true" : "false");
+				} else {
+					input.setAttribute("required", "false");
+				}
 			});
 		}
 
-	    /**
-		 * 학습그룹 선택
-		 * @param {String}  lrnGrpId 	- 학습그룹아이디
-		 * @param {String}  lrnGrpnm 	- 학습그룹명
-		 * @param {String}  id 			- 분반 순서:과목개설아이디
-		 * @returns {list} 팀 목록
+		/*
+		 * 팀설문여부변경
+		 * @param value		팀 설문 여부
 		 */
-	    function selectTeam(lrnGrpId, lrnGrpnm, id) {
-	    	var idList = id.split(':');
-	    	$("#lrnGrpId" + idList[0]).val(lrnGrpId + ":" + idList[1]);
-	    	$("#lrnGrpnm" + idList[0]).val(lrnGrpnm);
-	    	$("#setSrvyDiv" + idList[0]).show();
+		function teamynChange(value) {
+			$("#teamSrvyDiv").toggle(value == "Y");
 
-	    	var url  = "/srvy/srvyLrnGrpSubAsmtListAjax.do";
-			var data = {
-				lrnGrpId : 	lrnGrpId,
-				srvyId   : 	$("#byteamSubsrvyUseyn_" + idList[0]).data("id")
+			// 팀그룹 필수변경
+			document.querySelectorAll('#teamSrvyDiv input[name=teamGrpnm]').forEach(input => {
+				if($("#srvyTeamynY").is(":checked")) {
+					input.setAttribute("required", $(input).is(':visible') ? "true" : "false");
+				} else {
+					input.setAttribute("required", "false");
+				}
+			});
+		}
+
+		/*
+		 * 팀그룹지정팝업
+		 * @param i 		분반 순서
+		 * @param sbjctId	과목아이디
+		 */
+	    function teamGrpChcPopup(i, sbjctId) {
+			dialog = UiDialog("dialog1", {
+				title	: "<spring:message code='srvy.button.assign.teams' />",/* 팀그룹지정 */
+				width	: 600,
+				height	: 500,
+				url		: "/team/teamHome/teamCtgrSelectPop.do?sbjctId="+sbjctId+"&searchFrom="+i + ":" + sbjctId
+			});
+		}
+
+	    /*
+		 * 팀선택
+		 * @param teamGrpId		팀그룹아이디
+		 * @param teamGrpnm		팀그룹명
+		 * @param id 			분반 순서:과목아이디
+		 */
+	    function selectTeam(teamGrpId, teamGrpnm, id) {
+	    	let idList = id.split(':');
+	    	$("#teamGrpId" + idList[1]).val(teamGrpId + ":" + idList[1]);
+	    	$("#teamGrpnm" + idList[1]).val(teamGrpnm);
+	    	$("#setSrvyDiv" + idList[1]).show();
+
+	    	const url  = "/srvy/srvyTeamGrpSubAsmtListAjax.do";
+	    	const data = {
+				teamGrpId 	: teamGrpId,
+				srvyId   	: $("#byteamSubsrvyUseyn_" + idList[1]).data("id")
 			};
 
 			$.ajax({
-		        url 	  : url,
-		        async	  : false,
-		        type 	  : "POST",
-		        dataType : "json",
-		        data 	  : JSON.stringify(data),
-		        contentType: "application/json; charset=UTF-8",
-		    }).done(function(data) {
-		   		UiComm.showLoading(false);
-		    	if (data.result > 0) {
-		    		var returnList = data.returnList || [];
-					var html = "";
+		        url 	  	: url,
+		        async	  	: false,
+		        type 	  	: "POST",
+		        dataType 	: "json",
+		        data 	  	: JSON.stringify(data),
+		        contentType	: "application/json; charset=UTF-8",
+		        beforeSend	: () => UiComm.showLoading(true),
+                success		: function (data) {
+                    if (data.result > 0) {
+                    	let returnList = data.returnList || [];
+    					let html = "";
 
-	        		if(returnList.length > 0) {
-						html += "<table class='table-type5'>";
-						html += "	<colgroup>";
-						html += "		<col class='width-10per' />";
-						html += "		<col class='' />";
-						html += "		<col class='width-10per' />";
-						html += "	</colgroup>";
-						html += "	<tbody>";
-						html += "		<tr>";
-						html += "			<th>팀</th>";
-						html += "			<th>부 과제</th>";
-						html += "			<th>학습그룹 구성원</th>";
-						html += "		</tr>";
-	        			returnList.forEach(function(v, i) {
-							html += "	<tr class='subSrvyTr'>";
-							html += "		<th><label>" + v.teamnm + "</label></th>";
-							html += "		<td>";
-							html += "			<table class='table-type5'>";
-							html += "				<colgroup>";
-							html += "					<col class='width-10per' />";
-							html += "					<col class='' />";
-							html += "				</colgroup>";
-							html += "				<tbody>";
-							html += "					<tr>";
-							html += "						<th><label for='" + v.teamId + "_SrvyTtl_" + i + "' class='req'>주제</label></th>";
-							html += "						<td><input type='text' id='" + v.teamId + "_SrvyTtl_" + i + "' name='subSrvyTtl' value='" + (v.srvyTtl == null ? '' : v.srvyTtl) + "' inputmask='byte' maxLen='200' class='width-100per' /></td>";
-							html += "					</tr>";
-							html += "					<tr>";
-							html += "						<th><label for='" + v.teamId + "_contentTextArea_" + i + "' class='req'>내용</label></th>";
-							html += "						<td>";
-							html += "							<div class='editor-box'>";
-							html += "								<textarea name='" + v.teamId + "_contentTextArea_" + i + "' id='" + v.teamId + "_contentTextArea_" + i + "'>" + (v.srvyCts == null ? '' : v.srvyCts) + "</textarea>";
-							html += "							</div>";
-							html += "						</td>";
-							html += "					</tr>";
-							html += "				</tbody>";
-							html += "			</table>";
-							html += "		</td>";
-							html += "		<th>" + v.leadernm + " 외 " + (v.teamMbrCnt - 1) + "</th>";
-							html += "	</tr>";
-	        			});
-						html += "	</tbody>";
-						html += "</table>";
-	        		}
+    	        		if(returnList.length > 0) {
+    						html += "<table class='table-type5 in_table'>";
+    						html += "	<colgroup>";
+    						html += "		<col class='width-5per' />";
+    						html += "		<col class='width-15per' />";
+    						html += "		<col class='' />";
+    						html += "	</colgroup>";
+    						html += "	<tbody>";
+    	        			returnList.forEach(function(v, i) {
+    							html += "	<tr class='subSrvyTr'>";
+    							html += "		<th rowspan='2' class='group-header'><label>" + v.teamnm + "</label></th>";
+    							html += "		<th><label for='" + v.teamId + "_srvyTtl_" + i + "' class='req'><spring:message code='srvy.label.sub.title' /></label></th>";/* 부주제 */
+    							html += "		<td>";
+    							html += "			<div class='form-row'>";
+    							html += "				<input type='text' id='" + v.teamId + "_srvyTtl_" + i + "' name='subSrvyTtl' value='" + (v.srvyTtl == null ? '' : v.srvyTtl) + "' inputmask='byte' maxLen='200' class='form-control width-100per' />";
+    							html += "			</div>";
+    							html += "		</td>"
+    							html += "	</tr>";
+    							html += "	<tr>";
+    							html += "		<th><label for='" + v.teamId + "_subSrvyCts_" + i + "' class='req'><spring:message code='common.label.contents' /></label></th>";/* 내용 */
+    							html += "		<td>";
+    							html += "			<label class='width-100per'>";
+    							html += "				<textarea rows='4'";
+    							html += "						  class='form-control resize-none'";
+    							html += "						  name='" + v.teamId + "_subSrvyCts_" + i + "'";
+    							html += "						  id='" + v.teamId + "_subSrvyCts_" + i + "'>";
+    							html += 					(v.srvyCts == null ? '' : v.srvyCts);
+    							html += "				</textarea>";
+    							html += "			</label>";
+    							html += "		</td>";
+    							html += "	</tr>";
+    	        			});
+    						html += "	</tbody>";
+    						html += "</table>";
+    	        		}
 
-	        		$("#subInfoDiv" + idList[0]).empty().html(html);
-	        		if(returnList.length > 0) {
-	        			returnList.forEach(function(v, i) {
-	        				// html 에디터 생성
-							editors[v.teamId+'_editor'+i] = UiEditor({
-																targetId: v.teamId+'_contentTextArea_'+i,
-																uploadPath: "/srvy",
-																height: "500px"
-															});
-	        			});
-	        		}
-		        } else {
-		       		UiComm.showMessage(data.message, "error");
-		        }
-		    }).fail(function() {
-			   	UiComm.showLoading(false);
-			   	UiComm.showMessage("<spring:message code='exam.error.copy' />", "error");	/* 가져오기 중 에러가 발생하였습니다. */
+    	        		$("#subInfoDiv" + idList[1]).empty().html(html);
+    	        		UiInputmask();
+    	        		if(returnList.length > 0) {
+    	        			returnList.forEach(function(v, i) {
+    	        				// html 에디터 생성
+    	        				const editorId = v.teamId + "_subSrvyCts_" + i;
+    							editors[editorId] = UiEditor({
+    													targetId	: editorId,
+    													uploadPath	: "${vo.uploadPath}",
+    													height		: "250px"
+    												});
+    	        			});
+    	        		}
+                    } else {
+                    	UiComm.showMessage(data.message, "error");
+                    }
+                },
+                error		: () => UiComm.showMessage("<spring:message code='srvy.error.copy' />", "error"),	/* 가져오기 중 에러가 발생하였습니다. */
+                complete	: () => UiComm.showLoading(false)
 		    });
 	    }
 
-	    /**
-		 * 학습그룹 설정여부 변경
-		 * @param {obj}  obj - 분반 학습그룹 과제 설정 체크박스
+	    /*
+		 * 팀그룹 설정여부 변경
+		 * @param obj - 분반 팀그룹 과제 설정 체크박스
 		 */
 	    function byteamSubsrvyUseynChange(obj) {
-	    	if(obj.checked) {
-				$("#subInfoDiv" + obj.id.split("_")[1]).show();
-			} else {
-				$("#subInfoDiv" + obj.id.split("_")[1]).hide();
-			}
+	    	$("#subInfoDiv" + obj.id.split("_")[1]).toggle(obj.checked);
+	    	// 부주제, 내용 필수변경
+	    	document.querySelectorAll('#subInfoDiv'+obj.id.split("_")[1]+' input[name=subSrvyTtl], #subInfoDiv'+obj.id.split("_")[1]+' textarea').forEach(input => {
+				input.setAttribute("required", obj.checked ? "true" : "false");
+			});
 	    }
 	</script>
 </head>
 
-<body class="class colorA">
+<body class="class ${uiex:getTheme()}">
     <div id="wrap" class="main">
         <!-- common header -->
         <jsp:include page="/WEB-INF/jsp/common_new/class_header.jsp"/>
@@ -408,100 +325,76 @@
 
             <!-- content -->
             <div id="content" class="content-wrap common">
-            	<div class="class_sub_top">
-					<div class="navi_bar">
-						<ul>
-							<li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-							<li>강의실</li>
-							<li><span class="current">내강의실</span></li>
-						</ul>
-					</div>
-					<div class="btn-wrap">
-						<div class="first">
-							<select class="form-select">
-								<option value="2025년 2학기">2025년 2학기</option>
-								<option value="2025년 1학기">2025년 1학기</option>
-							</select>
-							<select class="form-select wide">
-								<option value="">강의실 바로가기</option>
-								<option value="2025년 2학기">2025년 2학기</option>
-								<option value="2025년 1학기">2025년 1학기</option>
-							</select>
-						</div>
-						<div class="sec">
-							<button type="button" class="btn type1"><i class="xi-book-o"></i>교수 매뉴얼</button>
-							<button type="button" class="btn type1"><i class="xi-info-o"></i>학습안내정보</button>
-						</div>
-					</div>
-				</div>
+				<!-- class_sub_top -->
+				<jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+				<!-- //class_sub_top -->
 
 				<div class="class_sub">
+					<!-- class_info -->
+					<jsp:include page="/WEB-INF/jsp/common_new/class_info.jsp"/>
+					<!-- //class_info -->
+
 		        	<div class="sub-content">
 				        <div class="page-info">
 				        	<h2 class="page-title">
-                                설문
+                                <spring:message code="srvy.common.srvy" /><!-- 설문 -->
                             </h2>
 				        </div>
-				        <spring:message code="exam.button.save" var="save" /><!-- 저장 -->
-				        <spring:message code="exam.button.mod"  var="modify" /><!-- 수정 -->
-				        <div class="board_top">
-					        <div class="right-area">
-					        	<a href="javascript:save()" class="btn type2">${empty vo.srvyId ? save : modify }</a>
-					            <a href="javascript:bfrSrvyCopyPopup()" class="btn type2">이전설문 가져오기</a>
-					            <a href="javascript:srvyViewMv('list', '')" class="btn type2"><spring:message code="exam.button.list" /></a><!-- 목록 -->
-					        </div>
-				        </div>
 				        <!--table-type-->
+				        <spring:message code="srvy.common.yes" var="yes" /><!-- 예 -->
+				        <spring:message code="srvy.common.no"  var="no" /><!-- 아니오 -->
 				        <div class="table-wrap">
-							<form name="writeSrvyForm" id="writeSrvyForm" method="POST" autocomplete="off">
+							<form name="writeSrvyForm" id="writeSrvyForm" method="POST" autocomplete="off" onsubmit="return false;">
+								<input type="hidden" name="encParams"    				value="<c:out value='${encParams}' />"	id="encParams" />
 						    	<input type="hidden" name="srvyId" 						value="${vo.srvyId }" />
-						        <input type="hidden" name="sbjctId" 					value="${sbjctId }" />
 						        <input type="hidden" name="srvyGrpId" 					value="${vo.srvyGrpId }" />
 						        <input type="hidden" name="mrkRfltrt" 					value="0" />
 						        <input type="hidden" name="upSrvyId" 					value="" />
 						        <input type="hidden" name="srvyWrtTycd" 				value="LMS_SRVY" />
 						        <input type="hidden" name="srvyGbncd" 					value="LCTR_SRVY" />
-						        <input type="hidden" name="srvyTycd"					value="SRVY_GNRL_LCTR_EVL" />
+						        <input type="hidden" name="srvyTycd"					value="SRVY_GNRL" />
 						        <input type="hidden" name="srvyTrgtGbncd"				value="SBJCT" />
-						        <input type="hidden" name="srvySdttm" 					value="${vo.srvySdttm }" 		id="srvySdttm" />
-						        <input type="hidden" name="srvyEdttm" 					value="${vo.srvyEdttm }"  		id="srvyEdttm" />
-						        <input type="hidden" name="dvclasRegyn" 				value="${vo.dvclasRegyn }"	   	id="dvclasRegyn" />
-						        <input type="hidden" name="subSrvys" 					value=""	   					id="subSrvys" />
+						        <input type="hidden" name="srvySdttm" 					value="${vo.srvySdttm }" 				id="srvySdttm" />
+						        <input type="hidden" name="srvyEdttm" 					value="${vo.srvyEdttm }"  				id="srvyEdttm" />
+						        <input type="hidden" name="dvclasRegyn" 				value="${vo.dvclasRegyn }"	   			id="dvclasRegyn" />
+						        <input type="hidden" name="subSrvys" 					value=""	   							id="subSrvys" />
+						        <input type="hidden" name="searchValue"															id="searchValue" />
 						        <table class="table-type5">
 						        	<colgroup>
-						        		<col class="width-20per" />
+						        		<col class="width-15per" />
 						        		<col class="" />
 						        	</colgroup>
 						        	<tbody>
 						        		<tr>
-						        			<th><label for="srvyTtl" class="req">설문명</label></th>
+						        			<th><label for="srvyTtl" class="req"><spring:message code="srvy.label.title" /><!-- 설문명 --></label></th>
 						        			<td>
 						        				<input type="text" name="srvyTtl" id="srvyTtl" inputmask="byte" maxLen="200" class="width-100per" required="true" value="${vo.srvyTtl }">
 						        			</td>
 						        		</tr>
 						        		<tr>
-						        			<th><label for="contentTextArea" class="req">설문내용</label></th>
+						        			<th><label for="srvyCts" class="req"><spring:message code="srvy.label.cts" /><!-- 설문내용 --></label></th>
 						        			<td>
 												<div class="editor-box">
 													<%-- HTML 에디터 --%>
-													<uiex:htmlEditor
-														id="srvyCts"
-														name="srvyCts"
-														uploadPath="${vo.uploadPath}"
-														value="${vo.srvyCts}"
-														height="500px"
-														required="true"
-													/>
+													<textarea id="srvyCts" name="srvyCts" required="true"><c:out value="${vo.srvyCts}"/></textarea>
+                                                    <script>
+                                                        // HTML 에디터
+                                                        editors['editor'] = UiEditor({
+                                                            targetId: "srvyCts",
+                                                            uploadPath: "${vo.uploadPath}",
+                                                            height: "300px"
+                                                        });
+                                                    </script>
 												</div>
 						        			</td>
 						        		</tr>
 						        		<tr>
-						        			<th><label for="contLabel" class="req">분반 일괄 등록</label></th>
+						        			<th><label for="contLabel" class="req"><spring:message code="srvy.label.dvclas.batch.regist" /><!-- 분반 일괄 등록 --></label></th>
 						        			<td>
 						        				<div class="checkbox_type">
 						        					<span class="custom-input">
 														<input type="checkbox" name="allDeclasNo" value="all" id="allDeclas" onchange="dvclasChcChange(this)">
-														<label for="allDeclas">전체</label>
+														<label for="allDeclas"><spring:message code="srvy.common.all" /><!-- 전체 --></label>
 													</span>
 													<c:forEach var="list" items="${dvclasList }">
 												        <c:set var="sbjctChk" value="N" />
@@ -511,15 +404,26 @@
 												        	</c:if>
 												        </c:forEach>
 												        <span class="custom-input">
-															<input type="checkbox" ${list.sbjctId eq sbjctId || sbjctChk eq 'Y' ? 'class="readonly" checked' : '' } name="sbjctIds" id="declas_${list.dvclasNo }" value="${list.sbjctId }" onchange="dvclasChcChange(this)">
-															<label for="declas_${list.dvclasNo }">${list.dvclasNo }반</label>
+															<input type="checkbox" ${list.sbjctId eq uiex:getParamValue('sbjctId') || sbjctChk eq 'Y' ? 'class="readonly" checked' : '' } name="sbjctIds" id="declas_${list.sbjctId }" value="${list.sbjctId }" onchange="dvclasChcChange(this)">
+															<label for="declas_${list.sbjctId }">${list.dvclasNo }<spring:message code="srvy.label.decls" /><!-- 반 --></label>
 														</span>
 											        </c:forEach>
 						        				</div>
 						        			</td>
 						        		</tr>
 						        		<tr>
-						        			<th><label for="dateSt" class="req">설문기간</label></th>
+						        			<th><label for="contLabel" class="req"><spring:message code="srvy.label.set.lctr.wkno" /><!-- 강의목록 주차 설정 --></label></th>
+						        			<td>
+						        				<select class="form-select" name="lctrWknoSchdlId" required="true">
+			                                		<option value=""><spring:message code="common.label.lesson.schedule" /><!-- 주차 --></option>
+				                                    <c:forEach var="item" items="${lctrWknoList }">
+										            	<option value="${item.lctrWknoSchdlId }" ${item.lctrWknoSchdlId eq vo.lctrWknoSchdlId || item.curLctrWkno eq 'Y' ? 'selected' : '' }>${item.lctrWknonm }</option>
+										            </c:forEach>
+				                                </select>
+						        			</td>
+						        		</tr>
+						        		<tr>
+						        			<th><label for="dateSt" class="req"><spring:message code="srvy.label.period" /><!-- 설문기간 --></label></th>
 						        			<td>
 						        				<input id="dateSt" type="text" name="dateSt" class="datepicker" timeId="timeSt" toDate="dateEd" value="${fn:substring(vo.srvySdttm,0,8)}" required="true">
 												<input id="timeSt" type="text" name="timeSt" class="timepicker" dateId="dateSt" value="${fn:substring(vo.srvySdttm,8,12)}" required="true">
@@ -529,93 +433,93 @@
 						        			</td>
 						        		</tr>
 						        		<tr>
-						        			<th><label class="req">성적반영</label></th>
+						        			<th><label class="req"><spring:message code="srvy.label.score.aply.yn" /><!-- 성적반영 --></label></th>
 						        			<td>
 						        				<span class="custom-input">
 													<input type="radio" name="mrkRfltyn" id="mrkRfltynY" value="Y" ${vo.mrkRfltyn eq 'Y' || empty vo.srvyId ? 'checked' : '' }>
-													<label for="mrkRfltynY">예</label>
+													<label for="mrkRfltynY">${yes }</label>
 												</span>
 												<span class="custom-input ml5">
 													<input type="radio" name="mrkRfltyn" id="mrkRfltynN" value="N" ${vo.mrkRfltyn eq 'N' ? 'checked' : '' }>
-													<label for="mrkRfltynN">아니오</label>
+													<label for="mrkRfltynN">${no }</label>
 												</span>
 						        			</td>
 						        		</tr>
 						        		<tr>
-						        			<th><label class="req">성적공개</label></th>
+						        			<th><label class="req"><spring:message code="srvy.label.score.open.yn" /><!-- 성적공개 --></label></th>
 						        			<td>
 						        				<span class="custom-input">
 													<input type="radio" name="mrkOyn" id="mrkOynY" value="Y" ${vo.mrkOyn eq 'Y' || empty vo.srvyId ? 'checked' : '' }>
-													<label for="mrkOynY">예</label>
+													<label for="mrkOynY">${yes }</label>
 												</span>
 												<span class="custom-input ml5">
 													<input type="radio" name="mrkOyn" id="mrkOynN" value="N" ${vo.mrkOyn eq 'N' ? 'checked' : '' }>
-													<label for="mrkOynN">아니오</label>
+													<label for="mrkOynN">${no }</label>
 												</span>
 						        			</td>
 						        		</tr>
 						        		<tr>
-						        			<th><label>평가방법</label></th>
+						        			<th><label><spring:message code="srvy.label.evl.method" /><!-- 평가방법 --></label></th>
 						        			<td>
 						        				<span class="custom-input">
 													<input type="radio" name="evlScrTycd" id="scrEvlTycd" value="SCR" ${vo.evlScrTycd eq 'SCR' || empty vo.srvyId ? 'checked' : '' }>
-													<label for="scrEvlTycd">점수형</label>
+													<label for="scrEvlTycd"><spring:message code="srvy.label.evl.ctgr.score" /><!-- 점수형 --></label>
 												</span>
 												<span class="custom-input ml5">
 													<input type="radio" name="evlScrTycd" id="ptcpEvlTycd" value="PTCP_FULL_SCR" ${vo.evlScrTycd eq 'PTCP_FULL_SCR' ? 'checked' : '' }>
-													<label for="ptcpEvlTycd">참여형</label>
+													<label for="ptcpEvlTycd"><spring:message code="srvy.label.evl.ctgr.ptcp" /><!-- 참여형 --></label>
 												</span>
 												<span class="fcBlue">
-													( 설문 참여 : 100점, 미참여 : 0점 자동배점 )
+													( <spring:message code="srvy.label.evl.ctgr.info" /><!-- 설문 참여 : 100점, 미참여 : 0점 자동배점 --> )
 												</span>
 						        			</td>
 						        		</tr>
 						        		<tr>
-						        			<th><label>설문결과 조회가능</label></th>
+						        			<th><label><spring:message code="srvy.label.view.result.yn" /><!-- 설문결과 조회가능 --></label></th>
 						        			<td>
 						        				<span class="custom-input">
 													<input type="radio" name="rsltOpenTycd" id="rsltOpen" value="WHOL_OPEN" ${vo.rsltOpenTycd eq 'WHOL_OPEN' || empty vo.srvyId ? 'checked' : '' }>
-													<label for="rsltOpen">예</label>
+													<label for="rsltOpen">${yes }</label>
 												</span>
 												<span class="custom-input ml5">
 													<input type="radio" name="rsltOpenTycd" id="rsltClose" value="WHOL_CLOSE" ${vo.rsltOpenTycd eq 'WHOL_CLOSE' ? 'checked' : '' }>
-													<label for="rsltClose">아니오</label>
+													<label for="rsltClose">${no }</label>
 												</span>
 						        			</td>
 						        		</tr>
 										<tr>
-						        			<th><label>팀설문</label></th>
+						        			<th><label><spring:message code="srvy.label.team.srvy" /><!-- 팀 설문 --></label></th>
 						        			<td>
-												<span class="custom-input ml5">
-													<input type="radio" name="srvyTeamyn" id="srvyTeamynN" value="N" onchange="teamynChange(this.value)" ${empty vo.srvyId || vo.srvyGbn ne 'SRVY_TEAM' ? 'checked' : ''}>
-													<label for="srvyTeamynN">아니오</label>
-												</span>
-						        				<span class="custom-input">
-													<input type="radio" name="srvyTeamyn" id="srvyTeamynY" value="Y" onchange="teamynChange(this.value)" ${vo.srvyGbn eq 'SRVY_TEAM' ? 'checked' : ''}>
-													<label for="srvyTeamynY">예</label>
-												</span>
-												<div id="teamSrvyDiv" ${empty vo.srvyId || vo.srvyGbn ne 'SRVY_TEAM' ? 'style="display:none"' : '' }>
+						        				<div class="form-inline">
+													<span class="custom-input">
+														<input type="radio" name="srvyTeamyn" id="srvyTeamynN" value="N" onchange="teamynChange(this.value)" ${empty vo.srvyId || vo.srvyGbn ne 'SRVY_TEAM' ? 'checked' : ''}>
+														<label for="srvyTeamynN">${no }</label>
+													</span>
+							        				<span class="custom-input ml5">
+														<input type="radio" name="srvyTeamyn" id="srvyTeamynY" value="Y" onchange="teamynChange(this.value)" ${vo.srvyGbn eq 'SRVY_TEAM' ? 'checked' : ''}>
+														<label for="srvyTeamynY">${yes }</label>
+													</span>
+						        				</div>
+												<div id="teamSrvyDiv" class="team_item" ${empty vo.srvyId || vo.srvyGbn ne 'SRVY_TEAM' ? 'style="display:none"' : '' }>
 										        	<c:forEach var="list" items="${dvclasList }" varStatus="i">
-														<div class="form-row" id='lrnGrpView${list.dvclasNo}'>
-															<div class="input_btn width-100per">
-																<label>${list.dvclasNo }반</label>
-																<input type='hidden' id='lrnGrpId${list.dvclasNo}' name='lrnGrpIds' value="${empty vo.srvyId ? '' : list.lrnGrpId}:${list.sbjctId}">
-																<input class="form-control width-60per" type="text" name="lrnGrpnm" id="lrnGrpnm${list.dvclasNo}" placeholder="팀 분류를 선택해 주세요." value="${empty vo.srvyId ? '' : list.lrnGrpnm}" readonly="" autocomplete="off">
-																<a class="btn type1 small" onclick="teamGrpChcPopup('${list.dvclasNo}','${list.sbjctId }')">학습그룹지정</a>
-															</div>
+														<div class="item" id='teamGrpView${list.sbjctId}'>
+															<label class="label_num">${list.dvclasNo }<spring:message code="srvy.label.decls" /><!-- 반 --></label>
+															<input type='hidden' id='teamGrpId${list.sbjctId}' name='teamGrpIds' value="${empty vo.srvyId ? '' : list.teamGrpId}:${list.sbjctId}">
+															<input class="form-control wide" type="text" name="teamGrpnm" id="teamGrpnm${list.sbjctId}" placeholder="<spring:message code='srvy.placeholder.select.team.group' />" value="${empty vo.srvyId ? '' : list.teamGrpnm}" readonly="true" autocomplete="off"><!-- 팀그룹을 선택해 주세요. -->
+															<button type="button" class="btn basic" onclick="teamGrpChcPopup('${list.dvclasNo}','${list.sbjctId }')"><spring:message code="srvy.button.assign.teams" /><!-- 팀그룹지정 --></a>
 														</div>
 											        	<c:if test="${i.count eq 1 }">
-											        		<div class="form-inline">
-																<small class="note2">! 구성된 팀이 없는 경우 메뉴 “과목설정 > 학습그룹지정”에서 팀을 생성해 주세요</small>
-															</div>
+															<small class="note2"><spring:message code="srvy.label.select.team.group.info" /><!-- ! 구성된 팀이 없는 경우 메뉴 “과목설정 > 팀그룹지정”에서 팀을 생성해 주세요 --></small>
 											        	</c:if>
-											        	<div class="ui segment" id="setSrvyDiv${list.dvclasNo }" style="display:none;">
-											        		<span class="custom-input">
-															    <input type="checkbox" name="byteamSubsrvyUseyns" id="byteamSubsrvyUseyn_${list.dvclasNo }" data-Id="${not empty vo.srvyId && list.byteamSubsrvyUseyn eq 'Y' ? list.srvyId : '' }" value="Y:${list.sbjctId }" onchange="byteamSubsrvyUseynChange(this)" ${not empty vo.srvyId && list.byteamSubsrvyUseyn eq 'Y' ? 'checked' : '' }>
-															    <label for="byteamSubsrvyUseyn_${list.dvclasNo }">학습그룹별 부 과제 설정</label>
-															</span>
-												        	<div id="subInfoDiv${list.dvclasNo }" ${not empty vo.srvyId && list.byteamSubsrvyUseyn eq 'Y' ? '' : 'style="display: none;"' }></div>
-											        	</div>
+											        	<div class="item_setting" id="setSrvyDiv${list.sbjctId }" style="display:none;">
+		                                                    <div class="checkbox_type">
+		                                                        <span class="custom-input">
+		                                                            <input type="checkbox" id="byteamSubsrvyUseyn_${list.sbjctId }" name="byteamSubsrvyUseyns" data-Id="${not empty vo.srvyId && list.byteamSubsrvyUseyn eq 'Y' ? list.srvyId : '' }" value="${list.dvclasNo}:${list.sbjctId }" onchange="byteamSubsrvyUseynChange(this)" ${not empty vo.srvyId && list.byteamSubsrvyUseyn eq 'Y' ? 'checked' : '' }>
+		                                                            <label for="byteamSubsrvyUseyn_${list.sbjctId }"><spring:message code="srvy.label.team.group.set.srvy" /><!-- 팀그룹별 설문 설정 --></label>
+		                                                        </span>
+		                                                    </div>
+		                                                </div>
+		                                                <div id="subInfoDiv${list.sbjctId }" class="table-wrap mb30" ${not empty vo.srvyId && list.byteamSubsrvyUseyn eq 'Y' ? '' : 'style="display: none;"' }></div>
 										        	</c:forEach>
 										        </div>
 						        			</td>
@@ -625,6 +529,13 @@
 							</form>
 				        </div>
 				        <!--table-type-->
+				        <spring:message code="common.button.save" var="save" /><!-- 저장 -->
+				        <spring:message code="common.button.modify"  var="modify" /><!-- 수정 -->
+				        <div class="btns">
+					        <a href="javascript:save()" class="btn type1">${empty vo.srvyId ? save : modify }</a>
+					        <a href="javascript:bfrSrvyCopyPopup()" class="btn type2"><spring:message code="srvy.button.prev.srvy.copy" /><!-- 이전 설문 가져오기 --></a>
+					        <a href="javascript:srvyViewMv('', 'PROFLIST')" class="btn type2"><spring:message code="srvy.button.list" /></a><!-- 목록 -->
+				        </div>
 				    </div>
 				</div>
         	</div>

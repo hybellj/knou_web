@@ -1,27 +1,26 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
-<%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
-<link rel="stylesheet" type="text/css" href="/webdoc/css/class_default.css?v=2" />
+<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <script type="text/javascript">
 $(document).ready(function() {
-	var selUser = $("a[name=ezgTargetUser].select");
+	var selUser = $("[name=ezgTargetUser].select");
 	if (selUser.length == 0) {
-		// 선택된 유저가 없을 때 중간 화면에 뿌려줄 토론글
-//		getDscsContsView("", "ALL");
-		displayNoselectuserBlock(true);
+		selUser = $("[name=ezgTargetUser].card:first");
 	} else {
-		getDscsContsView($(selUser).attr("data-userId"), $(selUser).attr("data-stdId"));
+		selUser = selUser.first();
 	}
 
-	$("#selectedUserId").val($(selUser).attr("data-userId"));
-	$("#selectedUserNm").val($(selUser).attr("data-userNm"));
-	$("#selectedStdId").val($(selUser).attr("data-stdId"));
-	getTargetUserInfoAndScore(selUser);
+	if(selUser.length > 0) {
+		selectUser(selUser);
+	} else {
+		displayNoselectuserBlock(true);
+		getTargetUserInfoAndScore(null);
+	}
 });
 
-// toggle join user
+// 개인 토론 학습자 선택 상태를 전환한다.
 function toggleJoinUser(obj) {
 	if ($(obj).hasClass("select")) {
-		$(obj).removeClass("select");
+		$(obj).removeClass("select active");
 		$("#selectedUserId").val('');
 		$("#selectedUserNm").val('');
 		$("#selectedStdId").val('');
@@ -30,24 +29,7 @@ function toggleJoinUser(obj) {
 		displayNoselectuserBlock(true);
 		$("#cntFdbk").text("0<spring:message code='forum.label.cnt.feedback'/>"); //개의 피드백 
 	} else {
-		$('.active-toggle-btn').removeClass("select");
-		$(obj).addClass("select");
-		$("#selectedUserId").val($(obj).attr("data-userId"));
-		$("#selectedUserNm").val($(obj).attr("data-userNm"));
-		$("#selectedStdId").val($(obj).attr("data-stdId"));
-		
-		let topPos = $(obj).position().top - 50;
-		let box = $("#rubric_card");
-		if (topPos < 0) {
-			box.scrollTop( box.scrollTop() + topPos);
-		}
-		else if ((topPos + $(obj).height() + 10) > box.height()) {
-			box.scrollTop(box.scrollTop() + (topPos + $(obj).height() - box.height()) + 10);
-		}
-		
-		getDscsContsView($(obj).attr("data-userId"), $(obj).attr("data-stdId"));
-		getTargetUserInfoAndScore(obj);
-		displayNoselectuserBlock(false);
+		selectUser(obj);
 	}
 	
 	$('#fileUpDiv').css("visibility","hidden");
@@ -57,10 +39,36 @@ function toggleJoinUser(obj) {
 	}
 }
 
+// 개인 토론 학습자를 선택한다.
+function selectUser(obj) {
+	if(!obj || $(obj).length == 0) {
+		displayNoselectuserBlock(true);
+		return;
+	}
+
+	$('.active-toggle-btn').removeClass("select active");
+	$(obj).addClass("select active");
+	$("#selectedUserId").val($(obj).attr("data-userId"));
+	$("#selectedUserNm").val($(obj).attr("data-userNm"));
+	$("#selectedStdId").val($(obj).attr("data-stdId"));
+
+	let topPos = $(obj).position().top - 50;
+	let box = $("#rubric_card");
+	if (topPos < 0) {
+		box.scrollTop( box.scrollTop() + topPos);
+	}
+	else if ((topPos + $(obj).height() + 10) > box.height()) {
+		box.scrollTop(box.scrollTop() + (topPos + $(obj).height() - box.height()) + 10);
+	}
+
+	getDscsContsView($(obj).attr("data-userId"), $(obj).attr("data-stdId"));
+	getTargetUserInfoAndScore(obj);
+	displayNoselectuserBlock(false);
+}
+
 // 제줄자의 평가점수 및 유저 정보 조회
 function getTargetUserInfoAndScore(obj) {
-	getTotalScoreInputView($(obj).attr("data-userId"), $(obj).attr("data-stdId"));
-	getTargetUserInfoView($(obj).attr("data-userId"), $(obj).attr("data-stdId"));
+	getScoreInputView($(obj).attr("data-userId"), $(obj).attr("data-stdId"));
 	getDscsFeedbackView($(obj).attr("data-userId"), $(obj).attr("data-stdId"));
 }
 </script>
@@ -68,32 +76,30 @@ function getTargetUserInfoAndScore(obj) {
 <input type="hidden" id="selectedUserId" value="" />
 <input type="hidden" id="selectedUserNm" value="" />
 <input type="hidden" id="selectedStdId" value="" />
-<input type="hidden" id="ezgDscsUnitTycd" value="${dscsVO.dscsUnitTycd}" />
 
 <c:if test="${not empty resultList}">
 	<c:set var="stdNos" value="" />
-	<!-- <div id="dot_list"> -->
-	<c:forEach items="${resultList }" var="item" varStatus="status">
-		<c:if test="${status.index eq '0'}">
-			<c:set var="stdIds" value="${item.userId}" />
-		</c:if>
-		<c:if test="${status.index ne '0'}">
-			<c:set var="stdIds" value="${stdIds},${item.userId}" />
-		</c:if>
-		<a href="javascript:;" name="ezgTargetUser" onClick="toggleJoinUser(this)" data-userId="${item.userId}" data-userId="${item.userId}" data-userNm="${item.userNm}" data-stdId="${item.stdId}" class="card active-toggle-btn ${item.joinStatus == 'JOIN'?'submit':''} ${dscsVO.stdId == item.stdId?'select':''}">
-			<div class="content stu_card">
-			<c:if test="${item.evalYn == 'Y'}">
-				<div class="icon_box">
-					<i class="ion-android-done"></i>
-				</div>
-			</c:if>
-				<div class="text_box">
-					<div class="meta"><c:out value='${item.deptNm}' /></div>
-					<div class="user"><c:out value='${item.userNm}' /><span><c:out value='${item.userId}' /></span></div>
-				</div>
-			</div>
-		</a>
-	</c:forEach>
-	<!-- </div> -->
+	<div class="stu_list">
+		<ul>
+			<c:forEach items="${resultList }" var="item" varStatus="status">
+				<c:if test="${status.index eq '0'}">
+					<c:set var="stdIds" value="${item.userId}" />
+				</c:if>
+				<c:if test="${status.index ne '0'}">
+					<c:set var="stdIds" value="${stdIds},${item.userId}" />
+				</c:if>
+				<li name="ezgTargetUser" onClick="toggleJoinUser(this)" data-userId="${item.userId}" data-userNm="${item.userNm}" data-stdId="${item.stdId}" class="card active-toggle-btn ${item.joinStatus == 'JOIN'?'submit':''} ${dscsVO.stdId == item.stdId?'select active':''}">
+					<%-- 평가완료 아이콘 --%>
+					<div class="icon_box">
+						<c:if test="${item.evlyn == 'Y'}">
+							<span><i class="xi-check icon"></i></span>
+						</c:if>
+					</div>
+					<span><c:out value='${item.deptnm}' /></span>
+					<p><c:out value='${item.userNm}' /><c:if test="${not empty item.stdntNo}"><span>(<c:out value='${item.stdntNo}' />)</span></c:if></p>
+				</li>
+			</c:forEach>
+		</ul>
+	</div>
 	<input type="hidden" id="stdIds" value="${stdIds}">
 </c:if>

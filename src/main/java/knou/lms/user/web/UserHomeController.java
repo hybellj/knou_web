@@ -2,6 +2,7 @@ package knou.lms.user.web;
 
 import knou.framework.common.CommConst;
 import knou.framework.common.ControllerBase;
+import knou.framework.common.RepoInfo;
 import knou.framework.common.SessionInfo;
 import knou.framework.context2.UserContext;
 import knou.framework.exception.AccessDeniedException;
@@ -28,11 +29,13 @@ import knou.lms.menu.service.SysMenuMemService;
 import knou.lms.org.service.OrgCodeService;
 import knou.lms.std.service.StdService;
 import knou.lms.std.vo.StdVO;
+import knou.lms.user.CurrentUser;
 import knou.lms.user.facade.UserPrfilFacadeService;
 import knou.lms.user.service.*;
 import knou.lms.user.vo.*;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Controller;
@@ -106,9 +109,12 @@ public class UserHomeController extends ControllerBase {
 
     @Resource(name="userPrfilService")
     private UserPrfilService userPrfilService;
-    
+
     @Resource(name="loginService")
-	private LoginService loginService;
+    private LoginService loginService;
+
+    @Resource(name="userService")
+    private UserService userService;
 
     /*****************************************************
      * 사용자 모드 전환 로그인 ( 관리자, 교수자)
@@ -175,7 +181,7 @@ public class UserHomeController extends ControllerBase {
         SessionInfo.setUserId(request, uuivo.getUserId());
         SessionInfo.setUserNm(request, uuivo.getUserNm());
 
-        // STUDENT:학생 / PROFESSOR:교수 / ADMIN:관리자   
+        // STUDENT:학생 / PROFESSOR:교수 / ADMIN:관리자
         SessionInfo.setAuthrtGrpcd(request, uuivo.getAuthrtGrpcd());
         SessionInfo.setAuthrtCd(request, uuivo.getWwwAuthrtCd());
         // ADMIN 권한이있으면 Y / 없으면 N
@@ -195,12 +201,12 @@ public class UserHomeController extends ControllerBase {
         // 마지막 로그인 정보 조회
         LogUserLoginTryLogVO loginTryLogVO = new LogUserLoginTryLogVO();
         loginTryLogVO.setUserId(uuivo.getUserId());
-        
+
         EgovMap loginUser = loginService.userLatestLoginHstrySelect(uuivo.getUserId());
-        
-        if (loginUser != null) {
-            SessionInfo.setLastLogin(request, 
-            		DateTimeUtil.getDateType(8, loginUser.get("loginTryDttm") + ".") + " (" + loginUser.get("connIp")+")");
+
+        if(loginUser != null) {
+            SessionInfo.setLastLogin(request,
+                    DateTimeUtil.getDateType(8, loginUser.get("loginTryDttm") + ".") + " (" + loginUser.get("connIp") + ")");
         }
 
         if(SessionInfo.getAuthrtGrpcd(request).contains("ADM")) {
@@ -289,7 +295,7 @@ public class UserHomeController extends ControllerBase {
         return "redirect:/dashboard/main.do";
     }
 
-    /***************************************************** 
+    /*****************************************************
      * 사용자 모드 전환 로그인 ( 교수 )
      * @param UsrLoginVO
      * @return "redirect:"
@@ -367,7 +373,7 @@ public class UserHomeController extends ControllerBase {
         SessionInfo.setUserId(request, uuivo.getUserId());
         SessionInfo.setUserNm(request, uuivo.getUserNm());
 
-        // STUDENT:학생 / PROFESSOR:교수 / ADMIN:관리자   
+        // STUDENT:학생 / PROFESSOR:교수 / ADMIN:관리자
         SessionInfo.setAuthrtGrpcd(request, uuivo.getAuthrtGrpcd());
         SessionInfo.setAuthrtCd(request, uuivo.getWwwAuthrtCd());
         // ADMIN 권한이있으면 Y / 없으면 N
@@ -387,12 +393,12 @@ public class UserHomeController extends ControllerBase {
         // 마지막 로그인 정보 조회
         LogUserLoginTryLogVO loginTryLogVO = new LogUserLoginTryLogVO();
         loginTryLogVO.setUserId(uuivo.getUserId());
-        
+
         EgovMap loginUser = loginService.userLatestLoginHstrySelect(uuivo.getUserId());
-        
-        if (loginUser != null) {
-            SessionInfo.setLastLogin(request, 
-            		DateTimeUtil.getDateType(8, loginUser.get("loginTryDttm") + ".") + " (" + loginUser.get("connIp")+")");
+
+        if(loginUser != null) {
+            SessionInfo.setLastLogin(request,
+                    DateTimeUtil.getDateType(8, loginUser.get("loginTryDttm") + ".") + " (" + loginUser.get("connIp") + ")");
         }
 
         if(SessionInfo.getAuthrtGrpcd(request).contains("ADM")) {
@@ -479,7 +485,7 @@ public class UserHomeController extends ControllerBase {
         return "redirect:/crs/crsHome.do?crsCreCd=" + crsCreCd;
     }
 
-    /***************************************************** 
+    /*****************************************************
      * 사용자 모드 전환 아웃(원래로 돌아가기)
      * @param UsrLoginVO
      * @return "redirect:"
@@ -514,7 +520,7 @@ public class UserHomeController extends ControllerBase {
             SessionInfo.setUserId(request, uuivo.getUserId());
             SessionInfo.setUserNm(request, uuivo.getUserNm());
 
-            //STUDENT:학생 / PROFESSOR:교수 / ADMIN:관리자   
+            //STUDENT:학생 / PROFESSOR:교수 / ADMIN:관리자
             SessionInfo.setAuthrtGrpcd(request, uuivo.getAuthrtGrpcd());
             SessionInfo.setAuthrtCd(request, uuivo.getWwwAuthrtCd());
             // ADMIN 권한이있으면 Y / 없으면 N
@@ -583,7 +589,7 @@ public class UserHomeController extends ControllerBase {
             // TB_ORG_MENU_TMP -> TB_ORG_MENU 변경전까지 하드코딩
             if("ADM0000000001".equals(menuCd)) {
                 //원래 페이지로 이동
-                return "redirect:/dashboard/adminDashboard.do";
+                return "redirect:/dashboard/adminDashboardV2.do?menuId=ADMORG0000001";
             }
 
             //원래 페이지로 이동
@@ -593,7 +599,7 @@ public class UserHomeController extends ControllerBase {
         }
     }
 
-    /***************************************************** 
+    /*****************************************************
      * 사용자 비밀번호 초기화
      * @param UsrUserInfoVO
      * @return ProcessResultVO<EgovMap>
@@ -739,7 +745,7 @@ public class UserHomeController extends ControllerBase {
         return "user/popup/user_profile_edit_pop";
     }
 
-    /***************************************************** 
+    /*****************************************************
      * 사용자 수정
      * @param UsrUserInfoVO
      * @return ProcessResultVO<UsrUserInfoVO>
@@ -770,7 +776,7 @@ public class UserHomeController extends ControllerBase {
             if(resultVO.getReturnVO() != null) {
                 Method method = resultVO.getReturnVO().getClass().getMethod("getPhtFileByte");
                 byte[] phtFileByte = (byte[]) method.invoke(resultVO.getReturnVO());
-                
+
                 /*
                 BufferedImage im = null;
                 try {
@@ -797,7 +803,7 @@ public class UserHomeController extends ControllerBase {
         return resultVO;
     }
 
-    /***************************************************** 
+    /*****************************************************
      * 사용자 비밀번호 확인
      * @param UsrUserInfoVO
      * @return ProcessResultVO<UsrUserInfoVO>
@@ -822,7 +828,7 @@ public class UserHomeController extends ControllerBase {
         return resultVO;
     }
 
-    /***************************************************** 
+    /*****************************************************
      * 사용자 이메일 인증
      * @param UsrEmailAuthVO
      * @return ProcessResultVO<EgovMap>
@@ -894,7 +900,7 @@ public class UserHomeController extends ControllerBase {
         return resultVO;
     }
 
-    /***************************************************** 
+    /*****************************************************
      * 이메일 인증코드 확인
      * @param UsrUserInfoVO
      * @return ProcessResultVO<DefaultVO>
@@ -916,7 +922,7 @@ public class UserHomeController extends ControllerBase {
         return resultVO;
     }
 
-    /***************************************************** 
+    /*****************************************************
      * 이메일 인증코드 확인
      * @param authCode, originEmail
      * @return boolean
@@ -940,26 +946,55 @@ public class UserHomeController extends ControllerBase {
         }
     }
 
-    /***************************************************** 
-     * 사용자 환경 설정 변경
+    /*****************************************************
+     * 사용자 환경 설정 변경 - New
      * @param UsrUserInfoVO
      * @return ProcessResultVO<DefaultVO>
      * @throws Exception
      ******************************************************/
-    @RequestMapping(value="/setUserConf")
+	@RequestMapping(value="/setUserConf.do")
+	@SuppressWarnings("unchecked")
     @ResponseBody
-    public ProcessResultVO<EgovMap> setUserConf(UsrUserInfoVO vo, ModelMap map, HttpServletRequest request) throws Exception {
-    	
+    public ProcessResultVO<EgovMap> setUserConf(UserVO vo, ModelMap map, HttpServletRequest request) throws Exception {
         ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
         String confType = StringUtil.nvl(request.getParameter("confType"));
-        String confVal = StringUtil.nvl(request.getParameter("confVal"));        
-        
+        String confVal = StringUtil.nvl(request.getParameter("confVal"));
 
-        if("theme".equals(confType)) {
-            SessionInfo.setThemeMode(request, confVal);
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        if (!"".equals(userId)) {
+	        vo.setUserId(userId);
+	        UserVO userVO = userService.userSelect(userId);
+
+	        if (!"".equals(confType) && !"".equals(confVal) && userVO != null) {
+	            String conf = StringUtil.nvl(userVO.getUserEnvStngCts());
+
+	            if (StringUtil.isNull(conf)) {
+	                conf = "{}";
+	            }
+
+	            JSONParser parser = new JSONParser();
+	            JSONObject jsonObject = (JSONObject) parser.parse(conf);
+	            jsonObject.put(confType, confVal);
+	            userVO.setUserEnvStngCts(jsonObject.toJSONString());
+
+	            userService.userStngModify(userVO);
+
+	            if ("theme".equals(confType)) {
+	        	    UserContext userCtx = SessionInfo.getUserContext(request);
+	        	    if (userCtx != null) {
+	        	    	userCtx.setUserEnvStngVal(confType, confVal);
+	        	    }
+	            }
+
+	            resultVO.setResult(1);
+	        }
+
+	        resultVO.setResult(1);
         }
-
-        resultVO.setResult(1);
+        else {
+        	resultVO.setResult(-1);
+        }
 
         return resultVO;
     }
@@ -989,7 +1024,7 @@ public class UserHomeController extends ControllerBase {
         return url;
     }
 
-    /***************************************************** 
+    /*****************************************************
      * 학과(부서) 목록 조회 (학기별 수강생의 부서)
      * @param UsrDeptCdVO
      * @return ProcessResultVO<DefaultVO>
@@ -1018,22 +1053,15 @@ public class UserHomeController extends ControllerBase {
 
     /*****************************************************
      * 사용자 프로필 화면 조회
-     * @param UserPrfilVO
+     * @param vo
      * @return "user/prfile/user_prfil_view"
      * @throws Exception
      ******************************************************/
     @RequestMapping(value="/userPrfilView.do")
-    public String userPrfilView(UserPrfilVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String userPrfilView(UserPrfilVO vo, @CurrentUser UserContext userCtx,
+                                ModelMap model, HttpServletRequest request) throws Exception {
 
-        UserContext userContext = new UserContext(SessionInfo.getOrgId(request),
-                SessionInfo.getUserId(request),
-                SessionInfo.getUserTycd(request),
-                SessionInfo.getAuthrtCd(request),
-                SessionInfo.getAuthrtGrpcd(request),
-                SessionInfo.getUserRprsId(request),
-                SessionInfo.getLastLogin(request));
-
-        UserPrfilView userPrfilView = userPrfilFacadeService.loadUserPrfil(userContext);
+        UserPrfilView userPrfilView = userPrfilFacadeService.loadUserPrfil(userCtx);
 
         //model.addAttribute("phtFile", vo.getPhotoFileId());
         model.addAttribute("vo", userPrfilView.getUserPrfilVO());
@@ -1084,24 +1112,29 @@ public class UserHomeController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value="/userPrfilModifyView.do")
-    public String userPrfilModifyView(UserPrfilVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        UserContext userContext = new UserContext(SessionInfo.getOrgId(request),
-                SessionInfo.getUserId(request),
-                SessionInfo.getUserTycd(request),
-                SessionInfo.getAuthrtCd(request),
-                SessionInfo.getAuthrtGrpcd(request),
-                SessionInfo.getUserRprsId(request),
-                SessionInfo.getLastLogin(request));
+    public String userPrfilModifyView(UserPrfilVO vo, @CurrentUser UserContext userCtx,
+                                      ModelMap model, HttpServletRequest request) throws Exception {
 
-        UserPrfilView userPrfilView = userPrfilFacadeService.loadUserPrfilModify(userContext);
+        UserPrfilView userPrfilView = userPrfilFacadeService.loadUserPrfilModify(userCtx);
+        UserPrfilVO userPrfilVO = userPrfilView.getUserPrfilVO();
+        userPrfilVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_USER, userPrfilVO.getUserId()));
 
-        model.addAttribute("vo", userPrfilView.getUserPrfilVO());
+        model.addAttribute("vo", userPrfilVO);
         model.addAttribute("userAuthrtList", userPrfilView.getUserAuthrtList());
         model.addAttribute("nowSmstrLectOrgList", userPrfilView.getNowSmstrLectOrgList());
 
         return "user/prfil/user_prfil_modify_view";
     }
 
+    /**
+     * 사용자 프로필 패스워드 체크 AJAX
+     *
+     * @param vo
+     * @param model
+     * @param request
+     * @return
+     * @throws Exception
+     */
     @RequestMapping(value="/userPrfilPswdChkAjax.do")
     @ResponseBody
     public ProcessResultVO<UserPrfilVO> userPrfilPswdChkAjax(UserPrfilVO vo, ModelMap model, HttpServletRequest request) throws Exception {
@@ -1140,20 +1173,14 @@ public class UserHomeController extends ControllerBase {
      */
     @RequestMapping(value="/userPrfilModifyAjax.do")
     @ResponseBody
-    public ProcessResultVO<UserPrfilVO> userPrfilModifyAjax(UserPrfilVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        ProcessResultVO<UserPrfilVO> resultVO = new ProcessResultVO<>();
+    public ProcessResultVO<UserPrfilVO> userPrfilModifyAjax(UserPrfilVO vo, @CurrentUser UserContext userCtx,
+                                                            ModelMap model, HttpServletRequest request) throws Exception {
 
-        UserContext userContext = new UserContext(SessionInfo.getOrgId(request),
-                SessionInfo.getUserId(request),
-                SessionInfo.getUserTycd(request),
-                SessionInfo.getAuthrtCd(request),
-                SessionInfo.getAuthrtGrpcd(request),
-                SessionInfo.getUserRprsId(request),
-                SessionInfo.getLastLogin(request));
+        ProcessResultVO<UserPrfilVO> resultVO = new ProcessResultVO<>();
 
         try {
 
-            userPrfilFacadeService.modifyUserPrfil(userContext, vo);
+            userPrfilFacadeService.modifyUserPrfil(userCtx, vo);
             resultVO.setResult(1);
         } catch(Exception e) {
             resultVO.setResult(-1);

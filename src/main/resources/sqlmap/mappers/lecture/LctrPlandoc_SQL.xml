@@ -8,13 +8,13 @@
 			  SBJCT.SBJCT_ID
 			, SBJCT.SBJCT_YR
 			, SBJCT.SBJCT_SMSTR
+		    , SBJCT.SMSTR_CHRT_ID
 		    , ORG.ORG_ID
 			, ORG.ORGNM
-			 , NVL(DEPT.DEPTNM, '-') AS DEPTNM
 			, SBJCT.SBJCTNM
 			, SBJCT.DVCLAS_NO
 			, SBJCT.CRDTS
-			, '-' AS SBJCT_CD-- 과목코드
+			, SBJCT.CRCLMN_NO	/* 교과목번호 */
 			, NVL(SBJCT_ADM.COPROF_USERNM, '-') AS COPROF_USERNM   /* 공동교수 */
 			, NVL(SBJCT_ADM.ASSI_USERNM, '-') AS ASSI_USERNM   /* 조교 */
 			, NVL(SBJCT_ADM.TUT_USERNM,  '-') AS TUT_USERNM    /* 튜터 */
@@ -22,16 +22,14 @@
 				  WHEN PLANDOC.LCTR_PLANDOC_ID IS NULL THEN 'N'
 				  ELSE 'Y'
 			  END) AS LSNPLANYN
-			, ROW_NUMBER() OVER(ORDER BY SBJCT.SBJCT_YR DESC, SBJCT.SBJCT_SMSTR DESC, ORG.ORG_ID, SBJCT.SBJCT_ID) AS LINE_NO
-			, COUNT(*) OVER() AS TOTAL_CNT
 		FROM TB_LMS_SBJCT SBJCT
 		JOIN TB_LMS_SMSTR_CHRT CHRT ON CHRT.SMSTR_CHRT_ID = SBJCT.SMSTR_CHRT_ID
 		JOIN TB_LMS_ORG ORG ON ORG.ORG_ID = CHRT.ORG_ID
-		JOIN TB_LMS_DEPT DEPT ON DEPT.DEPT_ID = SBJCT.DEPT_ID
 		LEFT JOIN TB_LMS_LCTR_PLANDOC PLANDOC ON PLANDOC.SBJCT_ID = SBJCT.SBJCT_ID
 		LEFT JOIN (
 			SELECT
 				  T1.SBJCT_ID
+				, MAX(CASE WHEN T1.SBJCT_ADM_TYCD = 'PROF' THEN T1.USER_ID END) AS PROF_ID
 				, MAX(CASE WHEN T1.SBJCT_ADM_TYCD = 'PROF' THEN T2.USERNM END) AS PROF_USERNM
 				, MAX(CASE WHEN T1.SBJCT_ADM_TYCD = 'COPROF' THEN T2.USERNM END) AS COPROF_USERNM
 				, MAX(CASE WHEN T1.SBJCT_ADM_TYCD = 'ASSI' THEN T2.USERNM END) AS ASSI_USERNM
@@ -43,20 +41,17 @@
 		WHERE 1=1
 			AND SBJCT.USEYN = 'Y'
 			AND SBJCT.DELYN = 'N'
-			AND SBJCT.PROF_ID = #{userId}
+			AND SBJCT_ADM.PROF_ID = #{userId}
 			AND SBJCT.SBJCT_YR = #{sbjctYr}
-			AND TRIM(SBJCT.SBJCT_SMSTR) = TRIM(#{sbjctSmstr})
+		<if test="smstrChrtId != null and smstrChrtId != ''">
+			AND SBJCT.SMSTR_CHRT_ID = #{smstrChrtId}
+		</if>
 		<if test="orgId != null and orgId != ''">
 			AND ORG.ORG_ID = #{orgId}
-		</if>
-		<if test="deptId != null and deptId != ''">
-			AND SBJCT.DEPT_ID = #{deptId}
 		</if>
 		<if test="sbjctId != null and sbjctId != ''">
 			AND SBJCT.SBJCT_ID = #{sbjctId}
 		</if>
-		ORDER BY
-			SBJCT.SBJCT_YR DESC, SBJCT.SBJCT_SMSTR DESC, ORG.ORG_ID, SBJCT.SBJCT_ID
 	</sql>
 
 
@@ -65,7 +60,16 @@
 			 SQL ID : LctrPlandocDAO.lctrPlandocList
 			 설  명  : 강의계획서 목록
 		 */
+		SELECT
+			  BASE.*
+		FROM (
 		<include refid="lctrPlandocListQuery"/>
+		) BASE
+		ORDER BY
+			  BASE.SBJCT_YR DESC
+			, BASE.SBJCT_SMSTR DESC
+			, BASE.ORG_ID
+			, BASE.SBJCT_ID
 	</select>
 
 	<select id="lctrPlandocListPaging" parameterType="lctrPlandocVO" resultType="egovMap">
@@ -74,8 +78,20 @@
 			 설  명  : 강의계획서 목록 페이징
 		 */
 		<include refid="CommonSQL.pagePrefix" />
+		SELECT
+			  BASE.*
+			, ROW_NUMBER() OVER(
+				ORDER BY
+					  BASE.SBJCT_YR DESC
+					, BASE.SBJCT_SMSTR DESC
+					, BASE.ORG_ID
+					, BASE.SBJCT_ID
+			  ) AS LINE_NO
+			, COUNT(*) OVER() AS TOTAL_CNT
+		FROM (
 			<include refid="lctrPlandocListQuery"/>
-		<include refid="CommonSQL.pageSubfix" />
+		) BASE
+		<include refid="CommonSQL.pageSuffix" />
 	</select>
 
 
@@ -144,6 +160,180 @@
 		WHERE SBJCT_ID = #{sbjctId}
 	</update>
 
+	<insert id="lctrPlandocRegist" parameterType="lctrPlandocVO">
+		/*
+			 SQL ID : LctrPlandocDAO.lctrPlandocRegist
+			 설  명  : 강의계획서 등록
+		*/
+		INSERT INTO TB_LMS_LCTR_PLANDOC
+		(
+			  LCTR_PLANDOC_ID
+			, SBJCT_ID
+			, CRCLMN_OTLN
+			, LCTR_GOAL
+			, LCTR_OP_GDLN
+			, LCTR_OP_PLAN
+			, RLTD_SBJCT_CTS
+			, REMAKRS
+			, PLYR_SHRTCT_KEY_PVSNYN
+			, SCRPT_PVSNYN
+			, SBTTLS_PVSNYN
+			, PLYR_SPD_ADJST_PVSNYN
+			, RGTR_ID
+			, REG_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		)
+		VALUES
+		(
+			  #{lctrPlandocId}
+			, #{sbjctId}
+			, #{crclmnOtln}
+			, #{lctrGoal}
+			, #{lctrOpGdln}
+			, #{lctrOpPlan}
+			, #{rltdSbjctCts}
+			, #{remakrs}
+			, NVL(#{plyrShrtctKeyPvsnyn}, 'N')
+			, NVL(#{scrptPvsnyn}, 'N')
+			, NVL(#{sbttlsPvsnyn}, 'N')
+			, NVL(#{plyrSpdAdjstPvsnyn}, 'N')
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+		)
+	</insert>
+
+	<delete id="lctrWknoSchdlDeleteByPlandocId" parameterType="string">
+		/*
+			 SQL ID : LctrPlandocDAO.lctrWknoSchdlDeleteByPlandocId
+			 설  명  : 강의계획서 주차일정 삭제
+		*/
+		DELETE FROM TB_LMS_LCTR_WKNO_SCHDL
+		WHERE LCTR_PLANDOC_ID = #{lctrPlandocId}
+	</delete>
+
+	<delete id="rltmExamDeleteByPlandocId" parameterType="string">
+		/*
+			 SQL ID : LctrPlandocDAO.rltmExamDeleteByPlandocId
+			 설  명  : 강의계획서 실시간시험 삭제
+		*/
+		DELETE FROM TB_LMS_RLTM_EXAM
+		WHERE LCTR_PLANDOC_ID = #{lctrPlandocId}
+	</delete>
+
+	<delete id="lctrPlandocDelete" parameterType="string">
+		/*
+			 SQL ID : LctrPlandocDAO.lctrPlandocDelete
+			 설  명  : 강의계획서 삭제
+		*/
+		DELETE FROM TB_LMS_LCTR_PLANDOC
+		WHERE LCTR_PLANDOC_ID = #{lctrPlandocId}
+	</delete>
+
+	<select id="admSbjctSchdlListForPlandocRegist" parameterType="string" resultType="egovMap">
+		/*
+			 SQL ID : LctrPlandocDAO.admSbjctSchdlListForPlandocRegist
+			 설  명  : 관리자 강의계획서 등록용 과목일정 주차 목록
+		*/
+		SELECT
+			  CAST(NULL AS VARCHAR2(30)) AS LCTR_WKNO_SCHDL_ID
+			, S.SBJCT_ID
+			, S.SBJCT_SCHDL_WKNO AS LCTR_WKNO
+			, CD.CD AS LCTR_WKNO_CD
+			, S.SBJCT_SCHDL_WKNONM AS LCTR_WKNONM
+			, S.SBJCT_SCHDL_WKNONM AS LCTR_WKNO_EXPLN
+			, S.TOC_SEQNO AS LCTR_WKNO_SEQNO
+			, S.SBJCT_SYMD AS LCTR_WKNO_SYMD
+			, S.SBJCT_EYMD AS LCTR_WKNO_EYMD
+			, S.SBJCT_ATNDC_RCG_SYMD AS WKNO_ATNDC_RCG_SYMD
+			, S.SBJCT_ATNDC_RCG_EYMD AS WKNO_ATNDC_RCG_EYMD
+			, CAST(NULL AS VARCHAR2(30)) AS LCTR_TYCD
+			, CAST(NULL AS VARCHAR2(2000)) AS LCTR_TTL
+			, CAST(NULL AS VARCHAR2(4000)) AS LCTR_CTS
+		FROM TB_LMS_SBJCT_SCHDL S
+		JOIN TB_LMS_CMMN_CD CD
+		    ON CD.UP_CD = 'LCTR_WKNO_CD'
+		    AND CD.CD_SEQNO = S.SBJCT_SCHDL_WKNO
+		    AND CD.LANG_CD = 'ko'
+		    AND CD.USEYN = 'Y'
+		WHERE S.SBJCT_ID = #{sbjctId}
+		ORDER BY S.TOC_SEQNO, S.SBJCT_SCHDL_WKNO
+	</select>
+
+	<insert id="lctrWknoSchdlRegistFromSbjctSchdl" parameterType="lectureScheduleVO">
+		/*
+			 SQL ID : LctrPlandocDAO.lctrWknoSchdlRegistFromSbjctSchdl
+			 설  명  : 과목일정 주차 기반 강의주차일정 등록
+		*/
+		INSERT INTO TB_LMS_LCTR_WKNO_SCHDL
+		(
+			  LCTR_WKNO_SCHDL_ID
+			, SBJCT_ID
+			, LCTR_PLANDOC_ID
+			, LCTR_WKNO
+			, LCTR_WKNO_CD
+			, LCTR_WKNONM
+			, LCTR_WKNO_EXPLN
+			, LCTR_WKNO_SEQNO
+			, LCTR_GOAL
+			, LCTR_CTS
+			, LCTR_OTLN
+			, LCTR_REF_DATA
+			, LCTR_WKNO_SYMD
+			, LCTR_WKNO_EYMD
+			, WKNO_ATNDC_RCG_SYMD
+			, WKNO_ATNDC_RCG_EYMD
+			, LCTR_TOC_LRN_SCNDS
+			, OYN
+			, DELYN
+			, RGTR_ID
+			, REG_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+			, LCTR_TYCD
+			, LCTR_TTL
+			, SEQ_LRNYN
+		)
+		SELECT
+			  #{lctrWknoSchdlId}
+			, S.SBJCT_ID
+			, #{lctrPlandocId}
+			, S.SBJCT_SCHDL_WKNO
+			, CD.CD
+			, S.SBJCT_SCHDL_WKNONM
+			, S.SBJCT_SCHDL_WKNONM
+			, S.TOC_SEQNO
+			, S.SBJCT_SCHDL_WKNONM
+			, #{lctrCts}
+			, NULL
+			, NULL
+			, S.SBJCT_SYMD
+			, S.SBJCT_EYMD
+			, S.SBJCT_ATNDC_RCG_SYMD
+			, S.SBJCT_ATNDC_RCG_EYMD
+			, NULL
+			, 'Y'
+			, 'N'
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+			, #{lctrTycd}
+			, #{lctrTtl}
+			, 'N'
+		FROM TB_LMS_SBJCT_SCHDL S
+		JOIN TB_LMS_CMMN_CD CD
+		    ON CD.UP_CD = 'LCTR_WKNO_CD'
+		    AND CD.CD_SEQNO = S.SBJCT_SCHDL_WKNO
+		    AND CD.LANG_CD = 'ko'
+		    AND CD.USEYN = 'Y'
+		WHERE S.SBJCT_ID = #{sbjctId}
+		  AND S.SBJCT_SCHDL_WKNO = #{lctrWkno}
+	</insert>
+
+
 	<select id="txtbkList" resultType="knou.lms.lecture2.vo.TxtbkVO" parameterType="string">
 		/*
 			 SQL ID : LctrPlandocDAO.txtbkList
@@ -201,4 +391,462 @@
 		DELETE FROM TB_LMS_TXTBK
 		WHERE SBJCT_ID = #{sbjctId}
 	</delete>
+	<select id="profOrgList" resultType="egovMap" parameterType="lctrPlandocVO">
+		/*
+			 SQL ID : LctrPlandocDAO.profOrgList
+			 설  명 : 교수 운영 기관 목록
+		 */
+		SELECT DISTINCT
+			  ORG.ORG_ID
+			, ORG.ORGNM
+		FROM TB_LMS_SBJCT SBJCT
+		JOIN TB_LMS_SMSTR_CHRT CHRT
+			ON CHRT.SMSTR_CHRT_ID = SBJCT.SMSTR_CHRT_ID
+		JOIN TB_LMS_ORG ORG
+			ON ORG.ORG_ID = CHRT.ORG_ID
+		JOIN TB_LMS_SBJCT_ADM ADM
+			ON ADM.SBJCT_ID = SBJCT.SBJCT_ID
+		WHERE 1 = 1
+			AND SBJCT.USEYN = 'Y'
+			AND SBJCT.DELYN = 'N'
+			AND ADM.SBJCT_ADM_TYCD = 'PROF'
+			AND ADM.USER_ID = #{userId}
+			AND SBJCT.SBJCT_YR = #{sbjctYr}
+		<if test="smstrChrtId != null and smstrChrtId != ''">
+			AND SBJCT.SMSTR_CHRT_ID = #{smstrChrtId}
+		</if>
+		ORDER BY
+			  ORG.ORGNM
+	</select>
+
+	<select id="profSbjctList" resultType="egovMap" parameterType="lctrPlandocVO">
+		/*
+			 SQL ID : LctrPlandocDAO.profSbjctList
+			 설  명 : 교수 운영 과목 목록
+		 */
+		SELECT DISTINCT
+			  SBJCT.SBJCT_ID
+			, SBJCT.SBJCTNM
+			, SBJCT.DVCLAS_NO
+			, SBJCT.CRCLMN_NO
+		FROM TB_LMS_SBJCT SBJCT
+		JOIN TB_LMS_SMSTR_CHRT CHRT
+			ON CHRT.SMSTR_CHRT_ID = SBJCT.SMSTR_CHRT_ID
+		JOIN TB_LMS_SBJCT_ADM ADM
+			ON ADM.SBJCT_ID = SBJCT.SBJCT_ID
+		WHERE 1 = 1
+			AND SBJCT.USEYN = 'Y'
+			AND SBJCT.DELYN = 'N'
+			AND ADM.SBJCT_ADM_TYCD = 'PROF'
+			AND ADM.USER_ID = #{userId}
+			AND SBJCT.SBJCT_YR = #{sbjctYr}
+		<if test="smstrChrtId != null and smstrChrtId != ''">
+			AND SBJCT.SMSTR_CHRT_ID = #{smstrChrtId}
+		</if>
+		<if test="orgId != null and orgId != ''">
+			AND CHRT.ORG_ID = #{orgId}
+		</if>
+		ORDER BY
+			  SBJCT.SBJCTNM
+			, SBJCT.DVCLAS_NO
+	</select>
+
+
+	<sql id="admLctrPlandocListQuery">
+		SELECT
+			  SBJCT.SBJCT_ID
+			, SBJCT.SBJCT_YR
+			, SBJCT.SBJCT_SMSTR
+			, SBJCT.SMSTR_CHRT_ID
+			, ORG.ORG_ID
+			, ORG.ORGNM
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE LANG_CD = NVL(#{langCd}, 'ko') AND UP_CD = 'SBJCT_TYCD' AND CD = SBJCT.SBJCT_TYCD) AS SBJCT_TYNM
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE LANG_CD = NVL(#{langCd}, 'ko') AND UP_CD = 'LCTR_GBNCD' AND CD = SBJCT.LCTR_GBNCD) AS LCTR_GBNNM
+			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE LANG_CD = NVL(#{langCd}, 'ko') AND UP_CD = 'CMCRS_GBNCD' AND CD = SBJCT.CMCRS_GBNCD) AS CMCRS_GBNNM
+		    , SBJCT.SBJCTNM
+			, SBJCT.DVCLAS_NO
+			, SBJCT.CRDTS
+			, SBJCT.CRCLMN_NO
+			, NVL(SBJCT_ADM.PROF_USERNM, '-') AS PROF_USERNM
+			, NVL(SBJCT_ADM.COPROF_USERNM, '-') AS COPROF_USERNM
+			, NVL(SBJCT_ADM.TUT_USERNM, '-') AS TUT_USERNM
+			, CASE WHEN PLANDOC.LCTR_PLANDOC_ID IS NULL THEN 'N' ELSE 'Y' END AS LSNPLANYN
+			, PLANDOC.REG_DTTM
+		FROM TB_LMS_SBJCT SBJCT
+		JOIN TB_LMS_SMSTR_CHRT CHRT ON CHRT.SMSTR_CHRT_ID = SBJCT.SMSTR_CHRT_ID
+		JOIN TB_LMS_ORG ORG ON ORG.ORG_ID = CHRT.ORG_ID
+		LEFT JOIN TB_LMS_LCTR_PLANDOC PLANDOC ON PLANDOC.SBJCT_ID = SBJCT.SBJCT_ID
+		LEFT JOIN (
+			SELECT
+				  T1.SBJCT_ID
+				, MAX(CASE WHEN T1.SBJCT_ADM_TYCD = 'PROF' THEN T2.USERNM END) AS PROF_USERNM
+				, MAX(CASE WHEN T1.SBJCT_ADM_TYCD = 'COPROF' THEN T2.USERNM END) AS COPROF_USERNM
+				, MAX(CASE WHEN T1.SBJCT_ADM_TYCD = 'TUT' THEN T2.USERNM END) AS TUT_USERNM
+			FROM TB_LMS_SBJCT_ADM T1
+			JOIN TB_LMS_USER T2 ON T2.USER_ID = T1.USER_ID
+			GROUP BY T1.SBJCT_ID
+		) SBJCT_ADM ON SBJCT_ADM.SBJCT_ID = SBJCT.SBJCT_ID
+		WHERE 1 = 1
+			AND SBJCT.USEYN = 'Y'
+			AND SBJCT.DELYN = 'N'
+		<if test="sbjctYr != null and sbjctYr != ''">
+			AND SBJCT.SBJCT_YR = #{sbjctYr}
+		</if>
+		<if test="smstrChrtId != null and smstrChrtId != ''">
+			AND SBJCT.SMSTR_CHRT_ID = #{smstrChrtId}
+		</if>
+		<if test="orgId != null and orgId != ''">
+			AND ORG.ORG_ID = #{orgId}
+		</if>
+		<if test="sbjctId != null and sbjctId != ''">
+			AND SBJCT.SBJCT_ID = #{sbjctId}
+		</if>
+		<if test="searchValue != null and searchValue != ''">
+			AND SBJCT.SBJCTNM LIKE FN_LIKE_VAL(#{searchValue})
+		</if>
+	</sql>
+
+	<select id="admLctrPlandocList" parameterType="lctrPlandocVO" resultType="egovMap">
+		/*
+			 SQL ID : LctrPlandocDAO.admLctrPlandocList
+			 설  명  : 관리자 강의계획서 목록
+		*/
+		SELECT BASE.*
+		FROM (
+			<include refid="admLctrPlandocListQuery"/>
+		) BASE
+		ORDER BY BASE.SBJCT_YR DESC, BASE.SBJCT_SMSTR DESC, BASE.ORG_ID, BASE.SBJCT_ID
+	</select>
+
+	<select id="admLctrPlandocListPaging" parameterType="lctrPlandocVO" resultType="egovMap">
+		/*
+			 SQL ID : LctrPlandocDAO.admLctrPlandocListPaging
+			 설  명  : 관리자 강의계획서 페이징 목록
+		*/
+		<include refid="CommonSQL.pagePrefix" />
+		SELECT
+			  BASE.*
+			, ROW_NUMBER() OVER(
+				ORDER BY BASE.SBJCT_YR DESC, BASE.SBJCT_SMSTR DESC, BASE.ORG_ID, BASE.SBJCT_ID
+			  ) AS LINE_NO
+			, COUNT(*) OVER() AS TOTAL_CNT
+		FROM (
+			<include refid="admLctrPlandocListQuery"/>
+		) BASE
+		<include refid="CommonSQL.pageSuffix" />
+	</select>
+
+	<select id="admOrgList" resultType="egovMap" parameterType="lctrPlandocVO">
+		/*
+			 SQL ID : LctrPlandocDAO.admOrgList
+			 설  명  : 관리자 기관 목록
+		*/
+		SELECT DISTINCT ORG.ORG_ID, ORG.ORGNM
+		FROM TB_LMS_SBJCT SBJCT
+		JOIN TB_LMS_SMSTR_CHRT CHRT ON CHRT.SMSTR_CHRT_ID = SBJCT.SMSTR_CHRT_ID
+		JOIN TB_LMS_ORG ORG ON ORG.ORG_ID = CHRT.ORG_ID
+		WHERE SBJCT.USEYN = 'Y'
+			AND SBJCT.DELYN = 'N'
+		<if test="sbjctYr != null and sbjctYr != ''">
+			AND SBJCT.SBJCT_YR = #{sbjctYr}
+		</if>
+		<if test="smstrChrtId != null and smstrChrtId != ''">
+			AND SBJCT.SMSTR_CHRT_ID = #{smstrChrtId}
+		</if>
+		ORDER BY ORG.ORGNM
+	</select>
+
+	<select id="admSbjctList" parameterType="lctrPlandocVO" resultType="egovMap">
+		/*
+			 SQL ID : LctrPlandocDAO.admSbjctList
+			 설  명  : 관리자 과목 목록
+		*/
+		SELECT DISTINCT SBJCT.SBJCT_ID, SBJCT.SBJCTNM, SBJCT.DVCLAS_NO, SBJCT.CRCLMN_NO
+		FROM TB_LMS_SBJCT SBJCT
+		JOIN TB_LMS_SMSTR_CHRT CHRT ON CHRT.SMSTR_CHRT_ID = SBJCT.SMSTR_CHRT_ID
+		WHERE SBJCT.USEYN = 'Y'
+			AND SBJCT.DELYN = 'N'
+		<if test="sbjctYr != null and sbjctYr != ''">
+			AND SBJCT.SBJCT_YR = #{sbjctYr}
+		</if>
+		<if test="smstrChrtId != null and smstrChrtId != ''">
+			AND SBJCT.SMSTR_CHRT_ID = #{smstrChrtId}
+		</if>
+		<if test="orgId != null and orgId != ''">
+			AND CHRT.ORG_ID = #{orgId}
+		</if>
+		ORDER BY SBJCT.SBJCTNM, SBJCT.DVCLAS_NO
+	</select>
+
+	<select id="rltmExamList" resultType="rltmExamVO" parameterType="string">
+		/*
+			 SQL ID : LctrPlandocDAO.rltmExamList
+			 설  명  : 실시간시험 목록
+		*/
+		SELECT
+			  RLTM_EXAM_ID
+			, LCTR_PLANDOC_ID
+			, EXAM_TYCD
+			, RLTM_EXAM_GBNCD
+			, EXAM_QSTNS_DLGTNYN
+			, QSTNS_TRGTR
+			, RLTM_TKEXAM_GBNCD
+			, EXAM_MNTS
+			, MRK_OYN
+			, END_EXAMPPR_OYN
+			, OPEN_OPTN_GBNCD
+			, AUTO_TRNSLTN_PRVNTNYN
+			, VOICE_VDO_INCLDYN
+			, EXAM_OP_AUTH_DLGTNYN
+		FROM TB_LMS_RLTM_EXAM
+		WHERE LCTR_PLANDOC_ID = #{lctrPlandocId}
+		ORDER BY DECODE(RLTM_EXAM_GBNCD, 'EXAM_MID', 1, 'EXAM_LST', 2, 9)
+	</select>
+
+	<select id="rltmExamSelect" resultType="rltmExamVO" parameterType="rltmExamVO">
+		/*
+			 SQL ID : LctrPlandocDAO.rltmExamSelect
+			 설  명  : 실시간시험 조회
+		*/
+		SELECT
+			  RLTM_EXAM_ID
+			, LCTR_PLANDOC_ID
+			, RLTM_EXAM_GBNCD
+		FROM TB_LMS_RLTM_EXAM
+		WHERE LCTR_PLANDOC_ID = #{lctrPlandocId}
+			AND RLTM_EXAM_GBNCD = #{rltmExamGbncd}
+	</select>
+
+	<insert id="rltmExamRegist" parameterType="rltmExamVO">
+		/*
+			 SQL ID : LctrPlandocDAO.rltmExamRegist
+			 설  명  : 실시간시험 등록
+		*/
+		INSERT INTO TB_LMS_RLTM_EXAM
+		(
+			  RLTM_EXAM_ID
+			, LCTR_PLANDOC_ID
+			, EXAM_TYCD
+			, RLTM_EXAM_GBNCD
+			, EXAM_QSTNS_DLGTNYN
+			, QSTNS_TRGTR
+			, RLTM_TKEXAM_GBNCD
+			, EXAM_MNTS
+			, MRK_OYN
+			, END_EXAMPPR_OYN
+			, OPEN_OPTN_GBNCD
+			, AUTO_TRNSLTN_PRVNTNYN
+			, VOICE_VDO_INCLDYN
+			, EXAM_OP_AUTH_DLGTNYN
+			, RGTR_ID
+			, REG_DTTM
+			, MDFR_ID
+			, MOD_DTTM
+		)
+		VALUES
+		(
+			  #{rltmExamId}
+			, #{lctrPlandocId}
+			, #{examTycd}
+			, #{rltmExamGbncd}
+			, #{examQstnsDlgtnyn}
+			, #{qstnsTrgtr}
+			, #{rltmTkexamGbncd}
+			, #{examMnts}
+			, #{mrkOyn}
+			, #{endExampprOyn}
+			, #{openOptnGbncd}
+			, #{autoTrnsltnPrvntnyn}
+			, #{voiceVdoIncldyn}
+			, #{examOpAuthDlgtnyn}
+			, #{rgtrId}
+			, FN_DTTM()
+			, #{mdfrId}
+			, FN_DTTM()
+		)
+	</insert>
+
+	<update id="rltmExamModify" parameterType="rltmExamVO">
+		/*
+			 SQL ID : LctrPlandocDAO.rltmExamModify
+			 설  명  : 실시간시험 수정
+		*/
+		UPDATE TB_LMS_RLTM_EXAM
+		SET
+			  EXAM_TYCD = #{examTycd}
+			, EXAM_QSTNS_DLGTNYN = #{examQstnsDlgtnyn}
+			, QSTNS_TRGTR = #{qstnsTrgtr}
+			, RLTM_TKEXAM_GBNCD = #{rltmTkexamGbncd}
+			, EXAM_MNTS = #{examMnts}
+			, MRK_OYN = #{mrkOyn}
+			, END_EXAMPPR_OYN = #{endExampprOyn}
+			, OPEN_OPTN_GBNCD = #{openOptnGbncd}
+			, AUTO_TRNSLTN_PRVNTNYN = #{autoTrnsltnPrvntnyn}
+			, VOICE_VDO_INCLDYN = #{voiceVdoIncldyn}
+			, EXAM_OP_AUTH_DLGTNYN = #{examOpAuthDlgtnyn}
+			, MDFR_ID = #{mdfrId}
+			, MOD_DTTM = FN_DTTM()
+		WHERE RLTM_EXAM_ID = #{rltmExamId}
+	</update>
+
+
+	<sql id="stdntLctrPlandocListQuery">
+		SELECT
+			  SBJCT.SBJCT_ID
+			, SBJCT.SBJCT_YR
+			, SBJCT.SBJCT_SMSTR
+			, SBJCT.SMSTR_CHRT_ID
+			, ORG.ORG_ID
+			, ORG.ORGNM
+			, SBJCT.SBJCTNM
+			, SBJCT.DVCLAS_NO
+			, SBJCT.CRDTS
+			, SBJCT.CRCLMN_NO
+			, NVL(SBJCT_ADM.PROF_USERNM, '-') AS PROF_USERNM
+			, NVL(SBJCT_ADM.COPROF_USERNM, '-') AS COPROF_USERNM
+			, NVL(SBJCT_ADM.ASSI_USERNM, '-') AS ASSI_USERNM
+			, NVL(SBJCT_ADM.TUT_USERNM, '-') AS TUT_USERNM
+			, CASE
+				WHEN PLANDOC.LCTR_PLANDOC_ID IS NULL THEN 'N'
+				ELSE 'Y'
+			  END AS LSNPLANYN
+		FROM TB_LMS_ATNDLC ATNDLC
+		JOIN TB_LMS_SBJCT SBJCT
+			ON SBJCT.SBJCT_ID = ATNDLC.SBJCT_ID
+		JOIN TB_LMS_SMSTR_CHRT CHRT
+			ON CHRT.SMSTR_CHRT_ID = SBJCT.SMSTR_CHRT_ID
+		JOIN TB_LMS_ORG ORG
+			ON ORG.ORG_ID = CHRT.ORG_ID
+		LEFT JOIN TB_LMS_LCTR_PLANDOC PLANDOC
+			ON PLANDOC.SBJCT_ID = SBJCT.SBJCT_ID
+		LEFT JOIN (
+			SELECT
+				  ADM.SBJCT_ID
+				, MAX(CASE WHEN ADM.SBJCT_ADM_TYCD = 'PROF' THEN USR.USERNM END) AS PROF_USERNM
+				, MAX(CASE WHEN ADM.SBJCT_ADM_TYCD = 'COPROF' THEN USR.USERNM END) AS COPROF_USERNM
+				, MAX(CASE WHEN ADM.SBJCT_ADM_TYCD = 'ASSI' THEN USR.USERNM END) AS ASSI_USERNM
+				, MAX(CASE WHEN ADM.SBJCT_ADM_TYCD = 'TUT' THEN USR.USERNM END) AS TUT_USERNM
+			FROM TB_LMS_SBJCT_ADM ADM
+			JOIN TB_LMS_USER USR
+				ON USR.USER_ID = ADM.USER_ID
+			GROUP BY ADM.SBJCT_ID
+		) SBJCT_ADM
+			ON SBJCT_ADM.SBJCT_ID = SBJCT.SBJCT_ID
+		WHERE 1 = 1
+			AND SBJCT.USEYN = 'Y'
+			AND SBJCT.DELYN = 'N'
+			AND ATNDLC.USER_ID = #{userId}
+			AND ATNDLC.ATNDLC_STSCD = 'APPROVE'
+		<!--AND NVL(ATNDLC.AUDITYN, 'N') = 'N'-->
+			AND SBJCT.SBJCT_YR = #{sbjctYr}
+		<if test="smstrChrtId != null and smstrChrtId != ''">
+			AND SBJCT.SMSTR_CHRT_ID = #{smstrChrtId}
+		</if>
+		<if test="orgId != null and orgId != ''">
+			AND ORG.ORG_ID = #{orgId}
+		</if>
+		<if test="sbjctId != null and sbjctId != ''">
+			AND SBJCT.SBJCT_ID = #{sbjctId}
+		</if>
+	</sql>
+
+	<select id="stdntLctrPlandocList" parameterType="lctrPlandocVO" resultType="egovMap">
+		/*
+			 SQL ID : LctrPlandocDAO.stdntLctrPlandocList
+			 설  명 : 학생 강의계획서 목록
+		 */
+		SELECT
+			  BASE.*
+		FROM (
+			<include refid="stdntLctrPlandocListQuery"/>
+		) BASE
+		ORDER BY
+			  BASE.SBJCT_YR DESC
+			, BASE.SBJCT_SMSTR DESC
+			, BASE.ORG_ID
+			, BASE.SBJCT_ID
+	</select>
+
+	<select id="stdntLctrPlandocListPaging" parameterType="lctrPlandocVO" resultType="egovMap">
+		/*
+			 SQL ID : LctrPlandocDAO.stdntLctrPlandocListPaging
+			 설  명 : 학생 강의계획서 목록 페이징
+		 */
+		<include refid="CommonSQL.pagePrefix"/>
+			SELECT
+				  BASE.*
+				, ROW_NUMBER() OVER(
+					ORDER BY
+						  BASE.SBJCT_YR DESC
+						, BASE.SBJCT_SMSTR DESC
+						, BASE.ORG_ID
+						, BASE.SBJCT_ID
+				  ) AS LINE_NO
+				, COUNT(*) OVER() AS TOTAL_CNT
+			FROM (
+				<include refid="stdntLctrPlandocListQuery"/>
+			) BASE
+		<include refid="CommonSQL.pageSuffix"/>
+	</select>
+
+	<select id="stdntOrgList" resultType="egovMap" parameterType="lctrPlandocVO">
+		/*
+			 SQL ID : LctrPlandocDAO.stdntOrgList
+			 설  명 : 학생 수강 기관 목록
+		 */
+		SELECT DISTINCT
+			  ORG.ORG_ID
+			, ORG.ORGNM
+		FROM TB_LMS_ATNDLC ATNDLC
+		JOIN TB_LMS_SBJCT SBJCT
+			ON SBJCT.SBJCT_ID = ATNDLC.SBJCT_ID
+		JOIN TB_LMS_SMSTR_CHRT CHRT
+			ON CHRT.SMSTR_CHRT_ID = SBJCT.SMSTR_CHRT_ID
+		JOIN TB_LMS_ORG ORG
+			ON ORG.ORG_ID = CHRT.ORG_ID
+		WHERE 1 = 1
+			AND ATNDLC.USER_ID = #{userId}
+			AND ATNDLC.ATNDLC_STSCD = 'APPROVE'
+		<!--AND NVL(ATNDLC.AUDITYN, 'N') = 'N'-->
+			AND SBJCT.USEYN = 'Y'
+			AND SBJCT.DELYN = 'N'
+			AND SBJCT.SBJCT_YR = #{sbjctYr}
+		<if test="smstrChrtId != null and smstrChrtId != ''">
+			AND SBJCT.SMSTR_CHRT_ID = #{smstrChrtId}
+		</if>
+		ORDER BY
+			  ORG.ORGNM
+	</select>
+	<select id="stdntSbjctList" parameterType="lctrPlandocVO" resultType="egovMap">
+		/*
+			 SQL ID : LctrPlandocDAO.stdntSbjctList
+			 설  명 : 학생 수강과목 목록
+		 */
+		SELECT DISTINCT
+			  SBJCT.SBJCT_ID
+			, SBJCT.SBJCTNM
+			, SBJCT.DVCLAS_NO
+		FROM TB_LMS_ATNDLC ATNDLC
+		JOIN TB_LMS_SBJCT SBJCT
+			ON SBJCT.SBJCT_ID = ATNDLC.SBJCT_ID
+		JOIN TB_LMS_SMSTR_CHRT CHRT
+			ON CHRT.SMSTR_CHRT_ID = SBJCT.SMSTR_CHRT_ID
+		WHERE 1 = 1
+			AND ATNDLC.USER_ID = #{userId}
+			AND ATNDLC.ATNDLC_STSCD = 'APPROVE'
+			<!--AND NVL(ATNDLC.AUDITYN, 'N') = 'N'-->
+			AND SBJCT.USEYN = 'Y'
+			AND SBJCT.DELYN = 'N'
+			AND SBJCT.SBJCT_YR = #{sbjctYr}
+		<if test="smstrChrtId != null and smstrChrtId != ''">
+			AND SBJCT.SMSTR_CHRT_ID = #{smstrChrtId}
+		</if>
+		<if test="orgId != null and orgId != ''">
+			AND CHRT.ORG_ID = #{orgId}
+		</if>
+		ORDER BY
+			  SBJCT.SBJCTNM
+			, SBJCT.DVCLAS_NO
+	</select>
+
 </mapper>

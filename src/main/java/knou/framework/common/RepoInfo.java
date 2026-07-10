@@ -28,7 +28,7 @@ public class RepoInfo {
 	 * @return
 	 * @throws Exception
 	 */
-	public static String getAtflRepo(HttpServletRequest request, String atflRepoId, String addPath) throws Exception {
+	public static String getAtflRepo(HttpServletRequest request, String atflRepoId, String addPath) {
 		String repoPath = "/attach";
 
 		if (REPO_MAP == null) {
@@ -65,7 +65,7 @@ public class RepoInfo {
 
 
 	// 첨부파일 저장소 정보 로드
-	private static void loadAtflRepo(HttpServletRequest request) throws Exception {
+	private static void loadAtflRepo(HttpServletRequest request) {
 		ApplicationContext applicationContext = WebApplicationContextUtils.getWebApplicationContext(request.getSession().getServletContext());
         AttachFileService attachFileService = (AttachFileService)applicationContext.getBean("attachFileService");
         List<AtflRepoVO> repoList = attachFileService.selectAtflRepoList();

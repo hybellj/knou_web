@@ -9,17 +9,21 @@ import java.util.List;
 
 public interface MsgRcptnAgreFacadeService {
 
-    ProcessResultVO<MsgRcptnAgreVO> selectRcptnAgreListPage(MsgRcptnAgreVO vo);
+    ProcessResultVO<MsgRcptnAgreVO> selectRcptnAgreListPage(MsgRcptnAgreVO vo) throws Exception;
 
     List<MsgRcptnAgreVO> selectRcptnAgreExcelList(MsgRcptnAgreVO vo);
 
-    List<MsgRcptnAgreVO> selectRcptnAgreYrList(MsgRcptnAgreVO vo);
+    ProcessResultVO<MsgRcptnAgreVO> selectAdminRcptnAgreListPage(MsgRcptnAgreVO vo) throws Exception;
 
-    List<EgovMap> selectRcptnAgreSmstrList(MsgRcptnAgreVO vo);
-
-    List<MsgRcptnAgreVO> selectRcptnAgreDeptList(MsgRcptnAgreVO vo);
-
-    List<MsgRcptnAgreVO> selectRcptnAgreSbjctList(MsgRcptnAgreVO vo);
+    List<MsgRcptnAgreVO> selectAdminRcptnAgreExcelList(MsgRcptnAgreVO vo);
 
     List<OrgInfoVO> selectActiveOrgList() throws Exception;
+
+    List<OrgInfoVO> selectActiveOrgListByAuth(String userId, boolean isAdmin) throws Exception;
+
+    List<OrgInfoVO> selectProfSbjctOrgList(String userId);
+
+    MsgRcptnAgreVO loadListViewInfo(MsgRcptnAgreVO vo) throws Exception;
+
+    EgovMap loadFilterOptions(MsgRcptnAgreVO vo) throws Exception;
 }

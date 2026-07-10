@@ -1573,7 +1573,7 @@
 
 <div class="row week-list">
 
-    <div class="col backcolorArea">
+    <div class="col back${uiex:getTheme()}rea">
         <div class="sec_head"><spring:message code="common.label.lecture.list"/></div><!-- 강의목록 -->
         <ul class="flex-tab week justify-content-around">
             <spring:message code="lesson.label.mid_short" var="label_mid_short"/>

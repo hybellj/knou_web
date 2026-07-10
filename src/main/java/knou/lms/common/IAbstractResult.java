@@ -10,8 +10,4 @@ public interface IAbstractResult {
 
 	public abstract void setResult(int result);
 
-	public abstract int getPageAuthor();
-
-	public abstract void setPageAuthor(int pageAuthor);
-
 }

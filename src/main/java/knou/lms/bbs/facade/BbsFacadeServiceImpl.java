@@ -9,13 +9,15 @@ import org.springframework.stereotype.Service;
 import knou.framework.common.ServiceBase;
 import knou.framework.context2.UserContext;
 import knou.framework.util.DateTimeUtil;
-import knou.lms.bbs.vo.BbsInfoVO;
+import knou.lms.bbs.service.BbsInfoService;
+import knou.lms.bbs.vo.BbsVO;
 import knou.lms.crs.sbjct.service.SbjctService;
 import knou.lms.crs.sbjct.vo.SbjctVO;
 import knou.lms.crs.semester.service.SemesterService;
 import knou.lms.crs.semester.vo.SmstrChrtVO;
 import knou.lms.org.service.OrgInfoService;
 import knou.lms.org.vo.OrgInfoVO;
+import knou.lms.team.vo.TeamCtgrVO;
 import knou.lms.user.service.UsrDeptCdService;
 import knou.lms.user.vo.UsrDeptCdVO;
 
@@ -33,6 +35,9 @@ public class BbsFacadeServiceImpl extends ServiceBase implements BbsFacadeServic
 
 	@Resource(name="sbjctService")
 	private SbjctService sbjctService;
+
+	@Resource(name = "bbsInfoService")
+    private BbsInfoService bbsInfoService;
 
 	@Override
 	public EgovMap loadFilterOptions(UserContext userCtx) throws Exception {
@@ -70,6 +75,14 @@ public class BbsFacadeServiceImpl extends ServiceBase implements BbsFacadeServic
         sbjctVO.setOrgId(orgId);
         filterOptions.put("sbjctList", sbjctService.list(sbjctVO));
 
-		return filterOptions;
+        // 학습그룹 조회
+        BbsVO bbsVO = new BbsVO();
+        filterOptions.put("teamGrpList", bbsInfoService.listTeamGrp(bbsVO));
+        filterOptions.put("lrnTeamList", bbsInfoService.listLrnTeam(bbsVO));
+
+        // 과제 리스트
+        filterOptions.put("lrnElemtList", bbsInfoService.listLrnElemtList(bbsVO));
+
+        return filterOptions;
 	}
 }

@@ -86,14 +86,14 @@
 				}
 			};
 			var ctx = document.getElementById(typeMap[type]['ctx']);
-			var colorArray = ["#36a2eb", "#ff6384"];
+			var ${uiex:getTheme()}rray = ["#36a2eb", "#ff6384"];
 			
 	        var myChart = new Chart(ctx, {
 	            type: 'pie',
 	            data: {
 	            labels: typeMap[type]['labels'],
 	            datasets: [{
-	                backgroundColor: colorArray,
+	                backgroundColor: ${uiex:getTheme()}rray,
 	                borderWidth:1,
 	                data: typeMap[type]['datas']
 	            }]

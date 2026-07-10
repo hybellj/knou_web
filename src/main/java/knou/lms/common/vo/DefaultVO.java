@@ -9,11 +9,24 @@ import java.util.List;
  * VO 공통
  */
 public class DefaultVO implements Serializable {
+
     private static final long serialVersionUID = 9023775012070173889L;
 
     // 공통
     private String		gubun;				// 공통 구분값 전달
     private String		pageType;			// 페이지 형식 (normal, iframe)
+
+
+    public String toString() {
+    	StringBuffer sb = new StringBuffer();
+    	sb.append(" pageIndex=" + pageIndex);
+    	sb.append(", firstIndex=" + firstIndex);
+    	sb.append(", lastIndex=" + lastIndex);
+    	sb.append(", listScale=" + listScale);
+    	sb.append(", pageScale=" + pageScale);
+    	sb.append(", totalCnt=" + totalCnt);
+		return sb.toString();
+    }
 
     // 페이징
     private int		pageIndex = 1;		// 현재 페이지 번호
@@ -37,6 +50,7 @@ public class DefaultVO implements Serializable {
     private String		modDttm;			// 수정 일시
     private String		modIp;				// 수정자 IP
     private String		loginIp;			// 로그인 IP
+    private String		userTycd;			// 사용자유형
 
     // 검색 파라미터
     private String		searchKey;			// 검색키
@@ -69,6 +83,23 @@ public class DefaultVO implements Serializable {
     private String		upMenuId;			// 상위메뉴아이디
     private String		menuId;				// 메뉴아이디
     private String		menuTarget;			// 메뉴 Target
+    private String		upMenuIds;			// 상위메뉴아이디들(,구분)
+
+    // 기관
+    private String		orgId;				// 기관아이디
+    private String		orgnm;				// 기관명
+    private String		orgShrtnm;			// 기관약어명
+
+    // 학과부서
+    private String      deptId;             // 학과/부서아이디
+    private String      deptnm;             // 학과/부서명
+
+    // 학기/기수
+    private String smstrChrtId; 			// 학기/기수아이디
+    private String dgrsYr;      			// 학위연도
+    private String dgrsSmstr;   			// 학기
+
+
 
     //
     // 이하 필드들은 사용여부 확인하여 삭제할것....
@@ -79,8 +110,7 @@ public class DefaultVO implements Serializable {
     private String audioData;            // 음성데이터
     private String audioFile;            // 음성파일
     private String excelGrid;            // 엑셀 헤더정보JSON string
-    private String orgId;                // 기관코드 구 orgId
-    private String orgNm;                // 기관명
+    private String orgNm;                // 기관명 (구) -- 삭제
     private String lineNo;                // 라인번호
     private String langCd = "";        // 언어코드
     private int result = 1;            // 처리결과
@@ -94,7 +124,7 @@ public class DefaultVO implements Serializable {
     private String haksaYear;            // 학사 년도(구)
     private String haksaTerm;            // 학사 학기(구)
 
-    private String dgrsYr; 				// 학위년도
+//    private String dgrsYr; 				// 학위년도
     private String dgrsSmstrChrt;		// 학위학기기수
 
     private String crsCreCd;            // 과목코드(구)
@@ -737,10 +767,28 @@ public class DefaultVO implements Serializable {
         this.orgId = orgId;
     }
 
+    public String getDeptId() {
+        return deptId;
+    }
+
+    public void setDeptId(String deptId) {
+        this.deptId = deptId;
+    }
+
+    public String getDeptnm() {
+        return deptnm;
+    }
+
+    public void setDeptnm(String deptnm) {
+        this.deptnm = deptnm;
+    }
+
+    @Deprecated
     public String getOrgNm() {
         return orgNm;
     }
 
+    @Deprecated
     public void setOrgNm(String orgNm) {
         this.orgNm = orgNm;
     }
@@ -835,5 +883,53 @@ public class DefaultVO implements Serializable {
 
 	public void setMenuTarget(String menuTarget) {
 		this.menuTarget = menuTarget;
+	}
+
+	public String getOrgnm() {
+		return orgnm;
+	}
+
+	public void setOrgnm(String orgnm) {
+		this.orgnm = orgnm;
+	}
+
+	public String getUpMenuIds() {
+		return upMenuIds;
+	}
+
+	public void setUpMenuIds(String upMenuIds) {
+		this.upMenuIds = upMenuIds;
+	}
+
+    public String getDgrsSmstr() {
+        return dgrsSmstr;
+    }
+
+    public void setDgrsSmstr(String dgrsSmstr) {
+        this.dgrsSmstr = dgrsSmstr;
+    }
+
+	public String getUserTycd() {
+		return userTycd;
+	}
+
+	public void setUserTycd(String userTycd) {
+		this.userTycd = userTycd;
+	}
+
+	public String getSmstrChrtId() {
+		return smstrChrtId;
+	}
+
+	public void setSmstrChrtId(String smstrChrtId) {
+		this.smstrChrtId = smstrChrtId;
+	}
+
+	public String getOrgShrtnm() {
+		return orgShrtnm;
+	}
+
+	public void setOrgShrtnm(String orgShrtnm) {
+		this.orgShrtnm = orgShrtnm;
 	}
 }

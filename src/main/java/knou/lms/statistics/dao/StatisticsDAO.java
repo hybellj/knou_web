@@ -10,35 +10,6 @@ import knou.lms.subject.vo.SubjectVO;
 
 @Mapper("statisticsDAO")
 public interface StatisticsDAO {
-	
-	/*****************************************************
-     * 전체/운영과목 학습진도 현황(수강생수, 평균학습진도율)
-     * @param SubjectVO
-     * @return List<EgovMap>
-     * @throws Exception
-     ******************************************************/
-    public EgovMap stdntlrnPrgrtStatusSelect(SubjectVO vo) throws Exception;
-    
-    /*****************************************************
-     * 학습자 학습진도 현황 목록 조회
-     * @param SubjectVO
-     * @return List<EgovMap>
-     * @throws Exception
-     ******************************************************/
-    public List<EgovMap> stdntLrnPrgrtList(SubjectVO vo) throws Exception;
-    
-    /*****************************************************
-     * 학습진도관리 > 학과별 학습진도율 목록 조회
-     * @param SubjectVO
-     * @return List<EgovMap>
-     * @throws Exception
-     ******************************************************/
-    public List<EgovMap> listLrnPrgrtStatusByDept(SubjectVO vo) throws Exception;
-    
-    
-    
-    
-    
     
     /**
      * ***************************************************

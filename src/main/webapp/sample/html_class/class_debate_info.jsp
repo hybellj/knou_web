@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="../common/common_inc.jsp" %><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+	<jsp:include page="../common/common_head.jsp">
         <jsp:param name="module" value="editor,fileuploader"/>
         <jsp:param name="module" value="chart"/>
 		<jsp:param name="style" value="classroom"/>
@@ -14,28 +14,28 @@
     <script src="../../webdoc/uilib/chart/chartjs-plugin-datalabels.min.js"></script>
 </head>
 
-<body class="class colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="class"><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
-        <jsp:include page="/WEB-INF/jsp/common_new/class_header.jsp"/>
+        <jsp:include page="../common/class_header.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
         <!-- //common header -->
 
         <!-- classroom -->
         <main class="common">
 
             <!-- gnb -->
-            <jsp:include page="/WEB-INF/jsp/common_new/class_gnb_prof.jsp"/>
+            <jsp:include page="../common/class_gnb_prof.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
             <!-- //gnb -->
 
             <!-- content -->
             <div id="content" class="content-wrap common">
                 <!-- class_sub_top -->
-				<jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+				<jsp:include page="../common/class_sub_top.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 				<!-- //class_sub_top -->
 
                 <div class="class_sub">
                     <!-- class_info -->
-					<jsp:include page="/WEB-INF/jsp/common_new/class_info.jsp"/>
+					<jsp:include page="../common/class_info.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
                     <!-- //class_info -->
 
                     <div class="sub-content">
@@ -78,173 +78,160 @@
                                         </a>
                                     </div>
                                     <div class="cont">
-                                        <div class="table_list">
-                                            <ul class="list">
-                                                <li class="head"><label>토론내용</label></li>
-                                                <li>
-                                                    <div class="tb_content">
-                                                        <textarea class="form-control wmax" rows="4" id="contTextarea" readonly="">토론내용입니다. 토론내용입니다. 토론내용입니다. 토론내용입니다. 토론내용입니다. 토론내용입니다.
-토론내용입니다. 토론내용입니다. 토론내용입니다. 토론내용입니다. 토론내용입니다. 토론내용입니다.
-토론내용입니다. 토론내용입니다. 토론내용입니다. 토론내용입니다. 토론내용입니다. 토론내용입니다.
-                                                        </textarea>
-                                                    </div>
-                                                </li>
-                                            </ul>
 
-                                            <ul class="list">
-                                                <li class="head"><label>참여기간</label></li>
-                                                <li>2026.09.30 10:00 ~ 2026.10.09 22:00</li>
-                                            </ul>
-                                            <ul class="list">
-                                                <li class="head"><label>성적반영</label></li>
-                                                <li>예</li>
-                                                <li class="head"><label>성적반영비율</label></li>
-                                                <li>25%</li>
-                                            </ul>
-                                            <ul class="list">
-                                                <li class="head"><label>성적공개</label></li>
-                                                <li>예</li>
-                                            </ul>
-                                            <ul class="list">
-                                                <li class="head"><label>평가방법</label></li>
-                                                <li>참여형 <small class="note ml10">(토론 참여 : 100점, 미참여 : 0점 자동배점)</small></li>
-                                            </ul>
-                                            <ul class="list">
-                                                <li class="head"><label>파일 첨부</label></li>
-                                                <li>
-                                                    <div class="add_file_list">
-                                                        <ul class="add_file">
-                                                            <li>
-                                                                <a href="#" class="file_down">
-                                                                    <i class="icon-svg-paperclip" aria-hidden="true"></i>
-                                                                    <span class="text">첨부파일명마우스오버 시.doc</span>
-                                                                    <span class="fileSize">(6KB)</span>
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a href="#" class="file_down">
-                                                                    <i class="icon-svg-paperclip" aria-hidden="true"></i>
-                                                                    <span class="text">154873973477000.jpg</span>
-                                                                    <span class="fileSize">(6KB)</span>
-                                                                </a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                            <ul class="list">
-                                                <li class="head"><label>팀 토론</label></li>
-                                                <li class="in_table">
-                                                    <div class="view_con">
+                                        <!-- ul.table-list > table-type5 으로 변경(2026-04-29) -->
+                                        <table class="table-type5">
+                                            <form id="form1" name="form1">
+                                            <colgroup>
+                                                <col width="15%">
+                                                <col>
+                                                <col width="15%">
+                                                <col>
+                                            </colgroup>
+                                            <tbody>
+                                                <tr>
+                                                    <th>토론내용</th>
+                                                    <td colspan="3">
+                                                        <div class="tb_content">
+                                                            <textarea class="form-control wmax" rows="4" id="contTextarea" readonly="">토론내용입니다. 토론내용입니다. 토론내용입니다. 토론내용입니다. 토론내용입니다. 토론내용입니다. 토론내용입니다. 토론내용입니다. 토론내용입니다. 토론내용입니다. 토론내용입니다. 토론내용입니다.
+                                                            </textarea>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>참여기간</th>
+                                                    <td colspan="3">2026.09.30 10:00 ~ 2026.10.09 22:00</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>성적반영</th>
+                                                    <td>예</td>
+                                                    <th>성적반영비율</th>
+                                                    <td>25%</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>성적공개</th>
+                                                    <td colspan="3">참여형<small class="note ml10">(토론 참여 : 100점, 미참여 : 0점 자동배점)</small></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>파일 첨부</th>
+                                                    <td colspan="3">
+                                                        <div>
+                                                            <a href="#" class="file_down">
+                                                                <i class="icon-svg-paperclip" aria-hidden="true"></i>
+                                                                <span class="text">첨부파일명마우스오버 시.doc</span>
+                                                                <span class="fileSize">(6KB)</span>
+                                                            </a>
+                                                        </div>
+                                                        <div>
+                                                            <a href="#" class="file_down">
+                                                                <i class="icon-svg-paperclip" aria-hidden="true"></i>
+                                                                <span class="text">154873973477000.jpg</span>
+                                                                <span class="fileSize">(6KB)</span>
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>팀토론</th>
+                                                    <td colspan="3">예<br>학습그룹 : 토론 학습그룹 002<br>학습그룹별 토론 설정 : 사용
+                                                        <div class="table-wrap mt10">
+                                                            <table class="table-type5 in_table">
+                                                                <colgroup>
+                                                                    <col class="width-5per">
+                                                                    <col class="width-15per">
+                                                                    <col>
+                                                                </colgroup>
+                                                                <tbody>                                                            
+                                                                    <tr>
+                                                                        <th rowspan="4" class="group-header"><label for="viewOption">1팀</label></th>
+                                                                        <th><label>학습그룹 구성원</label></th>
+                                                                        <td>
+                                                                            홍팀장1 외 11명
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th><label for="sub_topic">부주제</label></th>
+                                                                        <td>부주제 제목입니다.</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th><label for="contTextarea">내용</label></th>
+                                                                        <td>
+                                                                            <label class="width-100per"><textarea rows="4" class="form-control resize-none">내용입니다.
+
+                                                                            </textarea></label>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th><label for="attchFile">첨부파일</label></th>
+                                                                        <td>
+                                                                            <div class="add_file_list">                              
+                                                                                <ul class="add_file">
+                                                                                    <li>
+                                                                                        <a href="#" class="file_down">
+                                                                                            <i class="icon-svg-paperclip" aria-hidden="true"></i>
+                                                                                            <span class="text">154873973477000.jpg</span>
+                                                                                            <span class="fileSize">(6KB)</span>
+                                                                                        </a>                                        
+                                                                                    </li>
+                                                                                </ul>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th rowspan="4" class="group-header"><label for="viewOption">2팀</label></th>
+                                                                        <th><label>학습그룹 구성원</label></th>
+                                                                        <td>
+                                                                            홍팀장1 외 11명
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th><label for="sub_topic">부주제</label></th>
+                                                                        <td>
+                                                                            <div class="form-row">
+                                                                                <input class="form-control width-100per" type="text" name="name" id="sub_topic" value="" placeholder="주제 입력" autocomplete="off">
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th><label for="contTextarea">내용</label></th>
+                                                                        <td>
+                                                                            <label class="width-100per"><textarea rows="4" class="form-control resize-none"></textarea></label>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th><label for="attchFile">첨부파일</label></th>
+                                                                        <td>
+                                                                            첨부파일
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>참여글 보기 옵션</th>
+                                                    <td colspan="3">사용 안함</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>댓글 답변요청</th>
+                                                    <td colspan="3">아니오</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>찬반 토론으로 설정</th>
+                                                    <td colspan="3">
                                                         예<br>
-                                                        학습그룹 : 토론 학습그룹 002<br>
-                                                        학습그룹별 토론 설정 : 사용
-                                                    </div>
+                                                        찬반 비율 공개 : 예<br>
+                                                        작성자 공개 : 예<br>
+                                                        의견 글 복수 등록 : 아니오<br>
+                                                        찬반 의견 변경가능 : 아니오
+                                                    </td>
+                                                </tr>
 
-                                                    <!-- 학습그룹별 토론설정 -->
-                                                    <div class="table-wrap mb30">
-                                                        <table class="table-type5 in_table">
-                                                            <colgroup>
-                                                                <col class="width-5per" />
-                                                                <col class="width-15per" />
-                                                                <col />
-                                                            </colgroup>
-                                                            <tbody>
-                                                                <tr>
-                                                                    <th rowspan="4" class="group-header"><label for="viewOption">1팀</label></th>
-                                                                    <th><label>학습그룹 구성원</label></th>
-                                                                    <td>
-                                                                        홍팀장1 외 11명
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><label for="sub_topic">부주제</label></th>
-                                                                    <td>부주제 제목입니다.</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><label for="contTextarea">내용</label></th>
-                                                                    <td>
-                                                                        <label class="width-100per"><textarea rows="4" class="form-control resize-none">내용입니다.
-
-                                                                        </textarea></label>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><label for="attchFile">첨부파일</label></th>
-                                                                    <td>
-                                                                        <div class="add_file_list">
-                                                                            <ul class="add_file">
-                                                                                <li>
-                                                                                    <a href="#" class="file_down">
-                                                                                        <i class="icon-svg-paperclip" aria-hidden="true"></i>
-                                                                                        <span class="text">첨부파일명마우스오버 시.doc</span>
-                                                                                        <span class="fileSize">(6KB)</span>
-                                                                                    </a>
-                                                                                </li>
-                                                                                <li>
-                                                                                    <a href="#" class="file_down">
-                                                                                        <i class="icon-svg-paperclip" aria-hidden="true"></i>
-                                                                                        <span class="text">154873973477000.jpg</span>
-                                                                                        <span class="fileSize">(6KB)</span>
-                                                                                    </a>
-                                                                                </li>
-                                                                            </ul>
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th rowspan="4" class="group-header"><label for="viewOption">2팀</label></th>
-                                                                    <th><label>학습그룹 구성원</label></th>
-                                                                    <td>
-                                                                        홍팀장1 외 11명
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><label for="sub_topic">부주제</label></th>
-                                                                    <td>
-                                                                        <div class="form-row">
-                                                                            <input class="form-control width-100per" type="text" name="name" id="sub_topic" value="" placeholder="주제 입력">
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><label for="contTextarea">내용</label></th>
-                                                                    <td>
-                                                                        <label class="width-100per"><textarea rows="4" class="form-control resize-none"></textarea></label>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><label for="attchFile">첨부파일</label></th>
-                                                                    <td>
-                                                                        첨부파일
-                                                                    </td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                    <!--//학습그룹별 토론설정 -->
-
-
-                                                </li>
-                                            </ul>
-                                            <ul class="list">
-                                                <li class="head"><label>참여글 보기 옵션</label></li>
-                                                <li>사용 안함</li>
-                                            </ul>
-                                            <ul class="list">
-                                                <li class="head"><label>댓글 답변요청</label></li>
-                                                <li>아니오</li>
-                                            </ul>
-                                            <ul class="list">
-                                                <li class="head"><label>찬반 토론으로 설정</label></li>
-                                                <li>예 <br>
-                                                    찬반 비율 공개 : 예 <br>
-                                                    작성자 공개 : 예 <br>
-                                                    의견 글 복수 등록 : 아니오 <br>
-                                                    찬반 의견 변경가능 : 아니오
-                                                </li>
-                                            </ul>
-                                        </div>
+                                            </tbody>
+                                            </form>
+                                        </table>
+                                        <!-- //ul.table-list > table-type5 으로 변경(2026-04-29) -->
 
                                     </div>
                                 </li>
@@ -484,6 +471,7 @@
                         <button type="button" class="btn modal__btn" data-modal-open="modal1">일반토론: 피드백</button>
                         <button type="button" class="btn modal__btn" data-modal-open="modal2">토론현황 그래프</button>
                         <button type="button" class="btn modal__btn" data-modal-open="modal3">엑셀로 성적등록</button>
+                        <button type="button" class="btn modal__btn" data-modal-open="modal4">메모</button>
                     </div>
                     <!--// modal popup 보여주기 버튼(개발시 삭제) -->
 
@@ -648,6 +636,45 @@
                                     <canvas id="pieChart"></canvas>
                                 </div>
                                 <script>
+                                    // 차트 다크모드 색상 헬퍼 (body.darkmode 토글 시 자동 반영)
+                                    (function(){
+                                        if (window._chartDarkmodeReady) return;
+                                        window._chartDarkmodeReady = true;
+                                        window.chartInstances = window.chartInstances || [];
+                                        window.getChartColors = function(){
+                                            const dark = document.body.classList.contains('darkmode');
+                                            const styles = getComputedStyle(document.body);
+                                            return {
+                                                text:  dark ? (styles.getPropertyValue('--surface-text').trim()  || '#fff')      : '#666',
+                                                title: dark ? (styles.getPropertyValue('--surface-text').trim()  || '#fff')      : '#333',
+                                                line:  dark ? (styles.getPropertyValue('--surface-border').trim() || '#e7e7e740') : '#eee'
+                                            };
+                                        };
+                                        window.refreshChartTheme = function(){
+                                            const c = window.getChartColors();
+                                            window.chartInstances.forEach(function(entry){
+                                                const chart = entry && entry.chart;
+                                                if (!chart || !chart.options) return;
+                                                const opts = chart.options;
+                                                if (opts.plugins && opts.plugins.title) opts.plugins.title.color = c.title;
+                                                if (opts.plugins && opts.plugins.legend && opts.plugins.legend.labels) opts.plugins.legend.labels.color = c.text;
+                                                if (opts.plugins && opts.plugins.datalabels && !entry.keepDataLabelColor) opts.plugins.datalabels.color = c.text;
+                                                ['x','y'].forEach(function(ax){
+                                                    const s = opts.scales && opts.scales[ax];
+                                                    if (!s) return;
+                                                    if (s.ticks) s.ticks.color = c.text;
+                                                    if (s.grid)  s.grid.color  = c.line;
+                                                    if (s.title) s.title.color = c.text;
+                                                });
+                                                if (typeof entry.onUpdate === 'function') entry.onUpdate(c, chart);
+                                                chart.update();
+                                            });
+                                        };
+                                        new MutationObserver(function(){ window.refreshChartTheme(); })
+                                            .observe(document.body, { attributes: true, attributeFilter: ['class'] });
+                                    })();
+
+                                    const _pieColors = window.getChartColors();
                                     // PIE CHART용 데이터
                                     const pieData = {
                                         labels: ['제출', '미제출'],
@@ -672,6 +699,7 @@
                                                 legend: {
                                                     position: 'bottom',
                                                     labels: {
+                                                        color: _pieColors.text,
                                                         formatter: function(value, ctx) {
                                                             const index = ctx.dataIndex;
                                                             const dataset = ctx.dataset;
@@ -683,10 +711,10 @@
                                                     display: true,
                                                     text: '최종 보고서 제출 현황 (%)',
                                                     font: { size: 16 },
-                                                    color: '#333'
+                                                    color: _pieColors.title
                                                 },
                                                 datalabels: {
-                                                    color: '#fff',
+                                                    color: '#fff', // 파이 조각 위 라벨은 흰색 고정
                                                     font: {
                                                         weight: 'bold',
                                                         size: 11
@@ -704,7 +732,9 @@
                                     };
 
                                     // 생성
-                                    new Chart(document.getElementById('pieChart'), pieConfig);
+                                    const pieChartInstance = new Chart(document.getElementById('pieChart'), pieConfig);
+                                    // 파이 조각 위 라벨은 흰색 유지(keepDataLabelColor)
+                                    window.chartInstances.push({ chart: pieChartInstance, keepDataLabelColor: true });
                                 </script>
                             </div>
                             <div class="right_chart">
@@ -733,6 +763,7 @@
                                             barThickness: 30
                                         }]
                                     };
+                                    const _barColors = window.getChartColors();
                                     const barConfig = {
                                         type: 'bar',
                                         data: barData,
@@ -745,13 +776,13 @@
                                                     display: true,
                                                     text: '성적분포현황',
                                                     font: { size: 16 },
-                                                    color: '#333'
+                                                    color: _barColors.title
                                                 },
                                                 datalabels: {
                                                     anchor: 'end',   // 막대 끝 기준
                                                     align: 'top',
                                                     offset: -2,
-                                                    color: '#666',
+                                                    color: _barColors.text,
                                                     font: {
                                                         weight: 'bold',
                                                         size: 11
@@ -763,17 +794,20 @@
                                             },
                                             scales: {
                                                 y: {
-                                                    ticks: { color: '#666', font: { size: 12 }, stepSize: 20 },
-                                                    title: { display: true, text: '점수' }
+                                                    ticks: { color: _barColors.text, font: { size: 12 }, stepSize: 20 },
+                                                    title: { display: true, text: '점수', color: _barColors.text },
+                                                    grid: { color: _barColors.line }
                                                 },
                                                 x: {
-                                                    ticks: { color: '#666', font: { size: 12 } },
+                                                    ticks: { color: _barColors.text, font: { size: 12 } },
+                                                    grid: { color: _barColors.line }
                                                 }
                                             }
                                         },
                                         plugins: [ChartDataLabels] // datalabels 플러그인 활성화
                                     };
-                                    new Chart(document.getElementById('barChart'), barConfig);
+                                    const barChartInstance = new Chart(document.getElementById('barChart'), barConfig);
+                                    window.chartInstances.push({ chart: barChartInstance });
                                 </script>
                             </div>
                         </div>
@@ -814,6 +848,49 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal 4 메모 -->
+        <div class="modal-overlay" id="modal4" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal4Title" >
+            <div class="modal-content modal-lg" tabindex="-1">
+                <div class="modal-header">
+                    <h2 id="modal4Title">메모</h2>
+                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div class="board_top class">
+                        <h3 class="board-title">일한 번역연스01 1반</h3>
+                        <div class="right-area">
+                            <div class="feedback-info">
+                                <p class="desc">
+                                    <span><strong>컴퓨터공학과</strong></span>
+                                    <span><strong>9021582</strong></span>
+                                    <span><strong>김주미</strong></span>
+                                    <span class="score"><strong>65점</strong></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--등록-->
+                    <div class="table-wrap mt10">
+                        <table class="table-type5 in_table">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <textarea class="form-control width-100per min-height-200px"></textarea>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="modal_btns">
+                        <button type="button" class="btn type2">닫기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- //Modal 4 메모 -->
 
         <script src="<%=request.getContextPath()%>/webdoc/assets/js/modal.js" defer></script>
 

@@ -1,31 +1,31 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="../common/common_inc.jsp" %><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+	<jsp:include page="../common/common_head.jsp">
 		<jsp:param name="style" value="classroom"/>
 		<jsp:param name="module" value="chart"/>
 	</jsp:include>
 </head>
 
-<body class="class colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="class colorE"><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
-        <jsp:include page="/WEB-INF/jsp/common_new/class_header.jsp"/>
+        <jsp:include page="../common/class_header.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
         <!-- //common header -->
 
         <!-- classroom -->
         <main class="common">
 
             <!-- gnb -->
-            <jsp:include page="/WEB-INF/jsp/common_new/class_gnb_stu.jsp"/>
+            <jsp:include page="../common/class_gnb_stu.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
             <!-- //gnb -->
 
             <!-- content -->
             <div id="content" class="content-wrap common">
                 <!-- class_sub_top -->
-				<jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+				<jsp:include page="../common/class_sub_top.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 				<!-- //class_sub_top -->
 
                 <div class="class_sub">
@@ -54,7 +54,7 @@
                                     <div class="cls_btn">
                                         <a href="#0" class="btn"><em>강의</em>계획서</a>
                                         <a href="#0" class="btn"><em>평가</em>기준</a>
-                                        <a href="#0" class="btn"><em>강의실</em>나가기</a>
+                                        <!-- <a href="#0" class="btn"><em>강의실</em>나가기</a> -->
                                     </div>
                                 </div>
                             </div>
@@ -645,22 +645,23 @@
                                     <div class="title-wrap">
                                         <a class="title" href="#">
                                             <i class="arrow xi-angle-down"></i>
-                                            <strong>1주차</strong>
-                                            <p class="labels">
-                                                <label class="label s_online">온라인</label>
-                                                <label class="label s_finish">마감</label>
-                                            </p>
+                                            <div>
+                                                <strong>1주차</strong>
+                                            </div>
+                                        </a>
+                                        <div class="meta-action-bar">
                                             <p class="desc">
+                                                <label class="label s_finish">마감</label>
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span><strong>106분</strong></span>
                                             </p>
-                                        </a>
-                                        <div class="btn_right">
-                                            <div class="desc_info">
-                                                <span>진도율<strong class="navy">52%</strong></span>
+                                            <div class="btn_right">
+                                                <div class="desc_info">
+                                                    <span>진도율<strong class="navy">52%</strong></span>
+                                                </div>
+                                                <button class="btn s_basic down">강의노트</button>
+                                                <button class="btn s_type2">강의보기</button>
                                             </div>
-                                            <button class="btn s_basic down">강의노트</button>
-                                            <button class="btn s_type2">강의보기</button>
                                         </div>
                                     </div>
 
@@ -753,23 +754,24 @@
                                     <div class="title-wrap">
                                         <a class="title" href="#">
                                             <i class="arrow xi-angle-down"></i>
-                                            <strong>2주차</strong>
-                                            <p class="labels">
-                                                <label class="label s_online">온라인</label>
-                                                <label class="label s_ing">공개</label>
-                                            </p>
+                                            <div>
+                                                <strong>2주차</strong>
+                                            </div>
+                                        </a>
+                                        <div class="meta-action-bar">
                                             <p class="desc">
+                                                <label class="label s_finish">마감</label>
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span><strong>106분</strong></span>
                                                 <span><strong>선택학습</strong></span>
                                             </p>
-                                        </a>
-                                        <div class="btn_right">
-                                            <div class="desc_info">
-                                                <span>진도율<strong class="navy">52%</strong></span>
+                                            <div class="btn_right">
+                                                <div class="desc_info">
+                                                    <span>진도율<strong class="navy">52%</strong></span>
+                                                </div>
+                                                <button class="btn s_basic down">강의노트</button>
+                                                <button class="btn s_type2">강의보기</button>
                                             </div>
-                                            <button class="btn s_basic down">강의노트</button>
-                                            <button class="btn s_type2">강의보기</button>
                                         </div>
                                     </div>
 
@@ -797,18 +799,20 @@
                                     <div class="title-wrap">
                                         <a class="title" href="#">
                                             <i class="arrow xi-angle-down"></i>
-                                            <strong>3주차</strong>
-                                            <p class="labels">
-                                                <label class="label s_online">온라인</label>
-                                            </p>
+                                            <div>
+                                                <strong>3주차</strong>
+                                            </div>
+                                        </a>
+                                        <div class="meta-action-bar">
                                             <p class="desc">
+                                                <label class="label s_finish">마감</label>
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span><strong>106분</strong></span>
                                                 <span><strong>선택학습</strong></span>
                                             </p>
-                                        </a>
-                                        <div class="btn_right">
-                                            <button class="btn s_type2">세미나</button>
+                                            <div class="btn_right">
+                                                <button class="btn s_type2">세미나</button>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -864,21 +868,24 @@
                                     <div class="title-wrap">
                                         <a class="title" href="#">
                                             <i class="arrow xi-angle-down"></i>
-                                            <strong>4주차</strong>
-                                            <p class="labels">
-                                                <label class="label s_offline">오프라인</label>
-                                            </p>
+                                            <div>
+                                                <strong>4주차</strong>
+                                            </div>
+                                        </a>
+                                        <div class="meta-action-bar">
                                             <p class="desc">
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span><strong>60분</strong></span>
                                                 <span><strong>선택학습</strong></span>
                                             </p>
-                                        </a>
-                                        <div class="btn_right">
-                                            <div class="desc_info">
-                                                <span>진도율<strong class="navy">52%</strong></span>
+
+                                            <div class="btn_right">
+                                                <div class="desc_info">
+                                                    <span>진도율<strong class="navy">52%</strong></span>
+                                                </div>
+                                                <button class="btn s_basic down">강의노트</button>
                                             </div>
-                                            <button class="btn s_basic down">강의노트</button>
+
                                         </div>
                                     </div>
 
@@ -902,19 +909,20 @@
                                     <div class="title-wrap">
                                         <a class="title" href="#">
                                             <i class="arrow xi-angle-down"></i>
-                                            <strong>15주차</strong>
-                                            <p class="labels">
-                                                <label class="label s_online">온라인</label>
-                                            </p>
+                                            <div>
+                                                <strong>15주차</strong>
+                                            </div>
+                                        </a>
+                                        <div class="meta-action-bar">
                                             <p class="desc">
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span><strong>60분</strong></span>
                                                 <span><strong>선택학습</strong></span>
                                             </p>
-                                        </a>
-                                        <div class="btn_right">
-                                            <button class="btn s_type1">결시원 신청</button>
-                                            <button class="btn s_type1">장애인/고령자 지원신청</button>
+                                            <div class="btn_right">
+                                                <button class="btn s_type1">결시원 신청</button>
+                                                <button class="btn s_type1">장애인/고령자 지원신청</button>
+                                            </div>
                                         </div>
                                     </div>
 

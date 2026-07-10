@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+	<defs>
+		<linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0%" stop-color="#ED792E"/>
+			<stop offset="100%" stop-color="#E55225"/>
+		</linearGradient>
+		<linearGradient id="hiGrad" x1="0" y1="0" x2="1" y2="0">
+			<stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.28"/>
+			<stop offset="55%" stop-color="#FFFFFF" stop-opacity="0.08"/>
+			<stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+		</linearGradient>
+		<!-- 64x64 아이콘 영역 클리핑 -->
+        <clipPath id="clipIcon">
+            <rect x="0" y="0" width="64" height="64" rx="5" ry="5"/>
+        </clipPath>
+	</defs>
+	<g id="icon" clip-path="url(#clipIcon)">
+		<!-- Background -->
+		<rect x="0" y="0" width="64" height="64" rx="5" ry="5" fill="url(#bgGrad)"/>
+		<rect x="0" y="0" width="64" height="64" rx="5" ry="5" fill="url(#hiGrad)"/>
+		<!-- Foreground mark (vectorized from the ICO) -->
+		<path id="arrow-1" d="M 29.50,0.00 l 0.00,53.50 l -27.00,-25.50 l 12.00,0.00 l 0.00,-28.00 Z" fill="#FFFFFF"/>
+		<path id="arrow-2" d="M 34.50,64.00 l 0.00,-53.50 l 27.00,25.50 l -12.00,0.00 l 0.00,28.00 Z" fill="#FFFFFF"/>
+	</g>
+</svg>

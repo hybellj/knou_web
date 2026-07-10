@@ -1,22 +1,21 @@
 package knou.lms.qbnk.service.impl;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import javax.annotation.Resource;
 
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
-import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
 import org.springframework.stereotype.Service;
 
 import knou.framework.common.IdPrefixType;
 import knou.framework.common.ServiceBase;
 import knou.framework.util.IdGenUtil;
 import knou.framework.util.StringUtil;
-import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.common.dto.ResultDTO;
 import knou.lms.qbnk.dao.QbnkCtgrDAO;
 import knou.lms.qbnk.service.QbnkCtgrService;
 import knou.lms.qbnk.vo.QbnkCtgrVO;
+import knou.lms.qbnk.web.view.QbnkPageInfo;
 
 @Service("qbnkCtgrService")
 public class QbnkCtgrServiceImpl extends ServiceBase implements QbnkCtgrService {
@@ -31,10 +30,9 @@ public class QbnkCtgrServiceImpl extends ServiceBase implements QbnkCtgrService 
 	 * @param sbjctId 		과목아이디
 	 * @param upQbnkCtgrId 	상위문제은행분류아이디
 	 * return 문제은행분류 목록
-	 * @throws Exception
 	 */
 	@Override
-	public List<QbnkCtgrVO> profQbnkCtgrList(QbnkCtgrVO vo) throws Exception {
+	public List<QbnkCtgrVO> profQbnkCtgrList(QbnkCtgrVO vo) {
 		return qbnkCtgrDAO.profQbnkCtgrList(vo);
 	}
 
@@ -44,34 +42,22 @@ public class QbnkCtgrServiceImpl extends ServiceBase implements QbnkCtgrService 
 	 * @param upQbnkCtgrId 	상위문제은행분류아이디
 	 * @param qbnkCtgrId 	문제은행분류아이디
 	 * @param sbjctId 		과목아이디
-	 * @param userRprsId 	사용자대표아이디
+	 * @param userId 		사용자아이디
 	 * @param searchValue 	검색어(분류명, 과목, 담당교수)
+	 * @param searchKey 	검색키(현재 과목아이디)
 	 * return 문제은행분류 목록
-	 * @throws Exception
 	 */
 	@Override
-	public ProcessResultVO<EgovMap> profQbnkCtgrAllList(QbnkCtgrVO vo) throws Exception {
-		PaginationInfo paginationInfo = new PaginationInfo();
-        paginationInfo.setCurrentPageNo(vo.getPageIndex());
-        paginationInfo.setRecordCountPerPage(vo.getListScale());
-        paginationInfo.setPageSize(vo.getListScale());
+	public ResultDTO<EgovMap> profQbnkCtgrAllList(QbnkPageInfo pageInfo) {
+        ResultDTO<EgovMap> resultDto = new ResultDTO<EgovMap>(pageInfo);
+		resultDto.setReturnList(qbnkCtgrDAO.profQbnkCtgrAllList(pageInfo));
+		if(resultDto.getReturnList().size() > 0) {
+			resultDto.getPageInfo().setTotalRecordCount(Integer.parseInt(resultDto.getReturnList().get(0).get("totalCnt").toString()));
+		} else {
+			resultDto.getPageInfo().setTotalRecordCount(0);
+		}
 
-        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
-        vo.setLastIndex(paginationInfo.getLastRecordIndex());
-
-        List<EgovMap> ctgrList = qbnkCtgrDAO.profQbnkCtgrAllList(vo);
-
-        if(ctgrList.size() > 0) {
-            paginationInfo.setTotalRecordCount(((BigDecimal) ctgrList.get(0).get("totalCnt")).intValue());
-        } else {
-            paginationInfo.setTotalRecordCount(0);
-        }
-
-        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
-        resultVO.setReturnList(ctgrList);
-        resultVO.setPageInfo(paginationInfo);
-
-        return resultVO;
+        return resultDto;
 	}
 
 	/**
@@ -79,23 +65,21 @@ public class QbnkCtgrServiceImpl extends ServiceBase implements QbnkCtgrService 
 	 *
 	 * @param sbjctId 		과목아이디
 	 * return 문제은행과목 정보
-	 * @throws Exception
 	 */
 	@Override
-	public EgovMap profQbnkSbjctSelect(String sbjctId) throws Exception {
+	public EgovMap profQbnkSbjctSelect(String sbjctId) {
 		return qbnkCtgrDAO.profQbnkSbjctSelect(sbjctId);
 	}
 
 	/**
 	 * 문제은행다음분류순번조회
 	 *
-	 * @param userRprsId 		사용자대표아이디
+	 * @param userId 			사용자아이디
 	 * @param upQbnkCtgrId 		상위문제은행분류아이디
 	 * return 문제은행다음분류순번
-	 * @throws Exception
 	 */
 	@Override
-	public int qbnkNextCtgrSeqnoSelect(QbnkCtgrVO vo) throws Exception {
+	public int qbnkNextCtgrSeqnoSelect(QbnkCtgrVO vo) {
 		return qbnkCtgrDAO.qbnkNextCtgrSeqnoSelect(vo);
 	}
 
@@ -103,10 +87,9 @@ public class QbnkCtgrServiceImpl extends ServiceBase implements QbnkCtgrService 
 	* 문제은행분류등록
 	*
 	* @param QbnkCtgrVO
-	* @throws Exception
 	*/
 	@Override
-	public void qbnkCtgrRegist(QbnkCtgrVO vo) throws Exception {
+	public void qbnkCtgrRegist(QbnkCtgrVO vo) {
 		if("".equals(StringUtil.nvl(vo.getQbnkCtgrId()))) {
 			vo.setQbnkCtgrId(IdGenUtil.genNewId(IdPrefixType.QBCTG));
 		}
@@ -118,10 +101,9 @@ public class QbnkCtgrServiceImpl extends ServiceBase implements QbnkCtgrService 
 	 *
 	 * @param qbnkCtgrId 	문제은행분류아이디
 	 * return 문제은행분류 정보
-	 * @throws Exception
 	 */
 	@Override
-	public QbnkCtgrVO qbnkCtgrSelect(String qbnkCtgrId) throws Exception {
+	public QbnkCtgrVO qbnkCtgrSelect(String qbnkCtgrId) {
 		return qbnkCtgrDAO.qbnkCtgrSelect(qbnkCtgrId);
 	}
 
@@ -130,9 +112,8 @@ public class QbnkCtgrServiceImpl extends ServiceBase implements QbnkCtgrService 
 	 *
 	 * @param qbnkCtgrId 	문제은행분류아이디
 	 * return 문제은행분류사용수
-	 * @throws Exception
 	 */
-	public EgovMap qbnkCtgrUseCntSelect(String qbnkCtgrId) throws Exception {
+	public EgovMap qbnkCtgrUseCntSelect(String qbnkCtgrId) {
 		return qbnkCtgrDAO.qbnkCtgrUseCntSelect(qbnkCtgrId);
 	}
 
@@ -140,9 +121,8 @@ public class QbnkCtgrServiceImpl extends ServiceBase implements QbnkCtgrService 
 	* 문제은행분류삭제
 	*
 	* @param QbnkCtgrVO
-	* @throws Exception
 	*/
-	public void qbnkCtgrDelete(QbnkCtgrVO vo) throws Exception {
+	public void qbnkCtgrDelete(QbnkCtgrVO vo) {
 		// 문제은행분류순번수정
 		qbnkCtgrDAO.qbnkCtgrSeqnoModify(vo);
 
@@ -153,21 +133,19 @@ public class QbnkCtgrServiceImpl extends ServiceBase implements QbnkCtgrService 
 	/**
 	 * 문제은행검색과목목록
 	 *
-	 * @param userId 	사용자아이디
+	 * @param sbjctId 	과목아이디
 	 * return 문제은행검색과목목록
-	 * @throws Exception
 	 */
-	public List<EgovMap> qbnkSearchSbjctList(String userId) throws Exception {
-		return qbnkCtgrDAO.qbnkSearchSbjctList(userId);
+	public List<EgovMap> qbnkSearchSbjctList(String sbjctId) {
+		return qbnkCtgrDAO.qbnkSearchSbjctList(sbjctId);
 	}
 
 	/**
 	 * 문제은행검색교수목록
 	 *
 	 * return 문제은행검색교수목록
-	 * @throws Exception
 	 */
-	public List<EgovMap> qbnkSearchProfList() throws Exception {
+	public List<EgovMap> qbnkSearchProfList() {
 		return qbnkCtgrDAO.qbnkSearchProfList();
 	}
 

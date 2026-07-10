@@ -8,23 +8,24 @@ public class DscsCmntVO extends DefaultVO {
 
     private static final long serialVersionUID = 2302072652819647474L;
 
-    private String dscsCmntId;
-    private String dscsId;
-    private String dscsAtclId;
-    private String rspnsReqyn;
-    private String cmntCts;
-    private String emtTycd;
-    private String delyn;
-    private String upCmntId;
-    private String upUsernm;
-    private int cmntCtsLen;
-    private String usernm;
-    private String stdId;
-    private int lvl;
-    private String mdfrId;
-    private String modDttm;
-    private String phtFile;
-    private byte[] phtFileByte;
+    private String dscsCmntId; // 토론댓글아이디
+    private String dscsId; // 토론아이디
+    private String dscsAtclId; // 토론게시글아이디
+    private String rspnsReqyn; // 답변요청여부
+    private String cmntCts; // 댓글내용
+    private String emtTycd; // 이모티콘유형코드
+    private String delyn; // 삭제여부
+    private String upCmntId; // 상위댓글아이디
+    private String upUsernm; // 상위댓글 작성자명
+    private int cmntCtsLen; // 댓글내용길이
+    private String usernm; // 사용자명
+    private String stdntNo; // 학번
+    private String stdId; // 학습자 아이디
+    private int lvl; // 댓글 레벨
+    private String mdfrId; // 수정자아이디
+    private String modDttm; // 수정일시
+    private String phtFile; // 프로필 사진 파일
+    private byte[] phtFileByte; // 프로필 사진 파일 바이트
 
     @Override
     public String getRgtrnm() {
@@ -143,6 +144,14 @@ public class DscsCmntVO extends DefaultVO {
         this.usernm = usernm;
     }
 
+    public String getStdntNo() {
+        return stdntNo;
+    }
+
+    public void setStdntNo(String stdntNo) {
+        this.stdntNo = stdntNo;
+    }
+
     public String getStdId() {
         return stdId;
     }
@@ -178,67 +187,4 @@ public class DscsCmntVO extends DefaultVO {
         this.phtFileByte = phtFileByte;
     }
 
-    public String getCmntSn() {
-        return getDscsCmntId();
-    }
-
-    public void setCmntSn(String cmntSn) {
-        setDscsCmntId(cmntSn);
-    }
-
-    public String getAtclSn() {
-        return getDscsAtclId();
-    }
-
-    public void setAtclSn(String atclSn) {
-        setDscsAtclId(atclSn);
-    }
-
-    public String getAnsReqYn() {
-        return getRspnsReqyn();
-    }
-
-    public void setAnsReqYn(String ansReqYn) {
-        setRspnsReqyn(ansReqYn);
-    }
-
-    public String getEmoticonNo() {
-        return getEmtTycd();
-    }
-
-    public void setEmoticonNo(String emoticonNo) {
-        setEmtTycd(emoticonNo);
-    }
-
-    public String getDelYn() {
-        return getDelyn();
-    }
-
-    public void setDelYn(String delYn) {
-        setDelyn(delYn);
-    }
-
-    public String getParCmntSn() {
-        return getUpCmntId();
-    }
-
-    public void setParCmntSn(String parCmntSn) {
-        setUpCmntId(parCmntSn);
-    }
-
-    public String getParRgtrNm() {
-        return getUpUsernm();
-    }
-
-    public void setParRgtrNm(String parRgtrNm) {
-        setUpUsernm(parRgtrNm);
-    }
-
-    public int getLevel() {
-        return getLvl();
-    }
-
-    public void setLevel(int level) {
-        setLvl(level);
-    }
 }

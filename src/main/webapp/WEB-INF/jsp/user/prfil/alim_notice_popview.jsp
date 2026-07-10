@@ -23,7 +23,7 @@
     <div style="margin-top:30px; text-align:right;">
         <div class="btns">
             <button type="button" class="btn type2" onclick="cancel()">취소</button>
-            <button type="button" class="btn type1" onclick="confirmAgree()">확인</button>
+            <button type="button" class="btn type1" onclick="confirmAgree()">동의</button>
         </div>
 
     </div>

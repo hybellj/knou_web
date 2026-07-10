@@ -1,24 +1,24 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="../common/common_inc.jsp" %><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+	<jsp:include page="../common/common_head.jsp">
 		<jsp:param name="style" value="dashboard"/>
 	</jsp:include>
 </head>
 
-<body class="home colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="home "><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
-        <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
+        <jsp:include page="../common/home_header.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
         <!-- //common header -->
 
         <!-- dashboard -->
         <main class="common">
 
             <!-- gnb -->
-			<jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
+			<jsp:include page="../common/home_gnb_prof.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
             <!-- //gnb -->
 
             <!-- content -->
@@ -214,6 +214,7 @@ let dialog1 = UiDialog("DIALOG_ID", {
 	[옵션]
 });
   - title: 타이틀
+  - titlebar: 타이틀바 표시여부(true/false, 기본값:true)
   - width: 너비
   - height: 높이
   - resizable: 리사이즈 여부 (true/false, 기본값:true)
@@ -221,17 +222,18 @@ let dialog1 = UiDialog("DIALOG_ID", {
   - modal: 모달 여부 (true/false, 기본값:true)
   - html: 다이얼로그 html 내용
   - url: 다이얼로그 내용에 url 호출(iframe)
-  - autoresize: 자동 사이즈 조절(true/false, 기본값:false, url인 경우 내용 사이즈에 맞게 다이어로그 높이 자동 조절)
+  - autoresize: 자동 사이즈 조절(true/false, 기본값:false, url인 경우 내용 사이즈에 맞게 다이얼로그 높이 자동 조절)
   - position:	다이얼로그 포지션 {my:"center top", at:"center top", of:"#TARGET"}
+  - fullscreen: 전체화면 표시(true/false, 기본값:false, 전체화면 적용할 경우 다른 옵션들은 모두 비활성)
 
-// 다이어로그 닫기
+// 다이얼로그 닫기
 dialog1.close();
 </pre>
 										</td>
 									</tr>
 									<tr>
 										<td class="t_left">
-											다이어로그 URL 열기
+											다이얼로그 URL 열기
 										</td>
 										<td class="t_left">
 <pre>
@@ -252,14 +254,14 @@ let dialog2 = UiDialog("dialog2", {
 </pre>
 										</td>
 										<td>
-											<button type="button" class="btn gray1" onclick="dialog1()">다이얼로그</button>
+											<button type="button" class="btn gray1" onclick="openDialog1()">다이얼로그</button>
 											<br><br>
-											<button type="button" class="btn gray1" onclick="dialog2()">autoresize</button>
+											<button type="button" class="btn gray1" onclick="openDialog2()">autoresize</button>
 										</td>
 									</tr>
 									<tr>
 										<td class="t_left">
-											다이어로그 내용 넣기
+											다이얼로그 내용 넣기
 										</td>
 										<td class="t_left">
 <pre>
@@ -272,15 +274,15 @@ let dialog3 = UiDialog("dialog3", {
 </pre>
 										</td>
 										<td>
-											<button type="button" class="btn gray1" onclick="dialog3()">다이얼로그</button>
+											<button type="button" class="btn gray1" onclick="openDialog3()">다이얼로그</button>
 										</td>
 									</tr>
 									<tr>
 										<td class="t_left">
-											다이어로그 위치 지정
+											다이얼로그 위치 지정
 										</td>
 										<td class="t_left">
-											<div id="posBox1" style="border:1px solid #000;background:rgb(255, 252, 217);width:200px;height:50px;"> 여기에 위치...<br> (id=posBox1) </div>
+											<div id="posBox1" style="border:1px solid #000;background:rgb(255, 252, 217);width:200px;height:50px;color:var(--surface-bg)"> 여기에 위치...<br> (id=posBox1) </div>
 <pre>
 let dialog4 = UiDialog("dialog4", {
 	title: "테스트",
@@ -292,13 +294,49 @@ let dialog4 = UiDialog("dialog4", {
 </pre>
 										</td>
 										<td>
-											<button type="button" class="btn gray1" onclick="dialog4()">다이얼로그</button>
+											<button type="button" class="btn gray1" onclick="openDialog4()">다이얼로그</button>
+										</td>
+									</tr>
+									<tr>
+										<td class="t_left">
+											다이얼로그 전체화면
+										</td>
+										<td class="t_left">
+<pre>
+let dialog5 = UiDialog("dialog5", {
+	title: "테스트",
+	url: "test.jsp",
+	fullscreen: true
+});
+</pre>
+										</td>
+										<td>
+											<button type="button" class="btn gray1" onclick="openDialog5()">다이얼로그</button>
+										</td>
+									</tr>
+									<tr>
+										<td class="t_left">
+											다이얼로그(타이틀바 없음)<br>
+											titlebar=false
+										</td>
+										<td class="t_left">
+<pre>
+dialog6 = UiDialog("dialog6", {
+	titlebar: false,
+	width: 600,
+	height: 500,
+	url: "test.jsp"
+});
+</pre>
+										</td>
+										<td>
+											<button type="button" class="btn gray1" onclick="openDialog6()">다이얼로그</button>
 										</td>
 									</tr>
 								</tbody>
 							</table>
 							<script>
-							function dialog1() {
+							function openDialog1() {
 								let dialog1 = UiDialog("dialog1", {
 									title: "테스트",
 									width: 600,
@@ -307,7 +345,7 @@ let dialog4 = UiDialog("dialog4", {
 								});
 							}
 
-							function dialog2() {
+							function openDialog2() {
 								let dialog2 = UiDialog("dialog2", {
 									title: "테스트",
 									width: 600,
@@ -317,7 +355,7 @@ let dialog4 = UiDialog("dialog4", {
 								});
 							}
 
-							function dialog3() {
+							function openDialog3() {
 								let dialog3 = UiDialog("dialog3", {
 									title: "테스트",
 									width: 600,
@@ -326,7 +364,7 @@ let dialog4 = UiDialog("dialog4", {
 								});
 							}
 
-							function dialog4() {
+							function openDialog4() {
 								let dialog4 = UiDialog("dialog4", {
 									title: "테스트",
 									width: 400,
@@ -334,6 +372,28 @@ let dialog4 = UiDialog("dialog4", {
 									html: "안녕하세요!",
 									position: {my:"center top", at:"center top", of:"#posBox1"}
 								});
+							}
+
+							function openDialog5() {
+								let dialog5 = UiDialog("dialog5", {
+									title: "테스트",
+									url: "test.jsp",
+									fullscreen: true
+								});
+							}
+
+							let dialog6 = null;
+							function openDialog6() {
+								dialog6 = UiDialog("dialog6", {
+									titlebar: false,
+									width: 600,
+									height: 500,
+									html: "안녕하세요!<br>찾아주신 수강생분들께 진심으로 감사드립니다.<br><br><br><button class='btn' onclick='closeDialog6()'>닫기</button>"
+								});
+							}
+
+							function closeDialog6() {
+								dialog6.close();
 							}
 							</script>
 						</div>
@@ -556,6 +616,16 @@ let dialog4 = UiDialog("dialog4", {
 									</tr>
 									<tr>
 										<td class="t_left">
+											<input type="checkbox" value="Y" class="switch" data-text="순차학습" checked="checked">
+											<input type="checkbox" value="Y" class="switch small" data-text="OPEN" checked="checked">
+										</td>
+										<td class="t_left">
+											&lt;input type="checkbox" value="Y" class="switch" data-text="순차학습" checked="checked"&gt;<br>
+											&lt;input type="checkbox" value="Y" class="switch small" data-text="OPEN" checked="checked"&gt;
+										</td>
+									</tr>
+									<tr>
+										<td class="t_left">
 											<input id="checkTest1" type="checkbox" value="Y" class="switch onoff">
 											<input type="checkbox" value="Y" class="switch onoff small">
 											<br>
@@ -711,7 +781,7 @@ let dialog4 = UiDialog("dialog4", {
 
 
             <!-- common footer -->
-            <jsp:include page="/WEB-INF/jsp/common_new/home_footer.jsp"/>
+            <jsp:include page="../common/home_footer.jsp"/>
             <!-- //common footer -->
 
         </main>

@@ -18,51 +18,69 @@
 
 		// 메모 저장
 		function profMemoRegist() {
-			var url  = "/srvy/srvyProfMemoModifyAjax.do";
-			var data = {
-				"srvyId" 		: "${vo.srvyId}",
-				"srvyPtcpId"  	: "${profMemo.srvyPtcpId}",
-				"userId" 		: "${profMemo.userId}",
-				"profMemo"		: $("#profMemo").val()
+			const url  = "/srvy/srvyProfMemoModifyAjax.do";
+			const data = {
+				srvyId 		: "${vo.srvyId}",
+				srvyPtcpId  : "${profMemo.srvyPtcpId}",
+				userId 		: "${profMemo.userId}",
+				profMemo	: $("#profMemo").val()
 			};
 
 			$.ajax({
-		        url 	  : url,
-		        async	  : false,
-		        type 	  : "POST",
-		        dataType  : "json",
-		        data 	  : JSON.stringify(data),
-		        contentType: "application/json; charset=UTF-8",
-		    }).done(function(data) {
-		    	if (data.result > 0) {
-		    		UiComm.showMessage("<spring:message code='exam.alert.insert.memo' />", "success");	/* 메모 저장이 완료되었습니다. */
-	        		window.parent.srvyPtcpListSelect();
-	        		window.parent.closeDialog();
-		        } else {
-		        	UiComm.showMessage(data.message, "error");
-		        }
-		    }).fail(function() {
-		    	UiComm.showMessage("<spring:message code='exam.error.memo.insert' />", "error");	/* 메모 저장 중 에러가 발생하였습니다. */
+		        url 	  	: url,
+		        async	  	: false,
+		        type 	  	: "POST",
+		        dataType  	: "json",
+		        data 	  	: JSON.stringify(data),
+		        contentType	: "application/json; charset=UTF-8",
+		        beforeSend	: () => UiComm.showLoading(true),
+                success		: function (data) {
+                    if (data.result > 0) {
+                    	UiComm.showMessage("<spring:message code='srvy.alert.insert.memo' />", "success");	/* 메모 저장이 완료되었습니다. */
+    	        		window.parent.srvyPtcpListSelect();
+    	        		window.parent.closeDialog();
+                    } else {
+                    	UiComm.showMessage(data.message, "error");
+                    }
+                },
+                error		: () => UiComm.showMessage("<spring:message code='srvy.error.memo.insert' />", "error"),	/* 메모 저장 중 에러가 발생하였습니다. */
+                complete	: () => UiComm.showLoading(false)
 		    });
 		}
 	</script>
 
-	<body class="modal-page">
-        <div id="wrap">
-        	<div class="msg-box basic board_top">
-        		<span>${vo.sbjctnm } ${vo.dvclasNo }반</span>
-        		<div class="right-area fcBlue">
-        			<b>${srvyPtcpnt.deptnm } ${srvyPtcpnt.stdntNo } ${srvyPtcpnt.usernm } <span class="f150">${srvyPtcpnt.ptcpEvlScr }<spring:message code="exam.label.score.point" /></span><!-- 점 --></b>
-        		</div>
+	<body class="modal-body">
+		<div class="board_top class">
+            <h3 class="board-title">${vo.sbjctnm } ${vo.dvclasNo }<spring:message code="srvy.label.decls" /><!-- 반 --></h3>
+            <div class="right-area">
+                <div class="feedback-info">
+                    <p class="desc">
+                        <span><strong>${srvyPtcpnt.deptnm }</strong></span>
+                        <span><strong>${srvyPtcpnt.stdntNo }</strong></span>
+                        <span><strong>${srvyPtcpnt.usernm }</strong></span>
+                        <span class="score"><strong>${srvyPtcpnt.ptcpEvlScr }<spring:message code="srvy.label.score.point" /><!-- 점 --></strong></span>
+                    </p>
+                </div>
             </div>
-
-            <textarea class="form-control" id="profMemo" style="width:100%;height:100px" maxLenCheck="byte,4000,true,true">${profMemo.profMemo }</textarea>
-
-			<div class="btns">
-                <button class="btn type1" onclick="profMemoRegist()"><spring:message code="exam.button.save" /></button><!-- 저장 -->
-                <button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code="exam.button.close" /></button><!-- 닫기 -->
-			</div>
         </div>
+
+        <!--등록-->
+        <div class="table-wrap mt10">
+            <table class="table-type5 in_table">
+                <tbody>
+                    <tr>
+                        <td>
+                            <textarea class="form-control" id="profMemo" style="width:100%;height:100px" maxLenCheck="byte,4000,true,true">${profMemo.profMemo }</textarea>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+		<div class="modal_btns">
+            <button class="btn type1" onclick="profMemoRegist()"><spring:message code="srvy.button.save" /></button><!-- 저장 -->
+            <button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code="srvy.button.close" /></button><!-- 닫기 -->
+		</div>
 		<script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>
 	</body>
 </html>

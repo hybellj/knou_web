@@ -1,8 +1,6 @@
 package knou.lms.crs.crecrs.service.impl;
 
-import knou.framework.common.CommConst;
-import knou.framework.common.ServiceBase;
-import knou.framework.common.SessionInfo;
+import knou.framework.common.*;
 import knou.framework.exception.ServiceProcessException;
 import knou.framework.util.*;
 import knou.lms.asmt.dao.AsmtDAO;
@@ -167,6 +165,281 @@ public class CrecrsServiceImpl extends ServiceBase implements CrecrsService {
     @Resource(name="messageSource")
     private MessageSource messageSource;
 
+    /*****************************************************
+     * 신규 작성 ServiceImpl 영역
+     *****************************************************/
+
+    /*****************************************************
+     * 이전학기 데이터 등록
+     * @param vo
+     * @return String sbjctId
+     ******************************************************/
+    public CreCrsVO prevSemesterDataRegist(CreCrsVO vo) {
+        int importType = vo.getImportType();
+        // 이전, 현재학기 과목ID 세팅
+        String currSbjctId = vo.getSbjctId(); // 현재학기 과목ID
+        String prevSbjctId = vo.getPrevSbjctId(); // 이전학기 과목ID
+
+        switch (importType) {
+            // 공지사항 (1), 강의자료실 (2)
+            case 1:
+            case 2: {
+                // 1. 이전학기 게시판, 게시글 List 조회 (EgovMap)
+                CreCrsVO selectBbsVO = new CreCrsVO();
+                selectBbsVO.setSbjctId(prevSbjctId);
+                selectBbsVO.setImportType(importType);
+                List<EgovMap> bbsDataList = crecrsDAO.selectPrevBbsDataList(selectBbsVO);
+                if (bbsDataList == null || bbsDataList.isEmpty()) break;
+
+                String prevRowBbsId = ""; // for 문을 위한 BBS ID 담기용
+                String newBbsId = "";
+                // 2. 게시판 + 게시판게시글 등록 for문 시작.
+                for (EgovMap row : bbsDataList) {
+                    // 3. List 에서 BBS_ID 추출
+                    String rowBbsId = (String) row.get("bbsId");
+
+                    // row 의 n번째까지의 비교를 순차적으로 하게 된다.
+                    // 예시 row [0~4] = a, row [5~6] = b : row 0 -> 최초 등록 후 for 문으로 계속 비교... row 4 != row 5 감지
+                    if (!rowBbsId.equals(prevRowBbsId)) {
+                        // 4. 게시판 params 세팅
+                        CreCrsVO bbsVO = new CreCrsVO();
+                        newBbsId = IdGenUtil.genNewId(IdPrefixType.BBS); // 신규 BBS_ID 생성
+                        bbsVO.setBbsId(newBbsId);
+                        bbsVO.setOrgId(vo.getOrgId());
+                        bbsVO.setSbjctId(currSbjctId);
+                        bbsVO.setBbsTycd((String) row.get("bbsTycd"));
+                        bbsVO.setBbsnm((String) row.get("bbsnm"));
+                        bbsVO.setBbsEnnm((String) row.get("bbsEnnm"));
+                        bbsVO.setBbsExpln((String) row.get("bbsExpln"));
+                        bbsVO.setBbsLangCd((String) row.get("bbsLangCd"));
+                        bbsVO.setListCnt(row.get("listCnt") != null ? ((Number) row.get("listCnt")).intValue() : 0);
+                        bbsVO.setAtflMaxCnt(row.get("atflMaxCnt") != null ? ((Number) row.get("atflMaxCnt")).intValue() : 0);
+                        bbsVO.setAtflMaxsz(row.get("atflMaxsz") != null ? ((Number) row.get("atflMaxsz")).intValue() : 0);
+                        bbsVO.setAtflUseyn((String) row.get("atflUseyn"));
+                        bbsVO.setRgtrId(vo.getUserId());
+                        // 5. 게시판 등록
+                        crecrsDAO.prevBbsRegist(bbsVO);
+                        // 6. 등록 이후 비교를 위해 업데이트
+                        prevRowBbsId = rowBbsId;
+                    }
+
+                    // 7. 게시글 params 세팅
+                    CreCrsVO atclVO = new CreCrsVO();
+                    atclVO.setAtclId(IdGenUtil.genNewId(IdPrefixType.BBATC)); // 신규 ATCL_ID 생성
+                    atclVO.setBbsId(newBbsId);
+                    atclVO.setUserId(vo.getUserId());
+                    atclVO.setAtclTtl((String) row.get("atclTtl"));
+                    atclVO.setAtclCts((String) row.get("atclCts"));
+                    atclVO.setAtclLv(row.get("atclLv") != null ? ((Number) row.get("atclLv")).intValue() : 0);
+                    atclVO.setFvrtCnt(0);
+                    atclVO.setInqCnt(0);
+                    atclVO.setThmbFileId((String) row.get("thmbFileId"));
+                    atclVO.setProcStscd((String) row.get("procStscd"));
+                    atclVO.setDeptId((String) row.get("deptId"));
+                    atclVO.setRgtrId(vo.getUserId());
+                    // 8. 게시판 게시글 등록
+                    crecrsDAO.prevBbsAtclRegist(atclVO);
+                }
+                break;
+            }
+            // 학습자료
+            case 3:
+                break;
+            // 과제
+            case 4:
+                // 1. 이전학기 과제 List 조회 (EgovMap)
+                CreCrsVO selectAsmtVO = new CreCrsVO();
+                selectAsmtVO.setSbjctId(prevSbjctId);
+                List<EgovMap> asmtDataList = crecrsDAO.selectPrevAsmtDataList(selectAsmtVO);
+                if (asmtDataList == null || asmtDataList.isEmpty()) break;
+
+                // 2. 과제 등록 for문 시작.
+                for (EgovMap row : asmtDataList) {
+                    // 3. 과제 params 세팅
+                    CreCrsVO asmtVO = new CreCrsVO();
+                    asmtVO.setAsmtId(IdGenUtil.genNewId(IdPrefixType.ASMT));    // 신규 ASMT_ID 생성
+                    asmtVO.setAsmtTtl((String) row.get("asmtTtl"));
+                    asmtVO.setAsmtCts((String) row.get("asmtCts"));
+                    asmtVO.setAsmtGbncd("ASMT");    // 팀 과제 -> 일반 과제로 변경
+                    asmtVO.setSbasmtTycd((String) row.get("sbasmtTycd"));
+                    asmtVO.setEvlScrTycd((String) row.get("evlScrTycd"));
+                    asmtVO.setSbmsnFileMimeTycd((String) row.get("sbmsnFileMimeTycd"));
+                    asmtVO.setMrkRfltrt(row.get("mrkRfltrt") != null ? ((Number) row.get("mrkRfltrt")).intValue() : 0);
+                    asmtVO.setMrkOyn((String) row.get("mrkOyn"));
+                    asmtVO.setSbjctId(currSbjctId);
+                    asmtVO.setRgtrId(vo.getUserId());
+                    // 4. 과제 등록
+                    crecrsDAO.prevAsmtRegist(asmtVO);
+                }
+                break;
+            // 퀴즈
+            case 5:
+                // 1. 이전학기 퀴즈 List 조회 (EgovMap)
+                CreCrsVO selectQuizVO = new CreCrsVO();
+                selectQuizVO.setSbjctId(prevSbjctId);
+                List<EgovMap> quizDataList = crecrsDAO.selectPrevQuizDataList(selectQuizVO);
+                if (quizDataList == null || quizDataList.isEmpty()) break;
+
+                // 2. 퀴즈 등록 for문 시작.
+                for (EgovMap row : quizDataList) {
+                    String examBscId = null;
+
+                    // 3. 퀴즈 기본 params 세팅
+                    CreCrsVO quizBscVO = new CreCrsVO();
+                    examBscId = IdGenUtil.genNewId(IdPrefixType.EXBSC);
+                    quizBscVO.setExamBscId(examBscId);
+                    quizBscVO.setExamTtl((String) row.get("examTtl"));
+                    quizBscVO.setExamCts((String) row.get("examCts"));
+                    quizBscVO.setExamGbncd("QUIZ"); // 팀 퀴즈 -> 일반 퀴즈로 등록
+                    quizBscVO.setTkexamMthdCd((String) row.get("tkexamMthdCd"));
+                    quizBscVO.setQstnDsplyGbncd((String) row.get("qstnDsplyGbncd"));
+                    quizBscVO.setExampprOyn((String) row.get("exampprOyn"));
+                    quizBscVO.setAvgMrkOyn((String) row.get("avgMrkOyn"));
+                    quizBscVO.setMaxTkexamCnt(row.get("maxTkexamCnt") != null ? ((Number) row.get("maxTkexamCnt")).intValue() : 0);
+                    quizBscVO.setQstnsDlgtnyn((String) row.get("qstnsDlgtnyn"));
+                    quizBscVO.setMrkOyn((String) row.get("mrkOyn"));
+                    quizBscVO.setRgtrId(vo.getUserId());
+                    quizBscVO.setSbjctId(currSbjctId);
+                    quizBscVO.setQstnRndmyn((String) row.get("qstnRndmyn"));
+                    quizBscVO.setQstnVwitmRndmyn((String) row.get("qstnVwitmRndmyn"));
+                    quizBscVO.setQstnCnddtUseyn((String) row.get("qstnCnddtUseyn"));
+                    quizBscVO.setMrkRfltyn((String) row.get("mrkRfltyn"));
+                    quizBscVO.setMrkRfltrt(row.get("mrkRfltrt") != null ? ((Number) row.get("mrkRfltrt")).intValue() : 0);
+                    quizBscVO.setExamtmAllocGbncd((String) row.get("examtmAllocGbncd"));
+                    quizBscVO.setExamtmExpsrTycd((String) row.get("examtmExpsrTycd"));
+
+                    // 4. 퀴즈 기본 등록
+                    crecrsDAO.prevQuizBscRegist(quizBscVO);
+
+                    // 5. 퀴즈 상세 params 세팅
+                    CreCrsVO quizDtlVO = new CreCrsVO();
+                    quizDtlVO.setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
+                    quizDtlVO.setExamBscId(examBscId);
+                    quizDtlVO.setExamMnts(row.get("examMnts") != null ? ((Number) row.get("examMnts")).intValue() : 0);
+                    quizDtlVO.setExamtmLmtyn((String) row.get("examtmLmtyn"));
+                    quizDtlVO.setCnsdrAddMnts(row.get("cnsdrAddMnts") != null ? ((Number) row.get("cnsdrAddMnts")).intValue() : 0);
+                    quizDtlVO.setRgtrId(vo.getUserId());
+
+                    // 6. 퀴즈 상세 등록
+                    crecrsDAO.prevQuizDtlRegist(quizDtlVO);
+                }
+                break;
+            // 설문
+            case 6:
+                // 1. 이전학기 설문 List 조회 (EgovMap)
+                CreCrsVO selectSrvyVO = new CreCrsVO();
+                selectSrvyVO.setSbjctId(prevSbjctId);
+                List<EgovMap> srvyDataList = crecrsDAO.selectPrevSrvyDataList(selectSrvyVO);
+                if (srvyDataList == null || srvyDataList.isEmpty()) break;
+
+                // 2. 설문 등록 for 문 시작.
+                for (EgovMap row : srvyDataList) {
+                    // 3. 설문 params 세팅
+                    CreCrsVO srvyVO = new CreCrsVO();
+                    srvyVO.setSrvyId(IdGenUtil.genNewId(IdPrefixType.SRVY));    // 설문 ID
+                    srvyVO.setSrvyWrtTycd((String) row.get("srvyWrtTycd"));
+                    srvyVO.setSrvyGbncd((String) row.get("srvyGbncd"));
+                    srvyVO.setSrvyTycd((String) row.get("srvyTycd"));
+                    srvyVO.setSrvyTrgtGbncd((String) row.get("srvyTrgtGbncd"));
+                    srvyVO.setSrvyTtl((String) row.get("srvyTtl"));
+                    srvyVO.setSrvyCts((String) row.get("srvyCts"));
+                    srvyVO.setRsltOpenTycd((String) row.get("rsltOpenTycd"));
+                    srvyVO.setEvlScrTycd((String) row.get("evlScrTycd"));
+                    srvyVO.setMrkRfltyn((String) row.get("mrkRfltyn"));
+                    srvyVO.setMrkRfltrt(row.get("mrkRfltrt") != null ? ((Number) row.get("mrkRfltrt")).intValue() : 0);
+                    srvyVO.setMrkOyn((String) row.get("mrkOyn"));
+                    srvyVO.setSbjctId(currSbjctId);
+                    srvyVO.setRgtrId(vo.getUserId());
+
+                    // 4. 설문 등록
+                    crecrsDAO.prevSrvyRegist(srvyVO);
+                }
+                break;
+            // 토론
+            case 7:
+                // 1. 이전학기 토론 List 조회 (EgovMap)
+                CreCrsVO selectDscsVO = new CreCrsVO();
+                selectDscsVO.setSbjctId(prevSbjctId);
+                List<EgovMap> dscsDataList = crecrsDAO.selectPrevDscsDataList(selectDscsVO);
+                if (dscsDataList == null || dscsDataList.isEmpty()) break;
+
+                // 2. 토론 등록 for 문 시작.
+                for (EgovMap row : dscsDataList) {
+                    // 3. 토론 params 세팅
+                    CreCrsVO dscsVO = new CreCrsVO();
+                    dscsVO.setDscsId(IdGenUtil.genNewId(IdPrefixType.DSCS));    // 토론 ID
+                    dscsVO.setDscsTycd((String) row.get("dscsTycd"));
+                    dscsVO.setDscsGbncd((String) row.get("dscsGbncd"));
+                    dscsVO.setEvlScrTycd((String) row.get("evlScrTycd"));
+                    dscsVO.setDscsTtl((String) row.get("dscsTtl"));
+                    dscsVO.setDscsCts((String) row.get("dscsCts"));
+                    dscsVO.setOatclInqyn((String) row.get("oatclInqyn"));
+                    dscsVO.setOknokrtOyn((String) row.get("oknokrtOyn"));
+                    dscsVO.setOknokModyn((String) row.get("oknokModyn"));
+                    dscsVO.setMltOpnnRegyn((String) row.get("mltOpnnRegyn"));
+                    dscsVO.setCmntRspnsReqyn((String) row.get("cmntRspnsReqyn"));
+                    dscsVO.setMrkRfltyn((String) row.get("mrkRfltyn"));
+                    dscsVO.setMrkRfltrt(row.get("mrkRfltrt") != null ? ((Number) row.get("mrkRfltrt")).intValue() : 0);
+                    dscsVO.setMrkOyn((String) row.get("mrkOyn"));
+                    dscsVO.setRgtrId(vo.getUserId());
+                    dscsVO.setSbjctId(currSbjctId);
+                    dscsVO.setOknokRgtrOyn((String) row.get("oknokRgtrOyn"));
+                    dscsVO.setOknokStngyn((String) row.get("oknokStngyn"));
+
+                    // 4. 토론 등록
+                    crecrsDAO.prevDscsRegist(dscsVO);
+                }
+                break;
+            // 연습문제, 돌발퀴즈
+            case 8:
+            case 9:
+                // 1. 이전학기 연습문제, 돌발퀴즈 List 조회 (EgovMap)
+                CreCrsVO selectQstnVO = new CreCrsVO();
+                selectQstnVO.setSbjctId(prevSbjctId);
+                selectQstnVO.setImportType(vo.getImportType());
+                List<EgovMap> qstnDataList = crecrsDAO.selectPrevQstnDataList(selectQstnVO);
+                if (qstnDataList == null || qstnDataList.isEmpty()) break;
+
+                // 2. 연습문제, 돌발퀴즈 등록 for 문 시작.
+                for (EgovMap row : qstnDataList) {
+                    // 3. 연습문제, 돌발퀴즈 params 세팅
+                    CreCrsVO qstnVO = new CreCrsVO();
+                    qstnVO.setExrcsSddnQstnBscId(IdGenUtil.genNewId(IdPrefixType.EXQSB));    // 연습,돌발 ID
+                    qstnVO.setSbjctId(currSbjctId);
+                    qstnVO.setQstnTtl((String) row.get("qstnTtl"));
+                    qstnVO.setQstnCts((String) row.get("qstnCts"));
+                    qstnVO.setQstnGbncd((String) row.get("qstnGbncd"));
+                    qstnVO.setRgtrId(vo.getUserId());
+
+                    // 4. 연습문제, 돌발퀴즈 등록
+                    crecrsDAO.prevQstnRegist(qstnVO);
+                }
+                break;
+        }
+        return vo;
+    }
+
+    /*****************************************************
+     * 이전학기 과목코드 조회
+     * @param vo
+     * @return String sbjctId
+     ******************************************************/
+    public String selectBeforeSbjctId(CreCrsVO vo) {
+        return crecrsDAO.selectBeforeSbjctId(vo);
+    }
+
+    /*****************************************************
+     * 이전학기, 현재학기 데이터 목록 카운트
+     * @param vo
+     * @return int cnt
+     ******************************************************/
+    public int countPrevCurrDataList(CreCrsVO vo) {
+        return crecrsDAO.countPrevCurrDataList(vo);
+    }
+
+    /*****************************************************
+     * 기존에 있던 ServiceImpl 영역
+     *****************************************************/
     /**
      * 강의실 교수 세션설정
      *
@@ -2565,17 +2838,18 @@ public class CrecrsServiceImpl extends ServiceBase implements CrecrsService {
     public List<EgovMap> listUserUnivGbn(HttpServletRequest request, CreCrsVO vo) throws Exception {
         String orgId = SessionInfo.getOrgId(request);
         String userId = SessionInfo.getUserId(request);
-        String menuType = SessionInfo.getAuthrtGrpcd(request);
-        String userType = SessionInfo.getAuthrtCd(request);
+        String userAuthrtGrpcd = SessionInfo.getAuthrtGrpcd(request);
+        String userAuthrtCd = SessionInfo.getAuthrtCd(request);
 
         vo.setOrgId(orgId);
         vo.setUserId(userId);
 
         List<EgovMap> list = null;
 
-        if(menuType.contains("USR")) {
+        if( CommConst.AUTHRT_GRPCD_STDNT.equals(userAuthrtGrpcd) ) {
             list = crecrsDAO.listStdUnivGbn(vo);
-        } else if(menuType.contains("PROF") && (userType.contains("PFS") || userType.contains("TUT"))) {
+            
+        } else if( CommConst.AUTHRT_GRPCD_PROF.equals(userAuthrtGrpcd) && CommConst.AUTHRT_CD_TUT.equals(userAuthrtCd) ) {
             list = crecrsDAO.listProfUnivGbn(vo);
         }
 
@@ -2604,17 +2878,22 @@ public class CrecrsServiceImpl extends ServiceBase implements CrecrsService {
      * @return List<SubjectVO>
      * @throws Exception
      */
-    /**
-     * 개설 과목 조회 (학위연도, 기관, 학기기수, 학과 기준)
-     * @param SubjectVO
-     * @return List<SubjectVO>
-     * @throws Exception
-     */
-    public List<EgovMap> listSbjctOfrng (SubjectVO sbjctOfrngVO)throws Exception {
-    	List<EgovMap> returnList = new ArrayList<EgovMap>();
-    	
-    	returnList= crecrsDAO.listSbjctOfring(sbjctOfrngVO);
-    	
-    	return returnList;
+    public ProcessResultVO<EgovMap>listSbjctPaging(SubjectVO vo) throws Exception {
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
+
+        PageInfo pageInfo = new PageInfo(vo);
+        resultVO.setPageInfo(pageInfo);
+
+        // 목록 조회
+        List<EgovMap> list = crecrsDAO.listSbjctPaging(vo);
+
+        // 페이지 전체 건수 정보 설정
+        pageInfo.setTotalRecord(list);
+
+        resultVO.setReturnList(list);
+        resultVO.setPageInfo(pageInfo);
+        resultVO.setResultSuccess();
+
+    	return resultVO;
     }
 }

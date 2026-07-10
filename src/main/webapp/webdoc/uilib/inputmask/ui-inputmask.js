@@ -264,9 +264,11 @@ function UiInputmaskText() {
 
 			let width = "100%";
 			let styleString = mskObj.attr('style');
-			let widthValue = styleString.split(';').find(s => s.includes('width')).split(':')[1].trim();
-			if (widthValue) {
-				width = widthValue;
+			if (styleString !== undefined) {
+				let widthValue = styleString.split(';').find(s => s.includes('width')).split(':')[1].trim();
+				if (widthValue) {
+					width = widthValue;
+				}
 			}
 
 			mskObj.addClass("show-count");

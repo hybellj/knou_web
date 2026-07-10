@@ -988,7 +988,7 @@
 				</if>
 				ORDER BY TLCC.SBJCT_ID
 				) X
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="countAsmntNoSubmit" parameterType="lessonOperateVO" resultType="Integer">
@@ -1174,7 +1174,7 @@
 				</if>
 				ORDER BY TLCC.SBJCT_ID
 				) X
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 	
 	<select id="countScoreUnrated" parameterType="lessonOperateVO" resultType="Integer">
@@ -1320,7 +1320,7 @@
 					  ORDER BY B.USER_ID ASC
 					) X
 		]]>
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="countLoginChief" parameterType="lessonOperateVO" resultType="Integer">
@@ -1777,7 +1777,7 @@
 				</if>
 				ORDER BY TLCC.SBJCT_ID
 				) X
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="countLoginLecture" parameterType="lessonOperateVO" resultType="Integer">
@@ -2230,7 +2230,7 @@
 	             WHERE 1 = 1 
 	             ORDER BY TLCC.SBJCT_ID
 		) X
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="countLoginAsmnt" parameterType="lessonOperateVO" resultType="Integer">
@@ -2381,7 +2381,7 @@
                  WHERE 1 = 1 
                  ORDER BY TLCC.SBJCT_ID
 		) X
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="countLoginQuiz" parameterType="lessonOperateVO" resultType="Integer">
@@ -2535,7 +2535,7 @@
                  WHERE 1 = 1 
                  ORDER BY TLCC.SBJCT_ID
 		) X
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="countLoginForum" parameterType="lessonOperateVO" resultType="Integer">
@@ -2679,7 +2679,7 @@
 				 WHERE 1 = 1 
 				 ORDER BY TLCC.SBJCT_ID
 		) X
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 	
 	<select id="countLoginResearch" parameterType="lessonOperateVO" resultType="Integer">

@@ -5,19 +5,20 @@
    	<%@ include file="/WEB-INF/jsp/common/modal_common.jsp" %>
    	<%@ include file="/WEB-INF/jsp/common/common.jsp" %>
 	<%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
+	<%@ include file="/WEB-INF/jsp/quiz/common/quiz_common_inc.jsp" %>
    	<link rel="stylesheet" type="text/css" href="/webdoc/css/class_default.css?v=2" />
-    
+
 	<script type="text/javascript">
 		$(document).ready(function() {
 	    	controllNextPrevBtn();
 		});
-		
+
 		// 포커스 이동
 		function focusMove(id) {
 			var locate = parseInt($("#"+id).offset().top + 210);
 			$(window.parent.document.getElementsByClassName("modal fade in")).scrollTop(locate);
 		}
-		
+
 		/**
 	     *  이전 다음 버튼 표시
 	     */
@@ -33,7 +34,7 @@
 	            $("#btnNextQstn").show();
 	        }
 	    }
-		
+
 	    /**
 	     *  이전 버튼 클릭 시 앞 문제로 이동
 	     */
@@ -97,9 +98,9 @@
             	</c:forEach>
 	        </ul>
 		</div>
-            
+
 		<%@ include file="/WEB-INF/jsp/quiz/common/quiz_preview_inc.jsp" %>
-            
+
 		<div class="bottom-content">
            	<c:if test="${vo.viewQstnTypeCd eq 'EACH'}">
             	<a href="javascript:goPrevQstn();" class="ui button blue" id="btnPrevQstn"><spring:message code="exam.label.prev" /></a><!-- 이전 -->

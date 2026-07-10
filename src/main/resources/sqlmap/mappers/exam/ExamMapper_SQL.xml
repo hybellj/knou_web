@@ -2,101 +2,228 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="knou.lms.exam.dao.ExamDAO">
 
+	<select	id="bySubjectQuizList" resultType="egovMap">
+		/* 설 명 : 과목별퀴즈목록조회 */
+		SELECT	ROWNUM AS RNUM
+				, BSC.*
+		FROM	TB_LMS_EXAM_BSC BSC
+		WHERE	1 = 1
+				AND SBJCT_ID = #{sbjctId}
+				AND	EXAM_TYCD = 'QUIZ'
+	</select>
+
+	<select	id="bySubjectExamList" resultType="egovMap">
+		/* 설 명 : 과목별시험목록조회 */
+		SELECT	ROWNUM AS RNUM
+				, BSC.*
+		FROM	TB_LMS_EXAM_BSC BSC
+		WHERE	1 = 1
+				AND SBJCT_ID = #{sbjctId}
+				AND	EXAM_TYCD = 'EXAM'
+	</select>
+
     <!-- QUIZ - SQL Area -->
-	<select id="profQuizListPaging" parameterType="examBscVO" resultType="egovMap">
+	<select id="profQuizListPaging" parameterType="quizPageInfo" resultType="egovMap">
 		/*
              SQL ID : ExamDAO.profQuizListPaging
              설  명  : 교수퀴즈목록페이징
          */
-        SELECT * FROM (
-	        SELECT
-				  ROW_NUMBER() OVER(ORDER BY QUIZ.EXAM_PSBL_SDTTM ASC, QUIZ.REG_DTTM DESC) AS LINE_NO
-				, QUIZ.*
-				, COUNT(QUIZ.EXAM_BSC_ID) OVER() AS TOTAL_CNT
-			FROM (
-				WITH SBJCT_USER AS (
-					SELECT
-						ATNDLC.USER_ID
-					  FROM TB_LMS_ATNDLC ATNDLC
-					  JOIN TB_LMS_SBJCT SBJCT
-					    ON ATNDLC.SBJCT_ID = SBJCT.SBJCT_ID
-					 WHERE ATNDLC.AUDITYN = 'N'
-					   AND SBJCT.SBJCT_ID = #{sbjctId}
-				)
-				SELECT
-					  EXAM_BSC.EXAM_BSC_ID
-					, EXAM_DTL.EXAM_DTL_ID
-					, EXAM_BSC.EXAM_GBNCD
-					, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'EXAM_GBNCD' AND CD = EXAM_BSC.EXAM_GBNCD) AS EXAM_GBNNM
-					, EXAM_BSC.EXAM_TTL
-					, EXAM_DTL.EXAM_MNTS
-					, EXAM_DTL.EXAM_PSBL_SDTTM
-					, EXAM_DTL.EXAM_PSBL_EDTTM
-					, MRK_RFLTYN
-					, MRK_RFLTRT
-					, (SELECT COUNT(TKEXAM_ID) FROM TB_LMS_TKEXAM WHERE EXAM_DTL_ID = EXAM_DTL.EXAM_DTL_ID AND TKEXAM_CMPTNYN = 'Y' AND DELYN = 'N' AND USER_ID IN (SELECT USER_ID FROM SBJCT_USER)) AS EXAM_EXAMNEE_CNT
-					, (SELECT COUNT(TKEXAM.TKEXAM_ID) FROM TB_LMS_TKEXAM TKEXAM JOIN TB_LMS_TKEXAM_RSLT TKEXAM_RSLT ON TKEXAM.TKEXAM_ID = TKEXAM_RSLT.TKEXAM_ID WHERE TKEXAM.EXAM_DTL_ID = EXAM_DTL.EXAM_DTL_ID AND TKEXAM.DELYN = 'N' AND TKEXAM.USER_ID IN (SELECT USER_ID FROM SBJCT_USER) AND TKEXAM_RSLT.EVLYN = 'Y') AS EXAM_EVLTEE_CNT
-					<!-- 시험대상자수 (일반퀴즈 : 현재수강생 전체, 팀퀴즈 : 해당팀원, 퀴즈중간,기말 : 결시원승인 인원 제외 전체, 퀴즈중간,기말대체 : 결시원승인 인원) -->
-					, NVL(CASE EXAM_BSC.EXAM_GBNCD WHEN 'QUIZ'
-											   THEN (SELECT COUNT(USER_ID) FROM SBJCT_USER)
-											   WHEN 'QUIZ_TEAM'
-											   THEN (SELECT
-											   			COUNT(TEAM_MBR.USER_ID)
-											   		   FROM TB_LMS_TEAM_MBR TEAM_MBR
-											   		   JOIN TB_LMS_EXAM_TRGTR EXAM_TRGTR
-											   		     ON TEAM_MBR.TEAM_ID = EXAM_TRGTR.TEAM_ID
-											   		  WHERE EXAM_TRGTR.EXAM_DTL_ID IN (SELECT EXAM_DTL_ID FROM TB_LMS_EXAM_DTL WHERE EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID AND USEYN = 'Y' AND DELYN = 'N')
-											   		    AND TEAM_MBR.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
-											   		)
-											   WHEN 'QUIZ_EXAM_MID' || 'QUIZ_EXAM_LST'
-											   THEN (SELECT COUNT(USER_ID) FROM SBJCT_USER)
-											   		- (SELECT COUNT(USER_ID) FROM TB_LMS_EXAM_ABSNCE WHERE APLY_STSCD = 'APRV' AND EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID AND USER_ID IN (SELECT USER_ID FROM SBJCT_USER))
-											   WHEN 'QUIZ_SBST_EXAM_MID' || 'QUIZ_SBST_EXAM_LST'
-											   THEN (SELECT COUNT(USER_ID) FROM TB_LMS_EXAM_ABSNCE WHERE APLY_STSCD = 'APRV' AND EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID AND USER_ID IN (SELECT USER_ID FROM SBJCT_USER))
-											   END, 0) AS EXAM_TRGTR_CNT
-					, EXAM_BSC.EXAM_QSTNS_CMPTNYN
-					, EXAM_BSC.MRK_OYN
-					, (SELECT COUNT(QSTN_ID) FROM TB_LMS_QSTN WHERE EXAM_DTL_ID = EXAM_DTL.EXAM_DTL_ID AND QSTN_CNDDT_SEQNO = 1 AND DELYN = 'N') AS QSTN_CNT
-					, EXAM_DTL.REEXAMYN
-					, EXAM_DTL.REEXAM_PSBL_SDTTM
-					, EXAM_DTL.REEXAM_PSBL_EDTTM
-					, CASE
-					        WHEN SYSDATE <![CDATA[ < ]]> TO_DATE(EXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS') THEN 'PRE_EXAM'
-					        WHEN SYSDATE BETWEEN TO_DATE(EXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS')
-					                         AND TO_DATE(EXAM_PSBL_EDTTM, 'YYYYMMDDHH24MISS') THEN 'IN_PROGRESS'
-					        WHEN SYSDATE <![CDATA[ > ]]> TO_DATE(EXAM_PSBL_EDTTM, 'YYYYMMDDHH24MISS') THEN 'DONE'
-					        ELSE 'ERROR'
-					    END AS EXAM_PRGRS_STS
-					, EXAM_BSC.REG_DTTM
-				  FROM TB_LMS_EXAM_BSC EXAM_BSC
-				  JOIN (
-				  	SELECT
-				  		  DTL.*
-				  		, ROW_NUMBER() OVER(PARTITION BY EXAM_BSC_ID ORDER BY EXAM_DTL_ID) AS RNUM
-				  	  FROM TB_LMS_EXAM_DTL DTL
-				  	 WHERE DELYN = 'N'
-				  	   AND USEYN = 'Y'
-				  ) EXAM_DTL
-				    ON EXAM_BSC.EXAM_BSC_ID = EXAM_DTL.EXAM_BSC_ID
-				   AND EXAM_DTL.RNUM = 1
-				  JOIN TB_LMS_SBJCT SBJCT
-				    ON EXAM_BSC.SBJCT_ID = SBJCT.SBJCT_ID
-				  LEFT JOIN TB_LMS_SMSTR_CHRT SMSTR_CHRT
-				    ON (SBJCT.SMSTR_CHRT_ID = SMSTR_CHRT.SMSTR_CHRT_ID AND SBJCT.SBJCT_REF_TYCD = 'CHRT')
-				 WHERE EXAM_BSC.EXAM_TYCD = 'QUIZ'
-				   AND SBJCT.SBJCT_ID = #{sbjctId}
-				   AND EXAM_BSC.DELYN = 'N'
-				   AND EXAM_BSC.USEYN = 'Y'
-				 <if test="searchValue != null and searchValue != ''">
-				   AND LOWER(EXAM_BSC.EXAM_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
-				 </if>
-			) QUIZ
-			ORDER BY QUIZ.EXAM_PSBL_SDTTM DESC, QUIZ.REG_DTTM ASC
-		) A
-		WHERE 1=1
-		<if test="listScale != null and listScale > 0">
-		  AND LINE_NO BETWEEN #{firstIndex} +1 AND #{firstIndex} + #{listScale}
-		</if>
+        <include refid="CommonSQL.pagePrefix2" />
+		WITH SBJCT_USER AS (                       -- 과목 수강생 (청강생 제외)
+		    SELECT ATNDLC.USER_ID, SBJCT.SBJCT_ID
+		      FROM TB_LMS_ATNDLC ATNDLC
+		      JOIN TB_LMS_SBJCT  SBJCT
+		        ON ATNDLC.SBJCT_ID = SBJCT.SBJCT_ID
+		     WHERE ATNDLC.AUDITYN = 'N'
+		       AND SBJCT.SBJCT_ID = #{sbjctId}
+		),
+		ABSNCE_USER AS (                            -- 결시승인 수강생
+		    SELECT USER_ID, EXAM_BSC_ID
+		      FROM TB_LMS_EXAM_ABSNCE
+		     WHERE ABSNCE_APLY_STSCD = 'APRV'
+		       AND USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
+		),
+		TEAM_USER AS (                              -- 팀 수강생
+		    SELECT TEAM_MBR.USER_ID, BSC.EXAM_BSC_ID
+		      FROM TB_LMS_TEAM_MBR TEAM_MBR
+		      JOIN TB_LMS_EXAM_TRGTR EXAM_TRGTR
+		        ON TEAM_MBR.TEAM_ID = EXAM_TRGTR.TEAM_ID
+		      JOIN TB_LMS_EXAM_DTL DTL
+				ON EXAM_TRGTR.EXAM_DTL_ID = DTL.EXAM_DTL_ID
+		       AND DTL.DELYN = 'N'
+		       AND DTL.USEYN = 'Y'
+		      JOIN TB_LMS_EXAM_BSC BSC
+		        ON DTL.EXAM_BSC_ID = BSC.EXAM_BSC_ID
+		       AND BSC.DELYN = 'N'
+		       AND BSC.USEYN = 'Y'
+		       AND BSC.EXAM_TYCD = 'QUIZ'
+		       AND BSC.EXAM_GBNCD IN ('QUIZ_TEAM', 'QUIZ_EXAM_MID_TEAM', 'QUIZ_EXAM_LST_TEAM')
+		     WHERE TEAM_MBR.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
+		),
+		/* ----------------------------------------------------------------------
+		   퀴즈구분별 대상자 통합 ( EXAM_GBNCD )
+		   1. QUIZ                                  			: 수강생 전체
+		   2. QUIZ_EXAM_MID / QUIZ_EXAM_LST         			: 수강생 중 결시승인 수강생 제외
+		   3. QUIZ_TEAM                              			: 팀 수강생 전체
+		   4. QUIZ_EXAM_MID_TEAM / QUIZ_EXAM_LST_TEAM			: 팀 수강생 중 결시승인 수강생 제외
+		   5. EXAM_MID_SBST_QUIZ / EXAM_LST_SBST_QUIZ(대체퀴즈) 	: 결시승인 수강생
+		   ---------------------------------------------------------------------- */
+		TARGET_USER AS (
+		    SELECT BSC.EXAM_BSC_ID, SU.USER_ID
+		      FROM TB_LMS_EXAM_BSC BSC
+		      JOIN SBJCT_USER SU
+		        ON SU.SBJCT_ID = BSC.SBJCT_ID
+		     WHERE BSC.DELYN = 'N'
+		       AND BSC.USEYN = 'Y'
+		       AND BSC.EXAM_TYCD = 'QUIZ'
+		       AND BSC.EXAM_GBNCD = 'QUIZ'
+
+		    UNION ALL
+
+		    SELECT BSC.EXAM_BSC_ID, SU.USER_ID
+		      FROM TB_LMS_EXAM_BSC BSC
+		      JOIN SBJCT_USER SU
+		        ON SU.SBJCT_ID = BSC.SBJCT_ID
+		     WHERE BSC.DELYN = 'N'
+		       AND BSC.USEYN = 'Y'
+		       AND BSC.EXAM_TYCD = 'QUIZ'
+		       AND BSC.EXAM_GBNCD IN ('QUIZ_EXAM_MID', 'QUIZ_EXAM_LST')
+		       AND NOT EXISTS (SELECT 1 FROM ABSNCE_USER AU
+		                         WHERE AU.EXAM_BSC_ID = BSC.EXAM_BSC_ID AND AU.USER_ID = SU.USER_ID)
+
+		    UNION ALL
+
+		    SELECT TU.EXAM_BSC_ID, TU.USER_ID
+		      FROM TEAM_USER TU
+		      JOIN TB_LMS_EXAM_BSC BSC
+		        ON BSC.EXAM_BSC_ID = TU.EXAM_BSC_ID
+		     WHERE BSC.EXAM_GBNCD = 'QUIZ_TEAM'
+
+		    UNION ALL
+
+		    SELECT TU.EXAM_BSC_ID, TU.USER_ID
+		      FROM TEAM_USER TU
+		      JOIN TB_LMS_EXAM_BSC BSC
+		        ON BSC.EXAM_BSC_ID = TU.EXAM_BSC_ID
+		     WHERE BSC.EXAM_GBNCD IN ('QUIZ_EXAM_MID_TEAM', 'QUIZ_EXAM_LST_TEAM')
+		       AND NOT EXISTS (SELECT 1 FROM ABSNCE_USER AU
+		                         WHERE AU.EXAM_BSC_ID = TU.EXAM_BSC_ID AND AU.USER_ID = TU.USER_ID)
+
+		    UNION ALL
+
+		    SELECT AU.EXAM_BSC_ID, AU.USER_ID
+		      FROM ABSNCE_USER     AU
+		      JOIN TB_LMS_EXAM_BSC BSC ON BSC.EXAM_BSC_ID = AU.EXAM_BSC_ID
+		     WHERE BSC.EXAM_GBNCD IN ('EXAM_MID_SBST_QUIZ', 'EXAM_LST_SBST_QUIZ')
+		),
+		TRGT_CNT AS (                               -- 대상자 수
+		    SELECT EXAM_BSC_ID, COUNT(*) AS TRGTR_CNT
+		      FROM TARGET_USER
+		     GROUP BY EXAM_BSC_ID
+		),
+		TKEXAM_USER AS (                            -- 응시 완료자
+		    SELECT
+		    	  TKEXAM.EXAM_DTL_ID
+		        , DTL.EXAM_BSC_ID
+		        , TKEXAM.USER_ID
+		      FROM TB_LMS_TKEXAM TKEXAM
+		      JOIN TB_LMS_EXAM_DTL DTL
+		        ON DTL.EXAM_DTL_ID = TKEXAM.EXAM_DTL_ID
+		     WHERE TKEXAM.DELYN = 'N'
+		       AND TKEXAM.TKEXAM_CMPTNYN = 'Y'
+		       AND TKEXAM.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
+		),
+		EXAMNEE_CNT AS (                            -- 응시 완료자 수 (대상자에 한함)
+		    SELECT TE.EXAM_BSC_ID, COUNT(*) AS EXAMNEE_CNT
+		      FROM TKEXAM_USER TE
+		      JOIN TARGET_USER TG ON TG.EXAM_BSC_ID = TE.EXAM_BSC_ID AND TG.USER_ID = TE.USER_ID
+		     GROUP BY TE.EXAM_BSC_ID
+		),
+		EVL_USER AS (                               -- 평가 완료자
+		    SELECT
+		    	  TKEXAM.EXAM_DTL_ID
+		        , DTL.EXAM_BSC_ID
+		        , TKEXAM.USER_ID
+		      FROM TB_LMS_TKEXAM TKEXAM
+		      JOIN TB_LMS_TKEXAM_RSLT RSLT
+		        ON RSLT.TKEXAM_ID = TKEXAM.TKEXAM_ID
+		      JOIN TB_LMS_EXAM_DTL DTL
+		        ON DTL.EXAM_DTL_ID = TKEXAM.EXAM_DTL_ID
+		     WHERE TKEXAM.DELYN = 'N'
+		       AND RSLT.EVLYN = 'Y'
+		       AND TKEXAM.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
+		),
+		EVLTEE_CNT AS (                             -- 평가 완료자 수 (대상자에 한함)
+		    SELECT EU.EXAM_DTL_ID, COUNT(*) AS EVLTEE_CNT
+		      FROM EVL_USER    EU
+		      JOIN TARGET_USER TG ON TG.EXAM_BSC_ID = EU.EXAM_BSC_ID AND TG.USER_ID = EU.USER_ID
+		     GROUP BY EU.EXAM_DTL_ID
+		),
+		QSTN_CNT AS (                               -- 문항 수
+		    SELECT EXAM_DTL_ID, COUNT(*) AS QSTN_CNT
+		      FROM TB_LMS_QSTN
+		     WHERE QSTN_CNDDT_SEQNO = 1 AND DELYN = 'N'
+		     GROUP BY EXAM_DTL_ID
+		),
+		EXAM_DTL_1ST AS (                           -- EXAM_BSC 당 최초 1건의 EXAM_DTL
+		    SELECT DTL.*,
+		           ROW_NUMBER() OVER (PARTITION BY EXAM_BSC_ID ORDER BY EXAM_DTL_ID) AS RNUM
+		      FROM TB_LMS_EXAM_DTL DTL
+		     WHERE DTL.DELYN = 'N' AND DTL.USEYN = 'Y'
+		),
+		QUIZ_LIST AS (
+		    SELECT
+		    	  BSC.EXAM_BSC_ID
+		    	, DTL.EXAM_DTL_ID
+		        , BSC.EXAM_GBNCD
+		        , CD.CDNM AS EXAM_GBNNM
+		        , BSC.EXAM_TTL
+		        , DTL.EXAM_MNTS
+		        , DTL.EXAM_PSBL_SDTTM
+		        , DTL.EXAM_PSBL_EDTTM
+		        , BSC.MRK_RFLTYN
+		        , BSC.MRK_RFLTRT
+		        , GREATEST(NVL(EN.EXAMNEE_CNT, 0), 0)  AS EXAM_EXAMNEE_CNT
+		        , GREATEST(NVL(EV.EVLTEE_CNT, 0), 0)   AS EXAM_EVLTEE_CNT
+		        , GREATEST(NVL(TC.TRGTR_CNT, 0), 0)    AS EXAM_TRGTR_CNT
+		        , BSC.EXAM_QSTNS_CMPTNYN
+		        , BSC.MRK_OYN
+		        , NVL(QC.QSTN_CNT, 0) AS QSTN_CNT
+		        , DTL.REEXAMYN
+		        , DTL.REEXAM_PSBL_SDTTM
+		        , DTL.REEXAM_PSBL_EDTTM
+		        , CASE
+		             WHEN SYSDATE <![CDATA[ < ]]> TO_DATE(DTL.EXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS') THEN 'PRE_EXAM'
+		             WHEN SYSDATE BETWEEN TO_DATE(DTL.EXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS')
+		                              AND TO_DATE(DTL.EXAM_PSBL_EDTTM, 'YYYYMMDDHH24MISS') THEN 'IN_PROGRESS'
+		             WHEN SYSDATE <![CDATA[ > ]]> TO_DATE(DTL.EXAM_PSBL_EDTTM, 'YYYYMMDDHH24MISS') THEN 'DONE'
+		             ELSE 'ERROR'
+		          END AS EXAM_PRGRS_STS
+		        , BSC.REG_DTTM
+		      FROM TB_LMS_EXAM_BSC BSC
+		      JOIN EXAM_DTL_1ST    DTL ON DTL.EXAM_BSC_ID = BSC.EXAM_BSC_ID AND DTL.RNUM = 1
+		      LEFT JOIN TB_LMS_CMMN_CD CD ON CD.UP_CD = 'EXAM_GBNCD' AND CD.CD = BSC.EXAM_GBNCD
+		      LEFT JOIN TRGT_CNT    TC ON TC.EXAM_BSC_ID = BSC.EXAM_BSC_ID
+		      LEFT JOIN EXAMNEE_CNT EN ON EN.EXAM_BSC_ID = BSC.EXAM_BSC_ID
+		      LEFT JOIN EVLTEE_CNT  EV ON EV.EXAM_DTL_ID = DTL.EXAM_DTL_ID
+		      LEFT JOIN QSTN_CNT    QC ON QC.EXAM_DTL_ID = DTL.EXAM_DTL_ID
+		     WHERE BSC.EXAM_TYCD  = 'QUIZ'
+		       AND BSC.SBJCT_ID   = #{sbjctId}
+		       AND BSC.DELYN = 'N' AND BSC.USEYN = 'Y'
+		)
+		SELECT EXAM_BSC_ID, EXAM_DTL_ID, EXAM_GBNCD, EXAM_GBNNM, EXAM_TTL, EXAM_MNTS,
+		       EXAM_PSBL_SDTTM, EXAM_PSBL_EDTTM, MRK_RFLTYN, MRK_RFLTRT,
+		       EXAM_EXAMNEE_CNT, EXAM_EVLTEE_CNT, EXAM_TRGTR_CNT,
+		       EXAM_QSTNS_CMPTNYN, MRK_OYN, QSTN_CNT,
+		       REEXAMYN, REEXAM_PSBL_SDTTM, REEXAM_PSBL_EDTTM, EXAM_PRGRS_STS, REG_DTTM,
+		       COUNT(*) OVER () AS TOTAL_CNT,
+		       ROW_NUMBER() OVER (ORDER BY EXAM_PSBL_SDTTM DESC, EXAM_PSBL_EDTTM ASC) AS LINE_NO
+		  FROM QUIZ_LIST
+		  <if test="searchValue != null and searchValue != ''">
+		  	WHERE LOWER(EXAM_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		  </if>
+		 ORDER BY EXAM_PSBL_SDTTM DESC, EXAM_PSBL_EDTTM ASC
+		<include refid="CommonSQL.pageSuffix2" />
 	</select>
 
 	<select id="quizBscSelect" parameterType="examBscVO" resultType="examBscVO">
@@ -143,7 +270,7 @@
 			 			 WHERE TKEXAM.TKEXAM_CNT <![CDATA[ > ]]> 0
 			 			   AND TKEXAM_SDTTM IS NOT NULL
 			 			   AND EXAM_DTL.EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID
-			 			   AND TKEXAM.USER_ID IN (SELECT USER_ID FROM TB_LMS_EXAM_ABSNCE WHERE APLY_STSCD = 'APRV' AND EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID AND USER_ID IN (SELECT USER_ID FROM SBJCT_USER)))
+			 			   AND TKEXAM.USER_ID IN (SELECT USER_ID FROM TB_LMS_EXAM_ABSNCE WHERE ABSNCE_APLY_STSCD = 'APRV' AND EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID AND USER_ID IN (SELECT USER_ID FROM SBJCT_USER)))
 				   ELSE (SELECT
 			 				COUNT(TKEXAM.USER_ID)
 			 			  FROM TB_LMS_EXAM_DTL EXAM_DTL
@@ -154,8 +281,8 @@
 			 			   AND EXAM_DTL.EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID
 			 			   AND TKEXAM.USER_ID IN (SELECT USER_ID FROM SBJCT_USER))
 				   END AS TKEXAM_STRT_USER_CNT
-			, (SELECT LRN_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TB_LMS_EXAM_TRGTR WHERE EXAM_DTL_ID = (SELECT EXAM_DTL_ID FROM TB_LMS_EXAM_DTL WHERE EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID AND USEYN = 'Y' AND DELYN = 'N' AND ROWNUM = 1))) AS LRN_GRP_ID
-			, (SELECT LRN_GRPNM FROM TB_LMS_TEAM_GRP WHERE USEYN = 'Y' AND DELYN = 'N' AND SBJCT_ID = EXAM_BSC.SBJCT_ID AND LRN_GRP_ID = (SELECT LRN_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TB_LMS_EXAM_TRGTR WHERE EXAM_DTL_ID = (SELECT EXAM_DTL_ID FROM TB_LMS_EXAM_DTL WHERE EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID AND USEYN = 'Y' AND DELYN = 'N' AND ROWNUM = 1)))) LRN_GRPNM
+			, (SELECT TEAM_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TB_LMS_EXAM_TRGTR WHERE EXAM_DTL_ID = (SELECT EXAM_DTL_ID FROM TB_LMS_EXAM_DTL WHERE EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID AND USEYN = 'Y' AND DELYN = 'N' AND ROWNUM = 1))) AS TEAM_GRP_ID
+			, (SELECT TEAM_GRPNM FROM TB_LMS_TEAM_GRP WHERE USEYN = 'Y' AND DELYN = 'N' AND SBJCT_ID = EXAM_BSC.SBJCT_ID AND TEAM_GRP_ID = (SELECT TEAM_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TB_LMS_EXAM_TRGTR WHERE EXAM_DTL_ID = (SELECT EXAM_DTL_ID FROM TB_LMS_EXAM_DTL WHERE EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID AND USEYN = 'Y' AND DELYN = 'N' AND ROWNUM = 1)))) TEAM_GRPNM
 			, FN_REF_FILE_CNT(EXAM_BSC.EXAM_BSC_ID) AS FILE_CNT
            FROM TB_LMS_EXAM_BSC EXAM_BSC
           WHERE EXAM_BSC_ID = #{examBscId}
@@ -210,7 +337,7 @@
 			, MRK_RFLTRT
 			, EXAMTM_ALLOC_GBNCD
 			, EXAMTM_EXPSR_TYCD
-			, LRN_GRP_SUBASMT_STNGYN
+			, TEAM_GRP_SUBASMT_STNGYN
 			, RGTR_ID
 			, REG_DTTM
          ) VALUES (
@@ -238,7 +365,7 @@
 			, #{mrkRfltrt}
 			, #{examtmAllocGbncd}
 			, #{examtmExpsrTycd}
-			, #{lrnGrpSubasmtStngyn}
+			, #{teamGrpSubasmtStngyn}
 			, #{rgtrId}
 			, FN_DTTM()
          )
@@ -398,8 +525,8 @@
     		<if test="mrkOpenSdttm != null and mrkOpenSdttm != ''">
     		, MRK_OPEN_SDTTM = #{mrkOpenSdttm}
     		</if>
-    		<if test="pushNotiyn != null and pushNotiyn != ''">
-    		, PUSH_NOTIYN = #{pushNotiyn}
+    		<if test="pushAlimyn != null and pushAlimyn != ''">
+    		, PUSH_ALIMYN = #{pushAlimyn}
     		</if>
     		<if test="secCertCd != null and secCertCd != ''">
     		, SEC_CERT_CD = #{secCertCd}
@@ -452,8 +579,8 @@
     		<if test="examtmExpsrTycd != null and examtmExpsrTycd != ''">
     		, EXAMTM_EXPSR_TYCD = #{examtmExpsrTycd}
     		</if>
-    		<if test="lrnGrpSubasmtStngyn != null and lrnGrpSubasmtStngyn != ''">
-    		, LRN_GRP_SUBASMT_STNGYN = #{lrnGrpSubasmtStngyn}
+    		<if test="teamGrpSubasmtStngyn != null and teamGrpSubasmtStngyn != ''">
+    		, TEAM_GRP_SUBASMT_STNGYN = #{teamGrpSubasmtStngyn}
     		</if>
     	WHERE EXAM_BSC_ID = #{examBscId}
     </update>
@@ -586,7 +713,7 @@
 			SELECT
 				  SBJCT_ID
 				, EXAM_BSC_ID
-				, LRN_GRP_SUBASMT_STNGYN
+				, TEAM_GRP_SUBASMT_STNGYN
 				, (SELECT EXAM_DTL_ID FROM TB_LMS_EXAM_DTL WHERE EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID AND DELYN = 'N' AND USEYN ='Y' AND ROWNUM = 1) AS EXAM_DTL_ID
 			  FROM TB_LMS_EXAM_BSC EXAM_BSC
 			 WHERE (
@@ -600,9 +727,9 @@
 			  SBJCT_ID
 			, DVCLAS_NO
 			, (SELECT EXAM_BSC_ID FROM DVCLAS_SBJCT WHERE SBJCT_ID = SBJCT.SBJCT_ID) AS EXAM_BSC_ID
-			, (SELECT LRN_GRP_SUBASMT_STNGYN FROM DVCLAS_SBJCT WHERE SBJCT_ID = SBJCT.SBJCT_ID) AS LRN_GRP_SUBASMT_STNGYN
-			, (SELECT LRN_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TB_LMS_EXAM_TRGTR WHERE EXAM_DTL_ID = (SELECT EXAM_DTL_ID FROM DVCLAS_SBJCT WHERE SBJCT_ID = SBJCT.SBJCT_ID))) AS LRN_GRP_ID
-			, (SELECT LRN_GRPNM FROM TB_LMS_TEAM_GRP WHERE USEYN = 'Y' AND DELYN = 'N' AND SBJCT_ID = SBJCT.SBJCT_ID AND LRN_GRP_ID = (SELECT LRN_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TB_LMS_EXAM_TRGTR WHERE EXAM_DTL_ID = (SELECT EXAM_DTL_ID FROM DVCLAS_SBJCT WHERE SBJCT_ID = SBJCT.SBJCT_ID)))) AS LRN_GRPNM
+			, (SELECT TEAM_GRP_SUBASMT_STNGYN FROM DVCLAS_SBJCT WHERE SBJCT_ID = SBJCT.SBJCT_ID) AS TEAM_GRP_SUBASMT_STNGYN
+			, (SELECT TEAM_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TB_LMS_EXAM_TRGTR WHERE EXAM_DTL_ID = (SELECT EXAM_DTL_ID FROM DVCLAS_SBJCT WHERE SBJCT_ID = SBJCT.SBJCT_ID))) AS TEAM_GRP_ID
+			, (SELECT TEAM_GRPNM FROM TB_LMS_TEAM_GRP WHERE USEYN = 'Y' AND DELYN = 'N' AND SBJCT_ID = SBJCT.SBJCT_ID AND TEAM_GRP_ID = (SELECT TEAM_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = (SELECT TEAM_ID FROM TB_LMS_EXAM_TRGTR WHERE EXAM_DTL_ID = (SELECT EXAM_DTL_ID FROM DVCLAS_SBJCT WHERE SBJCT_ID = SBJCT.SBJCT_ID)))) AS TEAM_GRPNM
 		  FROM TB_LMS_SBJCT SBJCT
 		 WHERE SBJCT_ID IN (SELECT SBJCT_ID FROM DVCLAS_SBJCT)
 		 ORDER BY DVCLAS_NO
@@ -622,10 +749,10 @@
 		   AND SBJCT_ID = #{sbjctId}
     </select>
 
-    <select id="quizLrnGrpSubAsmtList" parameterType="ExamDtlVO" resultType="ExamDtlVO">
+    <select id="quizTeamGrpSubQuizList" parameterType="ExamDtlVO" resultType="ExamDtlVO">
     	/*
-             SQL ID : ExamDAO.quizLrnGrpSubAsmtList
-             설  명  : 퀴즈학습그룹부과제목록조회
+             SQL ID : ExamDAO.quizTeamGrpSubQuizList
+             설  명  : 퀴즈팀그룹부퀴즈목록조회
          */
     	SELECT
 			  TEAM.TEAM_ID
@@ -634,6 +761,8 @@
 			, (SELECT COUNT(tlts.USER_ID) FROM TB_LMS_TEAM_MBR tlts WHERE tlts.TEAM_ID = TEAM.TEAM_ID) AS teamMbrCnt
 			, EXAM_DTL.EXAM_TTL
 			, EXAM_DTL.EXAM_CTS
+			, EXAM_DTL.EXAM_DTL_ID
+			, FN_REF_FILE_CNT(EXAM_DTL.EXAM_DTL_ID) AS FILE_CNT
 		  FROM TB_LMS_TEAM TEAM
 		  LEFT JOIN TB_LMS_EXAM_TRGTR EXAM_TRGTR
 		    ON TEAM.TEAM_ID = EXAM_TRGTR.TEAM_ID
@@ -643,7 +772,7 @@
 		   AND EXAM_DTL.DELYN = 'N'
 		   AND EXAM_DTL.USEYN = 'Y'
 		   AND EXAM_DTL.EXAM_BSC_ID = #{examBscId}
-		 WHERE TEAM.LRN_GRP_ID = #{lrnGrpId}
+		 WHERE TEAM.TEAM_GRP_ID = #{teamGrpId}
 		 <if test="examBscId != null and examBscId != ''">
 		   AND EXAM_DTL.EXAM_BSC_ID = #{examBscId}
 		 </if>
@@ -709,7 +838,7 @@
 		)
 		SELECT
 			CASE WHEN EXAM_BSC.EXAM_GBNCD LIKE '%SBST%'
-				 THEN (SELECT COUNT(USER_ID) FROM TKEXAM_USER WHERE USER_ID IN (SELECT USER_ID FROM TB_LMS_EXAM_ABSNCE WHERE APLY_STSCD = 'APRV' AND EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID AND USER_ID IN (SELECT USER_ID FROM SBJCT_USER)))
+				 THEN (SELECT COUNT(USER_ID) FROM TKEXAM_USER WHERE USER_ID IN (SELECT USER_ID FROM TB_LMS_EXAM_ABSNCE WHERE ABSNCE_APLY_STSCD = 'APRV' AND EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID AND USER_ID IN (SELECT USER_ID FROM SBJCT_USER)))
 				 ELSE (SELECT COUNT(USER_ID) FROM TKEXAM_USER WHERE USER_ID IN (SELECT USER_ID FROM SBJCT_USER))
 			END AS TKEXAM_STRT_USER_CNT
 		  FROM TB_LMS_EXAM_BSC EXAM_BSC
@@ -732,6 +861,7 @@
 			SELECT
 				  PROF_ID
 				, SMSTR_CHRT_ID
+				, CRCLMN_NO
 			  FROM TB_LMS_SBJCT
 			 WHERE SBJCT_ID = #{sbjctId}
 			   AND DELYN = 'N'
@@ -754,6 +884,7 @@
 		 WHERE SBJCT.DELYN = 'N'
 		   AND SBJCT.USEYN = 'Y'
 		   AND SBJCT.SMSTR_CHRT_ID = (SELECT SMSTR_CHRT_ID FROM SBJCT)
+		   AND SBJCT.CRCLMN_NO = (SELECT CRCLMN_NO FROM SBJCT)
 		 ORDER BY SBJCT.DVCLAS_NO
     </select>
 
@@ -794,95 +925,140 @@
              	설  명 : 시험지일괄엑셀다운퀴즈대상자목록조회
          */
         WITH SBJCT_USER AS (
-		    SELECT ATNDLC.USER_ID
+		    SELECT ATNDLC.USER_ID, SBJCT.SBJCT_ID
 		      FROM TB_LMS_ATNDLC ATNDLC
 		      JOIN TB_LMS_SBJCT SBJCT
 		        ON ATNDLC.SBJCT_ID = SBJCT.SBJCT_ID
 		     WHERE ATNDLC.AUDITYN = 'N'
-		       AND SBJCT.SBJCT_ID = 'SBJCT_OFRNG_ID1'
-		),
-		EXAM_TRGTR_USER AS (
-		    SELECT
-		          EXAM_BSC.EXAM_BSC_ID
-		        , EXAM_BSC.EXAM_GBNCD
-		        , CASE EXAM_BSC.EXAM_GBNCD
-		             WHEN 'QUIZ'               THEN SU.USER_ID
-		             WHEN 'QUIZ_EXAM_MID'      THEN SU.USER_ID
-		             WHEN 'QUIZ_EXAM_LST'      THEN SU.USER_ID
-		             WHEN 'QUIZ_TEAM'          THEN TEAM_MBR.USER_ID
-		             WHEN 'QUIZ_SBST_EXAM_MID' THEN ABSNCE.USER_ID
-		             WHEN 'QUIZ_SBST_EXAM_LST' THEN ABSNCE.USER_ID
-		          END AS USER_ID
-		      FROM TB_LMS_EXAM_BSC EXAM_BSC
-		      JOIN TB_LMS_SBJCT SBJCT
-		        ON EXAM_BSC.SBJCT_ID = SBJCT.SBJCT_ID
-		      LEFT JOIN SBJCT_USER SU
-		        ON EXAM_BSC.EXAM_GBNCD IN ('QUIZ', 'QUIZ_EXAM_MID', 'QUIZ_EXAM_LST')
-		      LEFT JOIN TB_LMS_EXAM_TRGTR EXAM_TRGTR
-		        ON EXAM_BSC.EXAM_GBNCD = 'QUIZ_TEAM'
-		       AND EXAM_TRGTR.EXAM_DTL_ID IN (
-		               SELECT EXAM_DTL_ID FROM TB_LMS_EXAM_DTL
-		                WHERE EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID
-		                  AND USEYN = 'Y' AND DELYN = 'N')
-		      LEFT JOIN TB_LMS_TEAM_MBR TEAM_MBR
-		        ON EXAM_TRGTR.TEAM_ID = TEAM_MBR.TEAM_ID
-		       AND TEAM_MBR.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
-		      LEFT JOIN TB_LMS_EXAM_ABSNCE ABSNCE
-		        ON EXAM_BSC.EXAM_GBNCD IN ('QUIZ_SBST_EXAM_MID', 'QUIZ_SBST_EXAM_LST')
-		       AND ABSNCE.EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID
-		       AND ABSNCE.APLY_STSCD = 'APRV'
-		       AND ABSNCE.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
-		     WHERE EXAM_BSC.EXAM_TYCD = 'QUIZ'
 		       AND SBJCT.SBJCT_ID = #{sbjctId}
-		       AND EXAM_BSC.DELYN = 'N'
-		       AND EXAM_BSC.USEYN = 'Y'
-		       AND EXAM_BSC.EXAM_BSC_ID = #{examBscId}
-		       AND CASE EXAM_BSC.EXAM_GBNCD
-		              WHEN 'QUIZ'               THEN SU.USER_ID
-		              WHEN 'QUIZ_EXAM_MID'      THEN SU.USER_ID
-		              WHEN 'QUIZ_EXAM_LST'      THEN SU.USER_ID
-		              WHEN 'QUIZ_TEAM'          THEN TEAM_MBR.USER_ID
-		              WHEN 'QUIZ_SBST_EXAM_MID' THEN ABSNCE.USER_ID
-		              WHEN 'QUIZ_SBST_EXAM_LST' THEN ABSNCE.USER_ID
-		           END IS NOT NULL
-		       AND NOT (
-		           EXAM_BSC.EXAM_GBNCD IN ('QUIZ_EXAM_MID', 'QUIZ_EXAM_LST')
-		           AND SU.USER_ID IN (
-		               SELECT USER_ID FROM TB_LMS_EXAM_ABSNCE
-		                WHERE APLY_STSCD = 'APRV'
-		                  AND EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID
-		           )
-		       )
+		),
+		ABSNCE_USER AS (                            -- 결시승인 수강생
+		    SELECT USER_ID, EXAM_BSC_ID
+		      FROM TB_LMS_EXAM_ABSNCE
+		     WHERE ABSNCE_APLY_STSCD = 'APRV'
+		       AND EXAM_BSC_ID = #{examBscId}
+		       AND USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
+		),
+		TEAM_USER AS (                              -- 팀 수강생
+		    SELECT TEAM_MBR.USER_ID, BSC.EXAM_BSC_ID, DTL.EXAM_DTL_ID, EXAM_TRGTR.TEAM_ID
+		      FROM TB_LMS_TEAM_MBR   TEAM_MBR
+		      JOIN TB_LMS_EXAM_TRGTR EXAM_TRGTR ON TEAM_MBR.TEAM_ID     = EXAM_TRGTR.TEAM_ID
+		      JOIN TB_LMS_EXAM_DTL   DTL        ON EXAM_TRGTR.EXAM_DTL_ID = DTL.EXAM_DTL_ID
+		                                         AND DTL.DELYN = 'N' AND DTL.USEYN = 'Y'
+		      JOIN TB_LMS_EXAM_BSC   BSC        ON DTL.EXAM_BSC_ID      = BSC.EXAM_BSC_ID
+		                                         AND BSC.DELYN = 'N' AND BSC.USEYN = 'Y'
+		                                         AND BSC.EXAM_TYCD  = 'QUIZ'
+		                                         AND BSC.EXAM_GBNCD IN ('QUIZ_TEAM', 'QUIZ_EXAM_MID_TEAM', 'QUIZ_EXAM_LST_TEAM')
+		                                         AND BSC.EXAM_BSC_ID = #{examBscId}
+		     WHERE TEAM_MBR.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
+		),
+		/* ----------------------------------------------------------------------
+		   퀴즈구분별 대상자 통합 (EXAM_GBNCD)
+		   1. QUIZ                                              : 수강생 전체
+		   2. QUIZ_EXAM_MID / QUIZ_EXAM_LST                     : 수강생 중 결시승인 수강생 제외
+		   3. QUIZ_TEAM                                         : 팀 수강생 전체
+		   4. QUIZ_EXAM_MID_TEAM / QUIZ_EXAM_LST_TEAM           : 팀 수강생 중 결시승인 수강생 제외
+		   5. EXAM_MID_SBST_QUIZ / EXAM_LST_SBST_QUIZ(대체퀴즈)   : 결시승인 수강생
+		   ---------------------------------------------------------------------- */
+		TARGET_USER AS (
+		    SELECT BSC.EXAM_BSC_ID, SU.USER_ID
+		      FROM TB_LMS_EXAM_BSC BSC
+		      JOIN SBJCT_USER SU ON SU.SBJCT_ID = BSC.SBJCT_ID
+		     WHERE BSC.DELYN = 'N' AND BSC.USEYN = 'Y' AND BSC.EXAM_TYCD = 'QUIZ'
+		       AND BSC.EXAM_GBNCD  = 'QUIZ'
+		       AND BSC.EXAM_BSC_ID = #{examBscId}
+
+		    UNION ALL
+
+		    SELECT BSC.EXAM_BSC_ID, SU.USER_ID
+		      FROM TB_LMS_EXAM_BSC BSC
+		      JOIN SBJCT_USER SU ON SU.SBJCT_ID = BSC.SBJCT_ID
+		     WHERE BSC.DELYN = 'N' AND BSC.USEYN = 'Y' AND BSC.EXAM_TYCD = 'QUIZ'
+		       AND BSC.EXAM_GBNCD  IN ('QUIZ_EXAM_MID', 'QUIZ_EXAM_LST')
+		       AND BSC.EXAM_BSC_ID = #{examBscId}
+		       AND NOT EXISTS (SELECT 1 FROM ABSNCE_USER AU
+		                         WHERE AU.EXAM_BSC_ID = BSC.EXAM_BSC_ID AND AU.USER_ID = SU.USER_ID)
+
+		    UNION ALL
+
+		    SELECT TU.EXAM_BSC_ID, TU.USER_ID
+		      FROM TEAM_USER       TU
+		      JOIN TB_LMS_EXAM_BSC BSC ON BSC.EXAM_BSC_ID = TU.EXAM_BSC_ID
+		     WHERE BSC.EXAM_GBNCD = 'QUIZ_TEAM'
+
+		    UNION ALL
+
+		    SELECT TU.EXAM_BSC_ID, TU.USER_ID
+		      FROM TEAM_USER       TU
+		      JOIN TB_LMS_EXAM_BSC BSC ON BSC.EXAM_BSC_ID = TU.EXAM_BSC_ID
+		     WHERE BSC.EXAM_GBNCD IN ('QUIZ_EXAM_MID_TEAM', 'QUIZ_EXAM_LST_TEAM')
+		       AND NOT EXISTS (SELECT 1 FROM ABSNCE_USER AU
+		                         WHERE AU.EXAM_BSC_ID = TU.EXAM_BSC_ID AND AU.USER_ID = TU.USER_ID)
+
+		    UNION ALL
+
+		    SELECT AU.EXAM_BSC_ID, AU.USER_ID
+		      FROM ABSNCE_USER     AU
+		      JOIN TB_LMS_EXAM_BSC BSC ON BSC.EXAM_BSC_ID = AU.EXAM_BSC_ID
+		     WHERE BSC.EXAM_GBNCD IN ('EXAM_MID_SBST_QUIZ', 'EXAM_LST_SBST_QUIZ')
+		),
+		EXAM_DTL_1ST AS (                           -- EXAM_BSC 당 최초 1건의 EXAM_DTL
+		    SELECT DTL.*,
+		           ROW_NUMBER() OVER (PARTITION BY EXAM_BSC_ID ORDER BY EXAM_DTL_ID) AS RNUM
+		      FROM TB_LMS_EXAM_DTL DTL
+		     WHERE DTL.DELYN = 'N' AND DTL.USEYN = 'Y'
+		       AND DTL.EXAM_BSC_ID = #{examBscId}
+		),
+		EFF AS (
+		    SELECT
+		           TARGET.EXAM_BSC_ID,
+		           TARGET.USER_ID,
+		           TEAM.TEAM_ID,
+		           CASE WHEN BSC.EXAM_GBNCD LIKE '%TEAM%'
+		                THEN TEAM.EXAM_DTL_ID
+		                ELSE DTL.EXAM_DTL_ID
+		                END AS EXAM_DTL_ID
+		      FROM TB_LMS_EXAM_BSC BSC
+		      JOIN TARGET_USER TARGET
+		        ON BSC.EXAM_BSC_ID = TARGET.EXAM_BSC_ID
+		      LEFT JOIN EXAM_DTL_1ST DTL
+		        ON TARGET.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+		       AND DTL.RNUM = 1
+		      LEFT JOIN TEAM_USER TEAM
+		        ON TARGET.EXAM_BSC_ID = TEAM.EXAM_BSC_ID
+		       AND TARGET.USER_ID     = TEAM.USER_ID
+		     WHERE BSC.EXAM_BSC_ID = #{examBscId}
 		)
 		SELECT
-		      A.*
-		    , ROW_NUMBER() OVER (ORDER BY A.USERNM) AS LINE_NO
-		  FROM (
-		    SELECT
-		          TRGTR_USER.EXAM_BSC_ID
-		        , TRGTR_USER.EXAM_GBNCD
-		        , TRGTR_USER.USER_ID
-		        , USR.STDNT_NO
-		        , (SELECT DEPTNM FROM TB_LMS_DEPT WHERE ORG_ID = USR.ORG_ID AND DEPT_ID = USR.DEPT_ID) AS DEPTNM
-		        , USR.USERNM
-		        , NVL(TKEXAM.TKEXAM_CMPTNYN, 'N') AS TKEXAM_CMPTNYN
-		        , NVL(TKEXAM.RETKEXAM_YN, 'N') AS RETKEXAM_YN
-		      FROM EXAM_TRGTR_USER TRGTR_USER
-		      JOIN TB_LMS_USER USR
-		        ON TRGTR_USER.USER_ID = USR.USER_ID
-		      LEFT JOIN TB_LMS_TKEXAM TKEXAM
-		        ON TRGTR_USER.USER_ID = TKEXAM.USER_ID
-		       AND TKEXAM.DELYN = 'N'
-		       AND EXISTS (
-		               SELECT 1 FROM TB_LMS_EXAM_DTL
-		                WHERE EXAM_DTL_ID = TKEXAM.EXAM_DTL_ID
-		                  AND EXAM_BSC_ID = TRGTR_USER.EXAM_BSC_ID
-		                  AND USEYN = 'Y' AND DELYN = 'N')
-		  ) A
-		 ORDER BY A.USERNM
+			  DEPT.DEPTNM
+			, EFF.USER_ID
+		    , USR.USERNM
+		    , NVL(TKEXAM.TKEXAM_CMPTNYN, 'N') AS TKEXAM_CMPTNYN
+		    , NVL(TKEXAM.RETKEXAM_YN, 'N')    AS RETKEXAM_YN
+		    , EFF.EXAM_BSC_ID
+		    , EFF.EXAM_DTL_ID
+		    , ANSW_SHT.QSTN_ID
+		    , ANSW_SHT.ANSW_SHT_CTS
+		    , ANSW_SHT.SCR
+		  FROM EFF
+		  JOIN TB_LMS_USER USR
+		    ON EFF.USER_ID = USR.USER_ID
+		   AND USR.USER_ID_STSCD = 'APRV_CMPTN'
+		  LEFT JOIN TB_LMS_DEPT DEPT
+		    ON DEPT.DEPT_ID = USR.DEPT_ID
+		  LEFT JOIN TB_LMS_TKEXAM TKEXAM
+		    ON TKEXAM.EXAM_DTL_ID = EFF.EXAM_DTL_ID
+		   AND TKEXAM.USER_ID     = EFF.USER_ID
+		  LEFT JOIN TB_LMS_EXAMPPR EXAMPPR
+		    ON TKEXAM.TKEXAM_ID = EXAMPPR.TKEXAM_ID
+		   AND EXAMPPR.USER_ID = EFF.USER_ID
+		  LEFT JOIN TB_LMS_TKEXAM_ANSW_SHT ANSW_SHT
+		    ON EXAMPPR.EXAMPPR_ID = ANSW_SHT.EXAMPPR_ID
+		   AND ANSW_SHT.USER_ID = EFF.USER_ID
+		 ORDER BY EFF.EXAM_DTL_ID, USR.USERNM, ANSW_SHT.QSTN_ID
 	</select>
 
-	<select id="qstnCopySmstrList" resultType="egovMap">
+	<select id="qstnCopySmstrList" parameterType="String" resultType="egovMap">
 		/*
              SQL ID : ExamDAO.qstnCopySmstrList
              	설  명 : 문제가져오기학기기수목록조회
@@ -891,6 +1067,10 @@
 			  SMSTR_CHRT_ID
 			, SMSTR_CHRTNM
 		  FROM TB_LMS_SMSTR_CHRT
+		 WHERE ORG_ID = #{orgId}
+		 <if test="dgrsYr != null and dgrsYr != ''">
+		 	AND DGRS_YR = #{dgrsYr}
+		 </if>
 	</select>
 
 	<select id="qstnCopySbjctList" parameterType="String" resultType="egovMap">
@@ -915,6 +1095,66 @@
 				AND SBJCT_ADM_TYCD = 'PROF'
 				AND USER_ID = (SELECT USER_ID FROM TB_LMS_SBJCT_ADM WHERE SBJCT_ID = #{sbjctId} AND SBJCT_ADM_TYCD = 'PROF')
 			)
+	</select>
+
+	<select id="smstrChrtSbjctList" parameterType="String" resultType="egovMap">
+		/*
+             SQL ID : ExamDAO.smstrChrtSbjctList
+             	설  명 : 학기기수과목목록조회
+         */
+		SELECT
+			  SBJCT.SBJCT_ID
+			, SBJCT.SBJCTNM
+			, SBJCT.DVCLAS_NO
+		  FROM TB_LMS_SBJCT SBJCT
+		  JOIN TB_LMS_SMSTR_CHRT SMSTR
+		    ON SBJCT.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+	     WHERE SBJCT.DELYN = 'N'
+	       AND SBJCT.USEYN = 'Y'
+	       AND SMSTR.ORG_ID = #{orgId}
+	       <if test="smstrChrtId != null and smstrChrtId != ''">
+		       AND SMSTR.SMSTR_CHRT_ID = #{smstrChrtId}
+	       </if>
+	       <if test="sbjctYr != null and sbjctYr != ''">
+	       	   AND SBJCT.SBJCT_YR = #{sbjctYr}
+	       </if>
+	</select>
+
+	<select id="lctrWknoList" parameterType="String" resultType="egovMap">
+		/*
+             SQL ID : ExamDAO.lctrWknoList
+             	설  명 : 강의주차목록조회
+         */
+		SELECT
+		  	  SCHDL.*
+			, CASE
+		         WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN LCTR_WKNO_SYMD AND LCTR_WKNO_EYMD
+		         THEN 'Y'
+		         ELSE 'N'
+		       END AS CUR_LCTR_WKNO
+		  FROM TB_LMS_LCTR_WKNO_SCHDL SCHDL
+		 WHERE SBJCT_ID = #{sbjctId}
+		   AND DELYN = 'N'
+		 ORDER BY LCTR_WKNO
+	</select>
+
+	<select id="otherSbjctLctrWknoSelect" parameterType="String" resultType="String">
+		/*
+             SQL ID : ExamDAO.otherSbjctLctrWknoSelect
+             	설  명 : 다른과목강의주차조회
+         */
+        SELECT
+			LCTR_WKNO_SCHDL_ID
+		  FROM TB_LMS_LCTR_WKNO_SCHDL
+		 WHERE SBJCT_ID = #{sbjctId}
+		   AND DELYN = 'N'
+		   AND LCTR_WKNO = (
+		   		SELECT
+		   			LCTR_WKNO
+		   	 	  FROM TB_LMS_LCTR_WKNO_SCHDL
+		   	 	 WHERE LCTR_WKNO_SCHDL_ID = #{lctrWknoSchdlId}
+		   )
+		 ORDER BY LCTR_WKNO
 	</select>
 
 	<select id="qstnCopyQuizList" parameterType="String" resultType="examDtlVO">
@@ -942,7 +1182,193 @@
 		   AND SBJCT.SBJCT_ID = #{sbjctId}
 	</select>
 
+	<select id="stdntQuizListPaging" parameterType="quizPageInfo" resultType="egovMap">
+		/*
+             SQL ID : ExamDAO.stdntQuizListPaging
+             설  명  : 학생퀴즈목록페이징
+         */
+        <include refid="CommonSQL.pagePrefix2" />
+		WITH QUIZ AS (
+		    SELECT
+		           EXAM_BSC.EXAM_BSC_ID,
+		           EXAM_DTL.EXAM_DTL_ID,
+		           EXAM_BSC.EXAM_GBNCD,
+		           CD.CDNM AS EXAM_GBNNM,
+		           EXAM_BSC.EXAM_TTL,
+		           EXAM_DTL.EXAM_MNTS,
+		           EXAM_DTL.EXAM_PSBL_SDTTM,
+		           EXAM_DTL.EXAM_PSBL_EDTTM,
+		           EXAM_BSC.MRK_RFLTYN,
+		           EXAM_BSC.MRK_OYN,
+		           EXAM_DTL.REEXAMYN,
+		           EXAM_DTL.REEXAM_PSBL_SDTTM,
+		           EXAM_DTL.REEXAM_PSBL_EDTTM,
+		           EXAM_BSC.REG_DTTM,
+		           TKEXAM.TKEXAM_ID,
+		           NVL(TKEXAM.TKEXAM_CNT, 0)            AS TKEXAM_CNT,
+		           NVL(TKEXAM.TKEXAM_CMPTNYN, 'N')      AS TKEXAM_CMPTNYN,
+		           NVL(TKEXAM.RETKEXAM_YN, 'N')         AS RETKEXAM_YN,
+		           NVL(RSLT.EVLYN, 'N')                 AS EVLYN,
+		           NVL(RSLT.TOT_SCR, 0)                 AS TOT_SCR
+		      FROM TB_LMS_EXAM_BSC EXAM_BSC
+		      JOIN TB_LMS_EXAM_DTL EXAM_DTL
+		        ON EXAM_DTL.EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID
+		       AND EXAM_DTL.DELYN = 'N' AND EXAM_DTL.USEYN = 'Y'
+		      JOIN TB_LMS_SBJCT SBJCT
+		        ON SBJCT.SBJCT_ID = EXAM_BSC.SBJCT_ID
+		      JOIN TB_LMS_ATNDLC ATNDLC
+		        ON ATNDLC.SBJCT_ID     = SBJCT.SBJCT_ID
+		       AND ATNDLC.USER_ID      = #{userId}
+		       AND ATNDLC.ATNDLC_STSCD = 'APPROVE'
+		      -- 결시승인 : 중간/기말 대체 퀴즈 대상자, 중간/기말 퀴즈 제외 대상자 판별용
+		      LEFT JOIN TB_LMS_EXAM_ABSNCE ABSNCE
+		        ON ABSNCE.EXAM_BSC_ID       = EXAM_BSC.EXAM_BSC_ID
+		       AND ABSNCE.USER_ID           = #{userId}
+		       AND ABSNCE.ABSNCE_APLY_STSCD = 'APRV'
+		      -- 팀 퀴즈 대상자 여부 판별용 (해당 퀴즈의 대상 팀 + 그 팀의 소속원인지 확인)
+		      LEFT JOIN TB_LMS_EXAM_TRGTR TRGTR
+		        ON TRGTR.EXAM_DTL_ID = EXAM_DTL.EXAM_DTL_ID
+		      LEFT JOIN TB_LMS_TEAM_MBR TEAM_MBR
+		        ON TEAM_MBR.TEAM_ID = TRGTR.TEAM_ID
+		       AND TEAM_MBR.USER_ID = #{userId}
+		      LEFT JOIN TB_LMS_TKEXAM TKEXAM
+		        ON TKEXAM.EXAM_DTL_ID = EXAM_DTL.EXAM_DTL_ID
+		       AND TKEXAM.USER_ID     = #{userId}
+		      LEFT JOIN TB_LMS_TKEXAM_RSLT RSLT
+		        ON RSLT.TKEXAM_ID = TKEXAM.TKEXAM_ID
+		       AND RSLT.USER_ID   = #{userId}
+		      LEFT JOIN TB_LMS_CMMN_CD CD
+		        ON CD.UP_CD = 'EXAM_GBNCD' AND CD.CD = EXAM_BSC.EXAM_GBNCD
+		     WHERE EXAM_BSC.EXAM_TYCD          = 'QUIZ'
+		       AND EXAM_BSC.DELYN              = 'N'
+		       AND EXAM_BSC.USEYN              = 'Y'
+		       AND EXAM_BSC.EXAM_QSTNS_CMPTNYN = 'Y'
+		       AND SBJCT.SBJCT_ID              = #{sbjctId}
+		       AND (
+		                -- 대체퀴즈 : 결시 승인자만 대상
+		                (EXAM_BSC.EXAM_GBNCD IN ('EXAM_MID_SBST_QUIZ', 'EXAM_LST_SBST_QUIZ')
+		                     AND ABSNCE.EXAM_BSC_ID IS NOT NULL)
+		                -- 팀 퀴즈 : 소속 팀이 대상 팀인 경우만
+		             OR (EXAM_BSC.EXAM_GBNCD = 'QUIZ_TEAM'
+		                     AND TEAM_MBR.USER_ID IS NOT NULL)
+		                -- 개인 퀴즈 : 수강생 전체 대상
+		             OR  EXAM_BSC.EXAM_GBNCD = 'QUIZ'
+		                -- 중간/기말 퀴즈 : 결시자 제외
+		             OR (EXAM_BSC.EXAM_GBNCD IN ('QUIZ_EXAM_MID', 'QUIZ_EXAM_LST')
+		                     AND ABSNCE.EXAM_BSC_ID IS NULL)
+		                -- 중간/기말 팀 퀴즈 : 소속 팀이 대상 팀 + 결시자 제외
+		             OR (EXAM_BSC.EXAM_GBNCD IN ('QUIZ_EXAM_MID_TEAM', 'QUIZ_EXAM_LST_TEAM')
+		                     AND TEAM_MBR.USER_ID IS NOT NULL AND ABSNCE.EXAM_BSC_ID IS NULL)
+		           )
+		),
+		QUIZ_WITH_STS AS (
+		    SELECT
+		           QUIZ.*,
+		           CASE
+		               WHEN SYSDATE BETWEEN TO_DATE(QUIZ.EXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS')
+		                                AND TO_DATE(QUIZ.EXAM_PSBL_EDTTM, 'YYYYMMDDHH24MISS')
+		                 OR (QUIZ.RETKEXAM_YN = 'Y'
+		                     AND SYSDATE BETWEEN TO_DATE(QUIZ.REEXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS')
+		                                     AND TO_DATE(QUIZ.REEXAM_PSBL_EDTTM, 'YYYYMMDDHH24MISS'))
+		               THEN 'IN_PROGRESS'
+		               WHEN SYSDATE <![CDATA[ < ]]> CASE WHEN QUIZ.RETKEXAM_YN = 'Y'
+		                                    THEN TO_DATE(QUIZ.REEXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS')
+		                                    ELSE TO_DATE(QUIZ.EXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS') END
+		               THEN 'PRE_EXAM'
+		               WHEN SYSDATE <![CDATA[ > ]]> CASE WHEN QUIZ.RETKEXAM_YN = 'Y'
+		                                    THEN TO_DATE(QUIZ.REEXAM_PSBL_EDTTM, 'YYYYMMDDHH24MISS')
+		                                    ELSE TO_DATE(QUIZ.EXAM_PSBL_EDTTM, 'YYYYMMDDHH24MISS') END
+		               THEN 'DONE'
+		               ELSE 'ERROR'
+		           END AS EXAM_PRGRS_STS
+		      FROM QUIZ
+		)
+		SELECT
+		       EXAM_BSC_ID, EXAM_DTL_ID, EXAM_GBNCD, EXAM_GBNNM, EXAM_TTL, EXAM_MNTS,
+		       EXAM_PSBL_SDTTM, EXAM_PSBL_EDTTM, MRK_RFLTYN, MRK_OYN,
+		       REEXAMYN, REEXAM_PSBL_SDTTM, REEXAM_PSBL_EDTTM, REG_DTTM,
+		       TKEXAM_ID, TKEXAM_CNT, TKEXAM_CMPTNYN, RETKEXAM_YN, EVLYN, TOT_SCR,
+		       EXAM_PRGRS_STS,
+		       COUNT(*) OVER () AS TOTAL_CNT,
+		       ROW_NUMBER() OVER (ORDER BY EXAM_PSBL_SDTTM DESC, EXAM_PSBL_EDTTM ASC) AS LINE_NO
+		  FROM QUIZ_WITH_STS
+		  <if test="searchValue != null and searchValue != ''">
+			AND LOWER(EXAM_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		  </if>
+		 ORDER BY EXAM_PSBL_SDTTM DESC, EXAM_PSBL_EDTTM ASC
+		<include refid="CommonSQL.pageSuffix2" />
+	</select>
+
+	<select id="stdntQuizSelect" parameterType="map" resultType="egovMap">
+		/*
+             SQL ID : ExamDAO.stdntQuizSelect
+             설  명  : 학생퀴즈조회
+         */
+		SELECT
+			  BSC.EXAM_BSC_ID
+			, DTL.EXAM_DTL_ID
+			, BSC.EXAM_TTL
+			, BSC.EXAM_CTS
+			, BSC.EXAM_GBNCD
+			, BSC.QSTN_DSPLY_GBNCD
+			, BSC.MRK_OYN
+			, BSC.QSTN_RNDMYN
+			, BSC.QSTN_VWITM_RNDMYN
+			, BSC.MRK_RFLTYN
+			, BSC.MRK_RFLTRT
+			, BSC.EXAMTM_EXPSR_TYCD
+			, DTL.EXAM_PSBL_SDTTM
+			, DTL.EXAM_PSBL_EDTTM
+			, DTL.REEXAMYN
+			, DTL.REEXAM_PSBL_SDTTM
+			, DTL.REEXAM_PSBL_EDTTM
+			, DTL.REEXAM_MRK_RFLTRT
+			, DTL.EXAM_MNTS
+			, BSC.TEAM_GRP_SUBASMT_STNGYN
+			, NVL(TKEXAM.TKEXAM_CMPTNYN, 'N') AS TKEXAM_CMPTNYN
+			, TKEXAM.TKEXAM_ID
+			, TRGTR.TEAM_ID
+			, (SELECT TEAM_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = TRGTR.TEAM_ID) AS TEAM_GRP_ID
+			, (SELECT TEAM_GRPNM FROM TB_LMS_TEAM_GRP WHERE USEYN = 'Y' AND DELYN = 'N' AND SBJCT_ID = SBJCT.SBJCT_ID AND TEAM_GRP_ID = (SELECT TEAM_GRP_ID FROM TB_LMS_TEAM WHERE TEAM_ID = TRGTR.TEAM_ID)) AS TEAM_GRPNM
+			, CASE
+					WHEN SYSDATE BETWEEN TO_DATE(DTL.EXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS')
+				                     AND TO_DATE(DTL.EXAM_PSBL_EDTTM, 'YYYYMMDDHH24MISS')
+				         OR (TKEXAM.RETKEXAM_YN = 'Y' AND SYSDATE BETWEEN TO_DATE(DTL.REEXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS')
+				          											AND TO_DATE(DTL.REEXAM_PSBL_EDTTM, 'YYYYMMDDHH24MISS'))
+				    THEN 'IN_PROGRESS'
+				    WHEN SYSDATE <![CDATA[ < ]]> CASE WHEN TKEXAM.RETKEXAM_YN = 'Y' THEN TO_DATE(DTL.REEXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS') ELSE TO_DATE(DTL.EXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS') END
+				    THEN 'PRE_EXAM'
+				    WHEN SYSDATE <![CDATA[ > ]]> CASE WHEN TKEXAM.RETKEXAM_YN = 'Y' THEN TO_DATE(DTL.REEXAM_PSBL_EDTTM, 'YYYYMMDDHH24MISS') ELSE TO_DATE(DTL.EXAM_PSBL_EDTTM, 'YYYYMMDDHH24MISS') END
+				    THEN 'DONE'
+				    ELSE 'ERROR'
+				END AS EXAM_PRGRS_STS
+			, FN_REF_FILE_CNT(BSC.EXAM_BSC_ID) AS FILE_CNT
+			, #{userId} AS USER_ID
+			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = #{userId}) AS USERNM
+			, NVL((SELECT DEPTNM FROM TB_LMS_DEPT DEPT JOIN TB_LMS_USER USR ON DEPT.DEPT_ID = USR.DEPT_ID WHERE USR.USER_ID = #{userId}),'-') AS DEPTNM
+			, SBJCT.SBJCT_YR
+			, SBJCT.SBJCT_SMSTR
+		  FROM TB_LMS_EXAM_BSC BSC
+		  JOIN TB_LMS_EXAM_DTL DTL
+		    ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+		   AND DTL.DELYN = 'N'
+		   AND DTL.USEYN = 'Y'
+		  JOIN TB_LMS_SBJCT SBJCT
+		    ON BSC.SBJCT_ID = SBJCT.SBJCT_ID
+		  LEFT JOIN TB_LMS_EXAM_TRGTR TRGTR
+		    ON TRGTR.EXAM_DTL_ID = DTL.EXAM_DTL_ID
+		  LEFT JOIN TB_LMS_TKEXAM TKEXAM
+		    ON TKEXAM.EXAM_DTL_ID = DTL.EXAM_DTL_ID
+		   AND TKEXAM.USER_ID = #{userId}
+		 WHERE BSC.DELYN = 'N'
+		   AND BSC.USEYN = 'Y'
+		   AND BSC.EXAM_BSC_ID = #{examBscId}
+		   AND DTL.EXAM_DTL_ID = #{examDtlId}
+		   AND SBJCT.SBJCT_ID = #{sbjctId}
+	</select>
+
     <!-- EXAM - SQL Area -->
+    <!-- ************************* 교수 ************************* -->
     <sql id="listQueryForExam">
         SELECT
             ROW_NUMBER() OVER(ORDER BY TO_DATE(D.EXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS') DESC
@@ -964,13 +1390,31 @@
             , TO_NUMBER(A.MRK_RFLTRT)                       AS "MRK_RFLTRT"         /* 반영비율 */
             /* 응시현황: (응시자) / (전체 수강생 - 결시자) */
             , CASE
-                WHEN A.BYTEAM_SUBREXAM_USEYN = 'Y' THEN NVL(TKEXAM_TEAM.CNT, 0)
-                ELSE NVL(TKEXAM_INDI.CNT, 0)
+                /* 시험 - 퀴즈 일 경우 등록된 해당 퀴즈의 응시 인원을 가져와야 함.. */
+                WHEN A.TKEXAM_MTHD_CD = 'QUIZ' THEN
+                    CASE
+                        WHEN A.BYTEAM_SUBREXAM_USEYN = 'Y' THEN NVL(TKEXAM_TEAM_QUIZ.CNT, 0)
+                        ELSE NVL(TKEXAM_INDI_QUIZ.CNT, 0)
+                    END
+                ELSE
+                    CASE
+                        WHEN A.BYTEAM_SUBREXAM_USEYN = 'Y' THEN NVL(TKEXAM_TEAM.CNT, 0)
+                        ELSE NVL(TKEXAM_INDI.CNT, 0)
+                    END
             END || '/' || NVL(TOTAL_USR.CNT, 0)             AS "TKEXAM_CMPTNYN_TOT" /* 응시현황 */
             /* 평가현황: (평가 완료자) / (전체 수강생 - 결시자) */
             , CASE
-                WHEN A.BYTEAM_SUBREXAM_USEYN = 'Y' THEN NVL(EVLYN_TEAM.CNT, 0)
-                ELSE NVL(EVLYN_INDI.CNT, 0)
+                /* 시험 - 퀴즈일 경우 등록된 해당 퀴즈의 평가 인원을 가져와야 함.. */
+                WHEN A.TKEXAM_MTHD_CD = 'QUIZ' THEN
+                    CASE
+                        WHEN A.BYTEAM_SUBREXAM_USEYN = 'Y' THEN NVL(EVLYN_TEAM.CNT, 0)
+                        ELSE NVL(EVLYN_INDI.CNT, 0)
+                    END
+                ELSE
+                    CASE
+                        WHEN A.BYTEAM_SUBREXAM_USEYN = 'Y' THEN NVL(EVLYN_TEAM.CNT, 0)
+                        ELSE NVL(EVLYN_INDI.CNT, 0)
+                    END
             END || '/' || NVL(TOTAL_USR.CNT, 0)             AS "EVLYN_TOT"          /* 평가현황 */
             , A.EXAM_QSTNS_CMPTNYN                          AS "EXAM_QSTNS_CMPTNYN" /* 출제상태 */
             , A.MRK_OYN                                     AS "MRK_OYN"            /* 성적공개 */
@@ -995,7 +1439,9 @@
                                 , ROW_NUMBER() OVER (PARTITION BY D.EXAM_BSC_ID
                                                         ORDER BY D.EXAM_DTL_ID DESC) AS RN
                             FROM
-                                TB_LMS_EXAM_DTL D )
+                                TB_LMS_EXAM_DTL D
+                            WHERE
+                                D.DELYN ='N')
                         WHERE
                             RN = 1 ) D
                 ON A.EXAM_BSC_ID = D.EXAM_BSC_ID
@@ -1007,8 +1453,10 @@
                             TB_LMS_EXAM_TRGTR TRGTR
                         JOIN TB_LMS_EXAM_DTL DTL
                             ON DTL.EXAM_DTL_ID = TRGTR.EXAM_DTL_ID
+                            AND DTL.DELYN ='N'
                         JOIN TB_LMS_EXAM_BSC BSC
                             ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                            AND BSC.DELYN ='N'
                         JOIN TB_LMS_TEAM_MBR MBR
                             ON MBR.TEAM_ID = TRGTR.TEAM_ID
                         WHERE
@@ -1022,6 +1470,33 @@
                         GROUP BY
                             BSC.EXAM_BSC_ID ) TKEXAM_TEAM
                 ON TKEXAM_TEAM.EXAM_BSC_ID = A.EXAM_BSC_ID
+            /* (시험-퀴즈) 응시자 수 - 팀 시험: EXAM_BSC_ID별 응시한 팀 멤버 수 (전체 DTL 합산) */
+            LEFT JOIN ( SELECT
+                            BSC.EXAM_BSC_ID
+                            , COUNT(1) AS CNT
+                        FROM
+                            TB_LMS_EXAM_TRGTR TRGTR
+                            JOIN TB_LMS_EXAM_DTL DTL
+                                ON DTL.EXAM_DTL_ID = TRGTR.EXAM_DTL_ID
+                                AND DTL.DELYN ='N'
+                            JOIN TB_LMS_ONLN_EXAMQUIZ ONQZ
+                                ON ONQZ.QUIZ_BSC_ID = DTL.EXAM_BSC_ID
+                            JOIN TB_LMS_EXAM_BSC BSC
+                                ON ONQZ.QUIZ_BSC_ID = BSC.EXAM_BSC_ID
+                                AND BSC.DELYN ='N'
+                            JOIN TB_LMS_TEAM_MBR MBR
+                                ON MBR.TEAM_ID = TRGTR.TEAM_ID
+                        WHERE
+                            EXISTS ( SELECT
+                                        1
+                                    FROM
+                                        TB_LMS_TKEXAM TK
+                                    WHERE
+                                        TK.EXAM_DTL_ID = TRGTR.EXAM_DTL_ID
+                                        AND TK.USER_ID = MBR.USER_ID )
+                            GROUP BY
+                            BSC.EXAM_BSC_ID ) TKEXAM_TEAM_QUIZ
+                ON TKEXAM_TEAM_QUIZ.EXAM_BSC_ID = A.EXAM_BSC_ID
             /* 응시자 수 - 기본 시험: EXAM_BSC_ID별 응시한 수강생 수 (전체 DTL 합산, ATNDLC 기준) */
             LEFT JOIN ( SELECT
                             BSC.EXAM_BSC_ID
@@ -1030,16 +1505,38 @@
                             TB_LMS_TKEXAM TK
                             JOIN TB_LMS_EXAM_DTL DTL
                                 ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+                                AND DTL.DELYN ='N'
                             JOIN TB_LMS_EXAM_BSC BSC
                                 ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
                             JOIN TB_LMS_ATNDLC ATD
                                 ON ATD.SBJCT_ID = BSC.SBJCT_ID
                                 AND ATD.USER_ID = TK.USER_ID
                                 AND ATD.AUDITYN = 'N'
-                                AND ATD.ATNDLC_STSCD = 'ATNDLC'
+                                AND ATD.ATNDLC_STSCD = 'APPROVE'
                         GROUP BY
                             BSC.EXAM_BSC_ID ) TKEXAM_INDI
                 ON TKEXAM_INDI.EXAM_BSC_ID = A.EXAM_BSC_ID
+            /* (시험-퀴즈) 응시자 수 - 기본 시험: EXAM_BSC_ID별 응시한 수강생 수 (전체 DTL 합산, ATNDLC 기준) */
+            LEFT JOIN ( SELECT
+                            BSC.EXAM_BSC_ID
+                            , COUNT(DISTINCT TK.USER_ID) AS CNT
+                        FROM
+                            TB_LMS_TKEXAM TK
+                            JOIN TB_LMS_EXAM_DTL DTL
+                                ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+                                AND DTL.DELYN ='N'
+                            JOIN TB_LMS_ONLN_EXAMQUIZ ONQZ
+                                ON ONQZ.QUIZ_BSC_ID = DTL.EXAM_BSC_ID
+                            JOIN TB_LMS_EXAM_BSC BSC
+                                ON ONQZ.QUIZ_BSC_ID = BSC.EXAM_BSC_ID
+                            JOIN TB_LMS_ATNDLC ATD
+                                ON ATD.SBJCT_ID = BSC.SBJCT_ID
+                                AND ATD.USER_ID = TK.USER_ID
+                                AND ATD.AUDITYN = 'N'
+                                AND ATD.ATNDLC_STSCD = 'APPROVE'
+                        GROUP BY
+                            BSC.EXAM_BSC_ID ) TKEXAM_INDI_QUIZ
+                ON TKEXAM_INDI_QUIZ.EXAM_BSC_ID = A.EXAM_BSC_ID
             /* 평가 완료자 수 - 팀 시험: EXAM_BSC_ID별 EVLYN='Y' 인 팀 멤버 수 (전체 DTL 합산) */
             LEFT JOIN ( SELECT
                             BSC.EXAM_BSC_ID
@@ -1048,8 +1545,10 @@
                             TB_LMS_EXAM_TRGTR TRGTR
                             JOIN TB_LMS_EXAM_DTL DTL
                                 ON DTL.EXAM_DTL_ID = TRGTR.EXAM_DTL_ID
+                                AND DTL.DELYN ='N'
                             JOIN TB_LMS_EXAM_BSC BSC
                                 ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                                AND BSC.DELYN ='N'
                             JOIN TB_LMS_TEAM_MBR MBR
                                 ON MBR.TEAM_ID = TRGTR.TEAM_ID
                             JOIN TB_LMS_TKEXAM TK
@@ -1063,6 +1562,33 @@
                         GROUP BY
                             BSC.EXAM_BSC_ID ) EVLYN_TEAM
                 ON EVLYN_TEAM.EXAM_BSC_ID = A.EXAM_BSC_ID
+            /* (시험-퀴즈) 평가 완료자 수 - 팀 시험: EXAM_BSC_ID별 EVLYN='Y' 인 팀 멤버 수 (전체 DTL 합산) */
+            LEFT JOIN ( SELECT
+                            BSC.EXAM_BSC_ID
+                            , COUNT(1) AS CNT
+                        FROM
+                            TB_LMS_EXAM_TRGTR TRGTR
+                            JOIN TB_LMS_EXAM_DTL DTL
+                                ON DTL.EXAM_DTL_ID = TRGTR.EXAM_DTL_ID
+                                AND DTL.DELYN ='N'
+                            JOIN TB_LMS_ONLN_EXAMQUIZ ONQZ
+                                ON ONQZ.QUIZ_BSC_ID = DTL.EXAM_BSC_ID
+                            JOIN TB_LMS_EXAM_BSC BSC
+                                ON ONQZ.QUIZ_BSC_ID = BSC.EXAM_BSC_ID
+                                AND BSC.DELYN ='N'
+                            JOIN TB_LMS_TEAM_MBR MBR
+                                ON MBR.TEAM_ID = TRGTR.TEAM_ID
+                            JOIN TB_LMS_TKEXAM TK
+                                ON TK.EXAM_DTL_ID = TRGTR.EXAM_DTL_ID
+                                AND TK.USER_ID = MBR.USER_ID
+                            JOIN TB_LMS_TKEXAM_RSLT RSLT
+                                ON RSLT.TKEXAM_ID = TK.TKEXAM_ID
+                                AND RSLT.USER_ID = MBR.USER_ID
+                            WHERE
+                                RSLT.EVLYN = 'Y'
+                            GROUP BY
+                                BSC.EXAM_BSC_ID ) EVLYN_TEAM_QUIZ
+                ON EVLYN_TEAM_QUIZ.EXAM_BSC_ID = A.EXAM_BSC_ID
             /* 평가 완료자 수 - 기본 시험: EXAM_BSC_ID별 EVLYN='Y' 인 수강생 수 (전체 DTL 합산, ATNDLC 기준) */
             LEFT JOIN ( SELECT
                             BSC.EXAM_BSC_ID
@@ -1071,13 +1597,15 @@
                             TB_LMS_TKEXAM TK
                             JOIN TB_LMS_EXAM_DTL DTL
                                 ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+                                AND DTL.DELYN ='N'
                             JOIN TB_LMS_EXAM_BSC BSC
                                 ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                                AND BSC.DELYN ='N'
                             JOIN TB_LMS_ATNDLC ATD
                                 ON ATD.SBJCT_ID = BSC.SBJCT_ID
                                 AND ATD.USER_ID = TK.USER_ID
                                 AND ATD.AUDITYN = 'N'
-                                AND ATD.ATNDLC_STSCD = 'ATNDLC'
+                                AND ATD.ATNDLC_STSCD = 'APPROVE'
                             JOIN TB_LMS_TKEXAM_RSLT RSLT
                                 ON RSLT.TKEXAM_ID = TK.TKEXAM_ID
                                 AND RSLT.USER_ID = TK.USER_ID
@@ -1086,6 +1614,33 @@
                         GROUP BY
                             BSC.EXAM_BSC_ID ) EVLYN_INDI
                 ON EVLYN_INDI.EXAM_BSC_ID = A.EXAM_BSC_ID
+            /* (시험-퀴즈) 평가 완료자 수 - 기본 시험: EXAM_BSC_ID별 EVLYN='Y' 인 수강생 수 (전체 DTL 합산, ATNDLC 기준) */
+            LEFT JOIN ( SELECT
+                            BSC.EXAM_BSC_ID
+                            , COUNT(DISTINCT TK.USER_ID) AS CNT
+                        FROM
+                            TB_LMS_TKEXAM TK
+                            JOIN TB_LMS_EXAM_DTL DTL
+                                ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+                                AND DTL.DELYN ='N'
+                            JOIN TB_LMS_ONLN_EXAMQUIZ ONQZ
+                                ON ONQZ.QUIZ_BSC_ID = DTL.EXAM_BSC_ID
+                            JOIN TB_LMS_EXAM_BSC BSC
+                                ON ONQZ.QUIZ_BSC_ID = BSC.EXAM_BSC_ID
+                                AND BSC.DELYN ='N'
+                            JOIN TB_LMS_ATNDLC ATD
+                                ON ATD.SBJCT_ID = BSC.SBJCT_ID
+                                AND ATD.USER_ID = TK.USER_ID
+                                AND ATD.AUDITYN = 'N'
+                                AND ATD.ATNDLC_STSCD = 'APPROVE'
+                            JOIN TB_LMS_TKEXAM_RSLT RSLT
+                                ON RSLT.TKEXAM_ID = TK.TKEXAM_ID
+                                AND RSLT.USER_ID = TK.USER_ID
+                        WHERE
+                            RSLT.EVLYN = 'Y'
+                        GROUP BY
+                            BSC.EXAM_BSC_ID ) EVLYN_INDI_QUIZ
+                ON EVLYN_INDI_QUIZ.EXAM_BSC_ID = A.EXAM_BSC_ID
             /* 전체 수강생 수 - 결시 승인자 제외 (TKEXAM_CMPTNYN_TOT, EVLYN_TOT 분모 공통) */
             LEFT JOIN ( SELECT
                             BSC.EXAM_BSC_ID
@@ -1094,9 +1649,10 @@
                             TB_LMS_ATNDLC ATD
                         JOIN TB_LMS_EXAM_BSC BSC
                             ON BSC.SBJCT_ID = ATD.SBJCT_ID
+                            AND BSC.DELYN ='N'
                         WHERE
                             ATD.AUDITYN      = 'N'
-                            AND ATD.ATNDLC_STSCD = 'ATNDLC'
+                            AND ATD.ATNDLC_STSCD = 'APPROVE'
                             AND NOT EXISTS ( SELECT
                                                  1
                                             FROM
@@ -1104,7 +1660,7 @@
                                             WHERE
                                                 ABSNCE.EXAM_BSC_ID = BSC.EXAM_BSC_ID
                                                 /* 결시자 제외 */
-                                                AND ABSNCE.APLY_STSCD = 'APRV'
+                                                AND ABSNCE.ABSNCE_APLY_STSCD = 'APRV'
                                                 AND ABSNCE.USER_ID = ATD.USER_ID )
                         GROUP BY
                             BSC.EXAM_BSC_ID ) TOTAL_USR
@@ -1113,6 +1669,7 @@
             A.SBJCT_ID = #{sbjctId}
             /* 시험 구분이 퀴즈인 것은 제외 */
             AND A.EXAM_TYCD NOT LIKE '%QUIZ%'
+            AND A.DELYN = 'N'
         <if test = "examTtl != null and examTtl != ''">
             AND A.EXAM_TTL LIKE '%' || #{examTtl} || '%'
         </if>
@@ -1131,7 +1688,7 @@
             , A.TEAM_ID         AS "TEAM_ID"        /* 팀 ID */
             , A.TEAMNM          AS "TEAMNM"         /* 팀명 */
             , A.DEPTNM          AS "DEPTNM"         /* 학과명 */
-            , A.USER_RPRS_ID    AS "USER_RPRS_ID"   /* 대표 ID */
+            -- , A.USER_RPRS_ID    AS "USER_RPRS_ID"   /* 대표 ID */
             , A.STDNT_NO        AS "STDNT_NO"       /* 학번 */
             , A.USER_ID         AS "USER_ID"        /* 사용자 ID */
             , A.USERNM          AS "USERNM"         /* 이름 */
@@ -1218,12 +1775,12 @@
                 ATNDLC.SBJCT_ID
                 , TM.TEAM_ID
                 , TM.TEAMNM
-                , NVL((SELECT DEPTNM FROM TB_LMS_DEPT WHERE ORG_ID = USR.ORG_ID AND DEPT_ID = USR.DEPT_ID),'-') AS DEPTNM
+                , NVL((SELECT DEPTNM FROM TB_LMS_DEPT WHERE DEPT_ID = USR.DEPT_ID),'-') AS DEPTNM
                 , NVL(USR.STDNT_NO,'-') AS STDNT_NO
                 , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'MBL_PHN' AND USER_ID = ATNDLC.USER_ID) AS MOBILE_NO
                 , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'INDV_EML' AND USER_ID = ATNDLC.USER_ID) AS EMAIL
                 , ATNDLC.USER_ID
-                , USR.USER_RPRS_ID
+                -- , USR.USER_RPRS_ID
                 , USR.USERNM
                 , TM.LDRYN
                 , CASE WHEN EXAM_BSC.EXAM_GBNCD IN (SELECT CD FROM TB_LMS_CMMN_CD WHERE UP_CD = 'EXAM_GBNCD' AND CD LIKE '%TEAM%') THEN TM.EXAM_DTL_ID ELSE (SELECT EXAM_DTL_ID FROM DTL) END EXAM_DTL_ID
@@ -1255,7 +1812,7 @@
                     ON TKEXAM_INDI.USER_ID = ATNDLC.USER_ID
             WHERE
                 ATNDLC.AUDITYN = 'N'
-                AND ATNDLC.ATNDLC_STSCD = 'ATNDLC'
+                AND ATNDLC.ATNDLC_STSCD = 'APPROVE'
                 AND EXAM_BSC.EXAM_BSC_ID = #{examBscId} ) A
         <where>
             <if test="tkexamCmptnyn != null and tkexamCmptnyn != '' and tkexamCmptnyn != 'all'">
@@ -1290,18 +1847,30 @@
                 WHEN QUIZ.EXAM_BSC_ID IS NOT NULL THEN 'QUIZ'  /* 퀴즈 */
             END AS "GBN"
             /* 과제 */
+            , ASMT.ASMT_ID              AS "ASMT_ID"
             , ASMT.ASMT_TTL             AS "ASMT_TTL"
             , ASMT.ASMT_SBMSN_SDTTM     AS "ASMT_SBMSN_SDTTM"
             , ASMT.ASMT_SBMSN_EDTTM     AS "ASMT_SBMSN_EDTTM"
             , ASMT.EVL_SCR_TYCD         AS "EVL_SCR_TYCD"
             , CMMN2.CDNM                AS "EVL_SCR_TYNM"
             /* 퀴즈 */
+            , QUIZ.EXAM_BSC_ID          AS "QUIZ_BSC_ID"
             , QUIZ.EXAM_TTL             AS "EXAM_TTL"
             , QUIZ_DTL.EXAM_PSBL_SDTTM  AS "EXAM_PSBL_SDTTM"
             , QUIZ_DTL.EXAM_PSBL_EDTTM  AS "EXAM_PSBL_EDTTM"
             , SBST.REG_DTTM             AS "REG_DTTM"
+            , QUIZ_DTL.EXAM_MNTS        AS "EXAM_MNTS"
             , QUIZ.EXAM_QSTNS_CMPTNYN   AS "EXAM_QSTNS_CMPTNYN"
             , QUIZ.EXAM_GRP_ID          AS "EXAM_GRP_ID"
+            /* 공통 */
+            , CASE
+                WHEN ASMT.ASMT_ID IS NOT NULL THEN ASMT.MRK_RFLTYN
+                ELSE QUIZ.MRK_RFLTYN
+            END                         AS "MRK_RFLTYN"
+            , CASE
+                WHEN ASMT.ASMT_ID IS NOT NULL THEN ASMT.MRK_OYN
+                ELSE QUIZ.MRK_OYN
+            END                         AS "MRK_OYN"
         FROM
             /* 시험 기본 */
             TB_LMS_EXAM_BSC BSC
@@ -1320,28 +1889,35 @@
                 AND CMMN2.UP_CD = 'EVL_SCR_TYCD'
             /* 퀴즈 */
             LEFT JOIN TB_LMS_EXAM_BSC QUIZ
-                ON BSC.SBJCT_ID = QUIZ.SBJCT_ID
-                AND SBST.EXAM_SBST_ID = QUIZ.EXAM_BSC_ID
+                ON SBST.EXAM_SBST_ID = QUIZ.EXAM_BSC_ID
+                AND QUIZ.DELYN ='N'
             LEFT JOIN TB_LMS_EXAM_DTL QUIZ_DTL
                 ON QUIZ.EXAM_BSC_ID = QUIZ_DTL.EXAM_BSC_ID
+                AND QUIZ_DTL.DELYN ='N'
         WHERE
             BSC.EXAM_BSC_ID =#{examBscId}
+            AND BSC.DELYN ='N'
     </sql>
 
     <sql id="listQueryForSbstUser">
+        WITH C_LATEST AS (SELECT
+                                C.*
+                                , ROW_NUMBER() OVER (PARTITION BY C.USER_ID, C.EXAM_BSC_ID ORDER BY C.REG_DTTM DESC) AS RN
+                            FROM
+                                TB_LMS_EXAM_ABSNCE C)
         SELECT
-            ROW_NUMBER() OVER(ORDER BY A.EXAM_BSC_ID DESC) AS "LINE_NO"
-            , E.DEPTNM          AS "DEPTNM"
-            , D.USER_RPRS_ID    AS "USER_RPRS_ID"
-            , D.STDNT_NO        AS "STDNT_NO"
-            , D.USER_ID         AS "USER_ID"
-            , D.USERNM          AS "USERNM"
-            , C.ABSNCE_CTS      AS "ABSNCE_CTS"
-            , C.ABSNCE_RFLTRT   AS "ABSNCE_RFLTRT"
+            ROW_NUMBER() OVER(ORDER BY A.EXAM_BSC_ID DESC)  AS "LINE_NO"
+            , E.DEPTNM                                      AS "DEPTNM"
+            -- , D.USER_RPRS_ID                                AS "USER_RPRS_ID"
+            , D.STDNT_NO                                    AS "STDNT_NO"
+            , D.USER_ID                                     AS "USER_ID"
+            , D.USERNM                                      AS "USERNM"
+            , C.ABSNCE_CTS                                  AS "ABSNCE_CTS"
+            , C.ABSNCE_RFLTRT                               AS "ABSNCE_RFLTRT"
             , CASE
-                WHEN C.APLY_STSCD = 'APRV' THEN 'Y'
+                WHEN C.ABSNCE_APLY_STSCD = 'APRV' THEN 'Y'
                 ELSE 'N'
-            END                 AS "APLY_STS_STTS"
+            END                                             AS "APLY_STS_STTS"
             , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'MBL_PHN' AND USER_ID = D.USER_ID) AS "MOBILE_NO"
             , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'INDV_EML' AND USER_ID = D.USER_ID) AS "EMAIL"
         FROM
@@ -1350,12 +1926,13 @@
             /* 과목 수강 */
             JOIN TB_LMS_ATNDLC B
                 ON A.SBJCT_ID = B.SBJCT_ID
-                AND B.ATNDLC_STSCD = 'ATNDLC'
+                AND B.ATNDLC_STSCD = 'APPROVE'
                 AND B.AUDITYN = 'N'
-            /* 시험 결시 */
-            JOIN TB_LMS_EXAM_ABSNCE C
+            /* 시험 결시: 사용자별 + 시험별 최신 1건 */
+            JOIN C_LATEST C
                 ON B.USER_ID = C.USER_ID
                 AND A.EXAM_BSC_ID = C.EXAM_BSC_ID
+                AND C.RN = 1
             /* 사용자 */
             JOIN TB_LMS_USER D
                 ON B.USER_ID = D.USER_ID
@@ -1364,21 +1941,22 @@
                 ON D.DEPT_ID = E.DEPT_ID
         WHERE
             A.EXAM_BSC_ID = #{examBscId}
+            AND A.DELYN ='N'
     </sql>
 
     <sql id="listQueryForAbsnceUser">
         SELECT
             ROW_NUMBER() OVER(ORDER BY D.USERNM DESC) AS "LINE_NO"
             , E.DEPTNM          AS "DEPTNM"
-            , D.USER_RPRS_ID    AS "USER_RPRS_ID"
+            -- , D.USER_RPRS_ID    AS "USER_RPRS_ID"
             , D.STDNT_NO        AS "STDNT_NO"
             , D.USERNM          AS "USERNM"
             , C.USER_ID         AS "USER_ID"
             , CASE
-                WHEN C.APLY_STSCD = 'APLY' THEN '1'     /* 신청 */
-                WHEN C.APLY_STSCD = 'RE_APLY' THEN '2'  /* 재신청 */
-                WHEN C.APLY_STSCD = 'APRV' THEN '3'     /* 승인 */
-                WHEN C.APLY_STSCD = 'RJCT' THEN '4'     /* 거절 */
+                WHEN C.ABSNCE_APLY_STSCD = 'APLY' THEN '1'     /* 신청 */
+                WHEN C.ABSNCE_APLY_STSCD = 'RE_APLY' THEN '2'  /* 재신청 */
+                WHEN C.ABSNCE_APLY_STSCD = 'APRV' THEN '3'     /* 승인 */
+                WHEN C.ABSNCE_APLY_STSCD = 'RJCT' THEN '4'     /* 거절 */
             END                 AS "APLY_STSNM"
             , C.REG_DTTM        AS "REG_DTTM"
             , F.CDNM            AS "EXAM_GBNNM"
@@ -1390,7 +1968,7 @@
             /* 과목 수강 */
             JOIN TB_LMS_ATNDLC B
                 ON A.SBJCT_ID = B.SBJCT_ID
-                AND B.ATNDLC_STSCD = 'ATNDLC'
+                AND B.ATNDLC_STSCD = 'APPROVE'
                 AND B.AUDITYN = 'N'
             /* 결시 (학생별 최신 신청 1건) */
             LEFT JOIN (SELECT
@@ -1416,19 +1994,20 @@
                 AND F.UP_CD = 'EXAM_GBNCD'
         WHERE
             A.EXAM_BSC_ID = #{examBscId}
+            AND A.DELYN ='N'
         <if test="aplyStscd != null and aplyStscd != '' and aplyStscd != 'all'">
             <choose>
                 <when test='aplyStscd == "1"'>
-                    AND C.APLY_STSCD = 'APLY'
+                    AND C.ABSNCE_APLY_STSCD = 'APLY'
                 </when>
                 <when test='aplyStscd == "2"'>
-                    AND C.APLY_STSCD = 'RE_APLY'
+                    AND C.ABSNCE_APLY_STSCD = 'RE_APLY'
                 </when>
                 <when test='aplyStscd == "3"'>
-                    AND C.APLY_STSCD = 'APRV'
+                    AND C.ABSNCE_APLY_STSCD = 'APRV'
                 </when>
                 <when test='aplyStscd == "4"'>
-                    AND C.APLY_STSCD = 'RJCT'
+                    AND C.ABSNCE_APLY_STSCD = 'RJCT'
                 </when>
                 <otherwise>
                 </otherwise>
@@ -1450,7 +2029,7 @@
             , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'MBL_PHN' AND USER_ID = ABSNCE.USER_ID) AS "MOBILE_NO"
             , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'INDV_EML' AND USER_ID = ABSNCE.USER_ID) AS "EMAIL"
             , CMMNCD.CDNM                                       AS "EXAM_GBNNM"
-            , ABSNCE.APLY_STSCD                                 AS "APLY_STSCD"
+            , ABSNCE.ABSNCE_APLY_STSCD                          AS "APLY_STSCD"
             , ABSNCE.APRVDTTM                                   AS "APRVDTTM"
             , ABSNCE.ABSNCE_TTL                                 AS "ABSNCE_TTL"
             , ABSNCE.ABSNCE_RFLTRT                              AS "ABSNCE_RFLTRT"
@@ -1469,6 +2048,7 @@
         WHERE
             BSC.EXAM_BSC_ID = #{examBscId}
             AND ABSNCE.USER_ID = #{userId}
+            AND BSC.DELYN ='N'
     </sql>
 
     <sql id="listQueryForDsblUser">
@@ -1477,7 +2057,7 @@
             , ATN.SBJCT_ID              AS "SBJCT_ID"
             , DEPT.DEPTNM               AS "DEPTNM"
             , ATN.USER_ID               AS "USER_ID"
-            , USR.USER_RPRS_ID          AS "USER_RPRS_ID"
+            -- , USR.USER_RPRS_ID          AS "USER_RPRS_ID"
             , USR.STDNT_NO              AS "STDNT_NO"
             , USR.USERNM                AS "USERNM"
             , CASE
@@ -1509,6 +2089,21 @@
             , BSC_LST.EXAM_BSC_ID       AS "LST_EXAM_BSC_ID"
             , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'MBL_PHN' AND USER_ID = USR.USER_ID) AS "MOBILE_NO"
             , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'INDV_EML' AND USER_ID = USR.USER_ID) AS "EMAIL"
+            , CASE
+                WHEN SPRT_MID.APLY_STSCD = SPRT_LST.APLY_STSCD AND SPRT_MID.APLY_STSCD = 'APRV' THEN
+                    CASE
+                        WHEN SPRT_MID.ADD_MNTS IS NULL THEN '부여하지 않음'
+                        ELSE '연장(' || SPRT_MID.ADD_MNTS || '분)'
+                    END
+                    || ' / ' ||
+                    CASE
+                        WHEN SPRT_LST.ADD_MNTS IS NULL THEN '부여하지 않음'
+                        ELSE '연장(' || SPRT_LST.ADD_MNTS || '분)'
+                    END
+                    WHEN SPRT_MID.APLY_STSCD = SPRT_LST.APLY_STSCD AND SPRT_MID.APLY_STSCD = 'RJCT' THEN '반려'
+                ELSE '-'
+            END                 AS "SPRT_RSLT"
+            , MID_CMMN2.CDNM || '/' || LST_CMMN2.CDNM AS "CNCL_APLY_STSNM"
         FROM
             TB_LMS_ATNDLC ATN
             JOIN TB_LMS_USER USR
@@ -1516,23 +2111,35 @@
                 AND (USR.DSBLYN = 'Y' OR USR.SNRYN = 'Y')
             JOIN TB_LMS_DEPT DEPT
                 ON USR.DEPT_ID = DEPT.DEPT_ID
-            LEFT JOIN TB_LMS_EXAM_BSC BSC_MID
+            /* 중간고사 */
+            JOIN TB_LMS_EXAM_BSC BSC_MID
                 ON ATN.SBJCT_ID = BSC_MID.SBJCT_ID
                 AND BSC_MID.EXAM_GBNCD LIKE '%EXAM_MID%'
-            LEFT JOIN TB_LMS_EXAM_BSC BSC_LST
+                AND BSC_MID.DELYN ='N'
+            /* 기말고사 */
+            JOIN TB_LMS_EXAM_BSC BSC_LST
                 ON ATN.SBJCT_ID = BSC_LST.SBJCT_ID
                 AND BSC_LST.EXAM_GBNCD LIKE '%EXAM_LST%'
-            LEFT JOIN TB_LMS_EXAM_SPRT_APLY SPRT_MID
+                AND BSC_LST.DELYN ='N'
+            /* 중간고사 지원 신청 */
+            JOIN TB_LMS_EXAM_SPRT_APLY SPRT_MID
                 ON BSC_MID.EXAM_BSC_ID = SPRT_MID.EXAM_BSC_ID
                 AND ATN.USER_ID = SPRT_MID.USER_ID
-            LEFT JOIN TB_LMS_EXAM_SPRT_APLY SPRT_LST
+            LEFT JOIN TB_LMS_CMMN_CD MID_CMMN2
+                ON SPRT_MID.CNCL_APLY_STSCD = MID_CMMN2.CD
+                AND MID_CMMN2.UP_CD = 'CNCL_APLY_STSCD'
+            /* 기말고사 지원 신청 */
+            JOIN TB_LMS_EXAM_SPRT_APLY SPRT_LST
                 ON BSC_LST.EXAM_BSC_ID = SPRT_LST.EXAM_BSC_ID
                 AND ATN.USER_ID = SPRT_LST.USER_ID
+            LEFT JOIN TB_LMS_CMMN_CD LST_CMMN2
+                ON SPRT_LST.CNCL_APLY_STSCD = LST_CMMN2.CD
+                AND LST_CMMN2.UP_CD = 'CNCL_APLY_STSCD'
             LEFT JOIN TB_LMS_CMMN_CD CMMN1
-                ON USR.MN_DSBL_CD = CMMN1.CD
+                ON USR.DSBL_TYCD = CMMN1.CD
                 AND CMMN1.UP_CD = 'DSBL_TYCD'
             LEFT JOIN TB_LMS_CMMN_CD CMMN2
-                ON USR.MN_DSBL_GRDCD = CMMN2.CD
+                ON USR.DSBL_GRDCD = CMMN2.CD
                 AND CMMN2.UP_CD = 'DSBL_GRDCD'
             LEFT JOIN TB_LMS_CMMN_CD CMMN3
                 ON USR.EXAM_SPRT_APLY_TYCD = CMMN3.CD
@@ -1571,18 +2178,30 @@
             , QUIZ_DTL.EXAM_PSBL_EDTTM  AS "EXAM_PSBL_EDTTM"
             , QUIZ.REG_DTTM             AS "REG_DTTM"
             , QUIZ.EXAM_QSTNS_CMPTNYN   AS "EXAM_QSTNS_CMPTNYN"
-            , QUIZ.EXAM_GRP_ID          AS "EXAM_GRP_ID"
         FROM
             /* 시험 기본 */
             TB_LMS_EXAM_BSC BSC
+            JOIN TB_LMS_ONLN_EXAMQUIZ ONQZ
+                ON BSC.EXAM_BSC_ID = ONQZ.EXAM_BSC_ID
             JOIN TB_LMS_EXAM_BSC QUIZ
-                ON BSC.SBJCT_ID = QUIZ.SBJCT_ID
-                AND BSC.EXAM_GRP_ID = QUIZ.EXAM_GRP_ID
-                AND QUIZ.EXAM_TYCD = 'QUIZ'
-            JOIN TB_LMS_EXAM_DTL QUIZ_DTL
+                ON ONQZ.QUIZ_BSC_ID = QUIZ.EXAM_BSC_ID
+                AND QUIZ.DELYN = 'N'
+            JOIN (SELECT
+                        *
+                    FROM
+                        (SELECT
+                            QD.*
+                            , ROW_NUMBER() OVER (PARTITION BY QD.EXAM_BSC_ID ORDER BY QD.EXAM_DTL_ID DESC) AS RN
+                        FROM
+                            TB_LMS_EXAM_DTL QD
+                        WHERE
+                            QD.DELYN ='N')
+                    WHERE
+                        RN = 1 ) QUIZ_DTL
                 ON QUIZ.EXAM_BSC_ID = QUIZ_DTL.EXAM_BSC_ID
         WHERE
             BSC.EXAM_BSC_ID = #{examBscId}
+            AND BSC.DELYN ='N'
     </sql>
 
     <!-- 시험 응시현황 -->
@@ -1590,7 +2209,7 @@
         WITH ENROLLED AS (SELECT    /* 수강 중인 학생 목록 */
                                 ATNDLC.USER_ID
                                 , DEPT.DEPTNM
-                                , USR.USER_RPRS_ID
+                                -- , USR.USER_RPRS_ID
                                 , USR.STDNT_NO
                                 , USR.USERNM
                             FROM
@@ -1602,7 +2221,7 @@
                                     ON USR.DEPT_ID = DEPT.DEPT_ID
                             WHERE
                                 ATNDLC.SBJCT_ID = #{sbjctId}
-                                AND ATNDLC.ATNDLC_STSCD = 'ATNDLC')
+                                AND ATNDLC.ATNDLC_STSCD = 'APPROVE')
         , MID_EXAM AS (SELECT       /* 중간고사 EXAM_BSC / EXAM_DTL */
                             EB.EXAM_BSC_ID
                             , ED.EXAM_DTL_ID
@@ -1610,6 +2229,7 @@
                             TB_LMS_EXAM_BSC EB
                             JOIN TB_LMS_EXAM_DTL ED
                                 ON ED.EXAM_BSC_ID = EB.EXAM_BSC_ID
+                                AND ED.DELYN ='N'
                         WHERE
                             EB.SBJCT_ID = #{sbjctId}
                             AND EB.EXAM_TYCD = 'EXAM'
@@ -1622,6 +2242,7 @@
                             TB_LMS_EXAM_BSC EB
                             JOIN TB_LMS_EXAM_DTL ED
                                 ON ED.EXAM_BSC_ID = EB.EXAM_BSC_ID
+                                AND ED.DELYN ='N'
                         WHERE
                             EB.SBJCT_ID = #{sbjctId}
                             AND EB.EXAM_TYCD  = 'EXAM'
@@ -1651,7 +2272,7 @@
             ROW_NUMBER() OVER (ORDER BY E.USERNM DESC) AS "LINE_NO"
             , E.USER_ID
             , E.DEPTNM
-            , E.USER_RPRS_ID
+            -- , E.USER_RPRS_ID
             , E.STDNT_NO
             , E.USERNM
             /* 중간고사 일반 점수 : 결시 승인자이면 NULL, 재시험이면 '(재시험)' 추가 */
@@ -1689,7 +2310,7 @@
             LEFT JOIN TB_LMS_EXAM_ABSNCE MID_ABS
                 ON MID_ABS.USER_ID = E.USER_ID
                 AND MID_ABS.EXAM_BSC_ID IN (SELECT EXAM_BSC_ID FROM MID_EXAM)
-                AND MID_ABS.APLY_STSCD = 'APRV'
+                AND MID_ABS.ABSNCE_APLY_STSCD = 'APRV'
             /* 기말고사 응시 (미응시 학생 포함) */
             LEFT JOIN LST_TKEXAM LST_TK
                 ON LST_TK.USER_ID = E.USER_ID
@@ -1701,9 +2322,10 @@
             LEFT JOIN TB_LMS_EXAM_ABSNCE LST_ABS
                 ON LST_ABS.USER_ID = E.USER_ID
                 AND LST_ABS.EXAM_BSC_ID IN (SELECT EXAM_BSC_ID FROM LST_EXAM)
-                AND LST_ABS.APLY_STSCD = 'APRV'
+                AND LST_ABS.ABSNCE_APLY_STSCD = 'APRV'
     </sql>
 
+    <!-- 시험기본등록(시험 화면 전용) -->
     <insert id="examBscRegist2" parameterType="examBscVO">
         /*
              SQL ID : ExamMapper.examBscRegist2
@@ -1734,7 +2356,7 @@
                 , MRK_RFLTRT
                 , EXAMTM_ALLOC_GBNCD
                 , EXAMTM_EXPSR_TYCD
-                , LRN_GRP_SUBASMT_STNGYN
+                , TEAM_GRP_SUBASMT_STNGYN
                 , RGTR_ID
                 , REG_DTTM
                 , BYTEAM_SUBREXAM_USEYN )
@@ -1762,7 +2384,7 @@
                 , #{mrkRfltrt}
                 , #{examtmAllocGbncd}
                 , #{examtmExpsrTycd}
-                , #{lrnGrpSubasmtStngyn}
+                , #{teamGrpSubasmtStngyn}
                 , #{rgtrId}
                 , FN_DTTM()
                 , #{byteamSubrexamUseyn} )
@@ -1849,7 +2471,6 @@
                 , FN_DTTM() )
     </insert>
 
-
     <!-- 대체 시험 등록 -->
     <insert id="examSbstRegist" parameterType="examVO">
         /*
@@ -1876,7 +2497,7 @@
     <!-- 대체 과제 등록 -->
     <insert id="sbstAsmtRegist" parameterType="examVO">
     /*
-        SQL ID : ExamMapper.asmtRegist
+        SQL ID : ExamMapper.sbstAsmtRegist
         설명  : 대체 과제 등록
     */
     INSERT INTO
@@ -1887,7 +2508,7 @@
             , ASMT_GBNCD
             , SBASMT_TYCD
             , EVL_SCR_TYCD
-            , RUBLIC_ID
+            , RUBRIC_ID
             , SBMSN_FILE_MIME_TYCD
             , MRK_RFLTYN
             , MRK_RFLTRT
@@ -1905,7 +2526,7 @@
             , #{asmtGbncd}
             , #{sbasmtTycd}
             , #{evlScrTycd}
-            , #{rublicId}
+            , #{rubricId}
             , #{sbmsnFileMimeTycd}
             , #{mrkRfltyn}
             , #{mrkRfltrt}
@@ -1949,7 +2570,7 @@
                 , MRK_RFLTRT
                 , EXAMTM_ALLOC_GBNCD
                 , EXAMTM_EXPSR_TYCD
-                , LRN_GRP_SUBASMT_STNGYN
+                , TEAM_GRP_SUBASMT_STNGYN
                 , RGTR_ID
                 , REG_DTTM
                 , BYTEAM_SUBREXAM_USEYN )
@@ -1980,7 +2601,7 @@
             , 'N'
             , #{rgtrId}
             , FN_DTTM()
-            , 'N' )
+            , #{byteamSubrexamUseyn} )
     </insert>
 
     <!-- 대체 시험 상세(퀴즈) 등록 -->
@@ -2016,6 +2637,29 @@
                 , FN_DTTM() )
     </insert>
 
+    <!-- 온라인시험퀴즈 등록 -->
+    <insert id="onlnExamquizRegist" parameterType="examVO">
+        INSERT INTO
+            TB_LMS_ONLN_EXAMQUIZ
+                ( ONLN_EXAMQUIZ_ID
+                , EXAM_BSC_ID
+                , TKEXAM_MTHD_CD
+                , QUIZ_BSC_ID
+                , ONLN_EXAMPPR_URL
+                , RGTR_ID
+                , REG_DTTM
+                , EXAM_DTL_ID )
+        VALUES
+                ( #{onlnExamquizId}
+                , #{examBscId}
+                , #{tkexamMthdCd}
+                , #{quizBscId}
+                , #{onlnExampprUrl}
+                , #{rgtrId}
+                , FN_DTTM()
+                , #{examDtlId} )
+    </insert>
+
     <!-- 교수 시험목록 조회  -->
     <select id="listProfExam" parameterType="examVO" resultType="examVO">
         /*
@@ -2033,7 +2677,7 @@
         */
         <include refid="CommonSQL.pagePrefix" />
         <include refid="listQueryForExam"/>
-        <include refid="CommonSQL.pageSubfix" />
+        <include refid="CommonSQL.pageSuffix" />
     </select>
 
     <!-- 교수 시험목록 카운트  -->
@@ -2074,6 +2718,7 @@
             , A.BYTEAM_SUBREXAM_USEYN                          AS "BYTEAM_SUBREXAM_USEYN"  /* 팀시험여부 */
             , A.SBJCT_ID                                       AS "SBJCT_ID"        /* 과목 ID */
             , A.EXAM_QSTNS_CMPTNYN                             AS "EXAM_QSTNS_CMPTNYN"  /* 시험임시저장여부 */
+            , B.EXAM_DTL_ID                                    AS "EXAM_DTL_ID"
             , CASE
                 WHEN E.EXAM_SBST_TYCD = 'SBST_ASMT' THEN '과제'
                 WHEN E.EXAM_SBST_TYCD = 'SBST_DSCS' THEN '토론'
@@ -2098,7 +2743,18 @@
         FROM
             TB_LMS_EXAM_BSC A
             /* 시험상세 */
-            JOIN TB_LMS_EXAM_DTL B
+            JOIN (SELECT
+                      *
+                  FROM
+                      (SELECT
+                          D.*
+                          , ROW_NUMBER() OVER (PARTITION BY D.EXAM_BSC_ID ORDER BY D.EXAM_DTL_ID DESC) AS RN
+                       FROM
+                          TB_LMS_EXAM_DTL D
+                       WHERE
+                           D.DELYN ='N')
+                       WHERE
+                          RN = 1 ) B
                 ON A.EXAM_BSC_ID = B.EXAM_BSC_ID
             /* 시험구분코드 */
             JOIN TB_LMS_CMMN_CD C
@@ -2115,6 +2771,7 @@
             A.EXAM_BSC_ID = #{examBscId}
             /* 시험 구분이 퀴즈인 것은 제외 */
             AND A.EXAM_TYCD NOT LIKE '%QUIZ%'
+            AND A.DELYN ='N'
     </select>
 
     <!-- 교수 팀 시험 상세조회 -->
@@ -2124,8 +2781,8 @@
             설명 : 교수 팀 시험 상세조회
         */
         SELECT
-            A.LRN_GRP_ID                        AS "LRN_GRP_ID"     /* 그룹 ID */
-            , A.LRN_GRPNM                       AS "LRN_GRPNM"      /* 그룹 명 */
+            A.TEAM_GRP_ID                       AS "TEAM_GRP_ID"     /* 그룹 ID */
+            , A.TEAM_GRPNM                      AS "TEAM_GRPNM"      /* 그룹 명 */
             , B.TEAM_ID                         AS "TEAM_ID"        /* 팀 ID */
             , B.TEAMNM                          AS "TEAMNM"         /* 팀 명 */
             , D.USERNM                          AS "LDRNM"          /* 팀 리더 명 */
@@ -2142,7 +2799,7 @@
             TB_LMS_TEAM_GRP A
             /* 팀 */
             JOIN TB_LMS_TEAM B
-                ON A.LRN_GRP_ID = B.LRN_GRP_ID
+                ON A.TEAM_GRP_ID = B.TEAM_GRP_ID
             /* 팀 멤버 (리더 추출용도) */
             JOIN TB_LMS_TEAM_MBR C
                 ON B.TEAM_ID = C.TEAM_ID
@@ -2156,6 +2813,7 @@
             /* 시험 상세 */
             JOIN TB_LMS_EXAM_DTL F
                 ON E.EXAM_DTL_ID = F.EXAM_DTL_ID
+                AND F.DELYN ='N'
         WHERE
             F.EXAM_BSC_ID = #{examBscId}
     </select>
@@ -2168,7 +2826,7 @@
         */
         <include refid="CommonSQL.pagePrefix" />
         <include refid="listQueryForTKexamUser"/>
-        <include refid="CommonSQL.pageSubfix" />
+        <include refid="CommonSQL.pageSuffix" />
     </select>
 
     <!-- 시험 평가대상자 목록 카운트 -->
@@ -2227,6 +2885,7 @@
             TB_LMS_EXAM_BSC A
         WHERE
             A.EXAM_BSC_ID = #{examBscId}
+            AND A.DELYN ='N'
     </select>
 
     <!-- 사용자 시험 응시현황 (파이)차트데이터 조회 -->
@@ -2275,7 +2934,7 @@
                                                                       TB_LMS_EXAM_ABSNCE
                                                                   WHERE
                                                                       /* 결시자 제외 */
-                                                                      APLY_STSCD = 'APRV'
+                                                                      ABSNCE_APLY_STSCD = 'APRV'
                                                                       AND EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID) THEN 'Y'
                                   ELSE 'N'
                               END
@@ -2310,7 +2969,7 @@
                                                                                                FROM
                                                                                                    TB_LMS_EXAM_ABSNCE
                                                                                                WHERE
-                                                                                                   APLY_STSCD = 'APRV'
+                                                                                                   ABSNCE_APLY_STSCD = 'APRV'
                                                                                                    AND EXAM_BSC_ID = EXAM_BSC.EXAM_BSC_ID)) THEN 'Y'
                                 ELSE 'N'
                             END
@@ -2386,7 +3045,7 @@
                     WHERE
                         SBJCT_ID = #{sbjctId}
                         /* 수강중인 수강생만 */
-                        AND ATNDLC_STSCD = 'ATNDLC'
+                        AND ATNDLC_STSCD = 'APPROVE'
                         AND AUDITYN = 'N')
         /* 시험 상세 목록: EXAM_BSC_ID 파라미터로 해당 시험의 EXAM_DTL_ID 조회 */
         , EXAM_DTL_T AS (SELECT
@@ -2456,7 +3115,7 @@
         */
         <include refid="CommonSQL.pagePrefix" />
         <include refid="listQueryForSbst"/>
-        <include refid="CommonSQL.pageSubfix" />
+        <include refid="CommonSQL.pageSuffix" />
     </select>
 
     <!-- 교수 시험대체 목록 카운트  -->
@@ -2489,6 +3148,7 @@
             , ASMT.SBMSN_FILE_MIME_TYCD     AS "SBMSN_FILE_MIME_TYCD"
             , SBST.EXAM_EVL_SBST_ID         AS "EXAM_EVL_SBST_ID"
             , ASMT.ASMT_ID                  AS "ASMT_ID"
+            , ASMT.RUBRIC_ID                AS "RUBRIC_ID"
         FROM
             TB_LMS_EXAM_BSC BSC
             JOIN TB_LMS_EXAM_EVL_SBST SBST
@@ -2497,6 +3157,7 @@
                 ON SBST.EXAM_SBST_ID = ASMT.ASMT_ID
         WHERE
             BSC.EXAM_BSC_ID = #{examBscId}
+            AND BSC.DELYN ='N'
     </select>
 
     <!-- 교수 시험대체 퀴즈 조회 -->
@@ -2524,10 +3185,13 @@
                 ON BSC.EXAM_BSC_ID = SBST.EXAM_BSC_ID
             JOIN TB_LMS_EXAM_BSC QUIZ
                 ON SBST.EXAM_SBST_ID = QUIZ.EXAM_BSC_ID
+                AND QUIZ.DELYN ='N'
             JOIN TB_LMS_EXAM_DTL QUIZ_DTL
                 ON QUIZ.EXAM_BSC_ID = QUIZ_DTL.EXAM_BSC_ID
+                AND QUIZ_DTL.DELYN ='N'
         WHERE
             BSC.EXAM_BSC_ID = #{examBscId}
+            AND BSC.DELYN ='N'
     </select>
 
     <!-- 교수 시험대체 대상자 목록 페이징  -->
@@ -2538,7 +3202,7 @@
         */
         <include refid="CommonSQL.pagePrefix" />
         <include refid="listQueryForSbstUser"/>
-        <include refid="CommonSQL.pageSubfix" />
+        <include refid="CommonSQL.pageSuffix" />
     </select>
 
     <!-- 교수 시험대체 대상자 목록 카운트  -->
@@ -2565,6 +3229,7 @@
             TB_LMS_EXAM_BSC
         WHERE
             EXAM_BSC_ID = #{examBscId}
+            AND DELYN ='N'
     </select>
 
     <!-- 교수 시험 결시자 목록 페이징  -->
@@ -2575,7 +3240,7 @@
         */
         <include refid="CommonSQL.pagePrefix" />
         <include refid="listQueryForAbsnceUser"/>
-        <include refid="CommonSQL.pageSubfix" />
+        <include refid="CommonSQL.pageSuffix" />
     </select>
 
     <!-- 교수 시험 결시자 목록 카운트  -->
@@ -2610,26 +3275,33 @@
         FROM
             (SELECT
                 ROW_NUMBER() OVER (ORDER BY ABSNCE.REG_DTTM DESC) AS "LINE_NO"
-                , ABSNCE.APLY_STSCD
-                , ABSNCE.APRVDTTM
-                , BSC.SBJCT_ID
-                , SBJCT.SBJCTNM
-                , SBJCT.DVCLAS_NCKNM
-                , ABSNCE.APRV_CTS
-                , DEPT.DEPTNM
-                , SBJCT.SMSTR_CHRT_ID
-                , CMMNCD.CDNM   AS "EXAM_GBNNM"
-                , DTL.EXAM_PSBL_SDTTM
-                , PROF.USERNM   AS "PROFNM"
-                , ''        AS "TUTNM"           /* 튜터 정보로 수정 예정 */
-                , USR.USER_RPRS_ID
-                , USR.STDNT_NO
-                , USR.USERNM    AS "USERNM"
-                , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'MBL_PHN' AND USER_ID = ABSNCE.USER_ID) AS "MOBILE_NO"
-                , ABSNCE.ABSNCE_TTL
-                , ABSNCE.ABSNCE_RFLTRT
-                , ABSNCE.ABSNCE_CTS
-                , ''     AS "FILE"          /* 추후 첨부파일 경로로 수정 예정 */
+                , ABSNCE.ABSNCE_APLY_STSCD  AS "ABSNCE_APLY_STSCD"
+                , CMMN2.CDNM                AS "ABSNCE_APLY_STSNM"
+                , ABSNCE.APRVDTTM           AS "APRVDTTM"
+                , BSC.SBJCT_ID              AS "SBJCT_ID"
+                , SBJCT.SBJCTNM             AS "SBJCTNM"
+                , SBJCT.DVCLAS_NCKNM        AS "DVCLAS_NCKNM"
+                , ABSNCE.APRV_CTS           AS "APRV_CTS"
+                , DEPT.DEPTNM               AS "DEPTNM"
+                , SBJCT.SMSTR_CHRT_ID       AS "SMSTR_CHRT_ID"
+                , CMMN1.CDNM                AS "EXAM_GBNNM"
+                , DTL.EXAM_PSBL_SDTTM       AS "EXAM_PSBL_SDTTM"
+                , PROF.USERNM               AS "PROFNM"
+                , ''                        AS "TUTNM"           /* 튜터 정보로 수정 예정 */
+                -- , USR.USER_RPRS_ID          AS "USER_RPRS_ID"
+                , USR.STDNT_NO              AS "STDNT_NO"
+                , USR.USERNM                AS "USERNM"
+                , (SELECT
+                        CNTCT
+                   FROM
+                        TB_LMS_USER_CNTCT
+                   WHERE
+                        CNTCT_TYCD = 'MBL_PHN'
+                        AND USER_ID = ABSNCE.USER_ID) AS "MOBILE_NO"
+                , ABSNCE.ABSNCE_TTL         AS "ABSNCE_TTL"
+                , ABSNCE.ABSNCE_RFLTRT      AS "ABSNCE_RFLTRT"
+                , ABSNCE.ABSNCE_CTS         AS "ABSNCE_CTS"
+                , ABSNCE.EXAM_ABSNCE_ID     AS "EXAM_ABSNCE_ID"
             FROM
                 TB_LMS_EXAM_BSC BSC
                 JOIN TB_LMS_EXAM_ABSNCE ABSNCE
@@ -2647,14 +3319,20 @@
                         , MIN(EXAM_PSBL_SDTTM) AS EXAM_PSBL_SDTTM
                       FROM
                         TB_LMS_EXAM_DTL
+                      WHERE
+                          DELYN ='N'
                       GROUP BY EXAM_BSC_ID ) DTL
                     ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
-                JOIN TB_LMS_CMMN_CD CMMNCD
-                    ON BSC.EXAM_GBNCD = CMMNCD.CD
-                    AND CMMNCD.UP_CD = 'EXAM_GBNCD'
+                JOIN TB_LMS_CMMN_CD CMMN1
+                    ON BSC.EXAM_GBNCD = CMMN1.CD
+                    AND CMMN1.UP_CD = 'EXAM_GBNCD'
+                JOIN TB_LMS_CMMN_CD CMMN2
+                    ON ABSNCE.ABSNCE_APLY_STSCD = CMMN2.CD
+                    AND CMMN2.UP_CD = 'ABSNCE_APLY_STSCD'
             WHERE
                 BSC.EXAM_BSC_ID = #{examBscId}
-                AND ABSNCE.USER_ID = #{userId} ) T
+                AND ABSNCE.USER_ID = #{userId}
+                AND BSC.DELYN ='N' ) T
         WHERE
             T.LINE_NO = 1
     </select>
@@ -2667,7 +3345,7 @@
         */
         <include refid="CommonSQL.pagePrefix" />
         <include refid="listQueryForAbsnceUserHstr"/>
-        <include refid="CommonSQL.pageSubfix" />
+        <include refid="CommonSQL.pageSuffix" />
     </select>
 
     <!-- 결시자 결시신청 이력 목록 카운트  -->
@@ -2682,6 +3360,32 @@
             (<include refid="listQueryForAbsnceUserHstr"/>) Z
     </select>
 
+    <select id="listAbsnceBySbjctId" resultType="egovMap">
+        /*
+            SQL ID : ExamDAO.listAbsnceBySbjctId
+            설명 : 과목아이디 기준 결시 목록 조회 (거절건 제외)
+        */
+        SELECT A.USER_ID, A.ABSNCE_APLY_STSCD, A.EXAM_GBNCD
+        FROM (
+            SELECT
+                  ROW_NUMBER()OVER(PARTITION BY A.EXAM_BSC_ID, A.USER_ID ORDER BY A.REG_DTTM DESC ) AS RN
+                , B.SBJCT_ID
+                , A.USER_ID
+                , A.ABSNCE_APLY_STSCD
+                , B.EXAM_GBNCD
+                , B.TKEXAM_MTHD_CD
+            FROM TB_LMS_EXAM_ABSNCE A
+            JOIN TB_LMS_EXAM_BSC B
+            ON A.EXAM_BSC_ID = B.EXAM_BSC_ID
+                AND B.SBJCT_ID = #{sbjctId}
+                AND B.EXAM_GBNCD IN ('EXAM_MID', 'EXAM_MID_TEAM','EXAM_LST', 'EXAM_LST_TEAM')
+                AND B.TKEXAM_MTHD_CD = 'RLTM'
+            WHERE 1=1
+                AND A.ABSNCE_APLY_STSCD IN ('APLY', 'RE_APLY', 'APRV')
+        )A
+        WHERE A.RN = 1
+    </select>
+
     <!-- 장애인/고령자 시험 지원 목록 페이징  -->
     <select id="listDsblUserPaging" parameterType="examVO" resultType="examVO">
         /*
@@ -2690,7 +3394,7 @@
         */
         <include refid="CommonSQL.pagePrefix" />
         <include refid="listQueryForDsblUser"/>
-        <include refid="CommonSQL.pageSubfix" />
+        <include refid="CommonSQL.pageSuffix" />
     </select>
 
     <!-- 장애인/고령자 시험 지원 목록 카운트  -->
@@ -2708,7 +3412,7 @@
     <!-- 장애인/고령자 시험 지원 목록 조회 -->
     <select id="dsblUserList" parameterType="map" resultType="egovMap">
         /*
-            SQL ID : ExamDAO.tkexamUserList
+            SQL ID : ExamDAO.dsblUserList
             설명 : 장애인/고령자 시험 지원 목록 조회
         */
         <include refid="listQueryForDsblUser"/>
@@ -2722,7 +3426,7 @@
         */
         <include refid="CommonSQL.pagePrefix" />
         <include refid="listQueryForExamQuiz"/>
-        <include refid="CommonSQL.pageSubfix" />
+        <include refid="CommonSQL.pageSuffix" />
     </select>
 
     <!-- 교수 퀴즈 관리 퀴즈 목록 카운트  -->
@@ -2754,8 +3458,6 @@
             END                         AS "USER_STATUS"
             , CMMN1.CDNM                AS "DSBL_TYNM"
             , CMMN2.CDNM                AS "DSBL_GRDNM"
-            , CMMN4.CDNM                AS "SCND_DSBL_TYNM"
-            , CMMN5.CDNM                AS "SCND_DSBL_GRDNM"
             , ATN.SBJCT_ID              AS "SBJCT_ID"
             , SBJCT.DVCLAS_NCKNM        AS "DVCLAS_NCKNM"
             , SBJCT.SBJCTNM             AS "SBJCTNM"
@@ -2773,46 +3475,46 @@
             JOIN TB_LMS_DEPT DEPT
                 ON USR.DEPT_ID = DEPT.DEPT_ID
             /* 중간 고사 */
-            LEFT JOIN TB_LMS_EXAM_BSC BSC_MID
+            JOIN TB_LMS_EXAM_BSC BSC_MID
                 ON ATN.SBJCT_ID = BSC_MID.SBJCT_ID
                 AND BSC_MID.EXAM_GBNCD LIKE '%EXAM_MID%'
-            LEFT JOIN TB_LMS_EXAM_SPRT_APLY SPRT_MID
+                AND BSC_MID.DELYN ='N'
+            JOIN TB_LMS_EXAM_SPRT_APLY SPRT_MID
                 ON BSC_MID.EXAM_BSC_ID = SPRT_MID.EXAM_BSC_ID
                 AND ATN.USER_ID = SPRT_MID.USER_ID
             JOIN (SELECT DISTINCT
                     EXAM_MNTS
                     , EXAM_BSC_ID
                   FROM
-                    TB_LMS_EXAM_DTL A) DTL_MID
+                    TB_LMS_EXAM_DTL A
+                  WHERE
+                    A.DELYN ='N') DTL_MID
                 ON BSC_MID.EXAM_BSC_ID = DTL_MID.EXAM_BSC_ID
             /* 기말 고사 */
-            LEFT JOIN TB_LMS_EXAM_BSC BSC_LST
+            JOIN TB_LMS_EXAM_BSC BSC_LST
                 ON ATN.SBJCT_ID = BSC_LST.SBJCT_ID
                 AND BSC_LST.EXAM_GBNCD LIKE '%EXAM_LST%'
-            LEFT JOIN TB_LMS_EXAM_SPRT_APLY SPRT_LST
+                AND BSC_LST.DELYN ='N'
+            JOIN TB_LMS_EXAM_SPRT_APLY SPRT_LST
                 ON BSC_LST.EXAM_BSC_ID = SPRT_LST.EXAM_BSC_ID
                 AND ATN.USER_ID = SPRT_LST.USER_ID
             JOIN (SELECT DISTINCT
                     EXAM_MNTS
                     , EXAM_BSC_ID
                   FROM
-                    TB_LMS_EXAM_DTL A) DTL_LST
+                    TB_LMS_EXAM_DTL A
+                  WHERE
+                    A.DELYN ='N') DTL_LST
                 ON BSC_LST.EXAM_BSC_ID = DTL_LST.EXAM_BSC_ID
             LEFT JOIN TB_LMS_CMMN_CD CMMN1
-                ON USR.MN_DSBL_CD = CMMN1.CD
+                ON USR.DSBL_TYCD = CMMN1.CD
                 AND CMMN1.UP_CD = 'DSBL_TYCD'
             LEFT JOIN TB_LMS_CMMN_CD CMMN2
-                ON USR.MN_DSBL_GRDCD = CMMN2.CD
+                ON USR.DSBL_GRDCD = CMMN2.CD
                 AND CMMN2.UP_CD = 'DSBL_GRDCD'
             LEFT JOIN TB_LMS_CMMN_CD CMMN3
                 ON USR.EXAM_SPRT_APLY_TYCD = CMMN3.CD
                 AND CMMN3.UP_CD = 'EXAM_SPRT_APLY_TYCD'
-            LEFT JOIN TB_LMS_CMMN_CD CMMN4
-                ON USR.SCND_DSBL_CD = CMMN4.CD
-                AND CMMN4.UP_CD = 'DSBL_TYCD'
-            LEFT JOIN TB_LMS_CMMN_CD CMMN5
-                ON USR.SCND_DSBL_GRDCD = CMMN5.CD
-                AND CMMN5.UP_CD = 'DSBL_GRDCD'
             JOIN TB_LMS_SBJCT SBJCT
                 ON ATN.SBJCT_ID = SBJCT.SBJCT_ID
         WHERE
@@ -2838,14 +3540,29 @@
             , QUIZ.QSTN_RNDMYN          AS "QSTN_RNDMYN"
             , QUIZ.QSTN_VWITM_RNDMYN    AS "QSTN_VWITM_RNDMYN"
             , QUIZ.EXAM_BSC_ID          AS "EXAM_BSC_ID"
-            , QUIZ.EXAM_GRP_ID          AS "EXAM_GRP_ID"
         FROM
-            TB_LMS_EXAM_BSC QUIZ
-            JOIN TB_LMS_EXAM_DTL QUIZ_DTL
-                 ON QUIZ.EXAM_BSC_ID = QUIZ_DTL.EXAM_BSC_ID
+            TB_LMS_EXAM_BSC BSC
+            JOIN TB_LMS_ONLN_EXAMQUIZ ONQZ
+                ON BSC.EXAM_BSC_ID = ONQZ.EXAM_BSC_ID
+            JOIN TB_LMS_EXAM_BSC QUIZ
+                ON ONQZ.QUIZ_BSC_ID = QUIZ.EXAM_BSC_ID
+                AND QUIZ.DELYN ='N'
+            JOIN (SELECT
+                      *
+                  FROM
+                      (SELECT
+                           QD.*
+                            , ROW_NUMBER() OVER (PARTITION BY QD.EXAM_BSC_ID ORDER BY QD.EXAM_DTL_ID DESC) AS RN
+                       FROM
+                           TB_LMS_EXAM_DTL QD
+                       WHERE
+                           QD.DELYN ='N')
+                  WHERE
+                      RN = 1 ) QUIZ_DTL
+                ON QUIZ.EXAM_BSC_ID = QUIZ_DTL.EXAM_BSC_ID
         WHERE
-            QUIZ.EXAM_GRP_ID = #{examGrpId}
-            AND QUIZ.EXAM_TYCD = 'QUIZ'
+            BSC.EXAM_BSC_ID = #{examBscId}
+            AND BSC.DELYN ='N'
     </select>
 
     <!-- 수강생 시험 응시현황 목록 페이징  -->
@@ -2856,7 +3573,7 @@
         */
         <include refid="CommonSQL.pagePrefix" />
         <include refid="listQueryForTkexamStat"/>
-        <include refid="CommonSQL.pageSubfix" />
+        <include refid="CommonSQL.pageSuffix" />
     </select>
 
     <!-- 수강생 시험 응시현황 목록 카운트  -->
@@ -2888,6 +3605,66 @@
             AND (EXAM_GBNCD LIKE '%MID%' OR EXAM_GBNCD LIKE '%LST%')
             AND EXAM_TYCD = 'EXAM'
             AND DELYN = 'N'
+    </select>
+
+    <!-- 대체 과제 ID 조회 -->
+    <select id="selectAsmtSbstId" parameterType="String" resultType="String">
+        /*
+            SQL ID : ExamDAO.selectAsmtSbstId
+            설명 : 대체 과제 ID 조회
+         */
+        SELECT
+            EXAM_EVL_SBST_ID
+        FROM
+            TB_LMS_EXAM_EVL_SBST
+        WHERE
+            EXAM_SBST_ID = #{asmtId}
+    </select>
+
+    <!-- 퀴즈 시험아이디 조회 -->
+    <select id="selectExamQuizBscId" parameterType="examVO" resultType="String">
+        /*
+            SQL ID : ExamDAO.selectExamQuizBscId
+            설명 : 퀴즈 시험아이디 조회
+        */
+        SELECT
+            QUIZ.EXAM_BSC_ID    AS "EXAM_BSC_ID"
+        FROM
+            TB_LMS_EXAM_BSC BSC
+            /* 온라인시험퀴즈 */
+            JOIN TB_LMS_ONLN_EXAMQUIZ ONQZ
+                ON BSC.EXAM_BSC_ID = ONQZ.EXAM_BSC_ID
+            /* 시험 > 시험 퀴즈 조회용도 */
+            JOIN TB_LMS_EXAM_BSC QUIZ
+                ON ONQZ.QUIZ_BSC_ID = QUIZ.EXAM_BSC_ID
+                AND QUIZ.DELYN = 'N'
+        WHERE
+            BSC.EXAM_BSC_ID = #{examBscId}
+            AND BSC.DELYN ='N'
+    </select>
+
+    <!-- 시험지 조회 -->
+    <select id="selectExamppr" parameterType="String" resultType="egovMap">
+        /*
+            SQL ID : ExamDAO.selectExamppr
+            설명 : 시험지 조회
+        */
+        SELECT
+            ONQZ.ONLN_EXAMPPR_URL   AS "ONLN_EXAMPPR_URL"
+            , CASE
+                WHEN ONQZ.ONLN_EXAMPPR_URL IS NULL THEN 'N'
+                ELSE 'Y'
+            END                     AS "IS_ACTIVE"
+            , TRGT.TEAM_ID          AS "TEAM_ID"
+            , TEAM.TEAMNM           AS "TEAMNM"
+        FROM
+            TB_LMS_ONLN_EXAMQUIZ ONQZ
+            LEFT JOIN TB_LMS_EXAM_TRGTR TRGT
+                ON ONQZ.EXAM_DTL_ID = TRGT.EXAM_DTL_ID
+            LEFT JOIN TB_LMS_TEAM TEAM
+                ON TRGT.TEAM_ID = TEAM.TEAM_ID
+        WHERE
+            ONQZ.EXAM_BSC_ID = #{examBscId}
     </select>
 
     <!-- 성적 공개여부 수정  -->
@@ -2939,6 +3716,9 @@
             , MRK_OYN               =   #{mrkOyn}
             , EXAMPPR_OYN           =   #{exampprOyn}
             , BYTEAM_SUBREXAM_USEYN =   #{byteamSubrexamUseyn}
+            , QSTN_DSPLY_GBNCD      =   #{qstnDsplyGbncd}
+            , QSTN_RNDMYN           =   #{qstnRndmyn}
+            , QSTN_VWITM_RNDMYN     =   #{qstnVwitmRndmyn}
             , MDFR_ID               =   #{mdfrId}
             , MOD_DTTM              =   FN_DTTM()
         WHERE
@@ -3010,9 +3790,7 @@
             , MRK_RFLTYN            =   #{mrkRfltyn}
             , MRK_OYN               =   #{mrkOyn}
             , EVL_SCR_TYCD          =   #{evlScrTycd}
-        <if test="'RUBLIC'.equals(evlScrTycd)">
-            , RUBLIC_ID             =   #{rublicId}
-        </if>
+            , RUBRIC_ID             =   #{rubricId}
             , SBASMT_TYCD           =   #{sbasmtTycd}
             , SBMSN_FILE_MIME_TYCD  =   #{sbmsnFileMimeTycd}
             , MDFR_ID               =   #{mdfrId}
@@ -3059,26 +3837,44 @@
             EXAM_GRP_ID = #{examGrpId}
     </update>
 
+    <!-- 대체 과제 삭제 -->
+    <update id="deleteSbstAsmt" parameterType="examVO">
+        /*
+            SQL ID : ExamDAO.deleteSbstAsmt
+            설명 : 대체 과제 삭제
+        */
+        UPDATE
+            TB_LMS_ASMT
+        SET
+            DELYN   = 'Y'
+        WHERE
+            ASMT_ID = #{asmtId}
+    </update>
+
     <!-- 시험 기본정보 삭제 -->
-    <delete id="deleteExamBscInfo" parameterType="examVO">
+    <update id="deleteExamBscInfo" parameterType="examVO">
         /*
             SQL ID : ExamDAO.deleteExamBscInfo
             설명 : 시험 기본정보 삭제
         */
-        DELETE FROM
+        UPDATE
             TB_LMS_EXAM_BSC
+        SET
+            DELYN = 'Y'
         WHERE
             EXAM_BSC_ID = #{examBscId}
-    </delete>
+    </update>
 
     <!-- 시험 상세정보 삭제 -->
-    <delete id="deleteExamDtlInfo" parameterType="examVO">
+    <update id="deleteExamDtlInfo" parameterType="examVO">
         /*
             SQL ID : ExamDAO.deleteExamDtlInfo
             설명 : 시험 상세정보 삭제
         */
-        DELETE FROM
+        UPDATE
             TB_LMS_EXAM_DTL
+        SET
+            DELYN = 'Y'
         WHERE
             EXAM_DTL_ID IN ( SELECT
                                  B.EXAM_DTL_ID
@@ -3088,7 +3884,7 @@
                                     ON A.EXAM_BSC_ID = B.EXAM_BSC_ID
                              WHERE
                                  A.EXAM_BSC_ID = #{examBscId} )
-    </delete>
+    </update>
 
     <!-- 시험 대상자 삭제 -->
     <delete id="deleteExamTrgtr" parameterType="examVO">
@@ -3109,6 +3905,18 @@
                                 A.EXAM_BSC_ID = #{examBscId} )
     </delete>
 
+    <!-- 온라인퀴즈시험 삭제 -->
+    <delete id="removeExamOnqz" parameterType="examVO">
+        /*
+            SQL ID : ExamDAO.removeExamOnqz
+            설명 : 온라인퀴즈시험 삭제
+        */
+        DELETE FROM
+            TB_LMS_ONLN_EXAMQUIZ
+        WHERE
+            QUIZ_BSC_ID = #{examBscId}
+    </delete>
+
     <!-- 대체 시험 삭제 -->
     <delete id="deleteExamSbst" parameterType="examVO">
         /*
@@ -3119,18 +3927,6 @@
             TB_LMS_EXAM_EVL_SBST
         WHERE
             EXAM_EVL_SBST_ID = #{examEvlSbstId}
-    </delete>
-
-    <!-- 대체 과제 삭제 -->
-    <delete id="deleteSbstAsmt" parameterType="examVO">
-        /*
-            SQL ID : ExamDAO.deleteSbstAsmt
-            설명 : 대체 과제 삭제
-        */
-        DELETE FROM
-            TB_LMS_ASMT
-        WHERE
-            ASMT_ID = #{asmtId}
     </delete>
 
     <!-- 시험 그룹 삭제 -->
@@ -3144,4 +3940,1226 @@
         WHERE
             EXAM_GRP_ID = #{examGrpId}
     </delete>
+
+    <!-- ************************* 학습자 ************************* -->
+    <sql id="listQueryForExamStdnt">
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY TO_DATE(DTL.EXAM_PSBL_SDTTM, 'YYYYMMDDHH24MISS') DESC
+                , BSC.EXAM_BSC_ID ASC)      AS "LINE_NO"
+            , BSC.EXAM_BSC_ID               AS "EXAM_BSC_ID"
+            , GBNCD.CDNM                    AS "EXAM_GBNNM"
+            , BSC.TKEXAM_MTHD_CD            AS "TKEXAM_MTHD_CD"
+            , TKEXAM_MTHD.CDNM              AS "TKEXAM_MTHD_NM"
+            , BSC.EXAM_TTL                  AS "EXAM_TTL"
+            , DTL.EXAM_PSBL_SDTTM           AS "EXAM_PSBL_SDTTM"
+            , DTL.EXAM_PSBL_EDTTM           AS "EXAM_PSBL_EDTTM"
+            , DTL.EXAM_MNTS                 AS "EXAM_MNTS"
+            , BSC.MRK_RFLTYN                AS "MRK_RFLTYN"
+            , CASE
+                WHEN BSC.TKEXAM_MTHD_CD = 'QUIZ' THEN
+                    CASE
+                        WHEN TKEXAM_QUIZ.TKEXAM_ID IS NULL THEN 'N'
+                        ELSE 'Y'
+                    END
+                ELSE
+                    CASE
+                        WHEN TKEXAM_ONLN.TKEXAM_ID IS NULL THEN 'N'
+                        ELSE 'Y'
+                    END
+            END                             AS "TKEXAM_YN"  /* N - 미응시, Y - 응시 */
+            , CASE
+                  WHEN ABSNCE.EXAM_ABSNCE_ID IS NULL THEN 'N'
+                  ELSE 'Y'
+            END                             AS "ABSNCE_YN"  /* N - 결시 미승인, Y - 결시 승인 */
+            , CASE
+                WHEN BSC.TKEXAM_MTHD_CD = 'QUIZ' THEN TKEXAM_QUIZ.TOT_SCR   /* 시험 - 퀴즈 점수 */
+                ELSE
+                    /* 온라인 시험의 경우 결시자면 대체 시험을 보도록 되어 있음 */
+                    CASE
+                        WHEN ABSNCE.EXAM_ABSNCE_ID IS NOT NULL THEN
+                            CASE
+                                WHEN SBST.EXAM_SBST_TYCD = 'SBST_ASMT' THEN TKEXAM_SBST_ASMT.SCR        /* 대체 과제 점수 */
+                                WHEN SBST.EXAM_SBST_TYCD = 'SBST_QUIZ' THEN TKEXAM_SBST_QUIZ.TOT_SCR    /* 대체 퀴즈 점수 */
+                                ELSE NULL
+                            END
+                        ELSE TKEXAM_ONLN.TOT_SCR    /* 온라인 시험 점수 */
+                    END
+            END                             AS "TOT_SCR"
+            , NVL(SBST.FDBK_CNT, 0)         AS "FDBK_CNT"
+            , BSC.BYTEAM_SUBREXAM_USEYN     AS "BYTEAM_SUBREXAM_USEYN"
+            , BSC.EXAMPPR_OYN               AS "EXAMPPR_OYN"
+            , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')  AS "NOW_DTTM"
+        FROM
+            TB_LMS_EXAM_BSC BSC
+            /* 시험 상세 (1건만 추출) */
+            JOIN (SELECT
+                      *
+                  FROM
+                      (SELECT
+                            D.*
+                            , ROW_NUMBER() OVER (PARTITION BY D.EXAM_BSC_ID ORDER BY D.EXAM_DTL_ID DESC) AS RN
+                        FROM
+                            TB_LMS_EXAM_DTL D
+                        WHERE
+                            D.DELYN ='N')
+                        WHERE
+                            RN = 1 ) DTL
+                ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+            /* 시험 응시 (실시간 온라인) */
+            LEFT JOIN (SELECT
+                            BSC.EXAM_BSC_ID
+                            , TK.TKEXAM_ID
+                            , RSLT.TOT_SCR
+                        FROM
+                            TB_LMS_TKEXAM TK
+                            JOIN TB_LMS_EXAM_DTL DTL
+                                ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+                                AND DTL.DELYN ='N'
+                            JOIN TB_LMS_EXAM_BSC BSC
+                                ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                                AND BSC.DELYN ='N'
+                            JOIN TB_LMS_ATNDLC ATD
+                                ON ATD.SBJCT_ID = BSC.SBJCT_ID
+                                AND ATD.USER_ID = TK.USER_ID
+                                AND ATD.AUDITYN = 'N'
+                                AND ATD.ATNDLC_STSCD = 'APPROVE'
+                            LEFT JOIN TB_LMS_TKEXAM_RSLT RSLT
+                                ON TK.TKEXAM_ID = RSLT.TKEXAM_ID
+                                AND RSLT.EVLYN = 'Y'    /* 학습자에 대한 시험 평가가 완료 되어야 함 */
+                        WHERE
+                            TK.USER_ID = #{userId}) TKEXAM_ONLN
+                ON TKEXAM_ONLN.EXAM_BSC_ID = BSC.EXAM_BSC_ID
+            /* 시험 응시 (퀴즈) */
+            LEFT JOIN (SELECT
+                            BSC.EXAM_BSC_ID
+                            , TK.TKEXAM_ID
+                            , RSLT.TOT_SCR
+                        FROM
+                            TB_LMS_TKEXAM TK
+                            JOIN TB_LMS_EXAM_DTL DTL
+                                ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+                                AND DTL.DELYN ='N'
+                            JOIN TB_LMS_ONLN_EXAMQUIZ ONQZ
+                                ON ONQZ.QUIZ_BSC_ID = DTL.EXAM_BSC_ID
+                            JOIN TB_LMS_EXAM_BSC BSC
+                                ON ONQZ.QUIZ_BSC_ID = BSC.EXAM_BSC_ID
+                                AND BSC.DELYN ='N'
+                            JOIN TB_LMS_ATNDLC ATD
+                                ON ATD.SBJCT_ID = BSC.SBJCT_ID
+                                AND ATD.USER_ID = TK.USER_ID
+                                AND ATD.AUDITYN = 'N'
+                                AND ATD.ATNDLC_STSCD = 'APPROVE'
+                            LEFT JOIN TB_LMS_TKEXAM_RSLT RSLT
+                                ON TK.TKEXAM_ID = RSLT.TKEXAM_ID
+                                AND RSLT.EVLYN = 'Y'    /* 학습자에 대한 시험 평가가 완료 되어야 함 */
+                        WHERE
+                            TK.USER_ID = #{userId}) TKEXAM_QUIZ
+                ON TKEXAM_QUIZ.EXAM_BSC_ID = BSC.EXAM_BSC_ID
+            LEFT JOIN TB_LMS_EXAM_EVL_SBST SBST
+                ON BSC.EXAM_BSC_ID = SBST.EXAM_BSC_ID
+            /* 시험 응시 (대체 과제) */
+            LEFT JOIN (SELECT
+                            ASMT.ASMT_ID
+                            , EVL.SCR
+                        FROM
+                            TB_LMS_ASMT ASMT
+                            LEFT JOIN TB_LMS_ASMT_EVL EVL
+                                ON ASMT.ASMT_ID = EVL.ASMT_ID
+                                AND EVL.USER_ID = #{userId}) TKEXAM_SBST_ASMT
+                ON SBST.EXAM_SBST_ID = TKEXAM_SBST_ASMT.ASMT_ID
+            /* 시험 응시 (대체 퀴즈) */
+            LEFT JOIN (SELECT
+                            BSC.EXAM_BSC_ID
+                            , TK.TKEXAM_ID
+                            , RSLT.TOT_SCR
+                        FROM
+                            TB_LMS_TKEXAM TK
+                            JOIN TB_LMS_EXAM_DTL DTL
+                                ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+                                AND DTL.DELYN ='N'
+                            JOIN TB_LMS_EXAM_BSC BSC
+                                ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                                AND BSC.DELYN ='N'
+                            JOIN TB_LMS_ATNDLC ATD
+                                ON ATD.SBJCT_ID = BSC.SBJCT_ID
+                                AND ATD.USER_ID = TK.USER_ID
+                                AND ATD.AUDITYN = 'N'
+                                AND ATD.ATNDLC_STSCD = 'APPROVE'
+                            LEFT JOIN TB_LMS_TKEXAM_RSLT RSLT
+                                ON TK.TKEXAM_ID = RSLT.TKEXAM_ID
+                                AND RSLT.EVLYN = 'Y'    /* 학습자에 대한 시험 평가가 완료 되어야 함 */
+                        WHERE
+                            TK.USER_ID = #{userId}) TKEXAM_SBST_QUIZ
+                ON SBST.EXAM_SBST_ID = TKEXAM_SBST_QUIZ.EXAM_BSC_ID
+            /* 대체 시험 (과제만) */
+            LEFT JOIN (SELECT
+                            EB.EXAM_BSC_ID
+                            , SBST.EXAM_SBST_ID
+                            , COUNT(ASFD.ASMT_FDBK_ID)  AS "FDBK_CNT"
+                        FROM
+                            TB_LMS_EXAM_BSC EB
+                            LEFT JOIN TB_LMS_EXAM_EVL_SBST SBST
+                                ON EB.EXAM_BSC_ID = SBST.EXAM_BSC_ID
+                                AND SBST.EXAM_SBST_TYCD = 'SBST_ASMT'
+                            LEFT JOIN TB_LMS_ASMT_FDBK ASFD
+                                ON SBST.EXAM_SBST_ID = ASFD.ASMT_ID
+                                AND ASFD.USER_ID = #{userId}
+                        WHERE
+                            EB.DELYN ='N'
+                        GROUP BY
+                            EB.EXAM_BSC_ID
+                            , SBST.EXAM_SBST_ID) SBST
+                ON BSC.EXAM_BSC_ID = SBST.EXAM_BSC_ID
+            /* 결시 */
+            LEFT JOIN (SELECT
+                            EB.EXAM_BSC_ID
+                            , ABSNCE.EXAM_ABSNCE_ID
+                        FROM
+                            TB_LMS_EXAM_BSC EB
+                            LEFT JOIN TB_LMS_EXAM_ABSNCE ABSNCE
+                                ON EB.EXAM_BSC_ID = ABSNCE.EXAM_BSC_ID
+                                AND ABSNCE.ABSNCE_APLY_STSCD = 'APRV'
+                                AND ABSNCE.USER_ID = #{userId}
+                        WHERE
+                            EB.DELYN ='N') ABSNCE
+                ON BSC.EXAM_BSC_ID = ABSNCE.EXAM_BSC_ID
+            JOIN TB_LMS_ATNDLC ATNDLC
+                ON BSC.SBJCT_ID = ATNDLC.SBJCT_ID
+            JOIN TB_LMS_CMMN_CD GBNCD
+                ON BSC.EXAM_GBNCD = GBNCD.CD
+                AND GBNCD.UP_CD = 'EXAM_GBNCD'
+            JOIN TB_LMS_CMMN_CD TKEXAM_MTHD
+                ON BSC.TKEXAM_MTHD_CD = TKEXAM_MTHD.CD
+                AND TKEXAM_MTHD.UP_CD = 'TKEXAM_MTHD_CD'
+        WHERE
+            BSC.EXAM_TYCD = 'EXAM'
+            AND BSC.DELYN = 'N'
+            AND BSC.EXAM_QSTNS_CMPTNYN = 'Y'
+            AND BSC.SBJCT_ID = #{sbjctId}
+            AND ATNDLC.USER_ID = #{userId}
+        <if test = "examTtl != null and examTtl != ''">
+            AND BSC.EXAM_TTL LIKE '%' || #{examTtl} || '%'
+        </if>
+    </sql>
+
+    <sql id="listQueryForStdntAbsnce">
+        SELECT
+            ROW_NUMBER() OVER (ORDER BY (CASE
+                                            WHEN BSC.EXAM_GBNCD LIKE '%LST%' THEN 1     /* 기말고사 */
+                                            WHEN BSC.EXAM_GBNCD LIKE '%MID%' THEN 2     /* 중간고사 */
+                                            ELSE 3
+                                        END) ASC
+                                        , TO_DATE(ABSN.REG_DTTM, 'YYYYMMDDHH24MISS') DESC)  AS "LINE_NO"
+            , BSC.EXAM_BSC_ID       AS "EXAM_BSC_ID"
+            , ABSN.EXAM_ABSNCE_ID   AS "EXAM_ABSNCE_ID"
+            , SBJCT.SBJCTNM         AS "SBJCTNM"
+            , SBJCT.DVCLAS_NCKNM    AS "DVCLAS_NCKNM"
+            , CMMN1.CDNM            AS "EXAM_GBNNM"
+            , ABSN.REG_DTTM         AS "REG_DTTM"
+            , CASE
+                WHEN ABSN.ABSNCE_APLY_STSCD = 'APLY' THEN 1         /* 신청 */
+                WHEN ABSN.ABSNCE_APLY_STSCD = 'RE_APLY' THEN 2      /* 재신청 */
+                WHEN ABSN.ABSNCE_APLY_STSCD = 'APRV' THEN 3         /* 승인 */
+                WHEN ABSN.ABSNCE_APLY_STSCD = 'RJCT' THEN 4         /* 거절 */
+            END                     AS "ABSNCE_APLY_STSCD"
+            , CMMN2.CDNM            AS "ABSNCE_APLY_STSNM"
+            , CMMN3.CDNM            AS "TKEXAM_MTHD_NM"
+            , ABSN.APRVDTTM         AS "APRVDTTM"
+            , ABSN.USER_ID          AS "USER_ID"
+        FROM
+            TB_LMS_EXAM_BSC BSC
+            JOIN TB_LMS_EXAM_ABSNCE ABSN
+                ON BSC.EXAM_BSC_ID = ABSN.EXAM_BSC_ID
+                AND ABSN.USER_ID = #{userId}
+            JOIN TB_LMS_SBJCT SBJCT
+                ON BSC.SBJCT_ID = SBJCT.SBJCT_ID
+            JOIN TB_LMS_CMMN_CD CMMN1
+                ON BSC.EXAM_GBNCD = CMMN1.CD
+                AND CMMN1.UP_CD = 'EXAM_GBNCD'
+            JOIN TB_LMS_CMMN_CD CMMN2
+                ON ABSN.ABSNCE_APLY_STSCD = CMMN2.CD
+                AND CMMN2.UP_CD = 'ABSNCE_APLY_STSCD'
+            JOIN TB_LMS_CMMN_CD CMMN3
+                ON BSC.TKEXAM_MTHD_CD = CMMN3.CD
+                AND CMMN3.UP_CD = 'TKEXAM_MTHD_CD'
+        WHERE
+            BSC.SBJCT_ID = #{sbjctId}
+            AND BSC.DELYN ='N'
+    </sql>
+
+    <sql id="listQueryForStdntSprtAply">
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY T.MID_EXAM_BSC_ID) AS "LINE_NO"
+            , T.*
+        FROM
+            (SELECT
+                DEPT.DEPTNM                         AS "DEPTNM"
+                , SBJCT.SMSTR_CHRT_ID               AS "SMSTR_CHRT_ID"
+                , SBJCT.SBJCTNM                     AS "SBJCTNM"
+                , SBJCT.DVCLAS_NCKNM                AS "DVCLAS_NCKNM"
+                , CMMN1.CDNM || '/' || CMMN2.CDNM   AS "EXAM_GBNNM"
+                , MID.EXAM_PSBL_SDTTM               AS "MID_EXAM_PSBL_SDTTM"
+                , LST.EXAM_PSBL_SDTTM               AS "LST_EXAM_PSBL_SDTTM"
+                , PROF.USERNM                       AS "PROFNM"
+                , ''                                AS "TUTNM" /* 튜터 정보로 수정 예정 */
+                -- , USR.USER_RPRS_ID                  AS "USER_RPRS_ID"
+                , USR.STDNT_NO                      AS "STDNT_NO"
+                , USR.USERNM                        AS "USERNM"
+                , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'MBL_PHN' AND USER_ID = ATND.USER_ID) AS "MOBILE_NO"
+                , FN_DTTM()                         AS "NOW_DTTM"
+                , MID.EXAM_BSC_ID                   AS "MID_EXAM_BSC_ID"
+                , LST.EXAM_BSC_ID                   AS "LST_EXAM_BSC_ID"
+                /* 시험 지원은 '시간연장' 말고 없다... */
+                , '시간연장 / 시간연장'               AS "EXAM_SPRT_APLY_TYNM"
+                , CASE
+                    WHEN MID.APLY_STSCD = LST.APLY_STSCD AND MID.APLY_STSCD = 'APRV' THEN
+                        CASE
+                            WHEN MID.ADD_MNTS IS NULL THEN '부여하지 않음'
+                            ELSE '연장(' || MID.ADD_MNTS || '분)'
+                        END
+                        || ' / ' ||
+                        CASE
+                            WHEN LST.ADD_MNTS IS NULL THEN '부여하지 않음'
+                            ELSE '연장(' || LST.ADD_MNTS || '분)'
+                        END
+                    WHEN MID.APLY_STSCD = LST.APLY_STSCD AND MID.APLY_STSCD = 'RJCT' THEN '반려'
+                    ELSE '-'
+                END                 AS "SPRT_RSLT"
+                , MID.ADD_MNTS                      AS "SPRT_MID_ADD_MNTS"
+                , LST.ADD_MNTS                      AS "SPRT_LST_ADD_MNTS"
+                , MID.APLY_STSCD                    AS "MID_APLY_STSCD"
+                , LST.APLY_STSCD                    AS "LST_APLY_STSCD"
+                , CMMN3.CDNM || '/' || CMMN4.CDNM   AS "APLY_STSNM"
+                , MID.CNCL_APLY_STSCD               AS "MID_CNCL_APLY_STSCD"
+                , LST.CNCL_APLY_STSCD               AS "LST_CNCL_APLY_STSCD"
+                , CMMN5.CDNM || '/' || CMMN6.CDNM   AS "CNCL_APLY_STSNM"
+                , MID.EXAM_SPRT_APLY_ID             AS "MID_EXAM_SPRT_APLY_ID"
+                , LST.EXAM_SPRT_APLY_ID             AS "LST_EXAM_SPRT_APLY_ID"
+            FROM
+                TB_LMS_EXAM_BSC BSC
+                JOIN TB_LMS_ATNDLC ATND
+                    ON BSC.SBJCT_ID = ATND.SBJCT_ID
+                    AND ATND.USER_ID = #{userId}
+                JOIN TB_LMS_SBJCT SBJCT
+                    ON ATND.SBJCT_ID = SBJCT.SBJCT_ID
+                JOIN TB_LMS_USER USR
+                    ON ATND.USER_ID = USR.USER_ID
+                JOIN TB_LMS_USER PROF
+                    ON BSC.RGTR_ID = PROF.USER_ID
+                JOIN TB_LMS_DEPT DEPT
+                    ON DEPT.DEPT_ID = USR.DEPT_ID
+                /* 중간고사 */
+                LEFT JOIN (SELECT
+                            ROW_NUMBER() OVER (ORDER BY TO_DATE(MID.REG_DTTM, 'YYYYMMDDHH24MISS') DESC) "RN"
+                            , MID.EXAM_BSC_ID
+                            , MID.SBJCT_ID
+                            , MID.EXAM_GBNCD
+                            , SPRT_MID.APLY_STSCD
+                            , SPRT_MID.ADD_MNTS
+                            , SPRT_MID.EXAM_SPRT_APLY_ID
+                            , SPRT_MID.CNCL_APLY_STSCD
+                            , DTL.EXAM_PSBL_SDTTM
+                        FROM
+                            TB_LMS_EXAM_BSC MID
+                            LEFT JOIN TB_LMS_EXAM_SPRT_APLY SPRT_MID
+                                ON MID.EXAM_BSC_ID = SPRT_MID.EXAM_BSC_ID
+                                AND SPRT_MID.USER_ID = #{userId}
+                            JOIN (SELECT
+                                        EXAM_BSC_ID
+                                        , MIN(EXAM_PSBL_SDTTM) AS EXAM_PSBL_SDTTM
+                                    FROM
+                                        TB_LMS_EXAM_DTL
+                                    WHERE
+                                        DELYN ='N'
+                                    GROUP BY
+                                        EXAM_BSC_ID ) DTL
+                                ON MID.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                        WHERE
+                            EXAM_GBNCD LIKE '%MID%'
+                            AND MID.DELYN ='N') MID
+                    ON BSC.SBJCT_ID = MID.SBJCT_ID
+                    AND MID.RN = 1
+                /* 기말고사 */
+                LEFT JOIN (SELECT
+                            ROW_NUMBER() OVER (ORDER BY TO_DATE(LST.REG_DTTM, 'YYYYMMDDHH24MISS') DESC) "RN"
+                            , LST.EXAM_BSC_ID
+                            , LST.SBJCT_ID
+                            , LST.EXAM_GBNCD
+                            , SPRT_LST.APLY_STSCD
+                            , SPRT_LST.ADD_MNTS
+                            , SPRT_LST.EXAM_SPRT_APLY_ID
+                            , SPRT_LST.CNCL_APLY_STSCD
+                            , DTL.EXAM_PSBL_SDTTM
+                        FROM
+                            TB_LMS_EXAM_BSC LST
+                            LEFT JOIN TB_LMS_EXAM_SPRT_APLY SPRT_LST
+                                ON LST.EXAM_BSC_ID = SPRT_LST.EXAM_BSC_ID
+                                AND SPRT_LST.USER_ID = #{userId}
+                            JOIN (SELECT
+                                        EXAM_BSC_ID
+                                       , MIN(EXAM_PSBL_SDTTM) AS EXAM_PSBL_SDTTM
+                                    FROM
+                                        TB_LMS_EXAM_DTL
+                                    WHERE
+                                        DELYN ='N'
+                                    GROUP BY
+                                        EXAM_BSC_ID ) DTL
+                                ON LST.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                        WHERE
+                            EXAM_GBNCD LIKE '%LST%'
+                            AND LST.DELYN ='N') LST
+                    ON BSC.SBJCT_ID = LST.SBJCT_ID
+                    AND LST.RN = 1
+                /* 중간고사 구분 코드 */
+                LEFT JOIN TB_LMS_CMMN_CD CMMN1
+                    ON MID.EXAM_GBNCD = CMMN1.CD
+                    AND CMMN1.UP_CD = 'EXAM_GBNCD'
+                /* 기말고사 구분 코드 */
+                LEFT JOIN TB_LMS_CMMN_CD CMMN2
+                    ON LST.EXAM_GBNCD = CMMN2.CD
+                    AND CMMN2.UP_CD = 'EXAM_GBNCD'
+                /* 중간고사 시험지원 상태코드 */
+                LEFT JOIN TB_LMS_CMMN_CD CMMN3
+                    ON MID.APLY_STSCD = CMMN3.CD
+                    AND CMMN3.UP_CD = 'APLY_STSCD'
+                /* 기말고사 시험지원 상태코드 */
+                LEFT JOIN TB_LMS_CMMN_CD CMMN4
+                    ON LST.APLY_STSCD = CMMN4.CD
+                    AND CMMN4.UP_CD = 'APLY_STSCD'
+                /* 중간고사 시험지원 취소 상태코드 */
+                LEFT JOIN TB_LMS_CMMN_CD CMMN5
+                    ON MID.CNCL_APLY_STSCD = CMMN5.CD
+                    AND CMMN5.UP_CD = 'CNCL_APLY_STSCD'
+                /* 기말고사 시험지원 취소 상태코드 */
+                LEFT JOIN TB_LMS_CMMN_CD CMMN6
+                    ON LST.CNCL_APLY_STSCD = CMMN6.CD
+                    AND CMMN6.UP_CD = 'CNCL_APLY_STSCD'
+            WHERE
+                BSC.SBJCT_ID = #{sbjctId}
+                AND BSC.DELYN ='N') T
+        WHERE
+            ROWNUM = 1
+    </sql>
+
+    <!-- 학습자 결시신청 등록 (재신청 포함) -->
+    <insert id="registStdntAbsnce" parameterType="examVO">
+        /*
+            SQL ID : ExamDAO.registStdntAbsnce
+            설명 : 학습자 결시신청 등록
+        */
+        INSERT INTO
+            TB_LMS_EXAM_ABSNCE
+                ( EXAM_ABSNCE_ID
+                , EXAM_BSC_ID
+                , USER_ID
+                , ABSNCE_TTL
+                , ABSNCE_CTS
+                , ABSNCE_APLY_STSCD
+                , RGTR_ID
+                , REG_DTTM
+                , ABSNCE_RFLTRT)
+        VALUES
+                ( #{examAbsnceId}
+                , #{examBscId}
+                , #{userId}
+                , #{absnceTtl}
+                , #{absnceCts}
+                , #{absnceAplyStscd}
+                , #{userId}
+                , FN_DTTM()
+                , #{absnceRfltrt} )
+    </insert>
+
+    <!-- 학습자 장애인/고령자 시험지원 등록 -->
+    <insert id="registStdntSprtAply" parameterType="examVO">
+        /*
+            SQL ID : ExamDAO.registStdntSprtAply
+            설명 : 학습자 장애인/고령자 시험지원 등록
+        */
+        INSERT INTO
+            TB_LMS_EXAM_SPRT_APLY
+                ( EXAM_SPRT_APLY_ID
+                , EXAM_BSC_ID
+                , USER_ID
+                , APLY_STSCD
+                , ADD_MNTS
+                , RGTR_ID
+                , REG_DTTM
+                , SPRT_APLY_CTS
+                , EXAM_SPRT_APLY_GRP_ID )
+        VALUES
+                ( #{examSprtAplyId}
+                , #{examBscId}
+                , #{userId}
+                , #{aplyStscd}
+                , #{addMnts}
+                , #{rgtrId}
+                , FN_DTTM()
+                , #{sprtAplyCts}
+                , #{examSprtAplyGrpId} )
+    </insert>
+
+    <!-- 학습자 시험 목록 페이징  -->
+    <select id="listStdntExamPaging" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.listStdntExamPaging
+            설명 : 학습자 시험 목록 페이징
+        */
+        <include refid="CommonSQL.pagePrefix" />
+        <include refid="listQueryForExamStdnt"/>
+        <include refid="CommonSQL.pageSuffix" />
+    </select>
+
+    <!-- 학습자 시험 목록 카운트  -->
+    <select id="countStdntExam" parameterType="examVO" resultType="Integer">
+        /*
+            SQL ID : ExamDAO.countStdntExam
+            설명 : 학습자 시험 목록 카운트
+        */
+        SELECT
+            COUNT(1)
+        FROM
+            (<include refid="listQueryForExamStdnt"/>) Z
+    </select>
+
+    <!-- 학습자 장애인/고령자 여부 -->
+    <select id="stdntDsblSnrYn" parameterType="examVO" resultType="String">
+        /*
+            SQL ID : ExamDAO.stdntDsblSnrYn
+            설명 : 학습자 장애인/고령자 여부
+        */
+        SELECT
+            CASE
+                WHEN SNRYN = 'Y' THEN 'Y'
+                WHEN DSBLYN = 'Y' THEN 'Y'
+                ELSE 'N'
+            END AS "SNR_DSBLYN"
+        FROM
+            TB_LMS_USER
+        WHERE
+            USER_ID = #{userId}
+    </select>
+
+    <!-- 학습자 대체과제 ID 조회 -->
+    <select id="selectStdntSbstAsmtId" parameterType="examVO" resultType="String">
+        /*
+            SQL ID : ExamDAO.selectStdntSbstAsmtId
+            설명 : 학습자 대체과제 ID 조회
+        */
+        SELECT
+            EXAM_SBST_ID AS "ASMT_ID"
+        FROM
+            TB_LMS_EXAM_EVL_SBST
+        WHERE
+            EXAM_BSC_ID = #{examBscId}
+            AND EXAM_SBST_TYCD = 'SBST_ASMT'
+    </select>
+
+    <!-- 학습자 대체과제 피드백 기본정보 조회 -->
+    <select id="selectStdntSbstAsmtFdbkInfo" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.selectStdntSbstAsmtFdbkInfo
+            설명 : 학습자 대체과제 피드백 기본정보 조회
+        */
+        SELECT
+            DEPT.DEPTNM
+            , USR.STDNT_NO
+            , USR.USERNM
+            , EVL.SCR       AS "ASMT_SCR"
+        FROM
+            TB_LMS_USER USR
+            JOIN TB_LMS_DEPT DEPT
+                ON USR.DEPT_ID = DEPT.DEPT_ID
+            LEFT JOIN TB_LMS_ASMT_EVL EVL
+                ON USR.USER_ID = EVL.USER_ID
+                AND EVL.ASMT_ID = #{asmtId}
+        WHERE
+            USR.USER_ID = #{userId}
+    </select>
+
+    <!-- 학습자 시험 응시기록 조회 -->
+    <select id="selectStdntTkexamHist" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.selectStdntTkexamHist
+            설명 : 학습자 시험 응시기록 조회
+        */
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY TO_DATE(HSTRY.TKEXAM_SDTTM, 'YYYYMMDDHH24MISS') ASC) AS "LINE_NO"
+            , CMMN.CDNM AS "EXAM_HSTRY_GBNNM"
+            , HSTRY.TKEXAM_SDTTM
+            , HSTRY.TKEXAM_EDTTM
+            , ROUND((TO_DATE(HSTRY.TKEXAM_EDTTM, 'YYYYMMDDHH24MISS') - TO_DATE(HSTRY.TKEXAM_SDTTM, 'YYYYMMDDHH24MISS')) * 86400) AS "TKEXAM_DRTN"
+        FROM
+            TB_LMS_EXAM_BSC BSC
+            JOIN TB_LMS_EXAM_DTL DTL
+                ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                AND DTL.DELYN ='N'
+            JOIN TB_LMS_TKEXAM_HSTRY HSTRY
+                ON DTL.EXAM_DTL_ID = HSTRY.EXAM_DTL_ID
+                AND HSTRY.USER_ID = #{userId}
+            JOIN TB_LMS_CMMN_CD CMMN
+                ON HSTRY.EXAM_HSTRY_GBNCD = CMMN.CD
+                AND CMMN.UP_CD = 'EXAM_HSTRY_GBNCD'
+        WHERE
+            BSC.EXAM_BSC_ID = #{examBscId}
+            AND BSC.DELYN ='N'
+    </select>
+
+    <!-- 학습자 시험 응시결과 조회 -->
+    <select id="selectStdntTkexamRslt" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.selectStdntTkexamRslt
+            설명 : 학습자 시험 응시결과 조회
+        */
+        SELECT
+            TKEXAM.TKEXAM_SDTTM         AS "TKEXAM_SDTTM"
+            , TKEXAM.TKEXAM_MNTS        AS "TKEXAM_MNTS"
+            , RSLT.TOT_SCR              AS "TOT_SCR"
+            , TKEXAM.TKEXAM_CMPTNYN     AS "TKEXAM_CMPTNYN"
+        FROM
+            TB_LMS_EXAM_BSC BSC
+            JOIN TB_LMS_EXAM_DTL DTL
+                ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                AND DTL.DELYN ='N'
+            LEFT JOIN TB_LMS_TKEXAM TKEXAM
+                ON DTL.EXAM_DTL_ID = TKEXAM.EXAM_DTL_ID
+                AND TKEXAM.USER_ID = #{userId}
+            LEFT JOIN TB_LMS_TKEXAM_RSLT RSLT
+                ON TKEXAM.TKEXAM_ID = RSLT.TKEXAM_ID
+                AND RSLT.EVLYN = 'Y'    /* 학습자에 대한 시험 평가가 완료 되어야 함 */
+        WHERE
+            BSC.EXAM_BSC_ID = #{examBscId}
+            AND TKEXAM.TKEXAM_ID IS NOT NULL    /* 팀 시험인 경우 대비용... */
+            AND BSC.DELYN ='N'
+    </select>
+
+    <!-- 학습자 시험상세 ID 및 팀 ID 조회 -->
+    <select id="selectStdntDtlIdAndTeamId" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.selectStdntDtlIdAndTeamId
+            설명 : 학습자 시험상세 ID 및 팀 ID 조회
+        */
+        SELECT
+            DTL.EXAM_DTL_ID
+            , MBR.TEAM_ID
+        FROM
+            TB_LMS_EXAM_BSC BSC
+            JOIN TB_LMS_EXAM_DTL DTL
+                ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                AND DTL.DELYN ='N'
+            JOIN TB_LMS_EXAM_TRGTR TRGTR
+                ON DTL.EXAM_DTL_ID = TRGTR.EXAM_DTL_ID
+            JOIN TB_LMS_TEAM_MBR MBR
+                ON TRGTR.TEAM_ID = MBR.TEAM_ID
+                AND MBR.USER_ID = #{userId}
+        WHERE
+            BSC.EXAM_BSC_ID = #{examBscId}
+            AND BSC.DELYN ='N'
+    </select>
+
+    <!-- 학습자 퀴즈 상세 아이디 조회 -->
+    <select id="selectStdntQuizDtlId" parameterType="examVO" resultType="String">
+        /*
+            SQL ID : ExamDAO.selectStdntQuizDtlId
+            설명 : 학습자 퀴즈 상세 아이디 조회
+        */
+        SELECT
+            DTL.EXAM_DTL_ID
+        FROM
+            TB_LMS_EXAM_BSC BSC
+            JOIN TB_LMS_EXAM_DTL DTL
+                ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                AND DTL.DELYN = 'N'
+        WHERE
+            BSC.EXAM_BSC_ID = #{examBscId}
+            AND BSC.DELYN = 'N'
+    </select>
+
+    <!-- 학습자 대체 시험 조회 -->
+    <select id="selectStdntSbstInfo" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.selectStdntSbstInfo
+            설명 : 학습자 대체 시험 조회
+        */
+        SELECT
+            BSC.EXAM_BSC_ID           AS "EXAM_BSC_ID"
+            , SBST.EXAM_EVL_SBST_ID     AS "EXAM_EVL_SBST_ID"
+            , CMMN1.CDNM                AS "EXAM_EVL_SBSTNM"
+            , CASE
+                WHEN ASMT.ASMT_ID IS NOT NULL THEN 'ASMT'      /* 과제 */
+                WHEN QUIZ.EXAM_BSC_ID IS NOT NULL THEN 'QUIZ'  /* 퀴즈 */
+            END AS "GBN"
+            /* 과제 */
+            , ASMT.ASMT_ID              AS "ASMT_ID"
+            , ASMT.ASMT_TTL             AS "ASMT_TTL"
+            , ASMT.ASMT_CTS             AS "ASMT_CTS"
+            , ASMT.ASMT_SBMSN_SDTTM     AS "ASMT_SBMSN_SDTTM"
+            , ASMT.ASMT_SBMSN_EDTTM     AS "ASMT_SBMSN_EDTTM"
+            , ASMT.EVL_SCR_TYCD         AS "EVL_SCR_TYCD"
+            , CMMN2.CDNM                AS "EVL_SCR_TYNM"
+            , ASMT.SBMSN_FILE_MIME_TYCD AS "SBMSN_FILE_MIME_TYCD"
+            , ASMT.SBASMT_TYCD          AS "SBASMT_TYCD"
+            , NVL(ASFD.FDBK_CNT, 0)     AS "FDBK_CNT"
+            /* 퀴즈 */
+            , QUIZ.EXAM_BSC_ID          AS "QUIZ_BSC_ID"
+            , QUIZ_DTL.EXAM_DTL_ID      AS "EXAM_DTL_ID"
+            , QUIZ.EXAM_TTL             AS "EXAM_TTL"
+            , QUIZ.EXAM_CTS             AS "EXAM_CTS"
+            , QUIZ_DTL.EXAM_PSBL_SDTTM  AS "EXAM_PSBL_SDTTM"
+            , QUIZ_DTL.EXAM_PSBL_EDTTM  AS "EXAM_PSBL_EDTTM"
+            , SBST.REG_DTTM             AS "REG_DTTM"
+            , QUIZ_DTL.EXAM_MNTS        AS "EXAM_MNTS"
+            , QUIZ.EXAM_QSTNS_CMPTNYN   AS "EXAM_QSTNS_CMPTNYN"
+            , QUIZ.EXAM_GRP_ID          AS "EXAM_GRP_ID"
+            , QUIZ.EXAMPPR_OYN          AS "EXAMPPR_OYN"
+            , CMMN3.CDNM                AS "QSTN_DSPLY_GBNNM"
+            , QUIZ.QSTN_RNDMYN          AS "QSTN_RNDMYN"
+            , QUIZ.QSTN_VWITM_RNDMYN    AS "QSTN_VWITM_RNDMYN"
+            /* 공통 */
+            , CASE
+                WHEN ASMT.ASMT_ID IS NOT NULL THEN ASMT.MRK_RFLTYN
+                ELSE QUIZ.MRK_RFLTYN
+            END                         AS "MRK_RFLTYN"
+            , CASE
+                WHEN ASMT.ASMT_ID IS NOT NULL THEN ASMT.MRK_OYN
+                ELSE QUIZ.MRK_OYN
+            END                         AS "MRK_OYN"
+        FROM
+            /* 시험 기본 */
+            TB_LMS_EXAM_BSC BSC
+            /* 시험 대체 평가 */
+            JOIN TB_LMS_EXAM_EVL_SBST SBST
+                ON BSC.EXAM_BSC_ID = SBST.EXAM_BSC_ID
+            JOIN TB_LMS_CMMN_CD CMMN1
+                ON SBST.EXAM_SBST_TYCD = CMMN1.CD
+                AND CMMN1.UP_CD = 'EXAM_SBST_TYCD'
+            /* 과제 */
+            LEFT JOIN TB_LMS_ASMT ASMT
+                ON BSC.SBJCT_ID = ASMT.SBJCT_ID
+                AND SBST.EXAM_SBST_ID = ASMT.ASMT_ID
+            LEFT JOIN TB_LMS_CMMN_CD CMMN2
+                ON ASMT.EVL_SCR_TYCD = CMMN2.CD
+                AND CMMN2.UP_CD = 'EVL_SCR_TYCD'
+            LEFT JOIN (SELECT
+                            B.ASMT_ID
+                            , COUNT(B.ASMT_FDBK_ID) AS "FDBK_CNT"
+                       FROM
+                            TB_LMS_ASMT A
+                            JOIN TB_LMS_ASMT_FDBK B
+                                ON A.ASMT_ID = B.ASMT_ID
+                                AND B.USER_ID = #{userId}
+                       GROUP BY
+                            B.ASMT_ID) ASFD
+                ON ASMT.ASMT_ID = ASFD.ASMT_ID
+            /* 퀴즈 */
+            LEFT JOIN TB_LMS_EXAM_BSC QUIZ
+                ON SBST.EXAM_SBST_ID = QUIZ.EXAM_BSC_ID
+                AND QUIZ.DELYN ='N'
+            LEFT JOIN TB_LMS_EXAM_DTL QUIZ_DTL
+                ON QUIZ.EXAM_BSC_ID = QUIZ_DTL.EXAM_BSC_ID
+                AND QUIZ_DTL.DELYN ='N'
+            LEFT JOIN TB_LMS_CMMN_CD CMMN3
+                ON QUIZ.QSTN_DSPLY_GBNCD = CMMN3.CD
+                AND CMMN3.UP_CD = 'QSTN_DSPLY_GBNCD'
+        WHERE
+            BSC.EXAM_BSC_ID =#{examBscId}
+            AND BSC.DELYN ='N'
+    </select>
+
+    <!-- 학습자 대체 과제 제출기록 조회 -->
+    <select id="selectStdntSbstAsmtSbmtHist" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.selectStdntSbstAsmtSbmtHist
+            설명 : 학습자 대체 과제 제출기록 조회
+        */
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY TO_DATE(SBMSN.SBMSN_DTTM, 'YYYYMMDDHH24MISS') DESC) AS "LINE_NO"
+            , SBMSN.SBMSN_DTTM
+            , CASE
+                WHEN SBMSN.SBMSN_TYCD = 'FILE' THEN ATFL.FILENM
+                ELSE SBMSN.SBMSN_TXT
+            END AS "FILENM"
+        FROM
+            TB_LMS_ASMT_SBMSN SBMSN
+            /* 첨부파일 Todo : 과제 전용 첨부파일 테이블로 변경 가능성 있음. */
+            LEFT JOIN TB_LMS_ATFL ATFL
+                ON SBMSN.ASMT_SBMSN_ID = ATFL.REF_ID
+        WHERE
+            SBMSN.ASMT_ID = #{asmtId}
+            AND SBMSN.USER_ID = #{userId}
+    </select>
+
+    <!-- 학습자 대체 과제 평가결과 조회 -->
+    <select id="selectStdntSbstAsmtRslt" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.selectStdntSbstAsmtRslt
+            설명 : 학습자 대체 과제 평가결과 조회
+        */
+        SELECT
+            EVL.ASMT_EVL_ID
+            , SBMSN.ASMT_SBMSN_ID
+            , SBMSN.SBMSN_DTTM
+            , CASE
+                WHEN SBMSN.SBMSN_TYCD = 'FILE' THEN ATFL.FILENM
+                ELSE SBMSN.SBMSN_TXT
+            END AS "FILENM"
+            , EVL.SCR   AS "ASMT_SCR"
+        FROM
+            TB_LMS_ASMT ASMT
+            LEFT JOIN
+                (SELECT
+                    *
+                FROM
+                    (SELECT
+                        ROW_NUMBER() OVER(ORDER BY TO_DATE(SBMSN_DTTM, 'YYYYMMDDHH24MISS') DESC) AS "RN"
+                        , ASMT_SBMSN_ID
+                        , USER_ID
+                        , ASMT_ID
+                        , SBMSN_TYCD
+                        , SBMSN_TXT
+                        , SBMSN_DTTM
+                    FROM
+                        TB_LMS_ASMT_SBMSN
+                    WHERE
+                        USER_ID = #{userId}
+                        AND ASMT_ID = #{asmtId})
+                WHERE
+                    RN = 1) SBMSN
+                ON ASMT.ASMT_ID = SBMSN.ASMT_ID
+                AND SBMSN.USER_ID = #{userId}
+            LEFT JOIN TB_LMS_ASMT_EVL EVL
+                ON SBMSN.ASMT_SBMSN_ID = EVL.ASMT_SBMSN_ID
+                AND EVL.EVLYN = 'Y'     /* 학습자에 대한 과제 평가가 완료 되어야 함 */
+            LEFT JOIN TB_LMS_ATFL ATFL
+                ON SBMSN.ASMT_SBMSN_ID = ATFL.REF_ID
+        WHERE
+            ASMT.ASMT_ID = #{asmtId}
+    </select>
+
+    <!-- 학습자 결시신청 목록 페이징 -->
+    <select id="listStdntAbsncePaging" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.listStdntAbsncePaging
+            설명 : 학습자 결시신청 목록 페이징
+        */
+        <include refid="CommonSQL.pagePrefix" />
+        <include refid="listQueryForStdntAbsnce"/>
+        <include refid="CommonSQL.pageSuffix" />
+    </select>
+
+    <!-- 학습자 결시신청 목록 카운트  -->
+    <select id="countStdntAbsnce" parameterType="examVO" resultType="Integer">
+        /*
+            SQL ID : ExamDAO.countStdntAbsnce
+            설명 : 학습자 결시신청 목록 카운트
+        */
+        SELECT
+            COUNT(1)
+        FROM
+            (<include refid="listQueryForStdntAbsnce"/>) Z
+    </select>
+
+    <!-- 학습자 결시신청 기본정보 조회 -->
+    <select id="selectStdntAbsnceInfo" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.selectStdntAbsnceInfo
+            설명 : 학습자 결시신청 기본정보 조회
+        */
+        SELECT
+            *
+        FROM
+            (SELECT
+                 ROW_NUMBER() OVER (ORDER BY ABSNCE.REG_DTTM DESC) AS "LINE_NO"
+                , DEPT.DEPTNM
+                , SBJCT.SMSTR_CHRT_ID
+                , SBJCT.SBJCTNM
+                , SBJCT.DVCLAS_NCKNM
+                , CMMN1.CDNM            AS "EXAM_GBNNM"
+                , DTL.EXAM_PSBL_SDTTM   AS "EXAM_PSBL_SDTTM"
+                , PROF.USERNM           AS "PROFNM"
+                , ''                    AS "TUTNM" /* 튜터 정보로 수정 예정 */
+                -- , USR.USER_RPRS_ID
+                , USR.STDNT_NO
+                , USR.USERNM            AS "USERNM"
+                , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'MBL_PHN' AND USER_ID = ATND.USER_ID) AS "MOBILE_NO"
+                , FN_DTTM()             AS "NOW_DTTM"
+                /* 재신청일 경우 사용 */
+                , ABSNCE.ABSNCE_CTS     AS "ABSNCE_CTS"
+            FROM
+                TB_LMS_EXAM_BSC BSC
+                JOIN TB_LMS_ATNDLC ATND
+                    ON BSC.SBJCT_ID = ATND.SBJCT_ID
+                    AND ATND.USER_ID = #{userId}
+                JOIN TB_LMS_SBJCT SBJCT
+                    ON BSC.SBJCT_ID = SBJCT.SBJCT_ID
+                JOIN TB_LMS_USER USR
+                    ON ATND.USER_ID = USR.USER_ID
+                JOIN TB_LMS_USER PROF
+                    ON BSC.RGTR_ID = PROF.USER_ID
+                JOIN TB_LMS_DEPT DEPT
+                    ON DEPT.DEPT_ID = USR.DEPT_ID
+                JOIN (SELECT
+                            EXAM_BSC_ID
+                            , MIN(EXAM_PSBL_SDTTM) AS EXAM_PSBL_SDTTM
+                        FROM
+                            TB_LMS_EXAM_DTL
+                        WHERE
+                            DELYN ='N'
+                        GROUP BY
+                            EXAM_BSC_ID ) DTL
+                    ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                LEFT JOIN TB_LMS_EXAM_ABSNCE ABSNCE
+                    ON BSC.EXAM_BSC_ID = ABSNCE.EXAM_BSC_ID
+                    AND ATND.USER_ID = ABSNCE.USER_ID
+                JOIN TB_LMS_CMMN_CD CMMN1
+                    ON BSC.EXAM_GBNCD = CMMN1.CD
+                    AND CMMN1.UP_CD = 'EXAM_GBNCD'
+            WHERE
+                BSC.EXAM_BSC_ID = #{examBscId}
+                AND BSC.DELYN ='N') T
+        WHERE
+            T.LINE_NO = 1
+    </select>
+
+    <!-- 학습자 장애인/고령자 시험지원 신청 목록 페이징 -->
+    <select id="listStdntSprtAplyPaging" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.listStdntSprtAplyPaging
+            설명 : 학습자 장애인/고령자 시험지원 신청 목록 페이징
+        */
+        <include refid="CommonSQL.pagePrefix" />
+        <include refid="listQueryForStdntSprtAply"/>
+        <include refid="CommonSQL.pageSuffix" />
+    </select>
+
+    <!-- 학습자 장애인/고령자 시험지원 신청 카운트  -->
+    <select id="countStdntSprtAply" parameterType="examVO" resultType="Integer">
+        /*
+            SQL ID : ExamDAO.countStdntSprtAply
+            설명 : 학습자 장애인/고령자 시험지원 신청 카운트
+        */
+        SELECT
+            COUNT(1)
+        FROM
+            (<include refid="listQueryForStdntSprtAply"/>) Z
+    </select>
+
+    <!-- 학습자 장애인/고령자 시험지원 신청 정보 조회 -->
+    <select id="selectStdntSprtAplyInfo" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.listStdntSprtAplyPaging
+            설명 : 학습자 장애인/고령자 시험지원 신청 정보 조회
+        */
+        <include refid="listQueryForStdntSprtAply"/>
+    </select>
+
+    <!-- 학습자 장애인/고령자 시험지원 취소 -->
+    <insert id="modifyStdntSprtCnclAply" parameterType="examVO">
+        /*
+            SQL ID : ExamDAO.modifyStdntSprtCnclAply
+            설명 : 학습자 장애인/고령자 시험지원 취소
+        */
+        UPDATE
+            TB_LMS_EXAM_SPRT_APLY
+        SET
+            CNCL_APLY_STSCD = #{cnclAplyStscd}
+            , MDFR_ID       = #{mdfrId}
+            , MOD_DTTM      = FN_DTTM()
+        WHERE
+            EXAM_SPRT_APLY_ID = #{examSprtAplyId}
+    </insert>
+
+    <!-- ************************* 관리자 ************************* -->
+
+    <sql id="listQueryForAdmDsblSnrSprt">
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY ORG.ORGNM, SMST.DGRS_SMSTR_CHRT, ATND.SBJCT_ID, USR.USERNM) AS "LINE_NO"
+            , ORG.ORGNM
+            , SMST.DGRS_YR
+            , SMST.DGRS_SMSTR_CHRT
+            , DEPT.DEPTNM
+            , SBJCT.CRCLMN_NO
+            , SBJCT.SBJCTNM
+            , SBJCT.DVCLAS_NCKNM
+            , USR.STDNT_NO
+            , USR.USERNM
+            , CASE
+                WHEN USR.DSBLYN = 'Y' THEN '장애인'
+                WHEN USR.SNRYN = 'Y' THEN '고령자'
+                ELSE NULL
+            END                 AS "GUBUN"
+            , MID_CMMN1.CDNM || '/' || LST_CMMN1.CDNM AS "EXAM_GBNNM"
+            , CMMN1.CDNM        AS "EXAM_SPRT_APLY_TYNM"
+            , CASE
+                WHEN MID_SPRT.APLY_STSCD = LST_SPRT.APLY_STSCD AND MID_SPRT.APLY_STSCD = 'APRV' THEN
+                    CASE
+                        WHEN MID_SPRT.ADD_MNTS IS NULL THEN '부여하지 않음'
+                        ELSE '연장(' || MID_SPRT.ADD_MNTS || '분)'
+                    END
+                    || ' / ' ||
+                    CASE
+                        WHEN LST_SPRT.ADD_MNTS IS NULL THEN '부여하지 않음'
+                        ELSE '연장(' || LST_SPRT.ADD_MNTS || '분)'
+                    END
+                WHEN MID_SPRT.APLY_STSCD = LST_SPRT.APLY_STSCD AND MID_SPRT.APLY_STSCD = 'RJCT' THEN '반려'
+                ELSE '-'
+            END                 AS "SPRT_RSLT"
+            , CASE
+                WHEN MID_SPRT.CNCL_APLY_STSCD = LST_SPRT.CNCL_APLY_STSCD AND MID_SPRT.CNCL_APLY_STSCD IN ('CNCL_APLY', 'CNCL_RE_APLY') THEN 'Y'
+                ELSE 'N'
+            END AS "CNCL_APLY_YN"
+            , MID_CMMN2.CDNM    AS "CNCL_APLY_STSNM"
+            , ATND.USER_ID
+            , ATND.SBJCT_ID
+            , MID_SPRT.EXAM_SPRT_APLY_GRP_ID
+        FROM
+            TB_LMS_ATNDLC ATND
+            JOIN TB_LMS_USER USR
+                ON ATND.USER_ID = USR.USER_ID
+                AND (USR.DSBLYN = 'Y' OR USR.SNRYN = 'Y')
+            JOIN TB_LMS_DEPT DEPT
+                ON USR.DEPT_ID = DEPT.DEPT_ID
+            JOIN TB_LMS_SBJCT SBJCT
+                ON ATND.SBJCT_ID = SBJCT.SBJCT_ID
+            JOIN TB_LMS_SMSTR_CHRT SMST
+                ON SBJCT.SMSTR_CHRT_ID = SMST.SMSTR_CHRT_ID
+            JOIN TB_LMS_ORG ORG
+                ON SMST.ORG_ID = ORG.ORG_ID
+            JOIN TB_LMS_CMMN_CD CMMN1
+                ON USR.EXAM_SPRT_APLY_TYCD = CMMN1.CD
+                AND CMMN1.UP_CD = 'EXAM_SPRT_APLY_TYCD'
+            /* 시험 정보 (중간) */
+            JOIN TB_LMS_EXAM_BSC MID_BSC
+                ON ATND.SBJCT_ID = MID_BSC.SBJCT_ID
+                AND MID_BSC.EXAM_GBNCD LIKE '%MID%'
+            JOIN TB_LMS_EXAM_SPRT_APLY MID_SPRT
+                ON MID_BSC.EXAM_BSC_ID = MID_SPRT.EXAM_BSC_ID
+                AND ATND.USER_ID = MID_SPRT.USER_ID
+            LEFT JOIN TB_LMS_CMMN_CD MID_CMMN1
+                ON MID_BSC.EXAM_GBNCD = MID_CMMN1.CD
+                AND MID_CMMN1.UP_CD = 'EXAM_GBNCD'
+            LEFT JOIN TB_LMS_CMMN_CD MID_CMMN2
+                ON MID_SPRT.CNCL_APLY_STSCD = MID_CMMN2.CD
+                AND MID_CMMN2.UP_CD = 'CNCL_APLY_STSCD'
+            /* 시험 정보 (기말) */
+            JOIN TB_LMS_EXAM_BSC LST_BSC
+                ON ATND.SBJCT_ID = LST_BSC.SBJCT_ID
+                AND LST_BSC.EXAM_GBNCD LIKE '%LST%'
+            JOIN TB_LMS_EXAM_SPRT_APLY LST_SPRT
+                ON LST_BSC.EXAM_BSC_ID = LST_SPRT.EXAM_BSC_ID
+                AND ATND.USER_ID = LST_SPRT.USER_ID
+            LEFT JOIN TB_LMS_CMMN_CD LST_CMMN1
+                ON LST_BSC.EXAM_GBNCD = LST_CMMN1.CD
+                AND LST_CMMN1.UP_CD = 'EXAM_GBNCD'
+        WHERE
+            1=1
+        <if test="orgId != null and orgId != ''">
+            /* 기관 */
+            AND ORG.ORG_ID = #{orgId}
+        </if>
+
+        <if test="dgrsYr != null and dgrsYr != ''">
+            /* 년도 */
+            AND SMST.DGRS_YR = #{dgrsYr}
+        </if>
+        <if test="dgrsSmstrChrt != null and dgrsSmstrChrt != ''">
+            /* 학기기수 */
+            AND SMST.DGRS_SMSTR_CHRT = #{dgrsSmstrChrt}
+        </if>
+        <if test="deptId != null and deptId != ''">
+            /* 학과 */
+            AND USR.DEPT_ID = #{deptId}
+        </if>
+        <if test="sbjctId != null and sbjctId != ''">
+            /* 과목 */
+            AND SBJCT.SBJCT_ID = #{sbjctId}
+        </if>
+        <choose>
+            <when test="aplyStscd == 'waiting'">
+                /* 처리상태 (대기) */
+                AND MID_SPRT.APLY_STSCD IN ('APLY', 'RE_APLY')
+                AND LST_SPRT.APLY_STSCD IN ('APLY', 'RE_APLY')
+            </when>
+            <when test="aplyStscd == 'complete'">
+                /* 처리상태 (완료) */
+                AND MID_SPRT.APLY_STSCD IN ('APRV', 'RJCT')
+                AND LST_SPRT.APLY_STSCD IN ('APRV', 'RJCT')
+            </when>
+        </choose>
+        <if test="searchValue != null and searchValue != ''">
+            /* 검색어 (학번 or 이름) */
+            AND (LOWER(USR.STDNT_NO) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(USR.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue})))
+        </if>
+    </sql>
+
+    <!-- 관리자 장애인/고령자 지원관리 신청 목록 페이징 -->
+    <select id="listAdmSprtAplyPaging" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.listStdntSprtAplyPaging
+            설명 : 관리자 장애인/고령자 지원관리 신청 목록 페이징
+        */
+        <include refid="CommonSQL.pagePrefix" />
+        <include refid="listQueryForAdmDsblSnrSprt"/>
+        <include refid="CommonSQL.pageSuffix" />
+    </select>
+
+    <!-- 관리자 장애인/고령자 지원관리 신청 카운트 -->
+    <select id="countAdmSprtAply" parameterType="examVO" resultType="Integer">
+        /*
+            SQL ID : ExamDAO.countAdmSprtAply
+            설명 : 관리자 장애인/고령자 지원관리 신청 카운트
+        */
+        SELECT
+            COUNT(1)
+        FROM
+            (<include refid="listQueryForAdmDsblSnrSprt"/>) Z
+    </select>
+
+    <!-- 관리자 장애인/고령자 지원관리 신청 목록 전체 (엑셀용) -->
+    <select id="listAdmSprtAply" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.listAdmSprtAply
+            설명 : 관리자 장애인/고령자 지원관리 신청 목록 전체 (엑셀 다운로드용)
+        */
+        <include refid="listQueryForAdmDsblSnrSprt"/>
+    </select>
+
+    <!-- 관리자 장애인/고령자 지원관리 상세보기 -->
+    <select id="selectAdmSprtAplyDtl" parameterType="examVO" resultType="examVO">
+        /*
+            SQL ID : ExamDAO.selectAdmSprtAplyDtl
+            설명 : 관리자 장애인/고령자 지원관리 상세보기
+        */
+        SELECT
+            DEPT.DEPTNM
+            , SBJCT.SBJCTNM
+            , SBJCT.DVCLAS_NCKNM
+            , STD.USERNM
+            , STD.STDNT_NO
+            , (SELECT CNTCT FROM TB_LMS_USER_CNTCT WHERE CNTCT_TYCD = 'MBL_PHN' AND USER_ID = STD.USER_ID) AS "MOBILE_NO"
+            , CASE
+                WHEN STD.DSBLYN = 'Y' THEN 'Disabled'
+                WHEN STD.SNRYN = 'Y' THEN 'Seniors'
+            END                                         AS "USER_STATUS"
+            , CMMN1.CDNM                                AS "EXAM_SPRT_APLY_TYNM"
+            , CMMN2.CDNM                                AS "DSBL_TYNM"
+            , CMMN3.CDNM                                AS "DSBL_GRDNM"
+            , PROF.USERNM                               AS "PROFNM"
+            , ''                                        AS "TUTNM"  -- Todo: 튜터 정보 가져오기
+            , MID_CMMN1.CDNM || ' / ' || LST_CMMN1.CDNM AS "EXAM_GBNNM"
+            , MID_DTL.EXAM_PSBL_SDTTM                   AS "MID_EXAM_PSBL_SDTTM"
+            , LST_DTL.EXAM_PSBL_SDTTM                   AS "LST_EXAM_PSBL_SDTTM"
+            /* 중간/기말 신청 내용이 동일하므로 중간고사의 신청 내용을 사용 */
+            , MID_SPRT.SPRT_APLY_CTS
+            , MID_DTL.EXAM_MNTS                         AS "MID_EXAM_MNTS"
+            , LST_DTL.EXAM_MNTS                         AS "LST_EXAM_MNTS"
+            , CASE
+                WHEN (MID_SPRT.APLY_STSCD = 'APLY' AND LST_SPRT.APLY_STSCD = 'APLY') THEN 'Y'
+                WHEN (MID_SPRT.APLY_STSCD = 'RE_APLY' AND LST_SPRT.APLY_STSCD = 'RE_APLY') THEN 'Y'
+                ELSE 'N'
+            END     AS "GUBUN"
+            , MID_SPRT.EXAM_SPRT_APLY_GRP_ID
+            , MID_SPRT.EXAM_SPRT_APLY_ID                AS "MID_EXAM_SPRT_APLY_ID"
+            , LST_SPRT.EXAM_SPRT_APLY_ID                AS "LST_EXAM_SPRT_APLY_ID"
+        FROM
+            TB_LMS_ATNDLC ATND
+            JOIN TB_LMS_USER STD
+                ON ATND.USER_ID = STD.USER_ID
+            JOIN TB_LMS_DEPT DEPT
+                ON STD.DEPT_ID = DEPT.DEPT_ID
+            JOIN TB_LMS_SBJCT SBJCT
+                ON ATND.SBJCT_ID = SBJCT.SBJCT_ID
+            JOIN TB_LMS_USER PROF
+                ON SBJCT.PROF_ID = PROF.USER_ID
+            LEFT JOIN TB_LMS_CMMN_CD CMMN1
+                ON STD.EXAM_SPRT_APLY_TYCD = CMMN1.CD
+                AND CMMN1.UP_CD = 'EXAM_SPRT_APLY_TYCD'
+            LEFT JOIN TB_LMS_CMMN_CD CMMN2
+                ON STD.DSBL_TYCD = CMMN2.CD
+                AND CMMN2.UP_CD = 'DSBL_TYCD'
+            LEFT JOIN TB_LMS_CMMN_CD CMMN3
+                ON STD.DSBL_GRDCD = CMMN3.CD
+                AND CMMN3.UP_CD = 'DSBL_GRDCD'
+            /* 중간고사 */
+            JOIN TB_LMS_EXAM_BSC MID_BSC
+                ON ATND.SBJCT_ID = MID_BSC.SBJCT_ID
+                AND MID_BSC.EXAM_GBNCD LIKE '%EXAM_MID%'
+                AND MID_BSC.DELYN = 'N'
+            JOIN (SELECT DISTINCT
+                        EXAM_BSC_ID
+                        , EXAM_MNTS
+                        , EXAM_PSBL_SDTTM
+                    FROM
+                        TB_LMS_EXAM_DTL A
+                    WHERE
+                        A.DELYN = 'N') MID_DTL
+                ON MID_BSC.EXAM_BSC_ID = MID_DTL.EXAM_BSC_ID
+            JOIN TB_LMS_EXAM_SPRT_APLY MID_SPRT
+                ON MID_BSC.EXAM_BSC_ID = MID_SPRT.EXAM_BSC_ID
+                AND ATND.USER_ID = MID_SPRT.USER_ID
+            LEFT JOIN TB_LMS_CMMN_CD MID_CMMN1
+                ON MID_BSC.EXAM_GBNCD = MID_CMMN1.CD
+                AND MID_CMMN1.UP_CD = 'EXAM_GBNCD'
+            /* 기말고사 */
+            JOIN TB_LMS_EXAM_BSC LST_BSC
+                ON ATND.SBJCT_ID = LST_BSC.SBJCT_ID
+                AND LST_BSC.EXAM_GBNCD LIKE '%EXAM_LST%'
+                AND LST_BSC.DELYN = 'N'
+            JOIN (SELECT DISTINCT
+                        EXAM_BSC_ID
+                        , EXAM_MNTS
+                        , EXAM_PSBL_SDTTM
+                    FROM
+                        TB_LMS_EXAM_DTL A
+                    WHERE
+                        A.DELYN = 'N') LST_DTL
+                ON LST_BSC.EXAM_BSC_ID = LST_DTL.EXAM_BSC_ID
+            JOIN TB_LMS_EXAM_SPRT_APLY LST_SPRT
+                ON LST_BSC.EXAM_BSC_ID = LST_SPRT.EXAM_BSC_ID
+                AND ATND.USER_ID = LST_SPRT.USER_ID
+            LEFT JOIN TB_LMS_CMMN_CD LST_CMMN1
+                ON LST_BSC.EXAM_GBNCD = LST_CMMN1.CD
+                AND LST_CMMN1.UP_CD = 'EXAM_GBNCD'
+        WHERE
+            ATND.SBJCT_ID = #{sbjctId}
+            AND ATND.USER_ID = #{userId}
+    </select>
+
+    <!-- 관리자 장애인/고령자 시험지원 신청 승인/반려 -->
+    <update id="modifySprtAplyStat" parameterType="examVO">
+        /*
+            SQL ID : ExamDAO.updateSprtAplyStat
+            설명 : 관리자 장애인/고령자 시험지원 신청 승인/반려
+        */
+        UPDATE
+            TB_LMS_EXAM_SPRT_APLY
+        SET
+            APLY_STSCD      = #{aplyStscd}
+            , AUTZR_ID      = #{autzrId}
+            , APRVDTTM      = FN_DTTM()
+            , ADD_MNTS      = #{addMnts}
+            , MDFR_ID       = #{mdfrId}
+            , MOD_DTTM      = FN_DTTM()
+            , SPRT_APRV_CTS = #{sprtAprvCts}
+        WHERE
+            EXAM_SPRT_APLY_ID = #{examSprtAplyId}
+    </update>
+
+    <!-- 관리자 장애인/고령자 시험지원 취소신청 승인/반려 -->
+    <update id="modifySprtAplyCnclStat" parameterType="examVO">
+        /*
+            SQL ID : ExamDAO.updateSprtAplyCnclStat
+            설명 : 관리자 장애인/고령자 시험지원 취소신청 승인/반려
+        */
+        UPDATE
+            TB_LMS_EXAM_SPRT_APLY
+        SET
+            CNCL_APLY_STSCD = #{cnclAplyStscd}
+            , MDFR_ID       = #{mdfrId}
+            , MOD_DTTM      = FN_DTTM()
+        WHERE
+            EXAM_SPRT_APLY_GRP_ID = #{examSprtAplyGrpId}
+    </update>
+
 </mapper>

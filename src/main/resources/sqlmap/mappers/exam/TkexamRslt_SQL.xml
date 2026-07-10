@@ -132,4 +132,58 @@
 	        )
 	</update>
 
+	<select id="stdntTkexamRsltSelect" parameterType="map" resultType="egovMap">
+		/*
+             SQL ID : TkexamRsltDAO.stdntTkexamRsltSelect
+             설  명  : 학생시험응시결과조회
+         */
+        SELECT
+			  TKEXAM.TKEXAM_ID
+			, TKEXAM.USER_ID
+			, TKEXAM.TKEXAM_SDTTM
+			, TKEXAM.TKEXAM_CNT
+			, TKEXAM.TKEXAM_CMPTNYN
+			, NVL(RSLT.TOT_SCR, 0) AS TOT_SCR
+			, NVL(RSLT.EVLYN, 'N') AS EVLYN
+		  FROM TB_LMS_TKEXAM TKEXAM
+		  LEFT JOIN TB_LMS_TKEXAM_RSLT RSLT
+		    ON TKEXAM.TKEXAM_ID = RSLT.TKEXAM_ID
+		   AND TKEXAM.USER_ID = RSLT.USER_ID
+		 WHERE TKEXAM.EXAM_DTL_ID = #{examDtlId}
+		   AND TKEXAM.USER_ID = #{userId}
+	</select>
+
+	<update id="stdntTkexamRsltRegist" parameterType="map">
+		/*
+             SQL ID : TkexamRsltDAO.stdntTkexamRsltRegist
+             설  명  : 학생시험응시결과등록
+         */
+        MERGE INTO TB_LMS_TKEXAM_RSLT TKEXAM_RSLT
+	    USING (
+	       SELECT
+	       		  #{tkexamRsltId} AS TKEXAM_RSLT_ID
+		       	, #{tkexamId} AS TKEXAM_ID
+		       	, #{userId} AS USER_ID
+	         FROM DUAL
+	    ) USR
+	    ON (
+	    	    TKEXAM_RSLT.TKEXAM_ID = USR.TKEXAM_ID
+	     	AND TKEXAM_RSLT.USER_ID = USR.USER_ID
+	    )
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	        	  TKEXAM_RSLT_ID
+				, TKEXAM_ID
+				, USER_ID
+				, RGTR_ID
+				, REG_DTTM
+	        ) VALUES (
+	        	  USR.TKEXAM_RSLT_ID
+				, USR.TKEXAM_ID
+				, USR.USER_ID
+				, USR.USER_ID
+				, FN_DTTM()
+	        )
+	</update>
+
 </mapper>

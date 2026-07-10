@@ -7,42 +7,51 @@
              SQL ID : OnlnPltfrmStngDAO.onlnPltfrmStngRegist
              설  명 : 온라인플랫폼설정등록
          */
-         INSERT INTO TB_LMS_ONLN_PLTFRM_STNG (
-	     	  ONLN_PLTFRM_STNG_ID
-			, PLTFRM_GBNCD
-			, ORG_ID
-			, PLTFRM_CNTN_ID
-			, PLTFRM_CNTN_CLIENT_ID
-			, PLTFRM_CNTN_CLIENT_PSWD
-			, RGTR_ID
-			, REG_DTTM
-	     ) VALUES (
-	     	  #{onlnPltfrmStngId}
-			, #{pltfrmGbncd}
-			, #{orgId}
-			, #{pltfrmCntnId}
-			, #{pltfrmCntnClientId}
-			, #{pltfrmCntnClientPswd}
-			, #{rgtrId}
-			, FN_DTTM()
-	     )
+         MERGE INTO TB_LMS_ONLN_PLTFRM_STNG STNG
+         USING (
+         	SELECT
+	        	  #{onlnPltfrmStngId} AS ONLN_PLTFRM_STNG_ID
+	        	, #{pltfrmGbncd} AS PLTFRM_GBNCD
+	        	, #{orgId} AS ORG_ID
+	        	, #{pltfrmCntnId} AS PLTFRM_CNTN_ID
+	        	, #{pltfrmCntnClientId} AS PLTFRM_CNTN_CLIENT_ID
+	        	, #{pltfrmCntnClientPswd} AS PLTFRM_CNTN_CLIENT_PSWD
+	        	, #{rgtrId} AS RGTR_ID
+	          FROM DUAL
+         ) STNG_PARAM
+         ON (
+	    		STNG.ONLN_PLTFRM_STNG_ID = STNG_PARAM.ONLN_PLTFRM_STNG_ID
+	    	AND STNG.PLTFRM_GBNCD = STNG_PARAM.PLTFRM_GBNCD
+	    	AND STNG.ORG_ID = STNG_PARAM.ORG_ID
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	        	  STNG.PLTFRM_CNTN_ID 			= STNG_PARAM.PLTFRM_CNTN_ID
+	        	, STNG.PLTFRM_CNTN_CLIENT_ID 	= STNG_PARAM.PLTFRM_CNTN_CLIENT_ID
+	        	, STNG.PLTFRM_CNTN_CLIENT_PSWD 	= STNG_PARAM.PLTFRM_CNTN_CLIENT_PSWD
+	        	, STNG.MDFR_ID  				= STNG_PARAM.RGTR_ID
+				, STNG.MOD_DTTM 				= FN_DTTM()
+		WHEN NOT MATCHED THEN
+	        INSERT (
+	        	  ONLN_PLTFRM_STNG_ID
+				, PLTFRM_GBNCD
+				, ORG_ID
+				, PLTFRM_CNTN_ID
+				, PLTFRM_CNTN_CLIENT_ID
+				, PLTFRM_CNTN_CLIENT_PSWD
+				, RGTR_ID
+				, REG_DTTM
+	        ) VALUES (
+	        	  STNG_PARAM.ONLN_PLTFRM_STNG_ID
+				, STNG_PARAM.PLTFRM_GBNCD
+				, STNG_PARAM.ORG_ID
+				, STNG_PARAM.PLTFRM_CNTN_ID
+				, STNG_PARAM.PLTFRM_CNTN_CLIENT_ID
+				, STNG_PARAM.PLTFRM_CNTN_CLIENT_PSWD
+				, STNG_PARAM.RGTR_ID
+				, FN_DTTM()
+	        )
 	</insert>
-
-	<update id="onlnPltfrmStngModify" parameterType="onlnPltfrmStngVO">
-		/*
-             SQL ID : OnlnPltfrmStngDAO.onlnPltfrmStngModify
-             설  명 : 온라인플랫폼설정수정
-         */
-        UPDATE TB_LMS_ONLN_PLTFRM_STGN SET
-        	  MDFR_ID = #{mdfrId}
-			, MOD_DTTM = FN_DTTM()
-			, PLTFRM_CNTN_ID = #{pltfrmCntnId}
-			, PLTFRM_CNTN_CLIENT_ID = #{pltfrmCntnClientId}
-			, PLTFRM_CNTN_CLIENT_PSWD = #{pltfrmCntnClientPswd}
-		 WHERE ONLN_PLTFRM_STNG_ID = #{onlnPltfrmStngId}
-		   AND PLTFRM_GBNCD = #{pltfrmGbncd}
-		   AND ORG_ID = #{orgId}
-	</update>
 
 	<delete id="onlnPltfrmStngDelete" parameterType="onlnPltfrmStngVO">
 		/*
@@ -51,8 +60,6 @@
          */
         DELETE FROM TB_LMS_ONLN_PLTFRM_STNG
          WHERE ONLN_PLTFRM_STNG_ID = #{onlnPltfrmStngId}
-           AND PLTFRM_GBNCD = #{pltfrmGbncd}
-           AND ORG_ID = #{orgId}
 	</delete>
 
 	<select id="onlnPltfrmStngSelect" parameterType="String" resultType="onlnPltfrmStngVO">

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.stats.dao.QnaStatsDAO">
+
+    <sql id="admQnaStatsBaseQuery">
+        WITH SBJCT_INFO AS (
+            SELECT
+                  SBJ.SBJCT_ID
+                , SBJ.SBJCTNM
+                , SBJ.CRCLMN_NO
+                , SBJ.SBJCT_YR
+                , SBJ.SBJCT_SMSTR
+                , SMSTR.SMSTR_CHRT_ID
+                , SMSTR.DGRS_SMSTR_CHRT
+                , SMSTR.SMSTR_CHRT_GBNCD
+                , SBJ.DVCLAS_NO
+                , ORG.ORG_ID
+                , ORG.ORGNM
+            FROM TB_LMS_SBJCT SBJ
+            JOIN TB_LMS_SMSTR_CHRT SMSTR ON SBJ.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+            JOIN TB_LMS_ORG ORG ON SMSTR.ORG_ID = ORG.ORG_ID
+            WHERE SBJ.DELYN = 'N'
+        ),
+        ADM_INFO AS (
+            SELECT
+                  ADM.SBJCT_ID
+                , MAX(CASE WHEN ADM.SBJCT_ADM_TYCD = 'PROF' THEN ADM.USER_ID END) AS PROF_USER_ID
+                , MAX(CASE WHEN ADM.SBJCT_ADM_TYCD = 'PROF' THEN USR.USERNM END) AS PROF_USERNM
+                , MAX(CASE WHEN ADM.SBJCT_ADM_TYCD = 'TUT' THEN ADM.USER_ID END) AS TUT_USER_ID
+                , MAX(CASE WHEN ADM.SBJCT_ADM_TYCD = 'TUT' THEN USR.USERNM END) AS TUT_USERNM
+            FROM TB_LMS_SBJCT_ADM ADM
+            JOIN TB_LMS_USER USR ON ADM.USER_ID = USR.USER_ID
+            WHERE ADM.SBJCT_ADM_TYCD IN ('PROF', 'TUT')
+            GROUP BY ADM.SBJCT_ID
+        ),
+        BBS_STATS AS (
+            SELECT
+                  BBS.SBJCT_ID
+                , COUNT(DISTINCT CASE WHEN BBS.BBS_TYCD = 'QNA' THEN Q.ATCL_ID END) AS QNA_QSTN_CNT
+                , COUNT(CASE WHEN BBS.BBS_TYCD = 'QNA' THEN A.ATCL_ID END) AS QNA_ANS_CNT
+                , COUNT(DISTINCT CASE WHEN BBS.BBS_TYCD = '1ON1' THEN Q.ATCL_ID END) AS ONEONONE_QSTN_CNT
+                , COUNT(CASE WHEN BBS.BBS_TYCD = '1ON1' THEN A.ATCL_ID END) AS ONEONONE_ANS_CNT
+            FROM TB_LMS_BBS BBS
+            LEFT JOIN TB_LMS_BBS_ATCL Q
+                ON BBS.BBS_ID = Q.BBS_ID
+                AND Q.ATCL_LV = 1
+                AND Q.DELYN = 'N'
+            LEFT JOIN TB_LMS_BBS_ATCL A
+                ON A.BBS_ID = Q.BBS_ID
+                AND A.UP_ATCL_ID = Q.ATCL_ID
+                AND A.ATCL_LV = 2
+                AND A.DELYN = 'N'
+            WHERE BBS.DELYN = 'N'
+              AND BBS.USEYN = 'Y'
+              AND BBS.BBS_TYCD IN ('QNA', '1ON1')
+            GROUP BY BBS.SBJCT_ID
+        ),
+        ASMT_FDBK_STATS AS (
+            SELECT
+                  ASMT.SBJCT_ID
+                , COUNT(FDBK.ASMT_FDBK_ID) AS ASMT_FDBK_CNT
+            FROM TB_LMS_ASMT ASMT
+            JOIN TB_LMS_ASMT_FDBK FDBK ON ASMT.ASMT_ID = FDBK.ASMT_ID
+            WHERE ASMT.DELYN = 'N'
+              AND FDBK.DELYN = 'N'
+            GROUP BY ASMT.SBJCT_ID
+        ),
+        DSCS_FDBK_STATS AS (
+            SELECT
+                  DSCS.SBJCT_ID
+                , COUNT(FDBK.DSCS_FDBK_ID) AS DSCS_FDBK_CNT
+            FROM TB_LMS_DSCS DSCS
+            JOIN TB_LMS_DSCS_FDBK FDBK ON DSCS.DSCS_ID = FDBK.DSCS_ID
+            WHERE DSCS.DELYN = 'N'
+              AND FDBK.DELYN = 'N'
+            GROUP BY DSCS.SBJCT_ID
+        ),
+        SMNR_FDBK_STATS AS (
+            SELECT
+                SMNR.SBJCT_ID
+                , COUNT(FDBK.SMNR_FDBK_ID) AS SMNR_FDBK_CNT
+            FROM TB_LMS_SMNR SMNR
+            JOIN TB_LMS_SMNR_FDBK FDBK ON SMNR.SMNR_ID = FDBK.SMNR_ID
+            WHERE SMNR.DELYN = 'N'
+              AND FDBK.DELYN = 'N'
+            GROUP BY SMNR.SBJCT_ID
+        )
+        SELECT
+              ROW_NUMBER() OVER(ORDER BY A.SBJCT_YR DESC, A.SBJCT_SMSTR DESC, A.ORGNM, A.SBJCTNM, A.DVCLAS_NO) AS LINE_NO
+            , COUNT(*) OVER() AS TOTAL_CNT
+            , A.ORG_ID
+            , A.ORGNM
+            , A.SBJCT_YR
+            , A.SBJCT_SMSTR
+            , A.SMSTR_CHRT_GBNCD
+            , A.SBJCT_ID
+            , A.CRCLMN_NO
+            , A.SBJCTNM
+            , A.DVCLAS_NO
+            , ADM.PROF_USER_ID
+            , ADM.PROF_USERNM
+            , ADM.TUT_USER_ID
+            , ADM.TUT_USERNM
+            , NVL(BBS.QNA_QSTN_CNT, 0) AS QNA_QSTN_CNT
+            , NVL(BBS.QNA_ANS_CNT, 0) AS QNA_ANS_CNT
+            , NVL(BBS.ONEONONE_QSTN_CNT, 0) AS ONEONONE_QSTN_CNT
+            , NVL(BBS.ONEONONE_ANS_CNT, 0) AS ONEONONE_ANS_CNT
+            , NVL(ASMT.ASMT_FDBK_CNT, 0) + NVL(DSCS.DSCS_FDBK_CNT, 0) + NVL(SMNR.SMNR_FDBK_CNT, 0) AS FDBK_CNT
+        FROM SBJCT_INFO A
+        LEFT JOIN ADM_INFO ADM ON A.SBJCT_ID = ADM.SBJCT_ID
+        LEFT JOIN BBS_STATS BBS ON A.SBJCT_ID = BBS.SBJCT_ID
+        LEFT JOIN ASMT_FDBK_STATS ASMT ON A.SBJCT_ID = ASMT.SBJCT_ID
+        LEFT JOIN DSCS_FDBK_STATS DSCS ON A.SBJCT_ID = DSCS.SBJCT_ID
+        LEFT JOIN SMNR_FDBK_STATS SMNR ON A.SBJCT_ID = SMNR.SBJCT_ID
+        WHERE 1=1
+        <if test="orgId != null and orgId != ''">
+            AND A.ORG_ID = #{orgId}
+        </if>
+        <if test="dgrsYr != null and dgrsYr != ''">
+            AND A.SBJCT_YR = #{dgrsYr}
+        </if>
+        <if test="dgrsSmstrChrt != null and dgrsSmstrChrt != ''">
+            AND A.SBJCT_SMSTR = #{dgrsSmstrChrt}
+        </if>
+        <if test="searchValue != null and searchValue != ''">
+            AND (
+                LOWER(A.SBJCTNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(A.CRCLMN_NO) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                OR LOWER(ADM.PROF_USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+        </if>
+        ORDER BY LINE_NO
+    </sql>
+
+    <select id="admQnaStatsList" resultType="egovMap">
+        <include refid="admQnaStatsBaseQuery"/>
+    </select>
+</mapper>

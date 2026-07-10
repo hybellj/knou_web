@@ -1,0 +1,760 @@
+@charset "UTF-8";
+
+
+
+    /* =========================
+   1. 기본
+========================= */
+
+
+    .container-main {
+      margin: 0 auto;
+      padding: 0 10px 48px;
+    }
+
+    .logo {
+      text-align: center;
+      margin: 80px auto 28px;
+    }
+
+    .logo img {
+      width: 300px;
+    }
+
+
+    .total-login {
+      border-bottom: 1px solid #d1d1d1;
+      max-width: 880px;
+      margin: 0 auto;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    /* =========================
+   2. 탭
+========================= */
+    .tabs {
+      display: flex;
+      align-items: center;
+
+    }
+
+    .tabs label {
+      border: 2px solid #e4e5e6;
+      flex: 1;
+      padding: 12px 0;
+      font-size: 16px;
+      font-family: 'Noto Regular';
+      font-weight: 500;
+      text-align: center;
+      cursor: pointer;
+      background: #e4e5e6;
+      word-break: keep-all;
+      box-sizing: border-box;
+      border-bottom: 2px solid #1e5ba8;
+      border-left: 0;
+      border-right: 0;
+    }
+
+
+    .tabs input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+    }
+
+    .tabs input[type="radio"]:checked+label {
+      background: #ffffff;
+      color: #10489f;
+      border: 2px solid #10489f;
+      border-bottom: 2px solid #ffffff;
+      z-index: 1;
+    }
+
+
+    /*  흰색 하단 유지 */
+    .tabs input[type="radio"]:checked+label:hover {
+      border-bottom: 2px solid #ffffff;
+    }
+
+    /* =========================
+   3. 콘텐츠
+========================= */
+    .tab-inner {
+      min-height: 330px;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .content {
+      display: flex;
+      gap: 24px;
+      padding: 24px;
+      justify-content: center;
+    }
+
+
+
+    .mt-gap {
+      margin-top: 158px;
+    }
+
+    .mb20 {
+      margin-bottom: 20px;
+    }
+
+    .mb10 {
+      margin-bottom: 10px;
+    }
+
+    .mt14 {
+      margin-top: 14px;
+    }
+
+    .mt12 {
+      margin-top: 12px;
+    }
+
+    .min-w {
+      max-width: 50%;
+    }
+
+
+    .section {
+      flex: 1;
+      width: 100%;
+      max-width: 420px;
+    }
+
+
+
+    /* 인증 방식 */
+    .auth-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .auth-label {
+      background: #f1f3f7;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .auth-label span {
+      color: red;
+    }
+
+    .auth-options {
+      padding-left: 12px;
+    }
+
+    .auth-options label {
+      margin-right: 12px;
+      font-size: 14px;
+    }
+
+    /* 인증번호 + 버튼 */
+    .auth-input {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .auth-input input {
+      flex: 1;
+      height: 48px;
+      border: 1px solid #ddd;
+      padding: 0 14px;
+    }
+
+
+
+    .btn-send {
+      height: 36px;
+      padding: 0 12px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 4px;
+      border: 1px solid #d0d5dd;
+      background: #f9fafb;
+      color: #344054;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .btn-send:hover {
+      background: #fff;
+      border-color: #00A0E9;
+      color: #00A0E9;
+
+    }
+
+
+
+    .mobile-btns {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      padding: 0 14%;
+    }
+
+    .mobile-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      align-items: stretch;
+    }
+
+    .mobile-info-right {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      height: 100%;
+    }
+
+    .mobile-info-right .info-inner {
+      flex: 1;
+    }
+
+    .mobile-btns .btn {
+      flex: 1;
+    }
+
+    /* =========================
+   4. 타이틀
+========================= */
+    .section h3 {
+      color: #1e5ba8;
+      margin-top: 10px;
+      font-size: 28px;
+      text-align: center;
+      margin-bottom: 20px;
+      letter-spacing: -0.6px;
+      font-family: 'Noto Regular';
+    }
+
+    /* =========================
+   5. input
+========================= */
+    .input-box input {
+      width: 100%;
+      height: 50px;
+      background: #ebebeb;
+      border: 1px solid #ebebeb;
+      border-radius: 4px;
+      padding-left: 17px;
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 10px;
+      font-family: 'Noto DemiLight';
+    }
+
+    .input-box input:disabled {
+      background: #f3f4f6;
+      color: #999;
+      border: 1px solid #dcdfe4;
+      cursor: not-allowed;
+      opacity: 1;
+    }
+
+    /* =========================
+   6. checkbox
+========================= */
+    .checkbox input[type="checkbox"] {
+      display: none;
+    }
+
+    .checkbox label {
+      display: inline-flex;
+      align-items: center;
+      font-size: 16px;
+      color: #555;
+      cursor: pointer;
+      position: relative;
+      padding-left: 23px;
+      margin-bottom: 20px;
+
+    }
+
+    .checkbox label span {
+      padding-left: 4px;
+    }
+
+    .checkbox label::before {
+      content: "";
+      width: 20px;
+      height: 20px;
+      background: url("https://ep.knou.ac.kr/images/login-check-off.png") no-repeat center/contain;
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+
+    }
+
+    .checkbox input[type="checkbox"]:checked+label::before {
+      background: url("https://ep.knou.ac.kr/images/login-check-on.png") no-repeat center/contain;
+    }
+
+    /* 브라우저 체크박스 */
+    .browser-check input[type="checkbox"] {
+      display: none;
+    }
+
+    .browser-check label {
+      display: inline-flex;
+      align-items: center;
+      position: relative;
+      width: fit-content;
+      cursor: pointer;
+      padding-left: 24px;
+    }
+
+    .browser-check label span {
+      font-size: 14px;
+      color: #444;
+    }
+
+    /*  브라우저 체크박스 */
+    .browser-check label::before {
+      content: "";
+      width: 18px;
+      height: 18px;
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 1px solid #1e5ba8;
+      border-radius: 4px;
+      background: #fff;
+      box-sizing: border-box;
+    }
+
+    /* 체크 상태 */
+    .browser-check input[type="checkbox"]:checked+label::before {
+      background: #1e5ba8;
+    }
+
+    /* 체크 표시 */
+    .browser-check input[type="checkbox"]:checked+label::after {
+      content: "";
+      position: absolute;
+      left: 7px;
+      top: 50%;
+      width: 5px;
+      height: 10px;
+
+      border: solid #fff;
+      border-width: 0 2px 2px 0;
+      transform: translateY(-60%) rotate(45deg);
+    }
+
+    /* =========================
+   7. 버튼
+========================= */
+    .btn {
+      width: 100%;
+      padding: 12px 0;
+      border-radius: 100px;
+      border: none;
+      background: #0054a7;
+      color: #fff;
+      cursor: pointer;
+      transition: 0.2s;
+      text-align: center;
+      font-size: 18px;
+      font-family: 'Noto Medium';
+    }
+
+    .btn:hover {
+      background: #003f7d;
+    }
+
+    /* =========================
+   8. QR
+========================= */
+    .qr-box {
+      width: 120px;
+      height: 120px;
+      margin: 20px auto;
+      background: #eee;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qr-box img {
+      opacity: 0.4;
+    }
+
+    /* =========================
+   9. 하단 링크
+========================= */
+    .find {
+      width: 100%;
+      padding: 30px 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .btn-id-find,
+    .btn-more {
+      font-family: 'Noto DemiLight';
+      font-size: 16px;
+      color: #1e1d1d;
+    }
+
+    .btn-id-find {
+      position: relative;
+      padding-right: 15px;
+      margin-right: 10px;
+    }
+
+    .btn-id-find:after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 6px;
+      width: 1px;
+      height: 14px;
+      background: #9f9f9f;
+    }
+
+    .btn-id-find span,
+    .btn-more span {
+      position: relative;
+    }
+
+    .btn-id-find span:after,
+    .btn-more span:after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -5px;
+      width: 0%;
+      height: 1px;
+      background: #4d4c4c;
+      transition: .4s;
+    }
+
+    .btn-id-find:hover span:after,
+    .btn-more:hover span:after {
+      width: 100%;
+    }
+
+    .btn-id-find:hover,
+    .btn-more:hover {
+      color: #1e1d1d;
+    }
+
+    /* =========================
+   10. 안내 (핵심)
+========================= */
+    .info {
+      margin: 0 auto;
+      max-width: 900px;
+      padding: 20px;
+      border: 5px solid #dde3f1;
+    }
+
+    .info-inner {
+      display: flex;
+      gap: 12px;
+      padding-bottom: 10px;
+    }
+
+    .info-icon {
+      width: 28px;
+      height: 28px;
+      background: url(https://www.knou.ac.kr/images/guide/common/ico-notice3.png) no-repeat center/contain;
+    }
+
+    .info-content {
+      width: 100%;
+    }
+
+    .info-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-title {
+      font-weight: 700;
+      color: #005bac;
+      margin: 0;
+    }
+
+    .info-more,
+    .info-more:link,
+    .info-more:visited {
+      font-size: 13px;
+      color: #005bac;
+      border: 1px solid #005bac;
+      padding: 2px 10px;
+      border-radius: 20px;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: 0.2s;
+    }
+
+    .info-more:hover {
+      background: #005bac;
+      color: #fff;
+    }
+
+    .info-text {
+      margin-top: 6px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #333;
+      /*  white-space: pre-line;*/
+    }
+
+    .box-Browser {
+      margin: 14px 0;
+      font-size: 14px;
+      letter-spacing: 0px;
+      padding-left: 8px;
+
+    }
+
+    .ico-align {
+      margin: 30px 0;
+      text-align: center;
+    }
+
+
+
+
+
+
+    /* =========================
+   11. 모달
+========================= */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      position: relative;
+      max-width: 420px;
+      padding: 30px 20px;
+      background: #fff;
+      border-radius: 5px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-card h2 {
+      font-size: 30px;
+      font-weight: 500;
+      font-family: 'Noto Regular';
+      padding: 8px;
+
+    }
+
+    .modal-h4 {
+      float: left;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 5px;
+
+    }
+
+    .modal-close {
+      position: absolute;
+      right: 16px;
+      top: 14px;
+      border: none;
+      background: none;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    /* 공통 구조 */
+    .desc {
+      font-size: 14px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .modal-body {
+      margin: 20px 0;
+    }
+
+    /* 아이콘 */
+    .modal-icon {
+      font-size: 70px;
+    }
+
+    .Qr-img {
+      display: inline-block;
+      margin: 0 auto;
+    }
+
+
+    /* 타이머 */
+    .timer {
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    /* 버튼 영역 */
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .modal-actions .btn {
+      flex: 1;
+    }
+
+    .modal-actions .light-btn {
+      background: #0099E0;
+    }
+
+    .modal-label {
+      display: block;
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    /* 모달용 가로선 */
+    .divider {
+      height: 1px;
+      background: #d1d1d1;
+    }
+
+    .divider-lg {
+      margin: 20px 0;
+    }
+
+    .divider-sm {
+      margin: 6px 0;
+    }
+
+    .red {
+      color: red;
+    }
+
+    /* =========================
+   12. 반응형
+========================= */
+
+
+    @media (max-width:760px) {
+
+      /* 탭 2개씩 */
+      .tabs {
+
+        flex-wrap: wrap;
+      }
+
+      .tabs label {
+        flex: 0 0 50%;
+        max-width: 50%;
+        font-size: 14px;
+
+      }
+
+      /* 선택된 탭 */
+      .tabs input[type="radio"]:checked+label {
+        border-bottom: 2px solid #fff;
+      }
+
+      /* 콘텐츠 세로 정렬 */
+      .content {
+        flex-direction: column;
+        gap: 20px;
+        padding: 20px;
+        align-items: center;
+      }
+
+
+      .mobile-btns {
+        flex-direction: column;
+        padding: 20px 70px;
+
+      }
+
+      .mobile-info-grid {
+        grid-template-columns: 1fr;
+      }
+
+    }
+
+
+
+    @media (max-width:500px) {
+
+
+
+
+      .logo {
+        margin: 20px auto;
+      }
+
+      .section h3 {
+        font-size: 24px;
+        margin-bottom: 15px;
+      }
+
+      .tabs label {
+        font-size: 14px;
+      }
+
+
+      .mobile-btns {
+        padding: 0 20px;
+
+      }
+
+      .min-w {
+        max-width: 100%;
+      }
+
+      .mt-gap {
+        margin-top: 24px;
+      }
+
+      .mobile-hide {
+        display: none;
+      }
+
+
+      .modal-card {
+
+        max-width: 400px;
+        padding: 30px 10px;
+      }
+
+    }

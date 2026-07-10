@@ -1,11 +1,17 @@
 package knou.lms.msg.facade;
 
 import knou.framework.common.ServiceBase;
+import knou.framework.util.DateTimeUtil;
+import knou.framework.util.StringUtil;
 import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.msg.service.MsgMgrService;
 import knou.lms.msg.service.MsgSndngCostService;
 import knou.lms.msg.service.MsgSndrDsctnService;
+import knou.lms.msg.vo.MsgMgrVO;
 import knou.lms.msg.vo.MsgSndngCostVO;
 import knou.lms.msg.vo.MsgSndrDsctnVO;
+import knou.lms.org.service.OrgInfoService;
+import knou.lms.org.vo.OrgInfoVO;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.stereotype.Service;
 
@@ -25,14 +31,57 @@ public class MsgSndrDsctnFacadeServiceImpl extends ServiceBase implements MsgSnd
     @Resource(name = "msgSndngCostService")
     private MsgSndngCostService msgSndngCostService;
 
+    @Resource(name = "orgInfoService")
+    private OrgInfoService orgInfoService;
+
+    @Resource(name = "msgMgrService")
+    private MsgMgrService msgMgrService;
+
     /*****************************************************
-     * 발송내역 목록 조회 (페이징)
+     * 채널 VO → 공통 MsgMgrVO 변환 (검색 조건)
+     * @param s
+     * @return MsgMgrVO
+     ******************************************************/
+    private MsgMgrVO toMgrVO(MsgSndrDsctnVO s) {
+        MsgMgrVO m = new MsgMgrVO();
+        m.setOrgId(s.getOrgId());
+        m.setUserId(s.getUserId());
+        m.setSbjctYr(s.getSbjctYr());
+        m.setSbjctSmstr(s.getSbjctSmstr());
+        return m;
+    }
+
+    /*****************************************************
+     * 발송내역 목록 조회
      * @param vo
      * @return ProcessResultVO<MsgSndrDsctnVO>
+     * @throws Exception
      ******************************************************/
     @Override
     public ProcessResultVO<MsgSndrDsctnVO> selectSndrDsctnListPage(MsgSndrDsctnVO vo) throws Exception {
         return msgSndrDsctnService.selectSndrDsctnListPage(vo);
+    }
+
+    /*****************************************************
+     * 활성 기관 목록 조회
+     * @param userId
+     * @param isAdmin
+     * @return List<OrgInfoVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public List<OrgInfoVO> selectActiveOrgListByAuth(String userId, boolean isAdmin) throws Exception {
+        return msgMgrService.selectActiveOrgListByAuth(userId, isAdmin);
+    }
+
+    /*****************************************************
+     * 교수 담당과목 기준 기관 목록 조회
+     * @param userId
+     * @return List<OrgInfoVO>
+     ******************************************************/
+    @Override
+    public List<OrgInfoVO> selectProfSbjctOrgList(String userId) {
+        return msgMgrService.selectProfSbjctOrgList(userId);
     }
 
     /*****************************************************
@@ -41,7 +90,7 @@ public class MsgSndrDsctnFacadeServiceImpl extends ServiceBase implements MsgSnd
      * @return MsgSndrDsctnVO
      ******************************************************/
     @Override
-    public MsgSndrDsctnVO selectSndrDsctnSmry(MsgSndrDsctnVO vo) throws Exception {
+    public MsgSndrDsctnVO selectSndrDsctnSmry(MsgSndrDsctnVO vo) {
         return msgSndrDsctnService.selectSndrDsctnSmry(vo);
     }
 
@@ -51,71 +100,30 @@ public class MsgSndrDsctnFacadeServiceImpl extends ServiceBase implements MsgSnd
      * @return List<MsgSndrDsctnVO>
      ******************************************************/
     @Override
-    public List<MsgSndrDsctnVO> selectSndrDsctnExcelList(MsgSndrDsctnVO vo) throws Exception {
+    public List<MsgSndrDsctnVO> selectSndrDsctnExcelList(MsgSndrDsctnVO vo) {
         return msgSndrDsctnService.selectSndrDsctnExcelList(vo);
     }
 
     /*****************************************************
-     * 학사년도 목록 조회
-     * @param vo
-     * @return List<MsgSndrDsctnVO>
-     ******************************************************/
-    @Override
-    public List<MsgSndrDsctnVO> selectSndrDsctnYrList(MsgSndrDsctnVO vo) throws Exception {
-        return msgSndrDsctnService.selectSndrDsctnYrList(vo);
-    }
-
-    /*****************************************************
-     * 학기 목록 조회
-     * @param vo
-     * @return List<EgovMap>
-     ******************************************************/
-    @Override
-    public List<EgovMap> selectSndrDsctnSmstrList(MsgSndrDsctnVO vo) throws Exception {
-        return msgSndrDsctnService.selectSndrDsctnSmstrList(vo);
-    }
-
-    /*****************************************************
-     * 학과 목록 조회
-     * @param vo
-     * @return List<MsgSndrDsctnVO>
-     ******************************************************/
-    @Override
-    public List<MsgSndrDsctnVO> selectSndrDsctnDeptList(MsgSndrDsctnVO vo) throws Exception {
-        return msgSndrDsctnService.selectSndrDsctnDeptList(vo);
-    }
-
-    /*****************************************************
-     * 운영과목 목록 조회
-     * @param vo
-     * @return List<MsgSndrDsctnVO>
-     ******************************************************/
-    @Override
-    public List<MsgSndrDsctnVO> selectSndrDsctnSbjctList(MsgSndrDsctnVO vo) throws Exception {
-        return msgSndrDsctnService.selectSndrDsctnSbjctList(vo);
-    }
-
-    /*****************************************************
-     * 발송단가 Map 조회 (유형코드 → 단가)
+     * 발송단가 Map 조회
      * @return Map<String, BigDecimal>
      ******************************************************/
     @Override
-    public Map<String, BigDecimal> selectSndngCostMap() throws Exception {
+    public Map<String, BigDecimal> selectSndngCostMap() {
         List<MsgSndngCostVO> list = msgSndngCostService.selectSndngCostList();
         Map<String, BigDecimal> costMap = new HashMap<>();
         for (MsgSndngCostVO c : list) {
-            costMap.put(c.getMsgTycd(), c.getSndngCost() != null ? c.getSndngCost() : BigDecimal.ZERO);
+            costMap.put(c.getMsgTycd(), c.getSndngCost() != null ? new BigDecimal(c.getSndngCost()) : BigDecimal.ZERO);
         }
         return costMap;
     }
 
     /*****************************************************
-     * 발송비용 계산 (성공 건수 × 단가)
+     * 발송비용 계산
      * @param smry
-     * @return Map<String, Long> 채널별 비용 + totalCost
+     * @return Map<String, Long>
      ******************************************************/
-    @Override
-    public Map<String, Long> calculateSmryCost(MsgSndrDsctnVO smry) throws Exception {
+    private Map<String, Long> calculateSmryCost(MsgSndrDsctnVO smry) {
         Map<String, BigDecimal> costMap = selectSndngCostMap();
         Map<String, Long> result = new HashMap<>();
 
@@ -125,7 +133,6 @@ public class MsgSndrDsctnFacadeServiceImpl extends ServiceBase implements MsgSnd
         result.put("alimTalk", BigDecimal.valueOf(smry.getAlimtalkSuccCnt()).multiply(costMap.getOrDefault("ALIM_TALK", BigDecimal.ZERO)).setScale(0, java.math.RoundingMode.HALF_UP).longValue());
         result.put("sms",      BigDecimal.valueOf(smry.getSmsSuccCnt()).multiply(costMap.getOrDefault("SMS", BigDecimal.ZERO)).setScale(0, java.math.RoundingMode.HALF_UP).longValue());
         result.put("lms",      BigDecimal.valueOf(smry.getLmsSuccCnt()).multiply(costMap.getOrDefault("LMS", BigDecimal.ZERO)).setScale(0, java.math.RoundingMode.HALF_UP).longValue());
-        result.put("mms",      BigDecimal.valueOf(smry.getMmsSuccCnt()).multiply(costMap.getOrDefault("MMS", BigDecimal.ZERO)).setScale(0, java.math.RoundingMode.HALF_UP).longValue());
 
         long totalCost = result.values().stream().mapToLong(Long::longValue).sum();
         result.put("totalCost", totalCost);
@@ -136,11 +143,12 @@ public class MsgSndrDsctnFacadeServiceImpl extends ServiceBase implements MsgSnd
     /*****************************************************
      * 발송비용금액 엑셀 행 데이터 생성
      * @param smry
-     * @param labels 메시지 라벨 (totalSndCnt, totalSuccCnt, totalFailCnt, sndCost, totalSndCost)
+     * @param Map<String
+     * @param labels
      * @return List<Map<String, Object>>
      ******************************************************/
     @Override
-    public List<Map<String, Object>> buildSmryExcelRows(MsgSndrDsctnVO smry, Map<String, String> labels) throws Exception {
+    public List<Map<String, Object>> buildSmryExcelRows(MsgSndrDsctnVO smry, Map<String, String> labels) {
         List<Map<String, Object>> list = new ArrayList<>();
 
         Map<String, Object> row1 = new HashMap<>();
@@ -151,7 +159,6 @@ public class MsgSndrDsctnFacadeServiceImpl extends ServiceBase implements MsgSnd
         row1.put("alimTalk", String.valueOf(smry.getAlimtalkTotalCnt()));
         row1.put("sms", String.valueOf(smry.getSmsTotalCnt()));
         row1.put("lms", String.valueOf(smry.getLmsTotalCnt()));
-        row1.put("mms", String.valueOf(smry.getMmsTotalCnt()));
         list.add(row1);
 
         Map<String, Object> row2 = new HashMap<>();
@@ -162,7 +169,6 @@ public class MsgSndrDsctnFacadeServiceImpl extends ServiceBase implements MsgSnd
         row2.put("alimTalk", String.valueOf(smry.getAlimtalkSuccCnt()));
         row2.put("sms", String.valueOf(smry.getSmsSuccCnt()));
         row2.put("lms", String.valueOf(smry.getLmsSuccCnt()));
-        row2.put("mms", String.valueOf(smry.getMmsSuccCnt()));
         list.add(row2);
 
         Map<String, Object> row3 = new HashMap<>();
@@ -173,7 +179,6 @@ public class MsgSndrDsctnFacadeServiceImpl extends ServiceBase implements MsgSnd
         row3.put("alimTalk", String.valueOf(smry.getAlimtalkFailCnt()));
         row3.put("sms", String.valueOf(smry.getSmsFailCnt()));
         row3.put("lms", String.valueOf(smry.getLmsFailCnt()));
-        row3.put("mms", String.valueOf(smry.getMmsFailCnt()));
         list.add(row3);
 
         Map<String, Long> costData = calculateSmryCost(smry);
@@ -186,15 +191,52 @@ public class MsgSndrDsctnFacadeServiceImpl extends ServiceBase implements MsgSnd
         row4.put("alimTalk", String.valueOf(costData.getOrDefault("alimTalk", 0L)));
         row4.put("sms", String.valueOf(costData.getOrDefault("sms", 0L)));
         row4.put("lms", String.valueOf(costData.getOrDefault("lms", 0L)));
-        row4.put("mms", String.valueOf(costData.getOrDefault("mms", 0L)));
         list.add(row4);
 
         return list;
     }
 
+    /*****************************************************
+     * 목록 화면 초기 데이터 조회 및 유효성 검증
+     * @param vo
+     * @return MsgSndrDsctnVO
+     * @throws Exception
+     ******************************************************/
     @Override
-    public String selectOrgNm(String orgId) throws Exception {
-        return msgSndrDsctnService.selectOrgNm(orgId);
+    public MsgSndrDsctnVO loadListViewInfo(MsgSndrDsctnVO vo) throws Exception {
+        if (vo.getSbjctYr() == null || vo.getSbjctYr().isEmpty()) {
+            vo.setSbjctYr(DateTimeUtil.getYear());
+        }
+        if (vo.getOrgId() != null && !"".equals(vo.getOrgId())) {
+            OrgInfoVO param = new OrgInfoVO();
+            param.setOrgId(vo.getOrgId());
+            OrgInfoVO org = orgInfoService.select(param);
+            if (org == null) {
+                return null;
+            }
+            vo.setOrgnm(org.getOrgnm());
+        }
+
+        return vo;
+    }
+
+    /*****************************************************
+     * 조회 필터 옵션 조회
+     * @param vo
+     * @return EgovMap
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public EgovMap loadFilterOptions(MsgSndrDsctnVO vo) throws Exception {
+        EgovMap filterOptions = new EgovMap();
+
+        MsgMgrVO mgr = toMgrVO(vo);
+        filterOptions.put("yrList", msgMgrService.selectYrList(mgr));
+        filterOptions.put("smstrList", msgMgrService.selectSmstrList(mgr));
+        filterOptions.put("orgList", orgInfoService.listActiveOrg());
+        filterOptions.put("sbjctList", msgMgrService.selectSbjctList(mgr));
+
+        return filterOptions;
     }
 
 }

@@ -8,11 +8,31 @@
              설  명 : 문항목록조회
          */
 		SELECT
-			  QSTN.*
+			  QSTN.QSTN_ID
+			, QSTN.EXAM_DTL_ID
+			, QSTN.QSTN_TTL
+			, DBMS_LOB.SUBSTR(QSTN.QSTN_CTS, 4000) AS QSTN_CTS
+			, QSTN.QSTN_SEQNO
+			, QSTN.QSTN_CNDDT_SEQNO
+			, QSTN.QSTN_GBNCD
+			, QSTN.QSTN_RSPNS_TYCD
+			, QSTN.QSTN_SCR
+			, QSTN.QSTN_DFCTLV_TYCD
+			, QSTN.CRANS_TYCD
+			, QSTN.EXRCS_SDDN_QSTN_BSC_ID
+			, QSTN.CRANS_EXPLN
 			, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'QSTN_RSPNS_TYCD' AND CD = QSTN.QSTN_RSPNS_TYCD) AS QSTN_RSPNS_TYNM
 		  FROM TB_LMS_QSTN QSTN
 		 WHERE QSTN.DELYN = 'N'
-		   AND QSTN.EXAM_DTL_ID = #{examDtlId}
+		 <choose>
+		 	<when test="qstnGbncd == 'GENERAL'">
+			   AND QSTN.EXAM_DTL_ID = #{examDtlId}
+		 	</when>
+		 	<otherwise>
+			   AND QSTN.EXRCS_SDDN_QSTN_BSC_ID = #{exrcsSddnQstnBscId}
+		 	</otherwise>
+		 </choose>
+		   AND QSTN.QSTN_GBNCD = #{qstnGbncd}
 		 ORDER BY QSTN.QSTN_SEQNO, QSTN.QSTN_CNDDT_SEQNO
 	</select>
 
@@ -24,8 +44,16 @@
         SELECT
 			COUNT(*)
 		  FROM TB_LMS_QSTN
-		 WHERE EXAM_DTL_ID = #{examDtlId}
-		   AND DELYN = 'N'
+		 WHERE DELYN = 'N'
+		 <choose>
+		 	<when test="qstnGbncd == 'GENERAL'">
+			   AND EXAM_DTL_ID = #{examDtlId}
+		 	</when>
+		 	<otherwise>
+			   AND EXRCS_SDDN_QSTN_BSC_ID = #{exrcsSddnQstnBscId}
+		 	</otherwise>
+		 </choose>
+		   AND QSTN_GBNCD = #{qstnGbncd}
 		   AND QSTN_CNDDT_SEQNO = 1
 	</select>
 
@@ -37,6 +65,7 @@
          INSERT INTO TB_LMS_QSTN (
          	  QSTN_ID
 			, EXAM_DTL_ID
+			, EXRCS_SDDN_QSTN_BSC_ID
 			, QSTN_TTL
 			, QSTN_CTS
 			, QSTN_SEQNO
@@ -46,11 +75,13 @@
 			, QSTN_SCR
 			, QSTN_DFCTLV_TYCD
 			, CRANS_TYCD
+			, CRANS_EXPLN
 			, RGTR_ID
 			, REG_DTTM
          ) VALUES (
          	  #{qstnId}
          	, #{examDtlId}
+         	, #{exrcsSddnQstnBscId}
 			, #{qstnTtl}
 			, #{qstnCts}
 			, #{qstnSeqno}
@@ -60,6 +91,7 @@
 			, #{qstnScr}
 			, #{qstnDfctlvTycd}
 			, #{cransTycd}
+			, #{cransExpln}
 			, #{rgtrId}
 			, FN_DTTM()
          )
@@ -74,6 +106,7 @@
           	  MDFR_ID   = #{mdfrId}
     		, MOD_DTTM = FN_DTTM()
     		, CRANS_TYCD = #{cransTycd}
+    		, CRANS_EXPLN = #{cransExpln}
     		<if test="qstnTtl != null and qstnTtl != ''">
     		, QSTN_TTL = #{qstnTtl}
     		</if>
@@ -86,8 +119,11 @@
     		<if test="qstnDfctlvTycd != null and qstnDfctlvTycd != ''">
     		, QSTN_DFCTLV_TYCD = #{qstnDfctlvTycd}
     		</if>
+    		<if test="qstnSeqno != null">
+    		, QSTN_SEQNO = #{qstnSeqno}
+    		</if>
     	  WHERE QSTN_ID = #{qstnId}
-    	    AND EXAM_DTL_ID = #{examDtlId}
+    	    AND (EXAM_DTL_ID = #{examDtlId} OR EXRCS_SDDN_QSTN_BSC_ID = #{exrcsSddnQstnBscId})
 	</update>
 
 	<update id="qstnSeqnoModify" parameterType="qstnVO">
@@ -107,8 +143,8 @@
 				, #{qstnSeqno} AS NEW_QSTN_SEQNO
 				, #{searchKey} AS CURRENT_QSTN_SEQNO
 			  FROM TB_LMS_QSTN
-			 WHERE EXAM_DTL_ID = #{examDtlId}
-			   AND DELYN = 'N'
+			 WHERE DELYN = 'N'
+			   AND EXAM_DTL_ID = #{examDtlId}
 			  ) A
 			WHERE A.QSTN_SEQNO BETWEEN LEAST(A.NEW_QSTN_SEQNO, A.CURRENT_QSTN_SEQNO) AND GREATEST(A.NEW_QSTN_SEQNO, A.CURRENT_QSTN_SEQNO)
 		) OLD_QSTN
@@ -176,7 +212,15 @@
          	*
            FROM TB_LMS_QSTN
           WHERE QSTN_ID = #{qstnId}
-            AND EXAM_DTL_ID = #{examDtlId}
+          <choose>
+		 	<when test="qstnGbncd == 'GENERAL'">
+			   AND EXAM_DTL_ID = #{examDtlId}
+		 	</when>
+		 	<otherwise>
+			   AND EXRCS_SDDN_QSTN_BSC_ID = #{exrcsSddnQstnBscId}
+		 	</otherwise>
+		 </choose>
+		   AND QSTN_GBNCD = #{qstnGbncd}
 	</select>
 
 	<update id="qstnDelynModify" parameterType="qstnVO">
@@ -188,8 +232,8 @@
 			  MDFR_ID = #{mdfrId}
 			, MOD_DTTM = FN_DTTM()
 			, DELYN = 'Y'
-		 WHERE EXAM_DTL_ID = #{examDtlId}
-		   AND QSTN_SEQNO = #{qstnSeqno}
+		 WHERE QSTN_SEQNO = #{qstnSeqno}
+		   AND EXAM_DTL_ID = #{examDtlId}
 		   <if test="qstnCnddtSeqno != null">
 		   AND QSTN_CNDDT_SEQNO = #{qstnCnddtSeqno}
 		   </if>
@@ -204,11 +248,12 @@
 		USING (
 			SELECT
 			 	  EXAM_DTL_ID
+			 	, EXRCS_SDDN_QSTN_BSC_ID
 				, QSTN_SEQNO
 				, (SELECT COUNT(*) FROM TB_LMS_QSTN WHERE EXAM_DTL_ID = #{examDtlId} AND DELYN = 'N' AND QSTN_SEQNO = #{qstnSeqno}) AS QSTN_CNT
 			 FROM TB_LMS_QSTN
-			WHERE EXAM_DTL_ID = #{examDtlId}
-			  AND QSTN_SEQNO = #{qstnSeqno}
+			WHERE QSTN_SEQNO = #{qstnSeqno}
+			  AND EXAM_DTL_ID = #{examDtlId}
 			  AND QSTN_CNDDT_SEQNO = 1
 			  AND ROWNUM = 1
 			ORDER BY QSTN_SEQNO, QSTN_CNDDT_SEQNO
@@ -307,7 +352,7 @@
 
 	<select id="profQstnCopyQuizQstnList" parameterType="qstnVO" resultType="egovMap">
 		/*
-             SQL ID : QbnkQstnDAO.profQstnCopyQuizQstnList
+             SQL ID : QstnDAO.profQstnCopyQuizQstnList
              설  명 : 교수문항복사퀴즈문항목록조회
          */
          WITH SBJCT AS (
@@ -347,7 +392,7 @@
 
 	<insert id="quizQstnCopy" parameterType="java.util.List">
 		/*
-             SQL ID : QbnkQstnDAO.quizQstnCopy
+             SQL ID : QstnDAO.quizQstnCopy
              설  명 : 퀴즈문항가져오기
          */
         INSERT INTO TB_LMS_QSTN (
@@ -361,6 +406,7 @@
         	, QSTN_SEQNO
         	, RGTR_ID
         	, REG_DTTM
+        	, QSTN_GBNCD
         	, QSTN_CNDDT_SEQNO
         )
         SELECT
@@ -382,6 +428,7 @@
 			              AND DELYN = 'N') 								AS QSTN_SEQNO
 			        , #{item.rgtrId} 									AS RGTR_ID
 			        , FN_DTTM()											AS REG_DTTM
+			        , 'GENERAL' 										AS QSTN_GBNCD
 			      FROM DUAL
 			      LEFT JOIN TB_LMS_QSTN      Q ON Q.QSTN_ID      = #{item.copyQstnId}
 			      LEFT JOIN TB_LMS_QBNK_QSTN B ON B.QBNK_QSTN_ID = #{item.copyQstnId}
@@ -389,13 +436,13 @@
 		) A
 	</insert>
 
-	<delete id="qstnAllDelete" parameterType="examDtlVO">
+	<delete id="qstnAllDelete" parameterType="qstnVO">
 		/*
              SQL ID : QstnDAO.qstnAllDelete
              설  명  : 문항전체삭제
          */
         DELETE FROM TB_LMS_QSTN
-	     WHERE EXAM_DTL_ID = #{examDtlId}
+	     WHERE (EXAM_DTL_ID = #{examDtlId} OR EXRCS_SDDN_QSTN_BSC_ID = #{exrcsSddnQstnBscId})
 	</delete>
 
 	<insert id="qstnBulkRegist" parameterType="java.util.List">
@@ -408,6 +455,7 @@
 			INTO TB_LMS_QSTN (
 	         	  QSTN_ID
 				, EXAM_DTL_ID
+				, EXRCS_SDDN_QSTN_BSC_ID
 				, QSTN_TTL
 				, QSTN_CTS
 				, QSTN_SEQNO
@@ -422,6 +470,7 @@
 	         ) VALUES (
 	         	  #{item.qstnId}
 	         	, #{item.examDtlId}
+	         	, #{item.exrcsSddnQstnBscId}
 				, #{item.qstnTtl}
 				, #{item.qstnCts}
 				, #{item.qstnSeqno}
@@ -437,5 +486,300 @@
 		</foreach>
 		SELECT * FROM DUAL
 	</insert>
+
+	<update id="exrcsSddnQstnBulkModify" parameterType="java.util.List">
+		/*
+             SQL ID : QstnDAO.exrcsSddnQstnBulkModify
+             설  명 : 연습돌발문항일괄수정
+         */
+         <foreach item="item" collection="list" separator=";" open="BEGIN" close="; END;">
+         UPDATE TB_LMS_QSTN SET
+         	  MDFR_ID = #{item.mdfrId}
+         	, MOD_DTTM = FN_DTTM()
+         	, CRANS_TYCD = #{item.cransTycd}
+         	, QSTN_TTL = #{item.qstnTtl}
+         	, QSTN_CTS = #{item.qstnCts}
+         	, QSTN_RSPNS_TYCD = #{item.qstnRspnsTycd}
+         	, QSTN_DFCTLV_TYCD = #{item.qstnDfctlvTycd}
+          WHERE DELYN = 'N'
+            AND EXRCS_SDDN_QSTN_BSC_ID = #{item.exrcsSddnQstnBscId}
+            AND QSTN_SEQNO = #{item.qstnSeqno}
+         </foreach>
+	</update>
+
+	<update id="exrcsQstnBulkQstnSeqnoModify" parameterType="java.util.List">
+		/*
+		 	SQL ID : QstnDAO.exrcsQstnBulkQstnSeqnoModify
+		 	설  명 : 연습문제일괄문항순번수정
+	 	*/
+	 	MERGE INTO TB_LMS_QSTN QSTN
+		USING (
+			SELECT
+				*
+			  FROM (
+				<foreach item="item" collection="list" separator="UNION ALL">
+				  	SELECT
+						  EXRCS_SDDN_QSTN_BSC_ID
+						, QSTN_ID
+						, QSTN_SEQNO
+						, #{item.qstnSeqno} AS NEW_QSTN_SEQNO
+						, #{item.searchKey} AS CURRENT_QSTN_SEQNO
+						, #{item.mdfrId} AS MDFR_ID
+					  FROM TB_LMS_QSTN
+					 WHERE DELYN = 'N'
+					   AND EXRCS_SDDN_QSTN_BSC_ID = #{item.exrcsSddnQstnBscId}
+				</foreach>
+			  ) A
+			WHERE A.QSTN_SEQNO BETWEEN LEAST(A.NEW_QSTN_SEQNO, A.CURRENT_QSTN_SEQNO) AND GREATEST(A.NEW_QSTN_SEQNO, A.CURRENT_QSTN_SEQNO)
+		) OLD_QSTN
+		ON (
+				QSTN.EXRCS_SDDN_QSTN_BSC_ID = OLD_QSTN.EXRCS_SDDN_QSTN_BSC_ID
+			AND QSTN.QSTN_ID IN (OLD_QSTN.QSTN_ID)
+		)
+		WHEN MATCHED THEN
+			UPDATE SET
+				  QSTN.MDFR_ID = OLD_QSTN.MDFR_ID
+				, QSTN.MOD_DTTM = FN_DTTM()
+				, QSTN.QSTN_SEQNO = CASE
+						WHEN QSTN.QSTN_SEQNO = OLD_QSTN.CURRENT_QSTN_SEQNO THEN OLD_QSTN.NEW_QSTN_SEQNO
+						WHEN OLD_QSTN.CURRENT_QSTN_SEQNO <![CDATA[ > ]]> OLD_QSTN.NEW_QSTN_SEQNO THEN QSTN.QSTN_SEQNO + 1
+						ELSE QSTN.QSTN_SEQNO - 1
+					END
+	</update>
+
+	<update id="exrcsQstnBulkDelynModify" parameterType="java.util.List">
+		/*
+             SQL ID : QstnDAO.exrcsQstnBulkDelynModify
+             설  명 : 연습문제일괄삭제여부수정
+         */
+         <foreach item="item" collection="list" separator=";" open="BEGIN" close="; END;">
+         UPDATE TB_LMS_QSTN SET
+         	  MDFR_ID = #{item.mdfrId}
+         	, MOD_DTTM = FN_DTTM()
+         	, DELYN = 'Y'
+          WHERE QSTN_SEQNO = #{item.qstnSeqno}
+            AND EXRCS_SDDN_QSTN_BSC_ID = #{item.exrcsSddnQstnBscId}
+         </foreach>
+	</update>
+
+	<update id="exrcsQstnBulkDelNSeqnoModify" parameterType="java.util.List">
+		/*
+             SQL ID : QstnDAO.exrcsQstnBulkDelNSeqnoModify
+             설  명 : 연습문제일괄미삭제순번수정
+         */
+        <foreach item="item" collection="list" separator=";" open="BEGIN" close="; END;">
+		UPDATE TB_LMS_QSTN SET
+		      MDFR_ID  = #{item.mdfrId}
+		    , MOD_DTTM = FN_DTTM()
+		    , QSTN_SEQNO = QSTN_SEQNO - 1
+		 WHERE EXRCS_SDDN_QSTN_BSC_ID = #{item.exrcsSddnQstnBscId}
+		   AND DELYN = 'N'
+		   AND QSTN_SEQNO <![CDATA[ > ]]> #{item.qstnSeqno}
+		</foreach>
+	</update>
+
+	<select id="exrcsSddnQstnIdList" parameterType="java.util.List" resultType="String">
+		/*
+             SQL ID : QstnDAO.exrcsSddnQstnIdList
+             설  명 : 연습돌발문항아이디목록
+         */
+        SELECT
+        	QSTN_ID
+          FROM TB_LMS_QSTN
+		 WHERE DELYN = 'N'
+		   AND (EXRCS_SDDN_QSTN_BSC_ID, QSTN_SEQNO) IN (
+		   <foreach item="item" collection="list" separator=",">
+				(#{item.exrcsSddnQstnBscId}, #{item.qstnSeqno})
+		   </foreach>
+		   )
+	</select>
+
+	<select id="profQstnCopyExrcsQstnList" parameterType="qstnVO" resultType="egovMap">
+		/*
+             SQL ID : QstnDAO.profQstnCopyExrcsQstnList
+             설  명 : 교수문항복사연습문제목록조회
+         */
+         SELECT
+		 	  QSTN.QSTN_ID
+		 	, SBJCT.SBJCT_YR
+		 	, SBJCT.SBJCT_SMSTR
+		 	, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'QSTN_RSPNS_TYCD' AND CD = QSTN.QSTN_RSPNS_TYCD) AS QSTN_RSPNS_TYNM
+		 	, QSTN.QSTN_SEQNO
+		 	, QSTN.QSTN_TTL
+		 	, (SELECT CDNM FROM TB_LMS_CMMN_CD WHERE UP_CD = 'QSTN_DFCTLV_TYCD' AND CD = QSTN.QSTN_DFCTLV_TYCD) AS QSTN_DFCTLV_TYNM
+		  FROM TB_LMS_QSTN QSTN
+		  JOIN TB_LMS_EXRCS_SDDN_QSTN_BSC EXRCS
+		    ON QSTN.EXRCS_SDDN_QSTN_BSC_ID = EXRCS.EXRCS_SDDN_QSTN_BSC_ID
+		   AND EXRCS.DELYN = 'N'
+		  JOIN TB_LMS_SBJCT SBJCT
+		    ON EXRCS.SBJCT_ID = SBJCT.SBJCT_ID
+		   AND SBJCT.DELYN = 'N'
+		   AND SBJCT.USEYN = 'Y'
+		 WHERE QSTN.DELYN = 'N'
+		   AND QSTN.EXRCS_SDDN_QSTN_BSC_ID = #{exrcsSddnQstnBscId}
+		 ORDER BY QSTN.QSTN_SEQNO
+	</select>
+
+	<insert id="exrcsQstnCopy" parameterType="java.util.List">
+		/*
+             SQL ID : QstnDAO.exrcsQstnCopy
+             설  명 : 연습문제가져오기
+         */
+        INSERT INTO TB_LMS_QSTN (
+        	  QSTN_ID
+        	, EXRCS_SDDN_QSTN_BSC_ID
+        	, QSTN_TTL
+        	, QSTN_CTS
+        	, QSTN_RSPNS_TYCD
+        	, QSTN_DFCTLV_TYCD
+        	, CRANS_TYCD
+        	, RGTR_ID
+        	, QSTN_SEQNO
+        	, QSTN_CNDDT_SEQNO
+        	, QSTN_GBNCD
+        	, REG_DTTM
+        )
+        WITH BASE_SEQNO_CTE AS (
+		    SELECT EXRCS_SDDN_QSTN_BSC_ID
+		         , NVL(MAX(QSTN_SEQNO), 0) AS BASE_SEQNO
+		      FROM TB_LMS_QSTN
+		     WHERE DELYN = 'N'
+		     GROUP BY EXRCS_SDDN_QSTN_BSC_ID
+		)
+        SELECT
+			  A.*
+		    , NVL(C.BASE_SEQNO, 0) + ROW_NUMBER() OVER (
+		        PARTITION BY A.EXRCS_SDDN_QSTN_BSC_ID
+		        ORDER BY A.QSTN_ID
+		      ) AS QSTN_SEQNO
+		    , 1
+		    , 'EXRCS_QSTN'
+		    , FN_DTTM()
+		  FROM (
+	        <foreach item="item" collection="list" separator="UNION ALL">
+			  	SELECT
+			          #{item.qstnId}  									AS QSTN_ID
+			        , #{item.exrcsSddnQstnBscId}						AS EXRCS_SDDN_QSTN_BSC_ID
+			        , COALESCE(Q.QSTN_TTL,         B.QSTN_TTL)         	AS QSTN_TTL
+			        , COALESCE(Q.QSTN_CTS,         B.QSTN_CTS)         	AS QSTN_CTS
+			        , COALESCE(Q.QSTN_RSPNS_TYCD,  B.QSTN_RSPNS_TYCD)  	AS QSTN_RSPNS_TYCD
+			        , COALESCE(Q.QSTN_DFCTLV_TYCD, B.QSTN_DFCTLV_TYCD) 	AS QSTN_DFCTLV_TYCD
+			        , COALESCE(Q.CRANS_TYCD,       B.CRANS_TYCD)       	AS CRANS_TYCD
+			        , #{item.rgtrId} 									AS RGTR_ID
+			      FROM DUAL
+			      LEFT JOIN TB_LMS_QSTN      Q ON Q.QSTN_ID      = #{item.copyQstnId}
+			      LEFT JOIN TB_LMS_QBNK_QSTN B ON B.QBNK_QSTN_ID = #{item.copyQstnId}
+        </foreach>
+		) A
+		LEFT JOIN BASE_SEQNO_CTE C
+          ON C.EXRCS_SDDN_QSTN_BSC_ID = A.EXRCS_SDDN_QSTN_BSC_ID
+	</insert>
+
+	<select id="lctrWknoRegistQstnCntSelect" parameterType="map" resultType="int">
+		/*
+             SQL ID : QstnDAO.lctrWknoRegistQstnCntSelect
+             설  명 : 강의주차등록문항수조회
+         */
+        SELECT COUNT(*) AS CNT
+		  FROM (
+		  	SELECT
+				*
+			  FROM TB_LMS_EXRCS_SDDN_QSTN_BSC SDDN
+			  JOIN TB_LMS_QSTN QSTN
+			    ON SDDN.EXRCS_SDDN_QSTN_BSC_ID = QSTN.EXRCS_SDDN_QSTN_BSC_ID
+			   AND QSTN.DELYN = 'N'
+			   <if test="exrcsSddnQstnBscId != null and exrcsSddnQstnBscId != ''">
+			   	AND QSTN.EXRCS_SDDN_QSTN_BSC_ID <![CDATA[ <> ]]> #{exrcsSddnQstnBscId}
+			   </if>
+			 WHERE SDDN.DELYN = 'N'
+			   AND SDDN.QSTN_GBNCD = #{qstnGbncd}
+			   AND SDDN.SBJCT_ID = #{sbjctId}
+			   AND SDDN.LCTR_WKNO_SCHDL_ID = #{lctrWknoSchdlId}
+			   AND QSTN.QSTN_SEQNO = #{qstnSeqno}
+		  ) A
+	</select>
+
+	<select id="stdntExampprQstnList" parameterType="map" resultType="qstnVO">
+		/*
+             SQL ID : QstnDAO.stdntExampprQstnList
+             설  명 : 학생시험지문항목록조회
+         */
+		SELECT
+			  QSTN.QSTN_ID
+			, QSTN.QSTN_TTL
+			, DBMS_LOB.SUBSTR(QSTN.QSTN_CTS, 4000) AS QSTN_CTS
+			, EXAMPPR.QSTN_DSPLY_SEQNO AS QSTN_SEQNO
+			, 1 AS QSTN_CNDDT_SEQNO
+			, QSTN.QSTN_RSPNS_TYCD
+			, QSTN.QSTN_SCR
+			, QSTN.QSTN_DFCTLV_TYCD
+			, QSTN.CRANS_TYCD
+		  FROM TB_LMS_EXAMPPR EXAMPPR
+		  JOIN TB_LMS_QSTN QSTN
+		    ON EXAMPPR.QSTN_ID = QSTN.QSTN_ID
+		   AND QSTN.DELYN = 'N'
+		 WHERE EXAMPPR.TKEXAM_ID = #{tkexamId}
+		   AND EXAMPPR.USER_ID = #{userId}
+		 ORDER BY EXAMPPR.QSTN_DSPLY_SEQNO
+	</select>
+
+	<delete id="qstnListAllDelete" parameterType="String">
+		/*
+             SQL ID : QstnDAO.qstnListAllDelete
+             설  명 : 문항목록전체삭제
+         */
+        DELETE FROM TB_LMS_QSTN
+         WHERE EXRCS_SDDN_QSTN_BSC_ID = #{id}
+            OR EXAM_DTL_ID IN (
+         	    	SELECT
+         	    		EXAM_DTL_ID
+         	    	  FROM TB_LMS_EXAM_DTL
+         	    	 WHERE EXAM_BSC_ID = #{id}
+         	    )
+	</delete>
+
+	<select id="profPreviewQstnList" parameterType="map" resultType="qstnVO">
+		/*
+             SQL ID : QstnDAO.profPreviewQstnList
+             설  명 : 교수미리보기문항목록조회
+         */
+        SELECT
+			  A.QSTN_ID
+			, A.QSTN_RSPNS_TYCD
+			, ROW_NUMBER() OVER(ORDER BY CASE WHEN A.QSTN_RNDMYN = 'N' THEN A.QSTN_SEQNO ELSE DBMS_RANDOM.VALUE END) AS QSTN_SEQNO
+			, 1 AS QSTN_CNDDT_SEQNO
+			, A.QSTN_GBNCD
+			, A.QSTN_TTL
+			, DBMS_LOB.SUBSTR(A.QSTN_CTS, 4000) AS QSTN_CTS
+			, A.QSTN_SCR
+			, (SELECT LISTAGG(QSTN_VWITM_SEQNO,'@#') WITHIN GROUP (ORDER BY CASE WHEN A.QSTN_VWITM_RNDMYN = 'N' THEN QSTN_VWITM_SEQNO ELSE DBMS_RANDOM.VALUE END) FROM TB_LMS_QSTN_VWITM WHERE QSTN_ID = A.QSTN_ID GROUP BY QSTN_ID) AS SEARCH_VALUE
+		  FROM (
+		  	SELECT
+				  QSTN.QSTN_ID
+				, QSTN.QSTN_SEQNO
+				, QSTN.QSTN_RSPNS_TYCD
+				, QSTN.QSTN_GBNCD
+				, QSTN.QSTN_TTL
+				, QSTN.QSTN_CTS
+				, QSTN.QSTN_SCR
+				, EXAM_BSC.QSTN_RNDMYN
+				, EXAM_BSC.QSTN_VWITM_RNDMYN
+				, EXAM_BSC.QSTN_CNDDT_USEYN
+				, ROW_NUMBER() OVER(PARTITION BY QSTN.QSTN_SEQNO ORDER BY CASE WHEN EXAM_BSC.QSTN_CNDDT_USEYN = 'N' THEN QSTN.QSTN_CNDDT_SEQNO ELSE DBMS_RANDOM.VALUE END) AS RNUM
+			  FROM TB_LMS_EXAM_BSC EXAM_BSC
+			  JOIN TB_LMS_EXAM_DTL EXAM_DTL
+			    ON EXAM_BSC.EXAM_BSC_ID = EXAM_DTL.EXAM_BSC_ID
+			  JOIN TB_LMS_QSTN QSTN
+			    ON QSTN.EXAM_DTL_ID = EXAM_DTL.EXAM_DTL_ID
+			 WHERE EXAM_BSC.EXAM_BSC_ID = #{examBscId}
+			   AND EXAM_DTL.EXAM_DTL_ID = #{examDtlId}
+			   AND EXAM_DTL.DELYN = 'N'
+			   AND EXAM_DTL.USEYN = 'Y'
+			   AND EXAM_BSC.DELYN = 'N'
+			   AND EXAM_BSC.USEYN = 'Y'
+			   AND QSTN.DELYN = 'N'
+		  ) A
+		 WHERE A.RNUM = 1
+	</select>
 
 </mapper>

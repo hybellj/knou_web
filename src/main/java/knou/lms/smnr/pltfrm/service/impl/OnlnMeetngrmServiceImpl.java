@@ -28,9 +28,8 @@ public class OnlnMeetngrmServiceImpl extends ServiceBase implements OnlnMeetngrm
      * @param smnrId			세미나아이디
      * @param OnlnPltfrmUserVO	온라인플랫폼사용자
      * @param Object
-     * @throws Exception
      */
-	public OnlnMeetngrmVO onlnMeetngrmRegist(String pltfrmGbncd, String smnrId, OnlnPltfrmUserVO user, Object obj) throws Exception {
+	public OnlnMeetngrmVO onlnMeetngrmRegist(String pltfrmGbncd, String smnrId, OnlnPltfrmUserVO user, Object obj) {
 		OnlnMeetngrmVO vo = new OnlnMeetngrmVO();
 		vo.setOnlnMeetngrmId(IdGenUtil.genNewId(IdPrefixType.OPLMT));
 		vo.setOnlnPltfrmUserId(user.getOnlnPltfrmUserId());
@@ -58,10 +57,9 @@ public class OnlnMeetngrmServiceImpl extends ServiceBase implements OnlnMeetngrm
      *
      * @param pltfrmGbncd		플랫폼구분코드
      * @param SmnrVO			세미나정보
-     * @throws Exception
      */
 	@Override
-	public void onlnMeetngrmModify(String pltfrmGbncd, SmnrVO vo) throws Exception {
+	public void onlnMeetngrmModify(String pltfrmGbncd, SmnrVO vo) {
 		OnlnMeetngrmVO meeting = new OnlnMeetngrmVO();
 		meeting.setSmnrId(vo.getSmnrId());
 		meeting.setMdfrId(vo.getMdfrId());
@@ -73,6 +71,26 @@ public class OnlnMeetngrmServiceImpl extends ServiceBase implements OnlnMeetngrm
 
 		// 온라인회의실수정
 		onlnMeetngrmDAO.onlnMeetngrmModify(meeting);
+	}
+
+	/**
+	 * 생성ZOOM수조회
+	 *
+	 * @param onlnPltfrmStngId		온라인플랫폼설정아이디
+	 */
+	@Override
+	public int createZoomCntSelect(String onlnPltfrmStngId) {
+		return onlnMeetngrmDAO.createZoomCntSelect(onlnPltfrmStngId);
+	}
+
+	/**
+	 * 온라인회의실일괄삭제
+	 *
+	 * @param onlnPltfrmStngId		온라인플랫폼설정아이디
+	 */
+	@Override
+	public void onlnMeetngrmBulkDelete(String onlnPltfrmStngId) {
+		onlnMeetngrmDAO.onlnMeetngrmBulkDelete(onlnPltfrmStngId);
 	}
 
 }

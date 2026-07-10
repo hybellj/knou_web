@@ -17,10 +17,49 @@
 
 	<jsp:include page="/WEB-INF/jsp/bbs/common/bbs_common_inc.jsp"/>
 
+	<style>
+		/* 삭제된 댓글 "삭제됨" 뱃지 */
+		.badge-deleted {
+			display: inline-block;
+			font-size: 11px;
+			color: #fff;
+			background: #999;
+			border-radius: 3px;
+			padding: 1px 6px;
+			margin-left: 6px;
+			vertical-align: middle;
+			font-weight: normal;
+		}
+		/* 삭제된 댓글 텍스트 흐리게 */
+		li.deleted-li .comment {
+			color: #aaa;
+		}
+		/* 3레벨 댓글 추가 들여쓰기 */
+		.re_comment_ul .re_comment_ul {
+			padding-left: 20px;
+		}
+		/* 자식 댓글이 없는 빈 ul 이 공간 차지하지 않도록 */
+		.re_comment_ul:empty {
+			display: none;
+			margin: 0;
+			padding: 0;
+		}
+		/* reply_write_area 삽입 후 re_comment_ul 이 생기면 다시 표시 */
+		.re_comment_ul:not(:empty) {
+			display: block;
+		}
+		/* 대댓글 작성폼 여백 초기화 */
+		.reply_write_area {
+			margin-top: 8px;
+		}
+	</style>
+
 	<script type="text/javascript">
-		var ORG_ID 			= '<c:out value="${bbsAtclVO.orgId}" />';
-		var BBS_ID 			= '<c:out value="${bbsAtclVO.bbsId}" />';
+		var ORG_ID 			= '<c:out value="${bbsVO.orgId}" />';
+		var BBS_ID 			= '<c:out value="${bbsVO.bbsId}" />';
+		var BBS_TYCD 		= '<c:out value="${bbsVO.bbsTycd}" />';
 		var ATCL_ID 		= '<c:out value="${bbsAtclVO.atclId}" />';
+		var USER_ID 		= '<c:out value="${userId}" />';
 		var TAB 			= '<c:out value="${param.tab}" />';
 		var TEMPLATE_URL 	= '<c:out value="${templateUrl}" />';
 		var ATCL_LV 		= 2;
@@ -33,8 +72,9 @@
 	   	});
 
 		// 게시글 수정 이동
-		function moveAtclEdit() {
-			document.location.href = "/bbs/${templateUrl}/bbsAtclView.do?encParams=${encParams}&gubun=edit";
+		function moveAtclEdit(atclId, sbjctId) {
+			let addParams = UiComm.makeEncParams({"atclId": atclId, "sbjctId": sbjctId});
+			document.location.href = "/bbs/${templateUrl}/bbsAtclView.do?encParams=${encParams}&gubun=edit&addParams="+addParams;
 		}
 
         // 게시글 목록 이동
@@ -49,18 +89,23 @@
         }
 
      	// 게시글 삭제
-        function bbsAtclDelete(bbsId, atclId) {
-    		// 게시글 삭제 시 댓글도 모두 삭제됩니다. 정말 삭제 하시겠습니까?
-    		if(confirm('<spring:message code="bbs.confirm.delete_atcl" />')) {
-    			var url = "/bbs/" + TEMPLATE_URL + "/removeAtcl.do";
-    			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?encParams=${encParams}";
-    			var data = {
-    				  atclId	: atclId
-    				, bbsId	    : bbsId
-    			};
+        function bbsAtclDelete(bbsId, atclId, bbsTycd) {
+    		UiComm.showMessage('<spring:message code="bbs.confirm.delete_atcl" />', "confirm")
+    		.then(function(result) {
+    			if (result) {
+    				var url = "/bbs/" + TEMPLATE_URL + "/removeAtcl.do";
+        			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsAtclListView.do?encParams=${encParams}";
+        			var data = {
+        				  atclId	: atclId
+        				, bbsId	    : bbsId
+        				, bbsTycd	: bbsTycd
+        			};
 
-    			bbsCommon.delete(url, returnUrl, data);
-    		}
+        			bbsCommon.delete(url, returnUrl, data);
+    			}
+    			else {
+    			}
+    		});
     	};
 
     	// 게시글 > 답변 조회
@@ -89,8 +134,11 @@
 			            html += "  <div class='atcl-cts-text'>" + v.atclCts + "</div>";
 			            html += "  <div class='bottom_btn'>";
 			            html += "    <div class='right-area'>";
-			            html += "      <button type='button' class='btn basic btn-modify-action' onclick=\"convertToRspnsEdit('" + i + "', '" + v.bbsId + "', '" + v.atclId + "')\">수정</button>";
-			            html += "      <button type='button' class='btn basic' onclick=\"bbsAtclRspnsDelete('" + v.atclId + "')\">삭제</button>";
+						if(USER_ID === v.rgtrId) {
+			            	html += "      <button type='button' class='btn basic btn-modify-action' onclick=\"convertToRspnsEdit('" + i + "', '" + v.bbsId + "', '" + v.bbsTycd + "', '" + v.sbjctId + "', '" + v.atclId + "')\">수정</button>";
+			            	html += "      <button type='button' class='btn basic' onclick=\"bbsAtclRspnsDelete('" + v.atclId + "', '" + v.bbsTycd + "')\">삭제</button>";
+						}
+
 			            html += "    </div>";
 			            html += "  </div>";
 			            html += " </div>";
@@ -103,7 +151,7 @@
 
 		// 게시글 > 답변 등록
     	function bbsAtclRspnsRegist() {
-    		var url = "/bbs/" + TEMPLATE_URL +"/bbsAtclRspnsRegist.do";
+    		var url = "/bbs/" + TEMPLATE_URL +"/bbsAtclRspnsRegist.do?encParams=${encParams}";
     		var data = $("#bbsAtclRspnsWriteForm").serialize();
 			var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsAtclView.do?encParams=${encParams}";
 
@@ -111,15 +159,16 @@
 		};
 
 		// 게시글 > 답변 삭제
-        function bbsAtclRspnsDelete(atclId) {
+        function bbsAtclRspnsDelete(atclId, bbsTycd) {
     		UiComm.showMessage("<spring:message code='bbs.confirm.delete_atcl' />", "confirm")
     		.then(function(result) {
     			if (result) {
-    				var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?encParams=${encParams}";
         			var url = "/bbs/" + TEMPLATE_URL + "/removeAtcl.do";
+    				var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?encParams=${encParams}";
         			var data = {
     					orgId : ORG_ID,
     					bbsId : BBS_ID,
+    					bbsTycd : bbsTycd,
     					atclId : atclId,
     					atclLv : ATCL_LV
     				};
@@ -130,7 +179,7 @@
     		});
     	};
 
-    	function convertToRspnsEdit(idx, bbsId, atclId) {
+    	function convertToRspnsEdit(idx, bbsId, bbsTycd, sbjctId, atclId) {
 		    var $item = $("#ans_item_" + idx);
 		    var $title = $item.find(".title");
 		    var $cont = $item.find(".atcl-cts-text");
@@ -143,13 +192,13 @@
 		    $cont.html("<textarea class='edit-input-cts' style='width:100%; min-height:100px; padding:10px;'>" + currentCont + "</textarea>");
 
 		    $btnArea.html(
-		        "<button type='button' class='btn basic' onclick=\"bbsAtclRspnsModify('" + idx + "', '" + bbsId + "', '" + atclId + "')\" style='background:#333; color:#fff;'>저장</button> " +
+		        "<button type='button' class='btn basic' onclick=\"bbsAtclRspnsModify('" + idx + "', '" + bbsId + "', '" + bbsTycd + "', '" + sbjctId + "', '" + atclId + "')\" style='background:#333; color:#fff;'>저장</button> " +
 		        "<button type='button' class='btn basic' onclick='bbsAtclRspnsList()'>취소</button>"
 		    );
 		}
 
     	// 게시글 > 답변 수정
-		function bbsAtclRspnsModify(idx, bbsId, atclId) {
+		function bbsAtclRspnsModify(idx, bbsId, bbsTycd, sbjctId, atclId) {
 		    var $item = $("#ans_item_" + idx);
 		    var newTitle = $item.find(".edit-input-ttl").val();
 		    var newCts = $item.find(".edit-input-cts").val();
@@ -162,6 +211,8 @@
 		    var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsAtclView.do?encParams=${encParams}";
 		    var data = {
 		        bbsId: bbsId,
+		        bbsTycd: bbsTycd,
+		        sbjctId: sbjctId,
 		        atclId: atclId,
 		        atclTtl: newTitle,
 		        atclCts: newCts
@@ -187,7 +238,9 @@
 		        var $container = $("#bbsAtclCmntDtl");
 		        $container.empty();
 
-		        var totalCnt = returnList.length;
+		        var totalCnt = returnList.filter(function(item) {
+		            return item.delYn !== "Y";
+		        }).length;
 		        var baseHtml =
 		            '<div class="top_area">' +
 		                '<button class="toggle_commentlist"><i class="icon-svg-message"></i>' + totalCnt + ' <spring:message code="bbs.button.open_comment"/> <i class="icon-svg-arrow-down"></i></button>' +
@@ -231,25 +284,43 @@
 		        $container.append(baseHtml);
 		        var $mainUl = $("#main_comment_ul");
 
+		        // ── 1레벨 댓글 (부모 댓글)
 		        var returnListP = returnList.filter(function(item) {
 		            return !item.upAtclCmntId || item.upAtclCmntId == "0" || item.upAtclCmntId == "";
 		        });
 
+		        // 1레벨 ID 집합 (2레벨 판별 → 3레벨 제한에 사용)
+		        var level1Ids = {};
+		        returnListP.forEach(function(item) {
+		            level1Ids[String(item.atclCmntId).trim()] = true;
+		        });
+
 		        returnListP.forEach(function(v, i) {
 		            var atclCmntId = String(v.atclCmntId).trim();
+		            var isDeleted  = (v.delYn === "Y");
+
+		            // 삭제 시: 원본 내용 유지 + "삭제됨" 뱃지 표시
+		            var cmntCts = isDeleted
+		                ? '<span class="comment">' + v.atclCmntCts + ' <span class="badge-deleted">삭제됨</span></span>'
+		                : '<span class="comment">' + v.atclCmntCts + '</span>';
+
+		            // 삭제 시 버튼 숨김
+		            var btnGroup = isDeleted ? '' :
+		                '<span class="cmtBtnGroup">' +
+		                    '<button type="button" class="cmtUpt" onclick="convertToCmntEdit(this, \'' + i + '\', \'' + atclCmntId + '\', \'' + v.atclId + '\', \'' + v.bbsId + '\')"><spring:message code="bbs.label.edit"/></button>' +
+		                    '<button type="button" class="cmtDel" onclick="bbsAtclCmntDelete(\'' + atclCmntId + '\')"><spring:message code="bbs.label.delete"/></button>' +
+		                    '<button type="button" class="cmtWri" onclick="bbsAtclCmntWrite(\'' + atclCmntId + '\')"><spring:message code="bbs.label.comment"/></button>' +
+		                '</span>';
+
 		            var parentHtml =
-		                '<li id="cmt_' + atclCmntId + '">' +
+		                '<li id="cmt_' + atclCmntId + '"' + (isDeleted ? ' class="deleted-li"' : '') + '>' +
 		                    '<div class="item">' +
 		                        '<div class="cmt_info">' +
 		                            '<strong class="name">' + v.rgtrnm + '</strong>' +
 		                            '<span class="date">' + UiComm.formatDate(v.regDttm, "datetime") + '</span>' +
 		                        '</div>' +
-		                        '<span class="comment">' + v.atclCmntCts + '</span>' +
-		                        '<span class="cmtBtnGroup">' +
-		                            '<button type="button" class="cmtUpt" onclick="convertToCmntEdit(this, \'' + i + '\', \'' + atclCmntId + '\', \'' + v.atclId + '\', \'' + v.bbsId + '\')"><spring:message code="bbs.label.edit"/></button>' +
-		                            '<button type="button" class="cmtDel" onclick="bbsAtclCmntDelete(\'' + atclCmntId + '\')"><spring:message code="bbs.label.delete"/></button>' +
-		                            '<button type="button" class="cmtWri" onclick="bbsAtclCmntWrite(\'' + atclCmntId + '\')"><spring:message code="bbs.label.comment"/></button>' +
-		                        '</span>' +
+		                        cmntCts +
+		                        btnGroup +
 		                    '</div>' +
 
 		                    '<ul class="re_comment_ul"></ul>' +
@@ -257,43 +328,92 @@
 		            $mainUl.append(parentHtml);
 		        });
 
+		        // ── 2레벨 이하 댓글 (자식 댓글)
 		        var returnListC = returnList.filter(function(item) {
 		            return (item.upAtclCmntId && item.upAtclCmntId != "0" && item.upAtclCmntId != "");
 		        });
 
-		        returnListC.forEach(function(v) {
+		        // 각 자식 댓글의 HTML 을 미리 생성해서 대기열(pending)에 담음
+		        // (SQL 정렬/레벨 순서와 무관하게, 부모가 DOM 에 존재할 때만 삽입하기 위함)
+		        var pending = returnListC.map(function(v) {
 		            var upAtclCmntId = String(v.upAtclCmntId).trim(); // 부모 ID 공백 제거
-		            var atclCmntId = String(v.atclCmntId).trim();
+		            var atclCmntId   = String(v.atclCmntId).trim();
+		            var isDeleted    = (v.delYn === "Y");
+
+		            // 삭제 시: 원본 내용 유지 + "삭제됨" 뱃지 표시
+		            var cmntCts = isDeleted
+		                ? '<span class="comment">' + v.atclCmntCts + ' <span class="badge-deleted">삭제됨</span></span>'
+		                : '<span class="comment">' + v.atclCmntCts + '</span>';
+
+		            // 부모가 1레벨이면 → 이건 2레벨 → 댓글 버튼 허용
+		            // 부모가 1레벨이 아니면 → 3레벨 이상 → 댓글 버튼 없음 (최대 3레벨 제한)
+		            var isLevel2 = level1Ids[upAtclCmntId] === true;
+
+		            // 삭제 시 버튼 숨김 / 3레벨 이상은 댓글 버튼 없음
+		            var btnGroup = isDeleted ? '' :
+		                '<span class="cmtBtnGroup">' +
+		                    '<button type="button" class="cmtUpt" onclick="convertToCmntEdit(this, \'\', \'' + atclCmntId + '\', \'' + v.atclId + '\', \'' + v.bbsId + '\')">수정</button>' +
+		                    '<button type="button" class="cmtDel" onclick="bbsAtclCmntDelete(\'' + atclCmntId + '\')">삭제</button>' +
+		                    (isLevel2
+		                        ? '<button type="button" class="cmtWri" onclick="bbsAtclCmntWrite(\'' + atclCmntId + '\')"><spring:message code="bbs.label.comment"/></button>'
+		                        : '') +
+		                '</span>';
 
 		            var replyHtml =
-		            	'<li class="re_comment" id="cmt_' + atclCmntId + '">' +
+		            	'<li class="re_comment' + (isDeleted ? ' deleted-li' : '') + '" id="cmt_' + atclCmntId + '">' +
 		                '<div class="item">' +
 		                    '<div class="cmt_info">' +
 		                        '<strong class="name">' + v.rgtrnm + '</strong>' +
 		                        '<span class="date">' + UiComm.formatDate(v.regDttm, "datetime") + '</span>' +
 		                    '</div>' +
-		                    '<span class="comment">' + v.atclCmntCts + '</span>' +
-		                    '<span class="cmtBtnGroup">' +
-		                        '<button type="button" class="cmtUpt" onclick="convertToCmntEdit(this, \'\', \'' + atclCmntId + '\', \'' + v.atclId + '\', \'' + v.bbsId + '\')">수정</button>' +
-		                        '<button type="button" class="cmtDel" onclick="bbsAtclCmntDelete(\'' + atclCmntId + '\')">삭제</button>' +
-		                    '</span>' +
+		                    cmntCts +
+		                    btnGroup +
 		                '</div>' +
+		                '<ul class="re_comment_ul"></ul>' +
 		            '</li>';
 
-		            var $parentLi = $("#cmt_" + upAtclCmntId);
+		            return {
+		                upAtclCmntId : upAtclCmntId,
+		                atclCmntId   : atclCmntId,
+		                html         : replyHtml
+		            };
+		        });
 
-		            if ($parentLi.length > 0) {
-		                $parentLi.find("> .re_comment_ul").append(replyHtml);
-		            } else {
-		                $mainUl.append(replyHtml);
+		        // 부모가 이미 DOM 에 존재하는 항목부터 반복적으로 삽입
+		        // (부모 → 자식 순으로 붙으므로 3레벨이 엉뚱한 위치에 붙지 않음)
+		        var guard = 0;
+		        while (pending.length > 0 && guard < 1000) {
+		            guard++;
+		            var progressed = false;
+
+		            for (var idx = 0; idx < pending.length; idx++) {
+		                var item = pending[idx];
+		                var $parentLi = $("#cmt_" + item.upAtclCmntId);
+
+		                if ($parentLi.length > 0) {
+		                    $parentLi.find("> .re_comment_ul").append(item.html);
+		                    pending.splice(idx, 1);
+		                    idx--;
+		                    progressed = true;
+		                }
 		            }
+
+		            // 이번 순회에서 하나도 못 붙였으면 부모 없는 항목 → 무한루프 방지
+		            if (!progressed) {
+		                break;
+		            }
+		        }
+
+		        // 부모를 끝내 찾지 못한 댓글은 최상위 목록에 붙여 유실 방지
+		        pending.forEach(function(item) {
+		            $mainUl.append(item.html);
 		        });
 		    });
 		}
 
 		// 게시글 > 댓글 등록
 		function bbsAtclCmntRegist() {
-    		var url = "/bbs/" + TEMPLATE_URL +"/bbsAtclCmntRegist.do";
+    		var url = "/bbs/" + TEMPLATE_URL +"/bbsAtclCmntRegist.do?encParams=${encParams}";
     		var returnUrl = "/bbs/" + TEMPLATE_URL +"/bbsAtclView.do?encParams=${encParams}";
 			var data = $(".recmt_form").serialize();
 
@@ -331,7 +451,7 @@
 		        return;
 		    }
 
-		    var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclCmntRegist.do";
+		    var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclCmntRegist.do?encParams=${encParams}";
 		    var data = {
 		        atclCmntId: atclCmntId,
 		        atclId: atclId,
@@ -352,6 +472,7 @@
         			var data = {
         				bbsId : BBS_ID,
         				atclId : ATCL_ID,
+        				bbsTycd : BBS_TYCD,
     					atclCmntId : atclCmntId
     				};
         			var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?encParams=${encParams}";
@@ -433,61 +554,83 @@
                 if (replyForm.style.display === 'block') {
                     replyForm.querySelector('textarea')?.focus();
                 }
+                return;
                 }
 
-            });
-
-            // 답변
-            const textarea = document.querySelector('.cont textarea');
-            const answerButtons = document.querySelectorAll('.answer_btn a');
-
-            answerButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
+                /* 간편답변/간편댓글 버튼 클릭 시 textarea 채우기 (동적 생성 요소 대응) */
+                const simpleBtn = e.target.closest('.answer_btn a');
+                if (simpleBtn) {
                     e.preventDefault();
                     e.stopPropagation();
 
-                    const selectedText = this.innerText || this.textContent;
+                    const selectedText = simpleBtn.innerText || simpleBtn.textContent;
 
-                    textarea.value = selectedText;
+                    // 같은 블록 기준으로 대상 textarea 탐색
+                    const wrap = simpleBtn.closest('.answer, .memo, .cont, form');
+                    let target = null;
+                    if (wrap) {
+                        target = wrap.querySelector('textarea[name="atclCts"], textarea[name="atclCmntCts"], textarea.comment, .cont textarea');
+                    }
+                    if (!target) {
+                        target = document.querySelector('.cont textarea');
+                    }
 
-                    answerButtons.forEach(btn => btn.classList.remove('current'));
-                    this.classList.add('current');
+                    if (target) {
+                        target.value = selectedText;
+                    }
 
-                    textarea.focus();
-                });
+                    // 같은 answer_btn 그룹 내 current 클래스 토글
+                    const group = simpleBtn.closest('.answer_btn');
+                    if (group) {
+                        group.querySelectorAll('a').forEach(a => a.classList.remove('current'));
+                    }
+                    simpleBtn.classList.add('current');
+
+                    if (target) {
+                        target.focus();
+                    }
+                }
+
             });
         });
 
      	// 대댓글 작성 폼 생성 및 토글
         function bbsAtclCmntWrite(upAtclCmntId) {
-            var $parentLi = $("#cmt_" + upAtclCmntId);
+		    var $parentLi = $("#cmt_" + upAtclCmntId);
 
-            // 이미 폼이 열려있다면 닫기
-            if ($parentLi.find(".reply_write_area").length > 0) {
-                $parentLi.find(".reply_write_area").remove();
-                return;
-            }
+		    // 이미 폼이 열려있다면 닫기
+		    if ($parentLi.find("> .reply_write_area").length > 0) {
+		        $parentLi.find("> .reply_write_area").remove();
+		        return;
+		    }
 
-            // 다른 곳에 열려있는 대댓글 폼들 제거 (선택 사항)
-            $(".reply_write_area").remove();
+		    // 다른 곳에 열려있는 대댓글 폼들 제거
+		    $(".reply_write_area").remove();
 
-            var replyFormHtml =
-                '<div class="reply_write_area" style="margin-top:10px; padding-left:20px;">' +
-                '    <form class="recmt_reply_form">' +
-                '        <input type="hidden" name="atclId" value="${bbsAtclVO.atclId}">' +
-                '        <input type="hidden" name="bbsId" value="${bbsAtclVO.bbsId}">' +
-                '        <input type="hidden" name="upAtclCmntId" value="' + upAtclCmntId + '">' + // 부모 댓글 ID
-                '        <textarea name="atclCmntCts" rows="2" style="width:100%; border:1px solid #ddd;" placeholder="답글을 입력하세요."></textarea>' +
-                '        <div style="text-align:right; margin-top:5px;">' +
-                '            <button type="button" class="btn s_basic" onclick="bbsAtclReplyRegist(this)">등록</button>' +
-                '            <button type="button" class="btn s_basic" onclick="$(this).closest(\'.reply_write_area\').remove()">취소</button>' +
-                '        </div>' +
-                '    </form>' +
-                '</div>';
+		    var replyFormHtml =
+		        '<div class="reply_write_area" style="margin-top:10px; padding-left:20px;">' +
+		        '    <form class="recmt_reply_form">' +
+		        '        <input type="hidden" name="atclId" value="${bbsAtclVO.atclId}">' +
+		        '        <input type="hidden" name="bbsId" value="${bbsAtclVO.bbsId}">' +
+		        '        <input type="hidden" name="upAtclCmntId" value="' + upAtclCmntId + '">' +
+		        '        <textarea name="atclCmntCts" rows="2" style="width:100%; border:1px solid #ddd;" placeholder="답글을 입력하세요."></textarea>' +
+		        '        <div style="text-align:right; margin-top:5px;">' +
+		        '            <button type="button" class="btn s_basic" onclick="bbsAtclReplyRegist(this)">등록</button>' +
+		        '            <button type="button" class="btn s_basic" onclick="$(this).closest(\'.reply_write_area\').remove()">취소</button>' +
+		        '        </div>' +
+		        '    </form>' +
+		        '</div>';
 
-            $parentLi.append(replyFormHtml);
-            $parentLi.find("textarea").focus();
-        }
+		    // 대댓글 목록(re_comment_ul)이 있으면 그 앞에, 없으면 li 끝에 삽입
+		    var $reUl = $parentLi.find("> .re_comment_ul");
+		    if ($reUl.length > 0) {
+		        $reUl.before(replyFormHtml);
+		    } else {
+		        $parentLi.append(replyFormHtml);
+		    }
+
+		    $parentLi.find("> .reply_write_area textarea").focus();
+		}
 
      	// 대댓글 저장
         function bbsAtclReplyRegist(btn) {
@@ -499,7 +642,7 @@
                 return;
             }
 
-            var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclCmntRegist.do";
+            var url = "/bbs/" + TEMPLATE_URL + "/bbsAtclCmntRegist.do?encParams=${encParams}";
             var data = $form.serialize();
             var returnUrl = "/bbs/" + TEMPLATE_URL + "/bbsAtclView.do?encParams=${encParams}";
 
@@ -509,7 +652,7 @@
 	</script>
 </head>
 
-<body class="class colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="class ${uiex:getTheme()} "><!-- 컬러선택시 클래스변경 -->
 <div style="display:none;" id="lecturePlanDoc"></div>
 <div style="display:none;" id="lessonProgressManagePopView"></div>
     <div id="wrap" class="main">
@@ -527,59 +670,44 @@
 
 			<!-- content -->
 			<div id="content" class="content-wrap common">
-				<div class="class_sub_top">
-					<div class="navi_bar">
-						<ul>
-							<li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-							<li>강의실</li>
-							<li><span class="current">내강의실</span></li>
-						</ul>
-					</div>
-					<div class="btn-wrap">
-						<div class="first">
-							<select class="form-select">
-								<option value="2026년 1학기">2026년 1학기</option>
-								<option value="2026년 2학기">2026년 2학기</option>
-							</select>
-							<select class="form-select wide">
-								<option value="">강의실 바로가기</option>
-								<option value="2026년 1학기">2026년 1학기</option>
-								<option value="2026년 2학기">2026년 2학기</option>
-							</select>
-						</div>
-						<div class="sec">
-							<button type="button" class="btn type1"><i class="xi-book-o"></i>교수 매뉴얼</button>
-							<button type="button" class="btn type1"><i class="xi-info-o"></i>학습안내정보</button>
-						</div>
-					</div>
-				</div>
+				<!-- class_sub_top -->
+				<jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+				<!-- //class_sub_top -->
 
-					<div class="dashboard_sub">
+					<div class="class_sub">
+						<!-- class_info -->
+						<jsp:include page="/WEB-INF/jsp/common_new/class_info.jsp"/>
+						<!-- //class_info -->
 
 	                    <div class="sub-content">
 	                        <div class="page-info">
-	                            <h4 class="sub-title"><span>공지사항</span></h4>
-	                            <div class="navi_bar">
-	                                <ul>
-	                                    <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-	                                    <li>공지사항</li>
-	                                    <li><span class="current">전체공지</span></li>
-	                                </ul>
-	                            </div>
+	                            <h4 class="sub-title">${bbsVO.bbsNm}</h4>
 	                        </div>
 
 	                        <div class="tstyle_view">
 	                            <div class="title_header">
-	                                <div class="title">${bbsAtclVO.atclTtl}</div>
+	                                <div class="title">
+	                                	<c:choose>
+	                                		<c:when test="${bbsAtclVO.optnCd eq 'FIX'}">
+	                                			<label class="label s_c01"><spring:message code="bbs.label.fix" /></label> ${bbsAtclVO.atclTtl}
+	                                		</c:when>
+	                                		<c:when test="${bbsAtclVO.optnCd eq 'IMPT'}">
+	                                			<label class="label s_c02"><spring:message code="bbs.label.impt" /></label> ${bbsAtclVO.atclTtl}
+	                                		</c:when>
+	                                		<c:otherwise>
+	                            				${bbsAtclVO.atclTtl}
+	                            			</c:otherwise>
+	                            		</c:choose>
+	                                </div>
 	                                <ul class="head">
-	                                    <li class="write"><strong>작성자</strong><span>${bbsAtclVO.rgtrnm}</span></li>
-	                                    <li class="date"><strong>작성일</strong><span><uiex:formatDate value="${bbsAtclVO.regDttm}" type="datetime"/></span></li>
-	                                    <li class="hit"><strong>조회수</strong><span>${bbsAtclVO.inqCnt}</span></li>
-	                                    <li class="hit"><strong>댓글</strong><span>${bbsAtclVO.cmntCnt}</span></li>
+	                                    <li class="write"><strong><spring:message code="bbs.label.reg_user" /></strong><span>${bbsAtclVO.rgtrnm}</span></li>
+	                                    <li class="date"><strong><spring:message code="bbs.label.reg_date" /></strong><span><uiex:formatDate value="${bbsAtclVO.regDttm}" type="datetime"/></span></li>
+	                                    <li class="hit"><strong><spring:message code="bbs.label.hit" /></strong><span>${bbsAtclVO.inqCnt}</span></li>
+	                                    <li class="hit"><strong><spring:message code="bbs.label.comment" /></strong><span>${bbsAtclVO.cmntCnt}</span></li>
 	                                </ul>
 	                            </div>
 
-	                            <div class="tb_contents">
+	                            <div class="htmlText tb_contents">
 	                                ${bbsAtclVO.atclCts}
 	                            </div>
 
@@ -590,75 +718,79 @@
 		                            </div>
 								</c:if>
 
-		                        <%-- <ul class="list_board">
-		                        	이전글
+		                        <ul class="list_board">
+		                        	<%-- 이전글 --%>
 		                        	<c:if test="${not empty bbsAtclVO.prevAtclId}">
 										<li class="prev">
 											<span><spring:message code="bbs.label.prev_atcl" /></span>
 											<a href="#0" onclick="moveActlView('${bbsAtclVO.prevAtclId}');return false;" title="${bbsAtclVO.prevAtclTtl}">${bbsAtclVO.prevAtclTtl}</a>
 										</li>
 									</c:if>
-									다음글
+									<%-- 다음글 --%>
 									<c:if test="${not empty bbsAtclVO.nextAtclId}">
 										<li class="next">
 											<span><spring:message code="bbs.label.next_atcl" /></span>
 											<a href="#0" onclick="moveActlView('${bbsAtclVO.nextAtclId}');return false;" title="${bbsAtclVO.nextAtclTtl}">${bbsAtclVO.nextAtclTtl}</a>
 										</li>
 									</c:if>
-		                        </ul> --%>
+		                        </ul>
 
 	                        </div>
 
 	                        <div class="btns">
 	                            <c:if test="${atclEditAuth eq 'Y'}">
-			                        <a href="#0" onclick="moveAtclEdit();return false;" class="btn type1"><spring:message code="common.button.modify" /></a><!-- 수정 -->
+			                        <a href="#0" onclick="moveAtclEdit('${bbsAtclVO.atclId}', '${bbsAtclVO.sbjctId}');return false;" class="btn type1"><spring:message code="common.button.modify" /></a><!-- 수정 -->
 								</c:if>
 
 								<c:if test="${atclDeleteAuth eq 'Y'}">
-			                        <a href="#0" onclick="bbsAtclDelete('${bbsAtclVO.bbsId}', '${bbsAtclVO.atclId}')" class="btn type2"><spring:message code="common.button.delete" /></a><!-- 삭제 -->
+			                        <a href="#0" onclick="bbsAtclDelete('${bbsAtclVO.bbsId}', '${bbsAtclVO.atclId}', '${bbsAtclVO.bbsTycd}')" class="btn type2"><spring:message code="common.button.delete" /></a><!-- 삭제 -->
 			                    </c:if>
 
 		                    	<a href="#0" onclick="moveAtclList();return false;" class="btn type2"><spring:message code="common.button.list" /></a><!-- 목록 -->
 	                        </div>
 
-							<form id="bbsAtclRspnsWriteForm" name="bbsAtclRspnsWriteForm">
-								<input type="hidden" name="userId" value="${bbsAtclVO.userId}">
-								<input type="hidden" name="atclId" value="${bbsAtclVO.atclId}">
-								<input type="hidden" name="bbsId" value="${bbsAtclVO.bbsId}">
-								<input type="hidden" name="atclLv" value="2">
-	                            <!-- 답변 -->
-	                            <div class="answer">
-	                                <div class="title_area">
-	                                    <strong class="title">
-	                                   		<input type="text" name="atclTtl" id="atclTtl" placeholder="제목을 입력해주세요."/>
-	                                    </strong>
-	                                </div>
-	                                <div class="cont">
-	                                     <label class="width-100per">
-	                                     	<textarea rows="5" class="form-control resize-none" id="atclCts" name="atclCts" placeholder="내용을 입력해주세요."></textarea>
-	                                     </label>
-	                                     <div class="bottom_btn">
-	                                        <div class="simple_answer">
-	                                            <span>간편 답변</span>
-	                                            <div class="answer_btn">
-	                                                <a href="#0" class="current">수고했어요.</a><!--간편답변 선택시 클래스추가-->
-	                                                <a href="#0">고생하셨어요.</a>
-	                                                <a href="#0">감사합니다.</a>
-	                                            </div>
-	                                        </div>
-	                                        <div class="right-area">
-	                                            <button type="button" class="btn type2" onclick="bbsAtclRspnsRegist();return false;">저장</button>
-	                                        </div>
-	                                     </div>
-	                                </div>
-	                            </div>
-                            </form>
+							<c:if test="${answerWriteAuth eq 'Y'}">
+								<form id="bbsAtclRspnsWriteForm" name="bbsAtclRspnsWriteForm">
+									<input type="hidden" name="userId" value="${bbsAtclVO.userId}">
+									<input type="hidden" name="atclId" value="${bbsAtclVO.atclId}">
+									<input type="hidden" name="bbsId" value="${bbsAtclVO.bbsId}">
+									<input type="hidden" name="atclLv" value="2">
 
+		                            <!-- 답변 -->
+		                            <div class="answer">
+		                                <div class="title_area">
+		                                    <strong class="title">
+		                                   		<input type="text" name="atclTtl" id="atclTtl" placeholder="제목을 입력해주세요."/>
+		                                    </strong>
+		                                </div>
+		                                <div class="cont">
+		                                     <label class="width-100per">
+		                                     	<textarea rows="5" class="form-control resize-none" id="atclCts" name="atclCts" placeholder="내용을 입력해주세요."></textarea>
+		                                     </label>
+		                                     <div class="bottom_btn">
+		                                        <div class="simple_answer">
+		                                            <span>간편 답변</span>
+		                                            <div class="answer_btn">
+		                                                <a href="#0" class="current">수고했어요.</a><!--간편답변 선택시 클래스추가-->
+		                                                <a href="#0">고생하셨어요.</a>
+		                                                <a href="#0">감사합니다.</a>
+		                                            </div>
+		                                        </div>
+		                                        <div class="right-area">
+		                                            <button type="button" class="btn type2" onclick="bbsAtclRspnsRegist();return false;">저장</button>
+		                                        </div>
+		                                     </div>
+		                                </div>
+		                            </div>
+	                            </form>
+							</c:if>
 							<!-- 답변 -->
                             <div class="answer" id="bbsAtclRspnsDtl"></div>
 
 							<!-- 댓글 -->
-							<div class="Comment" id="bbsAtclCmntDtl"></div>
+							<c:if test="${commentWriteAuth eq 'Y'}">
+								<div class="Comment" id="bbsAtclCmntDtl"></div>
+							</c:if>
 
 	                    </div>
                		</div>

@@ -492,7 +492,7 @@
 		WHERE TT.absent = 'Y'
 		ORDER BY forumStartDttm DESC, regDttm DESC
 		<if test="listScale != 9999">
-			<include refid="CommonSQL.pageSubfix" />
+			<include refid="CommonSQL.pageSuffix" />
 		</if>
 	</select>
 

@@ -9,11 +9,13 @@ import knou.framework.vo.FileVO;
 import knou.lms.asmt.dao.AsmtProDAO;
 import knou.lms.asmt.service.AsmtProService;
 import knou.lms.asmt.vo.AsmtVO;
+import knou.lms.common.dto.ResultDTO;
 import knou.lms.common.service.SysFileService;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.exam.dao.*;
 import knou.lms.exam.service.ExamService;
 import knou.lms.exam.vo.*;
+import knou.lms.exam.web.view.QuizPageInfo;
 import knou.lms.file.service.AttachFileService;
 import knou.lms.file.vo.AtflVO;
 import knou.lms.forum.dao.ForumDAO;
@@ -31,10 +33,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -46,6 +50,12 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
 
     @Resource(name="examDAO")
     private ExamDAO examDAO;
+
+    @Resource(name="qstnDAO")
+    private QstnDAO qstnDAO;
+
+    @Resource(name="qstnVwitmDAO")
+    private QstnVwitmDAO qstnVwitmDAO;
 
     @Resource(name="examStareDAO")
     private ExamStareDAO examStareDAO;
@@ -96,13 +106,14 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      * 신규 작성 Service 영역
      *****************************************************/
 
+    /************************ 교수 ************************/
     /*****************************************************
      * 시험 등록
      * @param vo
-     * @throws Exception
      ******************************************************/
-    public ExamBscVO examRegist(ExamBscVO vo) throws Exception {
+    public ExamBscVO examRegist(ExamBscVO vo) {
         String bscId = IdGenUtil.genNewId(IdPrefixType.EXBSC);  // 시험 기본 ID 생성
+        String tkexamMthdCd = vo.getTkexamMthdCd();
 
         vo.setExamBscId(bscId);
         vo.getExamDtlVO().setExamBscId(vo.getExamBscId());
@@ -110,30 +121,31 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
         vo.getExamDtlVO().setCnsdrAddMnts(0);   // 배려 추가시간       (임시)
         vo.getExamDtlVO().setReexamyn("N");     // 재시험 가능여부     (임시)
 
-        // 1. 팀 여부 분기
+        // 팀 여부 분기
         switch (vo.getByteamSubrexamUseyn()) {
-            // case 1. 팀 시험일 경우 - 시험상세 등록 & 시험 대상자 등록
+            // case A. 팀 시험일 경우 - 시험상세 등록 & 시험 대상자 등록
             case "Y":
-                // 구분 코드를 팀 구분 코드로 변경
+                // A-1. 구분 코드를 팀 구분 코드로 변경
                 switch (vo.getExamGbncd()) {
                     case "EXAM_MID": vo.setExamGbncd("EXAM_MID_TEAM"); break;   // 팀 중간고사
                     case "EXAM_LST": vo.setExamGbncd("EXAM_LST_TEAM"); break;   // 팀 기말고사
                     case "EXAM":     vo.setExamGbncd("EXAM_TEAM");     break;   // 팀 시험
                     case "EXAM_CMP": vo.setExamGbncd("EXAM_CMP_TEAM"); break;   // 팀 종합시험 (졸업시험)
                 }
-                // 2. 시험기본 등록 (BSC)
+                // A-2. 시험기본 등록 (BSC)
                 examDAO.examBscRegist2(vo);
 
-                vo.getLrnGrpIds().removeIf(item -> "".equals(item));	// 빈 값 제거
+                vo.getTeamGrpIds().removeIf(item -> "".equals(item));	// 빈 값 제거
                 Map<Object, Map<String, Object>> idMap = vo.getExamDtlVO().getDtlInfos().stream().collect(Collectors.toMap(map -> map.get("id"), map -> map));
 
-                for(String lrnGrp : vo.getLrnGrpIds()) {
-                    if(lrnGrp.split(":")[1].equals(vo.getSbjctId())) {
+                for(String teamGrp : vo.getTeamGrpIds()) {
+                    if(teamGrp.split(":")[1].equals(vo.getSbjctId())) {
                         TeamVO teamVO = new TeamVO();
-                        teamVO.setTeamCtgrCd(lrnGrp.split(":")[0]);
+                        teamVO.setTeamCtgrCd(teamGrp.split(":")[0]);
                         List<TeamVO> teamList = teamDAO.list(teamVO);    // 팀 목록 조회
                         for (TeamVO team : teamList) {
-                            vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL)); // 시험 상세 ID 생성
+                            String dtlTeamId = IdGenUtil.genNewId(IdPrefixType.EXDTL);
+                            vo.getExamDtlVO().setExamDtlId(dtlTeamId); // 시험 상세 ID 생성
                             Map<String, Object> target = idMap.get(team.getTeamId());    // 팀아이디로 조회
                             if (target != null) {
                                 // 학습그룹별 시험 설정 [O] - 시험지 + 주제가 다름
@@ -145,7 +157,19 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
                                 vo.getExamDtlVO().setExamCts(vo.getExamCts());
                             }
 
-                            examDAO.examDtlRegist(vo.getExamDtlVO());	// 시험 상세 등록
+                            // A-3. 시험상세 (DTL) 등록
+                            examDAO.examDtlRegist(vo.getExamDtlVO());
+
+                            // A-4. 온라인시험퀴즈 등록
+                            if ("RLTM".equals(tkexamMthdCd)) {
+                                ExamVO onqzVO = new ExamVO();
+                                onqzVO.setOnlnExamquizId(IdGenUtil.genNewId(IdPrefixType.ONQZ));
+                                onqzVO.setExamBscId(bscId);
+                                onqzVO.setTkexamMthdCd(tkexamMthdCd);
+                                onqzVO.setExamDtlId(dtlTeamId);
+                                onqzVO.setRgtrId(vo.getRgtrId());
+                                examDAO.onlnExamquizRegist(onqzVO);
+                            }
 
                             // 시험 대상자 등록에 사용할 param 생성
                             ExamTrgtrVO trgtr = new ExamTrgtrVO();
@@ -154,17 +178,33 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
                             trgtr.setExamDtlId(vo.getExamDtlVO().getExamDtlId());
                             trgtr.setRgtrId(vo.getRgtrId());
 
-                            examDAO.examTrgtrRegist(trgtr);		// 시험 대상자 등록
+                            // A-5. 시험 대상자 등록
+                            examDAO.examTrgtrRegist(trgtr);
                         }
                     }
                 }
                 break;
-            // case 2. 팀 시험이 아닐 경우 - 시험 상세만 등록
+            // case B. 팀 시험이 아닐 경우 - 시험 상세만 등록
             case "N":
-                vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
-                // 2. 시험기본 등록 (BSC)
+                String dtlId = IdGenUtil.genNewId(IdPrefixType.EXDTL);
+                vo.getExamDtlVO().setExamDtlId(dtlId);
+
+                // B-1. 시험기본 등록 (BSC)
                 examDAO.examBscRegist2(vo);
+
+                // B-2. 시험상세 등록 (DTL)
                 examDAO.examDtlRegist(vo.getExamDtlVO());
+
+                // B-3. 온라인시험퀴즈 등록
+                if ("RLTM".equals(tkexamMthdCd)) {
+                    ExamVO onqzVO = new ExamVO();
+                    onqzVO.setOnlnExamquizId(IdGenUtil.genNewId(IdPrefixType.ONQZ));
+                    onqzVO.setExamBscId(bscId);
+                    onqzVO.setTkexamMthdCd(tkexamMthdCd);
+                    onqzVO.setExamDtlId(dtlId);
+                    onqzVO.setRgtrId(vo.getRgtrId());
+                    examDAO.onlnExamquizRegist(onqzVO);
+                }
                 break;
         }
         vo.setExamBscId(bscId);
@@ -174,9 +214,8 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     /*****************************************************
      * 대체 시험 등록
      * @param vo
-     * @throws Exception
      ******************************************************/
-    public ExamVO examSbstRegist(ExamVO vo) throws Exception {
+    public ExamVO examSbstRegist(ExamVO vo) {
         String examGbncd = vo.getExamGbncd();
         String sbstType = vo.getExamSbstTycd();
 
@@ -185,8 +224,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
         vo.setExamEvlSbstId(IdGenUtil.genNewId(IdPrefixType.EXSBS));
         // 1. 대체 시험 분류
         switch (sbstType) {
-            // A. 과제
+            // A. 대체 과제
             case "SBST_ASMT" :
+                vo.setByteamSubrexamUseyn("N");
                 if (examGbncd.contains("MID")) {
                     vo.setAsmtGbncd("EXAM_MID_SBST");
                 } else if (examGbncd.contains("LST")) {
@@ -202,9 +242,21 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
                 // 1-A-2. 과제 등록
                 examDAO.sbstAsmtRegist(vo);
 
+                // A-3. 첨부파일 저장
+                List<AtflVO> asmtFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath() + "/" + asmtId);
+                if (!asmtFileList.isEmpty()) {
+                    for (AtflVO atflVO : asmtFileList) {
+                        atflVO.setRefId(asmtId);
+                        atflVO.setAtflRepoId(CommConst.REPO_ASMT);
+                        atflVO.setRgtrId(vo.getRgtrId());
+                        atflVO.setMdfrId(vo.getRgtrId());
+                    }
+                    attachFileService.insertAtflList(asmtFileList);
+                }
                 break;
-            // B. 퀴즈
+            // B. 대체 퀴즈
             case "SBST_QUIZ" :
+                vo.setByteamSubrexamUseyn("N");
                 if (examGbncd.contains("MID")) {
                     vo.setExamGbncd("EXAM_MID_SBST_QUIZ");
                 } else if (examGbncd.contains("LST")) {
@@ -229,34 +281,123 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
                 // B-5. 시험 기본 (퀴즈) 등록
                 vo.setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
                 examDAO.sbstQuizDtlRegist(vo);
-                break;
-            // C. 퀴즈
-            case "QUIZ" :
-                if (examGbncd.contains("MID")) {
-                    vo.setExamGbncd("QUIZ_EXAM_MID");
-                } else if (examGbncd.contains("LST")) {
-                    vo.setExamGbncd("QUIZ_EXAM_LST");
-                } else {
-                    vo.setExamGbncd("QUIZ");
+
+                // B-6. 첨부파일 저장
+                List<AtflVO> quizSbstFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath() + "/" + quizId1);
+                if (!quizSbstFileList.isEmpty()) {
+                    for (AtflVO atflVO : quizSbstFileList) {
+                        atflVO.setRefId(quizId1);
+                        atflVO.setAtflRepoId(CommConst.REPO_EXAM);
+                        atflVO.setRgtrId(vo.getRgtrId());
+                        atflVO.setMdfrId(vo.getRgtrId());
+                    }
+                    attachFileService.insertAtflList(quizSbstFileList);
                 }
-                String quizId2 = IdGenUtil.genNewId(IdPrefixType.EXBSC);
-
-                // C-1. 시험 그룹 등록 (시험 + 퀴즈로 묶기)
-                vo.setExamGrpId(IdGenUtil.genNewId(IdPrefixType.EXGRP));
-                examDAO.examGrpRegist2(vo);
-
-                // C-2. 기본 시험 (부모) GRP 수정
-                examDAO.updateExamBscGrp(vo);
-
-                // C-3. 시험 기본 (퀴즈) 등록
-                vo.setExamBscId(quizId2);
-                examDAO.sbstQuizBscRegist(vo);
-
-                // C-4. 시험 기본 (퀴즈) 등록
-                vo.setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
-                examDAO.sbstQuizDtlRegist(vo);
                 break;
         }
+        return vo;
+    }
+
+    /*****************************************************
+     * 퀴즈 시험 등록
+     * @param vo
+     ******************************************************/
+    public ExamVO examQuizRegist(ExamVO vo) {
+        String examGbncd = vo.getExamGbncd();
+
+        vo.setQstnCnddtUseyn("N");              // 문항후보 사용여부 (임시)
+        vo.setMaxTkexamCnt(99);
+
+        if (examGbncd.contains("TEAM")) {
+            if (examGbncd.contains("MID")) {
+                vo.setExamGbncd("QUIZ_EXAM_MID_TEAM");
+            } else if (examGbncd.contains("LST")) {
+                vo.setExamGbncd("QUIZ_EXAM_LST_TEAM");
+            } else {
+                vo.setExamGbncd("QUIZ_TEAM");
+            }
+        } else {
+            if (examGbncd.contains("MID")) {
+                vo.setExamGbncd("QUIZ_EXAM_MID");
+            } else if (examGbncd.contains("LST")) {
+                vo.setExamGbncd("QUIZ_EXAM_LST");
+            } else {
+                vo.setExamGbncd("QUIZ");
+            }
+        }
+
+        String examBscId = vo.getExamBscId();
+        String quizBscId = IdGenUtil.genNewId(IdPrefixType.EXBSC);
+
+        // 1. 시험 기본 등록 (퀴즈)
+        vo.setExamBscId(quizBscId);
+        examDAO.sbstQuizBscRegist(vo);
+
+        // 2. 온라인시험퀴즈 등록
+        vo.setOnlnExamquizId(IdGenUtil.genNewId(IdPrefixType.ONQZ));
+        vo.setExamBscId(examBscId);
+        vo.setQuizBscId(quizBscId);
+        examDAO.onlnExamquizRegist(vo);
+
+        vo.setExamBscId(quizBscId);
+        if (vo.getExamDtlVO() != null) {
+            vo.setExamMnts(vo.getExamDtlVO().getExamMnts());
+            vo.setExamPsblSdttm(vo.getExamDtlVO().getExamPsblSdttm());
+            vo.setExamPsblEdttm(vo.getExamDtlVO().getExamPsblEdttm());
+        }
+        // 3. 시험 상세 (퀴즈) 등록
+        if ("Y".equals(vo.getByteamSubrexamUseyn())) {
+            String originalTtl = vo.getExamTtl();
+            String originalCts = vo.getExamCts();
+            Map<Object, Map<String, Object>> idMap = (vo.getDtlInfos() != null && !vo.getDtlInfos().isEmpty())
+                    ? vo.getDtlInfos().stream().collect(Collectors.toMap(m -> m.get("id"), m -> m))
+                    : Collections.emptyMap();
+
+            vo.getTeamGrpIds().removeIf(item -> "".equals(item));
+            for (String teamGrp : vo.getTeamGrpIds()) {
+                if (teamGrp.split(":")[1].equals(vo.getSbjctId())) {
+                    TeamVO teamVO = new TeamVO();
+                    teamVO.setTeamCtgrCd(teamGrp.split(":")[0]);
+                    List<TeamVO> teamList = teamDAO.list(teamVO);
+                    for (TeamVO team : teamList) {
+                        Map<String, Object> target = idMap.get(team.getTeamId());
+                        if (target != null) {
+                            vo.setExamTtl((String) target.get("ttl"));
+                            vo.setExamCts((String) target.get("cts"));
+                        } else {
+                            vo.setExamTtl(originalTtl);
+                            vo.setExamCts(originalCts);
+                        }
+                        vo.setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
+                        examDAO.sbstQuizDtlRegist(vo);
+
+                        ExamTrgtrVO trgtr = new ExamTrgtrVO();
+                        trgtr.setExamTrgtrId(IdGenUtil.genNewId(IdPrefixType.EXTGT));
+                        trgtr.setTeamId(team.getTeamId());
+                        trgtr.setExamDtlId(vo.getExamDtlId());
+                        trgtr.setRgtrId(vo.getRgtrId());
+                        examDAO.examTrgtrRegist(trgtr);
+                    }
+                }
+            }
+        } else {
+            vo.setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
+            examDAO.sbstQuizDtlRegist(vo);
+        }
+
+        // 첨부파일 저장
+        String newUploadPath = vo.getUploadPath() + "/" + vo.getExamBscId();
+        List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), newUploadPath);
+        if (!uploadFileList.isEmpty()) {
+            for (AtflVO atflVO : uploadFileList) {
+                atflVO.setRefId(vo.getExamBscId());
+                atflVO.setAtflRepoId(CommConst.REPO_EXAM);
+                atflVO.setRgtrId(vo.getRgtrId());
+                atflVO.setMdfrId(vo.getRgtrId());
+            }
+            attachFileService.insertAtflList(uploadFileList);
+        }
+
         return vo;
     }
 
@@ -264,10 +405,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      * 교수 시험목록 페이징
      * @param vo
      * @return ProcessResultVO<ExamVO>
-     * @throws Exception
      ******************************************************/
     @Override
-    public ProcessResultVO<ExamVO> listProfExamPaging(ExamVO vo) throws Exception{
+    public ProcessResultVO<ExamVO> listProfExamPaging(ExamVO vo) {
         ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
 
         PaginationInfo paginationInfo = new PaginationInfo();
@@ -293,19 +433,17 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     /*****************************************************
      * 교수 시험 상세조회
      * @param vo
-     * @throws Exception
      ******************************************************/
-    public ExamVO selectProfExamDtl(ExamVO vo) throws Exception {
+    public ExamVO selectProfExamDtl(ExamVO vo) {
         return examDAO.selectProfExamDtl(vo);
     }
 
     /*****************************************************
      * 교수 팀 시험 상세조회
      * @param vo
-     * @throws Exception
      ******************************************************/
     @Override
-    public List<ExamVO> selectProfExamTeamDtl(ExamVO vo) throws Exception {
+    public List<ExamVO> selectProfExamTeamDtl(ExamVO vo) {
         return examDAO.selectProfExamTeamDtl(vo);
     }
 
@@ -313,10 +451,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      * 시험 평가대상자 목록 페이징
      * @param vo
      * @return ProcessResultVO<ExamVO>
-     * @throws Exception
      ******************************************************/
     @Override
-    public ProcessResultVO<ExamVO> listTkexamUserPaging(ExamVO vo) throws Exception{
+    public ProcessResultVO<ExamVO> listTkexamUserPaging(ExamVO vo) {
         ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
 
         PaginationInfo paginationInfo = new PaginationInfo();
@@ -343,10 +480,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      * 시험 평가대상자 인원 수 조회
      * @param vo
      * @return ProcessResultVO<ExamVO>
-     * @throws Exception
      ******************************************************/
     @Override
-    public int countTkexamUser(ExamVO vo) throws Exception{
+    public int countTkexamUser(ExamVO vo) {
         int totCnt = examDAO.countTkexamUser(vo);
         return totCnt;
     }
@@ -355,9 +491,8 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      * 시험 평가대상자 목록 조회
      * @param vo
      * @return ProcessResultVO<ExamVO>
-     * @throws Exception
      ******************************************************/
-    public List<EgovMap> tkexamUserList(Map<String, Object> params) throws Exception {
+    public List<EgovMap> tkexamUserList(Map<String, Object> params) {
         return examDAO.tkexamUserList(params);
     }
 
@@ -365,9 +500,8 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      * 사용자 시험 응시현황 (파이)차트데이터 조회
      * @param vo
      * @return ProcessResultVO<ExamVO>
-     * @throws Exception
      ******************************************************/
-    public EgovMap selectUserTkexamStatusForPieChart(String examBscId, String sbjctId) throws Exception {
+    public EgovMap selectUserTkexamStatusForPieChart(String examBscId, String sbjctId) {
         return examDAO.selectUserTkexamStatusForPieChart(examBscId, sbjctId);
     }
 
@@ -375,9 +509,8 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      * 사용자 시험 응시현황 (가로선)차트데이터 조회
      * @param vo
      * @return ProcessResultVO<ExamVO>
-     * @throws Exception
      ******************************************************/
-    public List<EgovMap> selectUserTkexamStatusForHrChart(String examBscId, String sbjctId) throws Exception {
+    public List<EgovMap> selectUserTkexamStatusForHrChart(String examBscId, String sbjctId) {
         return examDAO.selectUserTkexamStatusForHrChart(examBscId, sbjctId);
     }
 
@@ -385,10 +518,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      * 교수 시험대체 목록 페이징
      * @param vo
      * @return ProcessResultVO<ExamVO>
-     * @throws Exception
      ******************************************************/
     @Override
-    public ProcessResultVO<ExamVO> listProfSbstPaging(ExamVO vo) throws Exception{
+    public ProcessResultVO<ExamVO> listProfSbstPaging(ExamVO vo) {
         ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
 
         PaginationInfo paginationInfo = new PaginationInfo();
@@ -415,10 +547,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      * 교수 시험대체 대상자 목록 페이징
      * @param vo
      * @return ProcessResultVO<ExamVO>
-     * @throws Exception
      ******************************************************/
     @Override
-    public ProcessResultVO<ExamVO> listProfSbstUserPaging(ExamVO vo) throws Exception{
+    public ProcessResultVO<ExamVO> listProfSbstUserPaging(ExamVO vo) {
         ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
 
         PaginationInfo paginationInfo = new PaginationInfo();
@@ -444,18 +575,16 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     /*****************************************************
      * 교수 시험대체 과제 조회
      * @param vo
-     * @throws Exception
      ******************************************************/
-    public ExamVO selectProfSbstAsmt(ExamVO vo) throws Exception {
+    public ExamVO selectProfSbstAsmt(ExamVO vo) {
         return examDAO.selectProfSbstAsmt(vo);
     }
 
     /*****************************************************
      * 교수 시험대체 퀴즈 조회
      * @param vo
-     * @throws Exception
      ******************************************************/
-    public ExamVO selectProfSbstQuiz(ExamVO vo) throws Exception {
+    public ExamVO selectProfSbstQuiz(ExamVO vo) {
         return examDAO.selectProfSbstQuiz(vo);
     }
 
@@ -463,10 +592,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      * 교수 시험 결시자 목록 페이징
      * @param vo
      * @return ProcessResultVO<ExamVO>
-     * @throws Exception
      ******************************************************/
     @Override
-    public ProcessResultVO<ExamVO> listProfAbsnceUserPaging(ExamVO vo) throws Exception{
+    public ProcessResultVO<ExamVO> listProfAbsnceUserPaging(ExamVO vo) {
         ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
 
         PaginationInfo paginationInfo = new PaginationInfo();
@@ -493,28 +621,34 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      * 교수 시험 결시자 목록 조회
      * @param vo
      * @return ProcessResultVO<ExamVO>
-     * @throws Exception
      ******************************************************/
-    public List<EgovMap> listProfAbsnceUser(Map<String, Object> params) throws Exception {
+    public List<EgovMap> listProfAbsnceUser(Map<String, Object> params) {
         return examDAO.listProfAbsnceUser(params);
     }
 
     /*****************************************************
      * 결시자 결시신청 결과 조회
      * @param vo
-     * @throws Exception
      ******************************************************/
-    public ExamVO selectAbsnceRslt(ExamVO vo) throws Exception {
-        return examDAO.selectAbsnceRslt(vo);
+    public ExamVO selectAbsnceRslt(ExamVO vo) {
+        // 1. 결시신청 결과 조회
+        ExamVO result = examDAO.selectAbsnceRslt(vo);
+        // 2. 결시신청 첨부파일 조회
+        if (result != null && result.getExamAbsnceId() != null) {
+            AtflVO atflVO = new AtflVO();
+            atflVO.setAtflRepoId(CommConst.REPO_EXAM);
+            atflVO.setRefId(result.getExamAbsnceId());
+            result.setFileList(attachFileService.selectAtflListByRefId(atflVO));
+        }
+        return result;
     }
 
     /*****************************************************
      * 결시자 결시신청 이력 목록 페이징
      * @param vo
      * @return ProcessResultVO<ExamVO>
-     * @throws Exception
      ******************************************************/
-    public ProcessResultVO<ExamVO> listAbsnceUserHstrPaging(ExamVO vo) throws Exception{
+    public ProcessResultVO<ExamVO> listAbsnceUserHstrPaging(ExamVO vo) {
         ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
 
         PaginationInfo paginationInfo = new PaginationInfo();
@@ -537,14 +671,23 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
         return processResultVO;
     }
 
+    /**
+     * 과목아이디 기준 결시자 목록 조회
+     * @param sbjctId
+     * @return
+     */
+    @Override
+    public List<EgovMap> listAbsnceBySbjctId(String sbjctId) {
+        return List.of();
+    }
+
     /*****************************************************
      * 장애인/고령자 시험 지원 목록 페이징
      * @param vo
      * @return ProcessResultVO<ExamVO>
-     * @throws Exception
      ******************************************************/
     @Override
-    public ProcessResultVO<ExamVO> listDsblUserPaging(ExamVO vo) throws Exception{
+    public ProcessResultVO<ExamVO> listDsblUserPaging(ExamVO vo) {
         ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
 
         PaginationInfo paginationInfo = new PaginationInfo();
@@ -571,9 +714,8 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      * 장애인/고령자 시험 지원 목록 조회
      * @param vo
      * @return ProcessResultVO<ExamVO>
-     * @throws Exception
      ******************************************************/
-    public List<EgovMap> dsblUserList(Map<String, Object> params) throws Exception {
+    public List<EgovMap> dsblUserList(Map<String, Object> params) {
         List<EgovMap> list = examDAO.dsblUserList(params);
         for (EgovMap map : list) {
             String userStatus        = (String) map.get("userStatus");
@@ -628,9 +770,8 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     /*****************************************************
      * 장애인/고령자 시험 지원 상세 조회
      * @param vo
-     * @throws Exception
      ******************************************************/
-    public ExamVO selectDsblDtl(ExamVO vo) throws Exception {
+    public ExamVO selectDsblDtl(ExamVO vo) {
         return examDAO.selectDsblDtl(vo);
     }
 
@@ -638,10 +779,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      * 교수 퀴즈 관리 퀴즈 목록 페이징
      * @param vo
      * @return ProcessResultVO<ExamVO>
-     * @throws Exception
      ******************************************************/
     @Override
-    public ProcessResultVO<ExamVO> listExamQuizPaging(ExamVO vo) throws Exception{
+    public ProcessResultVO<ExamVO> listExamQuizPaging(ExamVO vo) {
         ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
 
         PaginationInfo paginationInfo = new PaginationInfo();
@@ -667,9 +807,8 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     /*****************************************************
      * 교수 퀴즈관리 퀴즈 조회
      * @param vo
-     * @throws Exception
      ******************************************************/
-    public ExamVO selectProfQuizMng(ExamVO vo) throws Exception {
+    public ExamVO selectProfQuizMng(ExamVO vo) {
         return examDAO.selectProfQuizMng(vo);
     }
 
@@ -677,10 +816,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      * 수강생 시험 응시현황 목록 페이징
      * @param vo
      * @return ProcessResultVO<ExamVO>
-     * @throws Exception
      ******************************************************/
     @Override
-    public ProcessResultVO<ExamVO> listUserTkexamStatPaging(ExamVO vo) throws Exception{
+    public ProcessResultVO<ExamVO> listUserTkexamStatPaging(ExamVO vo) {
         ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
 
         PaginationInfo paginationInfo = new PaginationInfo();
@@ -707,36 +845,50 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      * 중간, 기말 시험 ID 목록 조회
      * @param String sbjctId
      * @return List<EgovMap>
-     * @throws Exception
      ******************************************************/
-    public List<EgovMap> listExamMidLst(String sbjctId) throws Exception {
+    public List<EgovMap> listExamMidLst(String sbjctId) {
         return examDAO.listExamMidLst(sbjctId);
+    }
+
+    /*****************************************************
+     * 퀴즈 시험아이디 조회
+     * @param String examBscId
+     * @return List<EgovMap>
+     ******************************************************/
+    public String selectExamQuizBscId(String examBscId) {
+        return examDAO.selectExamQuizBscId(examBscId);
+    }
+
+    /*****************************************************
+     * 시험지 조회
+     * @param String examBscId
+     * @return List<EgovMap>
+     ******************************************************/
+    public List<EgovMap> selectExamppr(String examBscId) {
+        return examDAO.selectExamppr(examBscId);
     }
 
     /*****************************************************
      * 성적 공개여부 수정
      * @param vo
-     * @throws Exception
      ******************************************************/
-    public void updateMrkOyn(ExamVO vo) throws Exception{
+    public void updateMrkOyn(ExamVO vo) {
         examDAO.updateMrkOyn(vo);
     }
 
     /*****************************************************
      * 시험 성적 반영비율 수정
      * @param vo
-     * @throws Exception
      ******************************************************/
-    public void examMrkRfltrtListModify(List<ExamBscVO> list) throws Exception {
+    public void examMrkRfltrtListModify(List<ExamBscVO> list) {
         examDAO.examMrkRfltrtListModify(list);
     }
 
     /*****************************************************
-     * 시험 수정
+     * 시험 수정 1
      * @param vo
-     * @throws Exception
      ******************************************************/
-    public void updateExamDtlInfo(ExamVO vo) throws Exception {
+    public void updateExamDtlInfo(ExamVO vo) {
         // 기존 시험의 팀 여부 조회
         ExamVO examTeamYn = examDAO.selectBscTeamYn(vo);
 
@@ -769,12 +921,12 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
                     examDAO.deleteExamDtlInfo(vo);
 
                     // Case A-b-4. 학습 그룹 ID 추출 및 조회
-                    vo.getLrnGrpIds().removeIf(item -> "".equals(item));	// 빈 값 제거
+                    vo.getTeamGrpIds().removeIf(item -> "".equals(item));	// 빈 값 제거
                     Map<Object, Map<String, Object>> idMap = vo.getExamDtlVO().getDtlInfos().stream().collect(Collectors.toMap(map -> map.get("id"), map -> map));
-                    for(String lrnGrp : vo.getLrnGrpIds()) {
-                        if(lrnGrp.split(":")[1].equals(vo.getSbjctId())) {
+                    for(String teamGrp : vo.getTeamGrpIds()) {
+                        if(teamGrp.split(":")[1].equals(vo.getSbjctId())) {
                             TeamVO teamVO = new TeamVO();
-                            teamVO.setTeamCtgrCd(lrnGrp.split(":")[0]);   // lrnGrpIds:sbjctId 에서 그룹 ID 추출
+                            teamVO.setTeamCtgrCd(teamGrp.split(":")[0]);   // teamGrpIds:sbjctId 에서 그룹 ID 추출
                             List<TeamVO> teamList = teamDAO.list(teamVO);       // 팀 목록 조회
                             // Case A-b-5. 조회한 팀 목록 수 만큼 for 문 실행
                             for (TeamVO team : teamList) {
@@ -830,12 +982,12 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
                     examDAO.deleteExamDtlInfo(vo);
 
                     // Case B-a-5. 학습 그룹 ID 추출 및 조회
-                    vo.getLrnGrpIds().removeIf(item -> "".equals(item));	// 빈 값 제거
+                    vo.getTeamGrpIds().removeIf(item -> "".equals(item));	// 빈 값 제거
                     Map<Object, Map<String, Object>> idMap = vo.getExamDtlVO().getDtlInfos().stream().collect(Collectors.toMap(map -> map.get("id"), map -> map));
-                    for(String lrnGrp : vo.getLrnGrpIds()) {
-                        if(lrnGrp.split(":")[1].equals(vo.getSbjctId())) {
+                    for(String teamGrp : vo.getTeamGrpIds()) {
+                        if(teamGrp.split(":")[1].equals(vo.getSbjctId())) {
                             TeamVO teamVO = new TeamVO();
-                            teamVO.setTeamCtgrCd(lrnGrp.split(":")[0]);   // lrnGrpIds:sbjctId 에서 그룹 ID 추출
+                            teamVO.setTeamCtgrCd(teamGrp.split(":")[0]);   // teamGrpIds:sbjctId 에서 그룹 ID 추출
                             List<TeamVO> teamList = teamDAO.list(teamVO);       // 팀 목록 조회
                             // Case B-a-6. 조회한 팀 목록 수 만큼 for 문 실행
                             for (TeamVO team : teamList) {
@@ -899,9 +1051,8 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     /*****************************************************
      * 대체 시험 수정
      * @param vo
-     * @throws Exception
      ******************************************************/
-    public void updateExamSbst(ExamVO vo) throws Exception {
+    public void updateExamSbst(ExamVO vo) {
         String sbstType = vo.getExamSbstTycd();
 
         switch (sbstType) {
@@ -910,6 +1061,17 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
                 examDAO.updateExamSbst(vo);
                 // A-1. 과제 수정
                 examDAO.updateSbstAsmt(vo);
+                // A-2. 첨부파일 저장
+                List<AtflVO> asmtModFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath() + "/" + vo.getAsmtId());
+                if (!asmtModFileList.isEmpty()) {
+                    for (AtflVO atflVO : asmtModFileList) {
+                        atflVO.setRefId(vo.getAsmtId());
+                        atflVO.setAtflRepoId(CommConst.REPO_ASMT);
+                        atflVO.setRgtrId(vo.getMdfrId());
+                        atflVO.setMdfrId(vo.getMdfrId());
+                    }
+                    attachFileService.insertAtflList(asmtModFileList);
+                }
                 break;
             // B. 대체 퀴즈
             case "SBST_QUIZ" :
@@ -925,6 +1087,18 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
 
                 // B-4. 출제 완료여부 수정
                 examDAO.updateExamQstnsCmptnyn(vo);
+
+                // B-5. 첨부파일 저장
+                List<AtflVO> quizModFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath() + "/" + vo.getExamBscId());
+                if (!quizModFileList.isEmpty()) {
+                    for (AtflVO atflVO : quizModFileList) {
+                        atflVO.setRefId(vo.getExamBscId());
+                        atflVO.setAtflRepoId(CommConst.REPO_EXAM);
+                        atflVO.setRgtrId(vo.getMdfrId());
+                        atflVO.setMdfrId(vo.getMdfrId());
+                    }
+                    attachFileService.insertAtflList(quizModFileList);
+                }
                 break;
             // C. 퀴즈
             case "QUIZ" :
@@ -944,11 +1118,101 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     }
 
     /*****************************************************
+     * 퀴즈 시험 수정
+     * @param vo
+     ******************************************************/
+    public void modifyExamQuizDtlInfo(ExamVO vo) {
+
+        switch (vo.getByteamSubrexamUseyn()) {
+            // Case A. 기존 데이터가 팀 시험이 아닐 경우
+            case "N":
+                    // Case A-a-1. BSC 수정
+                    examDAO.updateExamBscInfo(vo);
+
+                    // Case A-a-2. DTL 수정
+                    vo.setExamMnts(vo.getExamDtlVO().getExamMnts());
+                    vo.setExamPsblSdttm(vo.getExamDtlVO().getExamPsblSdttm());
+                    vo.setExamPsblEdttm(vo.getExamDtlVO().getExamPsblEdttm());
+                    examDAO.updateExamDtlInfo(vo);
+                break;
+            // Case B. 기존 데이터가 팀 시험일 경우
+            case "Y":
+                // Case B-a. 둘 다 동일할 경우 (팀 시험 -> 팀 시험)
+                // Case B-a-1. 구분 코드를 팀 구분 코드로 변경
+                switch (vo.getExamGbncd()) {
+                    case "EXAM_MID": vo.setExamGbncd("QUIZ_EXAM_MID_TEAM"); break;   // 퀴즈 팀 중간고사
+                    case "EXAM_LST": vo.setExamGbncd("QUIZ_EXAM_LST_TEAM"); break;   // 퀴즈 팀 기말고사
+                    case "EXAM":     vo.setExamGbncd("QUIZ_EXAM_TEAM");     break;   // 퀴즈 팀 시험
+                }
+                // Case B-a-2. BSC 수정
+                examDAO.updateExamBscInfo(vo);
+
+                // Case B-a-3. 기존 TRGTR 삭제
+                examDAO.deleteExamTrgtr(vo);
+
+                // Case B-a-4. 기존 DTL 삭제
+                examDAO.deleteExamDtlInfo(vo);
+
+                // Case B-a-5. 학습 그룹 ID 추출 및 조회
+                vo.getTeamGrpIds().removeIf(item -> "".equals(item));	// 빈 값 제거
+                Map<Object, Map<String, Object>> idMap = vo.getExamDtlVO().getDtlInfos().stream().collect(Collectors.toMap(map -> map.get("id"), map -> map));
+                for(String teamGrp : vo.getTeamGrpIds()) {
+                    if(teamGrp.split(":")[1].equals(vo.getSbjctId())) {
+                        TeamVO teamVO = new TeamVO();
+                        teamVO.setTeamCtgrCd(teamGrp.split(":")[0]);   // teamGrpIds:sbjctId 에서 그룹 ID 추출
+                        List<TeamVO> teamList = teamDAO.list(teamVO);       // 팀 목록 조회
+                        // Case B-a-6. 조회한 팀 목록 수 만큼 for 문 실행
+                        for (TeamVO team : teamList) {
+                            vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL)); // 시험 상세 ID 생성
+                            vo.getExamDtlVO().setExamBscId(vo.getExamBscId());
+                            Map<String, Object> target = idMap.get(team.getTeamId());
+                            if (target != null) {
+                                // 학습그룹별 시험 설정 [O] - 시험지 + 주제가 다름
+                                vo.getExamDtlVO().setExamTtl((String) target.get("ttl"));
+                                vo.getExamDtlVO().setExamCts((String) target.get("cts"));
+                            } else {
+                                // 학습그룹별 시험 설정 [X] - 주제는 같지만 시험지가 다름
+                                vo.getExamDtlVO().setExamTtl(vo.getExamTtl());
+                                vo.getExamDtlVO().setExamCts(vo.getExamCts());
+                            }
+                            // Case B-a-7. DTL 등록
+                            examDAO.examDtlRegist2(vo.getExamDtlVO());	// 시험 상세 등록
+
+                            // Case B-a-8. TRGTR 등록에 사용할 param 생성
+                            ExamTrgtrVO trgtr = new ExamTrgtrVO();
+                            trgtr.setExamTrgtrId(IdGenUtil.genNewId(IdPrefixType.EXTGT));   // 시험 대상자 ID 생성
+                            trgtr.setTeamId(team.getTeamId());
+                            trgtr.setExamDtlId(vo.getExamDtlVO().getExamDtlId());
+                            trgtr.setRgtrId(vo.getRgtrId());
+                            trgtr.setMdfrId(vo.getMdfrId());
+
+                            // Case. B-a-9. TRGTR 등록
+                            examDAO.examTrgtrRegist2(trgtr);		// 시험 대상자 등록
+                        }
+                    }
+                }
+                break;
+        }
+
+        // 첨부파일 저장
+        String newUploadPath = vo.getUploadPath() + "/" + vo.getExamBscId();
+        List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), newUploadPath);
+        if (!uploadFileList.isEmpty()) {
+            for (AtflVO atflVO : uploadFileList) {
+                atflVO.setRefId(vo.getExamBscId());
+                atflVO.setAtflRepoId(CommConst.REPO_EXAM);
+                atflVO.setRgtrId(vo.getMdfrId());
+                atflVO.setMdfrId(vo.getMdfrId());
+            }
+            attachFileService.insertAtflList(uploadFileList);
+        }
+    }
+
+    /*****************************************************
      * 시험 삭제
      * @param vo
-     * @throws Exception
      ******************************************************/
-    public void deleteExamBsc(ExamVO vo) throws Exception {
+    public void deleteExamBsc(ExamVO vo) {
         // Case A. 팀 시험인 경우
         if ("Y".equals(vo.getByteamSubrexamUseyn())) {
             // A-1. 시험 대상자 삭제
@@ -973,10 +1237,15 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     /*****************************************************
      * 대체 시험 삭제
      * @param vo
-     * @throws Exception
      ******************************************************/
-    public void deleteExamSbst(ExamVO vo) throws Exception {
+    public void deleteExamSbst(ExamVO vo) {
         String sbstType = vo.getExamSbstTycd();
+
+        // 과제 화면에서 대체 과제 삭제시
+        if (vo.getExamEvlSbstId() == null) {
+            // 대체 과제 ID 가져온 후, ID 세팅
+            vo.setExamEvlSbstId(examDAO.selectAsmtSbstId(vo.getAsmtId()));
+        }
 
         examDAO.deleteExamSbst(vo);
         switch (sbstType) {
@@ -1036,7 +1305,429 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
                 vo.setExamGrpId(beforeGrpId2);
                 examDAO.deleteExamGrp(vo);
                 break;
+
+            default:
+                break;
         }
+    }
+
+    /*****************************************************
+     * 퀴즈 시험 삭제
+     * @param vo
+     ******************************************************/
+    public void removeExamQuiz(ExamVO vo) {
+        // Case A. 팀 시험인 경우
+        if ("Y".equals(vo.getByteamSubrexamUseyn())) {
+            // A-1. 시험 대상자 삭제
+            examDAO.deleteExamTrgtr(vo);
+
+            // A-2. 시험 상세정보 삭제
+            examDAO.deleteExamDtlInfo(vo);
+
+            // A-3. 시험 기본정보 삭제
+            examDAO.deleteExamBscInfo(vo);
+        } else {
+            // Case B. 일반 시험인 경우
+            // B-1. 시험 상세정보 삭제
+            examDAO.deleteExamDtlInfo(vo);
+
+            // B-2. 시험 기본정보 삭제
+            examDAO.deleteExamBscInfo(vo);
+        }
+        // 온라인퀴즈시험 정보 삭제
+        examDAO.removeExamOnqz(vo);
+    }
+
+    /************************ 학습자 ************************/
+
+    /*****************************************************
+     * 학습자 결시신청 등록 (재시험 포함)
+     * @param vo
+     ******************************************************/
+    public ExamVO registStdntAbsnce(ExamVO vo) {
+        String examAbsnceId = IdGenUtil.genNewId(IdPrefixType.EXABS);
+
+        if ("4".equals(vo.getAbsnceAplyStscd())) {
+            /* 재신청 */
+            vo.setAbsnceAplyStscd("RE_APLY");
+        } else {
+            vo.setAbsnceAplyStscd("APLY");
+        }
+        vo.setExamAbsnceId(examAbsnceId);
+        vo.setRgtrId(vo.getUserId());
+
+        // 1. 학습자 결시신청 내용 등록
+        examDAO.registStdntAbsnce(vo);
+
+        // 2. 학습자 첨부파일 등록
+        String newUploadPath = vo.getUploadPath() + "/" + examAbsnceId;
+        List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), newUploadPath);
+        if (!uploadFileList.isEmpty()) {
+            for (AtflVO atflVO : uploadFileList) {
+                atflVO.setRefId(examAbsnceId);
+                atflVO.setAtflRepoId(CommConst.REPO_EXAM);
+                atflVO.setRgtrId(vo.getUserId());
+                atflVO.setMdfrId(vo.getUserId());
+            }
+            attachFileService.insertAtflList(uploadFileList);
+        }
+        return vo;
+    }
+
+    /*****************************************************
+     * 학습자 장애인/고령자 시험지원 등록
+     * @param vo
+     ******************************************************/
+    public ExamVO registStdntSprtAply(ExamVO vo) {
+        String midExamSprtAplyId = IdGenUtil.genNewId(IdPrefixType.EXSPT);
+        String lstExamSprtAplyId = IdGenUtil.genNewId(IdPrefixType.EXSPT);
+        String examSprtAplyGrpId = IdGenUtil.genNewId(IdPrefixType.EXSPG);
+
+        vo.setRgtrId(vo.getUserId());
+        vo.setExamSprtAplyGrpId(examSprtAplyGrpId);
+        // 1. 중간고사 시험지원 신청 등록
+        vo.setExamBscId(vo.getMidExamBscId());
+        vo.setExamSprtAplyId(midExamSprtAplyId);
+        examDAO.registStdntSprtAply(vo);
+
+        // 2. 기말고사 시험지원 신청 등록
+        vo.setExamBscId(vo.getLstExamBscId());
+        vo.setExamSprtAplyId(lstExamSprtAplyId);
+        examDAO.registStdntSprtAply(vo);
+
+        // 3. 첨부파일 등록
+        String newUploadPath = vo.getUploadPath() + "/" + examSprtAplyGrpId;
+        List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), newUploadPath);
+        if (!uploadFileList.isEmpty()) {
+            for (AtflVO atflVO : uploadFileList) {
+                atflVO.setRefId(examSprtAplyGrpId);
+                atflVO.setAtflRepoId(CommConst.REPO_EXAM);
+                atflVO.setRgtrId(vo.getUserId());
+                atflVO.setMdfrId(vo.getUserId());
+            }
+            attachFileService.insertAtflList(uploadFileList);
+        }
+
+        return vo;
+    }
+
+    /*****************************************************
+     * 학습자 장애인/고령자 여부
+     * @param vo
+     ******************************************************/
+    public String stdntDsblSnrYn(String userId) {
+        return examDAO.stdntDsblSnrYn(userId);
+    }
+
+    /*****************************************************
+     * 학습자 시험목록 페이징
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     ******************************************************/
+    @Override
+    public ProcessResultVO<ExamVO> listStdntExamPaging(ExamVO vo) {
+        ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
+
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPageNo(vo.getPageIndex());
+        paginationInfo.setRecordCountPerPage(vo.getListScale());
+        paginationInfo.setPageSize(vo.getPageScale());
+
+        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
+        vo.setLastIndex(paginationInfo.getLastRecordIndex());
+
+        int totCnt = examDAO.countStdntExam(vo);
+
+        paginationInfo.setTotalRecordCount(totCnt);
+
+        List<ExamVO> resultList = examDAO.listStdntExamPaging(vo);
+
+        processResultVO.setReturnList(resultList);
+        processResultVO.setPageInfo(paginationInfo);
+
+        return processResultVO;
+    }
+
+    /*****************************************************
+     * 학습자 대체과제 ID 조회
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     ******************************************************/
+    public String selectStdntSbstAsmtId(ExamVO vo) {
+        return examDAO.selectStdntSbstAsmtId(vo);
+    }
+
+    /*****************************************************
+     * 학습자 대체과제 피드백 기본정보 조회
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     ******************************************************/
+    public ExamVO selectStdntSbstAsmtFdbkInfo(ExamVO vo) {
+        return examDAO.selectStdntSbstAsmtFdbkInfo(vo);
+    }
+
+    /*****************************************************
+     * 학습자 시험 응시기록 조회
+     * @param vo
+     * @return List<ExamVO>
+     ******************************************************/
+    public List<ExamVO> selectStdntTkexamHist(ExamVO vo) {
+        return examDAO.selectStdntTkexamHist(vo);
+    }
+
+    /*****************************************************
+     * 학습자 시험 응시결과 조회
+     * @param vo
+     * @return List<ExamVO>
+     ******************************************************/
+    public ExamVO selectStdntTkexamRslt(ExamVO vo) {
+        return examDAO.selectStdntTkexamRslt(vo);
+    }
+
+    /*****************************************************
+     * 학습자 시험상세 ID 및 팀 ID 조회
+     * @param vo
+     * @return ExamVO
+     ******************************************************/
+    public ExamVO selectStdntDtlIdAndTeamId(ExamVO vo) {
+        return examDAO.selectStdntDtlIdAndTeamId(vo);
+    }
+
+    /*****************************************************
+     * 학습자 퀴즈 상세 아이디 조회
+     * @param vo
+     * @return ExamVO
+     ******************************************************/
+    public String selectStdntQuizDtlId(ExamVO vo) {
+        return examDAO.selectStdntQuizDtlId(vo);
+    }
+
+    /*****************************************************
+     * 학습자 대체 시험 조회
+     * @param vo
+     * @return ExamVO
+     ******************************************************/
+    public ExamVO selectStdntSbstInfo(ExamVO vo) {
+        ExamVO sbstVO = examDAO.selectStdntSbstInfo(vo);
+        if (sbstVO != null && "ASMT".equals(sbstVO.getGbn()) && sbstVO.getAsmtId() != null) {
+            AtflVO atflVO = new AtflVO();
+            atflVO.setAtflRepoId(CommConst.REPO_ASMT);
+            atflVO.setRefId(sbstVO.getAsmtId());
+            sbstVO.setFileList(attachFileService.selectAtflListByRefId(atflVO));
+        }
+        if (sbstVO != null && "QUIZ".equals(sbstVO.getGbn()) && sbstVO.getQuizBscId() != null) {
+            AtflVO atflVO = new AtflVO();
+            atflVO.setAtflRepoId(CommConst.REPO_EXAM);
+            atflVO.setRefId(sbstVO.getQuizBscId());
+            sbstVO.setFileList(attachFileService.selectAtflListByRefId(atflVO));
+        }
+        return sbstVO;
+    }
+
+    /*****************************************************
+     * 학습자 대체 과제 제출기록 조회
+     * @param vo
+     * @return List<ExamVO>
+     ******************************************************/
+    public List<ExamVO> selectStdntSbstAsmtSbmtHist(ExamVO vo) {
+        return examDAO.selectStdntSbstAsmtSbmtHist(vo);
+    }
+
+
+    /*****************************************************
+     * 학습자 대체 과제 평가결과 조회
+     * @param vo
+     * @return ExamVO
+     ******************************************************/
+    public ExamVO selectStdntSbstAsmtRslt(ExamVO vo) {
+        ExamVO asmtRslt = examDAO.selectStdntSbstAsmtRslt(vo);
+        if (asmtRslt != null && asmtRslt.getAsmtSbmsnId() != null) {
+            AtflVO atflVO = new AtflVO();
+            atflVO.setAtflRepoId(CommConst.REPO_ASMT);
+            atflVO.setRefId(asmtRslt.getAsmtSbmsnId());
+            asmtRslt.setFileList(attachFileService.selectAtflListByRefId(atflVO));
+        }
+        return asmtRslt;
+    }
+
+    /*****************************************************
+     * 학습자 결시신청 목록 페이징
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     ******************************************************/
+    @Override
+    public ProcessResultVO<ExamVO> listStdntAbsncePaging(ExamVO vo) {
+        ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
+
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPageNo(vo.getPageIndex());
+        paginationInfo.setRecordCountPerPage(vo.getListScale());
+        paginationInfo.setPageSize(vo.getPageScale());
+
+        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
+        vo.setLastIndex(paginationInfo.getLastRecordIndex());
+
+        int totCnt = examDAO.countStdntAbsnce(vo);
+
+        paginationInfo.setTotalRecordCount(totCnt);
+
+        List<ExamVO> resultList = examDAO.listStdntAbsncePaging(vo);
+
+        processResultVO.setReturnList(resultList);
+        processResultVO.setPageInfo(paginationInfo);
+
+        return processResultVO;
+    }
+
+    /*****************************************************
+     * 학습자 결시신청 기본정보 조회
+     * @param vo
+     * @return ExamVO
+     ******************************************************/
+    public ExamVO selectStdntAbsnceInfo(ExamVO vo) {
+        return examDAO.selectStdntAbsnceInfo(vo);
+    }
+
+    /*****************************************************
+     * 학습자 장애인/고령자 시험지원 신청 목록 페이징
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     ******************************************************/
+    @Override
+    public ProcessResultVO<ExamVO> listStdntSprtAplyPaging(ExamVO vo) {
+        ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
+
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPageNo(vo.getPageIndex());
+        paginationInfo.setRecordCountPerPage(vo.getListScale());
+        paginationInfo.setPageSize(vo.getPageScale());
+
+        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
+        vo.setLastIndex(paginationInfo.getLastRecordIndex());
+
+        int totCnt = examDAO.countStdntSprtAply(vo);
+
+        paginationInfo.setTotalRecordCount(totCnt);
+
+        List<ExamVO> resultList = examDAO.listStdntSprtAplyPaging(vo);
+
+        processResultVO.setReturnList(resultList);
+        processResultVO.setPageInfo(paginationInfo);
+
+        return processResultVO;
+    }
+
+    /*****************************************************
+     * 학습자 장애인/고령자 시험지원 신청 정보 조회
+     * @param vo
+     * @return ExamVO
+     ******************************************************/
+    public ExamVO selectStdntSprtAplyInfo(ExamVO vo) {
+        return examDAO.selectStdntSprtAplyInfo(vo);
+    }
+
+    /*****************************************************
+     * 학습자 장애인/고령자 시험지원 취소
+     * @param vo
+     ******************************************************/
+    public void modifyStdntSprtCnclAply(ExamVO vo) {
+        vo.setMdfrId(vo.getUserId());
+
+        // 1. 중간고사 시험지원 취소
+        vo.setExamSprtAplyId(vo.getMidExamSprtAplyId());
+        examDAO.modifyStdntSprtCnclAply(vo);
+
+        // 2. 기말고사 시험지원 취소
+        vo.setExamSprtAplyId(vo.getLstExamSprtAplyId());
+        examDAO.modifyStdntSprtCnclAply(vo);
+    }
+
+    /************************ 관리자 ************************/
+
+    /*****************************************************
+     * 관리자 장애인/고령자 지원관리 신청 목록 페이징
+     * @param vo
+     * @return ProcessResultVO<ExamVO>
+     ******************************************************/
+    public ProcessResultVO<ExamVO> listAdmSprtAplyPaging(ExamVO vo) {
+        ProcessResultVO<ExamVO> processResultVO = new ProcessResultVO<>();
+
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPageNo(vo.getPageIndex());
+        paginationInfo.setRecordCountPerPage(vo.getListScale());
+        paginationInfo.setPageSize(vo.getPageScale());
+
+        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
+        vo.setLastIndex(paginationInfo.getLastRecordIndex());
+
+        int totCnt = examDAO.countAdmSprtAply(vo);
+
+        paginationInfo.setTotalRecordCount(totCnt);
+
+        List<ExamVO> resultList = examDAO.listAdmSprtAplyPaging(vo);
+
+        processResultVO.setReturnList(resultList);
+        processResultVO.setPageInfo(paginationInfo);
+
+        return processResultVO;
+    }
+
+    /*****************************************************
+     * 관리자 장애인/고령자 지원관리 신청 목록 전체 (엑셀용)
+     * @param vo
+     * @return List<ExamVO>
+     ******************************************************/
+    public List<ExamVO> listAdmSprtAply(ExamVO vo) {
+        return examDAO.listAdmSprtAply(vo);
+    }
+
+    /*****************************************************
+     * 관리자 장애인/고령자 지원관리 상세보기
+     * @param vo
+     * @return ExamVO
+     ******************************************************/
+    public ExamVO selectAdmSprtAplyDtl(ExamVO vo) {
+        ExamVO sprtAplyDtl = examDAO.selectAdmSprtAplyDtl(vo);
+        if (sprtAplyDtl != null && sprtAplyDtl.getExamSprtAplyGrpId() != null) {
+            AtflVO atflVO = new AtflVO();
+            atflVO.setAtflRepoId(CommConst.REPO_EXAM);
+            atflVO.setRefId(sprtAplyDtl.getExamSprtAplyGrpId());
+            sprtAplyDtl.setFileList(attachFileService.selectAtflListByRefId(atflVO));
+        }
+        return sprtAplyDtl;
+    }
+
+    /*****************************************************
+     * 관리자 장애인/고령자 시험지원 신청 승인/반려
+     * @param vo
+     ******************************************************/
+    public void modifySprtAplyStat(ExamVO vo) {
+        ExamVO mid = new ExamVO();
+        ExamVO lst = new ExamVO();
+
+        mid.setAplyStscd(vo.getAplyStscd());
+        mid.setAutzrId(vo.getAutzrId());
+        mid.setAddMnts(vo.getSprtMidAddMnts());
+        mid.setMdfrId(vo.getMdfrId());
+        mid.setAprvCts(vo.getAprvCts());
+        mid.setExamSprtAplyId(vo.getMidExamSprtAplyId());
+        examDAO.modifySprtAplyStat(mid);
+
+        lst.setAplyStscd(vo.getAplyStscd());
+        lst.setAutzrId(vo.getAutzrId());
+        lst.setAddMnts(vo.getSprtLstAddMnts());
+        lst.setMdfrId(vo.getMdfrId());
+        lst.setAprvCts(vo.getAprvCts());
+        lst.setExamSprtAplyId(vo.getLstExamSprtAplyId());
+        examDAO.modifySprtAplyStat(lst);
+    }
+
+    /*****************************************************
+     * 관리자 장애인/고령자 시험지원 취소신청 승인/반려
+     * @param vo
+     ******************************************************/
+    public void modifySprtAplyCnclStat(ExamVO vo) {
+        examDAO.modifySprtAplyCnclStat(vo);
     }
 
     /*****************************************************
@@ -1045,34 +1736,21 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     /**
      * 교수퀴즈목록조회
      *
-     * @param sbjctId 	과목아이디
-     * @param searchValue  검색내용(퀴즈명)
+     * @param sbjctId 		과목아이디
+     * @param searchValue  	검색내용(퀴즈명)
      * @return 퀴즈목록 페이징
-     * @throws Exception
      */
     @Override
-    public ProcessResultVO<EgovMap> profQuizListPaging(ExamBscVO vo) throws Exception {
-        PaginationInfo paginationInfo = new PaginationInfo();
-        paginationInfo.setCurrentPageNo(vo.getPageIndex());
-        paginationInfo.setRecordCountPerPage(vo.getListScale());
-        paginationInfo.setPageSize(vo.getListScale());
+    public ResultDTO<EgovMap> profQuizListPaging(QuizPageInfo pageInfo) {
+        ResultDTO<EgovMap> resultDto = new ResultDTO<EgovMap>(pageInfo);
+		resultDto.setReturnList(examDAO.profQuizListPaging(pageInfo));
+		if(resultDto.getReturnList().size() > 0) {
+			resultDto.getPageInfo().setTotalRecordCount(Integer.parseInt(resultDto.getReturnList().get(0).get("totalCnt").toString()));
+		} else {
+			resultDto.getPageInfo().setTotalRecordCount(0);
+		}
 
-        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
-        vo.setLastIndex(paginationInfo.getLastRecordIndex());
-
-        List<EgovMap> quizList = examDAO.profQuizListPaging(vo);
-
-        if(quizList.size() > 0) {
-            paginationInfo.setTotalRecordCount(((BigDecimal)quizList.get(0).get("totalCnt")).intValue());
-        } else {
-            paginationInfo.setTotalRecordCount(0);
-        }
-
-        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
-        resultVO.setReturnList(quizList);
-        resultVO.setPageInfo(paginationInfo);
-
-        return resultVO;
+        return resultDto;
     }
 
     /**
@@ -1080,22 +1758,22 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     *
     * @param examBscId 퀴즈기본아이디
     * @return 퀴즈 정보
-    * @throws Exception
     */
     @Override
-    public ExamBscVO quizSelect(ExamBscVO vo) throws Exception {
-        ExamBscVO bscVO = examDAO.quizBscSelect(vo);	// 퀴즈기본 정보 조회
+    public ExamBscVO quizSelect(ExamBscVO vo) {
+    	// 1. 퀴즈기본정보조회
+        ExamBscVO bscVO = examDAO.quizBscSelect(vo);
         if(bscVO != null) {
+        	// 2. 퀴즈상세정보조회
         	ExamDtlVO dtlVO = new ExamDtlVO();
         	dtlVO.setExamBscId(vo.getExamBscId());
         	if(vo.getExamDtlVO() != null) dtlVO.setExamDtlId(vo.getExamDtlVO().getExamDtlId());
-            bscVO.setExamDtlVO(examDAO.quizDtlSelect(dtlVO));	// 퀴즈상세 정보 조회
+            bscVO.setExamDtlVO(examDAO.quizDtlSelect(dtlVO));
 
-            // 첨부파일
             if(bscVO.getFileCnt() > 0) {
+            	// 3. 첨부파일목록조회
             	AtflVO atflVO = new AtflVO();
                 atflVO.setRefId(bscVO.getExamBscId());
-
                 List<AtflVO> fileList = attachFileService.selectAtflListByRefId(atflVO);
                 bscVO.setFileList(fileList);
             }
@@ -1108,81 +1786,58 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     * 퀴즈등록
     *
     * @param ExamBscVO
-    * @throws Exception
+    * @param Map<String, String>	부가정보
     */
     @Override
-    public ExamBscVO quizRegist(ExamBscVO vo) throws Exception {
-    	// 1. 퀴즈기본 등록
+    public ExamBscVO quizRegist(ExamBscVO vo, Map<String, String> subMap) {
+    	ObjectMapper mapper = new ObjectMapper();
+    	List<Map<String, Object>> dtlInfos = new ArrayList<Map<String,Object>>();
+    	try {
+    		dtlInfos = mapper.readValue(subMap.get("dtlInfos"), new TypeReference<List<Map<String, Object>>>() {});		// 팀그룹부과제정보
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		List<String> sbjctIds = new ArrayList<>(Arrays.asList(subMap.get("sbjctIds").split(",")));						// 분반과목아이디목록
+		List<String> teamGrpIds = new ArrayList<>(Arrays.asList(subMap.get("teamGrpIds").split(",")));					// 팀그룹아이디:과목아이디목록
+		List<String> teamGrpSubasmtStngyns = Arrays.asList(subMap.get("teamGrpSubasmtStngyns").split(","));				// 분반번호:과목아이디목록
+
+    	// 퀴즈기본등록
         vo.setExamBscId(IdGenUtil.genNewId(IdPrefixType.EXBSC));
         vo.getExamDtlVO().setExamBscId(vo.getExamBscId());
-        if(vo.getLrnGrpSubasmtStngyns() != null) {
-            vo.setLrnGrpSubasmtStngyn(vo.getLrnGrpSubasmtStngyns().stream().anyMatch(item -> item.contains(vo.getSbjctId())) ? "Y" : "N");
+        if(teamGrpSubasmtStngyns != null) {
+        	vo.setTeamGrpSubasmtStngyn(teamGrpSubasmtStngyns.stream().anyMatch(item -> item.contains(vo.getSbjctId())) ? "Y" : "N");
         } else {
-            vo.setLrnGrpSubasmtStngyn("N");
+        	vo.setTeamGrpSubasmtStngyn("N");
         }
         examDAO.examBscRegist(vo);
 
         // 팀 퀴즈
         if("QUIZ_TEAM".equals(vo.getExamGbncd())) {
-        	vo.getLrnGrpIds().removeIf(item -> "".equals(item));	// 빈 값 제거
-            Map<Object, Map<String, Object>> idMap = vo.getExamDtlVO().getDtlInfos().stream().collect(Collectors.toMap(map -> map.get("id"), map -> map));
-            for(String lrnGrp : vo.getLrnGrpIds()) {
-                if(lrnGrp.split(":")[1].equals(vo.getSbjctId())) {
-                    TeamVO teamVO = new TeamVO();
-                    teamVO.setTeamCtgrCd(lrnGrp.split(":")[0]);
-                    List<TeamVO> teamList = teamDAO.list(teamVO);	// 팀 목록 조회
-                    for(TeamVO team : teamList) {
-                        vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
-                        Map<String, Object> target = idMap.get(team.getTeamId());	// 팀아이디로 조회
-                        if(target != null) {
-                            vo.getExamDtlVO().setExamTtl((String) target.get("ttl"));
-                            vo.getExamDtlVO().setExamCts((String) target.get("cts"));
-                        } else {
-                            vo.getExamDtlVO().setExamTtl(vo.getExamTtl());
-                            vo.getExamDtlVO().setExamCts(vo.getExamCts());
-                        }
-                        examDAO.examDtlRegist(vo.getExamDtlVO());	// 퀴즈상세 등록
-
-                        ExamTrgtrVO trgtr = new ExamTrgtrVO();
-                        trgtr.setExamTrgtrId(IdGenUtil.genNewId(IdPrefixType.EXTGT));
-                        trgtr.setTeamId(team.getTeamId());
-                        trgtr.setExamDtlId(vo.getExamDtlVO().getExamDtlId());
-                        trgtr.setRgtrId(vo.getRgtrId());
-                        examDAO.examTrgtrRegist(trgtr);		// 퀴즈대상자 등록
-                    }
-                }
-            }
+        	// 팀퀴즈등록
+        	teamQuizRegist(dtlInfos, teamGrpIds, vo, vo.getSbjctId(), "MAIN");
             // 등록 과목아이디 목록 삭제
-            vo.getLrnGrpIds().removeIf(item -> item.split(":")[1].equals(vo.getSbjctId()));
+            teamGrpIds.removeIf(item -> item.split(":")[1].equals(vo.getSbjctId()));
         // 일반 퀴즈
         } else {
             vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
             examDAO.examDtlRegist(vo.getExamDtlVO());	// 퀴즈상세 등록
+            // 이전 퀴즈 가져오기 문항 복사
+            if(!"".equals(vo.getSearchValue())) {
+            	quizQstnCopy(vo.getExamDtlVO(), vo.getSearchValue(), "Y");
+            }
         }
 
         if("QUIZ".equals(vo.getExamTycd())) {
             quizMrkRfltrtModify(vo);	// 퀴즈 성적반영비율 수정
         }
 
-        List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
-
-        // 첨부파일
-        if (uploadFileList.size() > 0) {
-        	for (AtflVO atflVO : uploadFileList) {
-        		atflVO.setRefId(vo.getExamBscId());
-        		atflVO.setRgtrId(vo.getRgtrId());
-        		atflVO.setMdfrId(vo.getMdfrId());
-        		atflVO.setAtflRepoId(CommConst.REPO_EXAM); // 첨부파일 저장소 아이디
-        	}
-
-        	// 첨부파일 저장
-        	attachFileService.insertAtflList(uploadFileList);
-        }
+        // 첨부파일저장
+        atflListRegist(vo);
 
         // 분반 등록
         if("Y".equals(vo.getDvclasRegyn())) {
         	String examBscId = vo.getExamBscId();
-            vo.getSbjctIds().removeIf(item -> item.equals(vo.getSbjctId()));	// 퀴즈등록 분반 목록 제거
+        	sbjctIds.removeIf(item -> item.equals(vo.getSbjctId()));	// 퀴즈등록 분반 목록 제거
 
             ExamGrpVO grpVO = new ExamGrpVO();
             grpVO.setExamGrpId(IdGenUtil.genNewId(IdPrefixType.EXGRP));
@@ -1193,61 +1848,36 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
             vo.setMrkRfltrt(null);
             examDAO.examBscModify(vo);	// 퀴즈기본 수정
 
-            for(String sbjctId : vo.getSbjctIds()) {
+            for(String sbjctId : sbjctIds) {
                 vo.setExamBscId(IdGenUtil.genNewId(IdPrefixType.EXBSC));
                 vo.setSbjctId(sbjctId);
                 vo.getExamDtlVO().setExamBscId(vo.getExamBscId());
-                if(vo.getLrnGrpSubasmtStngyns() != null) {
-                    vo.setLrnGrpSubasmtStngyn(vo.getLrnGrpSubasmtStngyns().stream().anyMatch(item -> item.contains(sbjctId)) ? "Y" : "N");
+                if(teamGrpSubasmtStngyns != null) {
+                    vo.setTeamGrpSubasmtStngyn(teamGrpSubasmtStngyns.stream().anyMatch(item -> item.contains(sbjctId)) ? "Y" : "N");
                 } else {
-                    vo.setLrnGrpSubasmtStngyn("N");
+                    vo.setTeamGrpSubasmtStngyn("N");
                 }
-                examDAO.examBscRegist(vo);					// 퀴즈기본 등록
+                String lctrWknoSchdlId = examDAO.otherSbjctLctrWknoSelect(sbjctId, vo.getLctrWknoSchdlId());
+                vo.setLctrWknoSchdlId(lctrWknoSchdlId);
+                examDAO.examBscRegist(vo);	// 퀴즈기본 등록
 
                 // 팀 퀴즈
                 if("QUIZ_TEAM".equals(vo.getExamGbncd())) {
-                    Map<Object, Map<String, Object>> idMap = vo.getExamDtlVO().getDtlInfos().stream().collect(Collectors.toMap(map -> map.get("id"), map -> map));
-                    for(String lrnGrp : vo.getLrnGrpIds()) {
-                        if(lrnGrp.split(":")[1].equals(sbjctId)) {
-                            TeamVO teamVO = new TeamVO();
-                            teamVO.setTeamCtgrCd(lrnGrp.split(":")[0]);
-                            List<TeamVO> teamList = teamDAO.list(teamVO);	// 팀 목록 조회
-                            for(TeamVO team : teamList) {
-                                vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
-                                Map<String, Object> target = idMap.get(team.getTeamId());	// 팀아이디로 조회
-                                if(target != null) {
-                                    vo.getExamDtlVO().setExamTtl((String) target.get("ttl"));
-                                    vo.getExamDtlVO().setExamCts((String) target.get("cts"));
-                                } else {
-                                    vo.getExamDtlVO().setExamTtl(vo.getExamTtl());
-                                    vo.getExamDtlVO().setExamCts(vo.getExamCts());
-                                }
-                                examDAO.examDtlRegist(vo.getExamDtlVO());	// 퀴즈상세 등록
-
-                                ExamTrgtrVO trgtr = new ExamTrgtrVO();
-                                trgtr.setExamTrgtrId(IdGenUtil.genNewId(IdPrefixType.EXTGT));
-                                trgtr.setTeamId(team.getTeamId());
-                                trgtr.setExamDtlId(vo.getExamDtlVO().getExamDtlId());
-                                trgtr.setRgtrId(vo.getRgtrId());
-                                examDAO.examTrgtrRegist(trgtr);		// 퀴즈대상자 등록
-                            }
-                        }
-                    }
+                	// 팀퀴즈등록
+                	teamQuizRegist(dtlInfos, teamGrpIds, vo, sbjctId, "SUB");
                 // 일반 퀴즈
                 } else {
                     vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
                     examDAO.examDtlRegist(vo.getExamDtlVO());	// 퀴즈상세 등록
+                    // 이전 퀴즈 가져오기 문항 복사
+                    if(!"".equals(vo.getSearchValue())) {
+                    	quizQstnCopy(vo.getExamDtlVO(), vo.getSearchValue(), "Y");
+                    }
                 }
 
                 if("QUIZ".equals(vo.getExamTycd())) {
                     quizMrkRfltrtModify(vo);	// 퀴즈 성적반영비율 수정
                 }
-
-//                if(!"EXAM".equals(StringUtil.nvl(vo.getGoUrl())) || "QUIZ".equals(StringUtil.nvl(vo.getExamCtgrCd()))) {
-//                    // 첨부파일 복사
-//                    copyFile(vo, fileVO);
-//                }
-
             }
             vo.setExamBscId(examBscId);
         }
@@ -1259,16 +1889,27 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     * 퀴즈수정
     *
     * @param ExamBscVO
-    * @throws Exception
+    * @param Map<String, String>	부가정보
     */
     @Override
-    public ExamBscVO quizModify(ExamBscVO vo) throws Exception {
+    public ExamBscVO quizModify(ExamBscVO vo, Map<String, String> subMap) {
+    	ObjectMapper mapper = new ObjectMapper();
+    	List<Map<String, Object>> dtlInfos = new ArrayList<Map<String,Object>>();
+    	try {
+    		dtlInfos = mapper.readValue(subMap.get("dtlInfos"), new TypeReference<List<Map<String, Object>>>() {});		// 팀그룹부과제정보
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		List<String> sbjctIds = new ArrayList<>(Arrays.asList(subMap.get("sbjctIds").split(",")));						// 분반과목아이디목록
+		List<String> teamGrpIds = new ArrayList<>(Arrays.asList(subMap.get("teamGrpIds").split(",")));					// 팀그룹아이디:과목아이디목록
+		List<String> teamGrpSubasmtStngyns = Arrays.asList(subMap.get("teamGrpSubasmtStngyns").split(","));				// 분반번호:과목아이디목록
+
         ExamBscVO bfrQuiz = examDAO.quizBscSelect(vo);	// 기존 퀴즈기본 조회
 
-        if(vo.getLrnGrpSubasmtStngyns() != null) {
-            vo.setLrnGrpSubasmtStngyn(vo.getLrnGrpSubasmtStngyns().stream().anyMatch(item -> item.contains(vo.getSbjctId())) ? "Y" : "N");
+        if(teamGrpSubasmtStngyns != null) {
+            vo.setTeamGrpSubasmtStngyn(teamGrpSubasmtStngyns.stream().anyMatch(item -> item.contains(vo.getSbjctId())) ? "Y" : "N");
         } else {
-            vo.setLrnGrpSubasmtStngyn("N");
+            vo.setTeamGrpSubasmtStngyn("N");
         }
         examDAO.examBscModify(vo);	// 퀴즈기본 수정
         vo.getExamDtlVO().setExamBscId(vo.getExamBscId());
@@ -1277,115 +1918,241 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
         if("QUIZ_TEAM".equals(bfrQuiz.getExamGbncd())) {
             // 신규 팀 퀴즈
             if("QUIZ_TEAM".equals(vo.getExamGbncd())) {
-                Map<Object, Map<String, Object>> idMap = vo.getExamDtlVO().getDtlInfos().stream().collect(Collectors.toMap(map -> map.get("id"), map -> map));
-                for(String lrnGrp : vo.getLrnGrpIds()) {
-                    if(lrnGrp.split(":")[1].equals(vo.getSbjctId())) {
-                        String lrnGbnId = lrnGrp.split(":")[0];		// 신규 학습그룹아이디
-                        String bfrLrnGbnId = bfrQuiz.getLrnGrpId();	// 기존 학습그룹아이디
-
-                        TeamVO teamVO = new TeamVO();
-                        teamVO.setTeamCtgrCd(lrnGbnId);
-                        List<TeamVO> teamList = teamDAO.list(teamVO);	// 팀 목록 조회
-
-                        // 학습그룹 불일치시
-                        if(!lrnGbnId.equals(bfrLrnGbnId)) {
-                            examDAO.examTrgtrDelete(vo.getExamBscId());	// 기존 퀴즈대상자 삭제
-                            examDAO.examDtlDelete(vo.getExamBscId());	// 기존 퀴즈상세 삭제
-
-                            for(TeamVO team : teamList) {
-                                vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
-                                Map<String, Object> target = idMap.get(team.getTeamId());	// 팀아이디로 조회
-                                if(target != null) {
-                                    vo.getExamDtlVO().setExamTtl((String) target.get("ttl"));
-                                    vo.getExamDtlVO().setExamCts((String) target.get("cts"));
-                                } else {
-                                    vo.getExamDtlVO().setExamTtl(vo.getExamTtl());
-                                    vo.getExamDtlVO().setExamCts(vo.getExamCts());
-                                }
-                                examDAO.examDtlRegist(vo.getExamDtlVO());	// 신규 퀴즈상세 등록
-
-                                ExamTrgtrVO trgtr = new ExamTrgtrVO();
-                                trgtr.setExamTrgtrId(IdGenUtil.genNewId(IdPrefixType.EXTGT));
-                                trgtr.setTeamId(team.getTeamId());
-                                trgtr.setExamDtlId(vo.getExamDtlVO().getExamDtlId());
-                                trgtr.setRgtrId(vo.getRgtrId());
-                                examDAO.examTrgtrRegist(trgtr);		// 신규 퀴즈대상자 등록
-                            }
-                        // 학습그룹 일치시
-                        } else {
-                        	List<EgovMap> quizDtlList = examDAO.quizTeamList(vo.getExamBscId());
-                        	for(TeamVO team : teamList) {
-                        		Map<String, Object> target = idMap.get(team.getTeamId());	// 팀아이디로 조회
-                                if(target != null) {
-                                    vo.getExamDtlVO().setExamTtl((String) target.get("ttl"));
-                                    vo.getExamDtlVO().setExamCts((String) target.get("cts"));
-                                } else {
-                                    vo.getExamDtlVO().setExamTtl(vo.getExamTtl());
-                                    vo.getExamDtlVO().setExamCts(vo.getExamCts());
-                                }
-                                String examDtlId = quizDtlList.stream()
-                                	    .filter(map -> team.getTeamId().equals(map.get("teamId")))
-                                	    .map(map -> String.valueOf(map.get("examDtlId")))
-                                	    .findFirst()
-                                	    .orElse(null);
-                                vo.getExamDtlVO().setExamDtlId(examDtlId);
-                                examDAO.examDtlModify(vo.getExamDtlVO());	// 퀴즈상세 수정
-                        	}
-                        }
-                    }
-                }
+            	// 팀퀴즈수정
+            	teamQuizModify(dtlInfos, teamGrpIds, vo, bfrQuiz, vo.getSbjctId(), "MAIN");
                 // 등록 과목아이디 목록 삭제
-                vo.getLrnGrpIds().removeIf(item -> item.split(":")[1].equals(vo.getSbjctId()));
+                teamGrpIds.removeIf(item -> item.split(":")[1].equals(vo.getSbjctId()));
             // 신규 일반 퀴즈
             } else {
+            	quizQstnDelete(vo.getExamBscId());			// 기존 퀴즈 문항 삭제
                 examDAO.examTrgtrDelete(vo.getExamBscId());	// 기존 퀴즈대상자 삭제
                 examDAO.examDtlDelete(vo.getExamBscId());	// 기존 퀴즈상세 삭제
 
                 vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
                 examDAO.examDtlRegist(vo.getExamDtlVO());	// 신규 퀴즈상세 등록
+                // 이전 퀴즈 가져오기 문항 복사
+                if(!"".equals(vo.getSearchValue())) {
+                	quizQstnCopy(vo.getExamDtlVO(), vo.getSearchValue(), "N");
+                }
             }
         // 기존 일반 퀴즈
         } else {
             // 신규 팀 퀴즈
             if("QUIZ_TEAM".equals(vo.getExamGbncd())) {
-                Map<Object, Map<String, Object>> idMap = vo.getExamDtlVO().getDtlInfos().stream().collect(Collectors.toMap(map -> map.get("id"), map -> map));
-                examDAO.examDtlDelete(vo.getExamBscId());	// 기존 퀴즈상세 삭제
-
-                for(String lrnGrp : vo.getLrnGrpIds()) {
-                    if(lrnGrp.split(":")[1].equals(vo.getSbjctId())) {
-                        TeamVO teamVO = new TeamVO();
-                        teamVO.setTeamCtgrCd(lrnGrp.split(":")[0]);
-                        List<TeamVO> teamList = teamDAO.list(teamVO);	// 팀 목록 조회
-                        for(TeamVO team : teamList) {
-                            vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
-                            Map<String, Object> target = idMap.get(team.getTeamId());	// 팀아이디로 조회
-                            if(target != null) {
-                                vo.getExamDtlVO().setExamTtl((String) target.get("ttl"));
-                                vo.getExamDtlVO().setExamCts((String) target.get("cts"));
-                            } else {
-                                vo.getExamDtlVO().setExamTtl(vo.getExamTtl());
-                                vo.getExamDtlVO().setExamCts(vo.getExamCts());
-                            }
-                            examDAO.examDtlRegist(vo.getExamDtlVO());	// 신규 퀴즈상세 등록
-
-                            ExamTrgtrVO trgtr = new ExamTrgtrVO();
-                            trgtr.setExamTrgtrId(IdGenUtil.genNewId(IdPrefixType.EXTGT));
-                            trgtr.setTeamId(team.getTeamId());
-                            trgtr.setExamDtlId(vo.getExamDtlVO().getExamDtlId());
-                            trgtr.setRgtrId(vo.getRgtrId());
-                            examDAO.examTrgtrRegist(trgtr);		// 신규 퀴즈대상자 등록
-                        }
-                    }
-                }
+            	// 기존 퀴즈 문항 삭제
+            	quizQstnDelete(vo.getExamBscId());
+            	// 기존 퀴즈상세 삭제
+            	examDAO.examDtlDelete(vo.getExamBscId());
+            	// 팀퀴즈등록
+            	teamQuizRegist(dtlInfos, teamGrpIds, vo, vo.getSbjctId(), "MAIN");
                 // 등록 과목아이디 목록 삭제
-                vo.getLrnGrpIds().removeIf(item -> item.split(":")[1].equals(vo.getSbjctId()));
+                teamGrpIds.removeIf(item -> item.split(":")[1].equals(vo.getSbjctId()));
             // 신규 일반 퀴즈
             } else {
                 examDAO.examDtlModify(vo.getExamDtlVO());	// 퀴즈상세 수정
+                // 이전 퀴즈 가져오기 문항 복사
+                if(!"".equals(vo.getSearchValue())) {
+                	quizQstnCopy(vo.getExamDtlVO(), vo.getSearchValue(), "Y");
+                }
             }
         }
 
-        List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
+        // 첨부파일저장
+        atflListRegist(vo);
+
+        if("QUIZ".equals(StringUtil.nvl(bfrQuiz.getExamTycd())) || "EXAM".equals(StringUtil.nvl(vo.getGoUrl()))) {
+            quizMrkRfltrtModify(vo);	// 퀴즈 성적반영비율 수정
+        }
+
+        // 분반 수정
+        if("Y".equals(vo.getDvclasRegyn())) {
+        	sbjctIds.removeIf(item -> item.equals(vo.getSbjctId()));	// 퀴즈수정 분반 목록 제거
+
+            for(String sbjctId : sbjctIds) {
+                vo.setSbjctId(sbjctId);
+                vo.setExamBscId(examDAO.examBscIdSelect(vo));			// 시험기본아이디 조회
+                ExamBscVO dvclasBfrQuiz = examDAO.quizBscSelect(vo);	// 기존 퀴즈기본 조회
+
+                if(teamGrpSubasmtStngyns != null) {
+                    vo.setTeamGrpSubasmtStngyn(teamGrpSubasmtStngyns.stream().anyMatch(item -> item.contains(sbjctId)) ? "Y" : "N");
+                } else {
+                    vo.setTeamGrpSubasmtStngyn("N");
+                }
+                String lctrWknoSchdlId = examDAO.otherSbjctLctrWknoSelect(sbjctId, vo.getLctrWknoSchdlId());
+                vo.setLctrWknoSchdlId(lctrWknoSchdlId);
+                examDAO.examBscModify(vo);	// 퀴즈기본 수정
+                vo.getExamDtlVO().setExamBscId(vo.getExamBscId());
+
+                // 기존 팀 퀴즈
+                if("QUIZ_TEAM".equals(dvclasBfrQuiz.getExamGbncd())) {
+                    // 신규 팀 퀴즈
+                    if("QUIZ_TEAM".equals(vo.getExamGbncd())) {
+                    	// 팀퀴즈수정
+                    	teamQuizModify(dtlInfos, teamGrpIds, vo, dvclasBfrQuiz, sbjctId, "SUB");
+                        // 등록 과목아이디 목록 삭제
+                        teamGrpIds.removeIf(item -> item.split(":")[1].equals(vo.getSbjctId()));
+                    // 신규 일반 퀴즈
+                    } else {
+                        examDAO.examTrgtrDelete(vo.getExamBscId());	// 기존 퀴즈대상자 삭제
+                        examDAO.examDtlDelete(vo.getExamBscId());	// 기존 퀴즈상세 삭제
+
+                        vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
+                        examDAO.examDtlRegist(vo.getExamDtlVO());	// 신규 퀴즈상세 등록
+                    }
+                // 기존 일반 퀴즈
+                } else {
+                    // 신규 팀 퀴즈
+                    if("QUIZ_TEAM".equals(vo.getExamGbncd())) {
+                    	// 기존 퀴즈상세 삭제
+                    	examDAO.examDtlDelete(vo.getExamBscId());
+                    	// 팀퀴즈등록
+                    	teamQuizRegist(dtlInfos, teamGrpIds, vo, sbjctId, "SUB");
+                    // 신규 일반 퀴즈
+                    } else {
+                    	ExamDtlVO searchDtlVO = new ExamDtlVO();
+                    	searchDtlVO.setExamBscId(vo.getExamBscId());
+                        ExamDtlVO dvclasBfrQuizDtl = examDAO.quizDtlSelect(searchDtlVO);	// 기존 퀴즈상세 조회
+                        vo.getExamDtlVO().setExamDtlId(dvclasBfrQuizDtl.getExamDtlId());
+                        examDAO.examDtlModify(vo.getExamDtlVO());	// 퀴즈상세 수정
+                    }
+                }
+
+                if("QUIZ".equals(vo.getExamTycd())) {
+                    quizMrkRfltrtModify(vo);	// 퀴즈 성적반영비율 수정
+                }
+            }
+        }
+
+        vo.setExamBscId(bfrQuiz.getExamBscId());
+
+        return vo;
+    }
+
+    // 팀퀴즈등록
+    private void teamQuizRegist(List<Map<String, Object>> dtlInfos, List<String> teamGrpIds, ExamBscVO vo, String sbjctId, String type) {
+    	Map<Object, Map<String, Object>> idMap = dtlInfos.stream().collect(Collectors.toMap(map -> map.get("id"), map -> map));
+        for(String teamGrp : teamGrpIds) {
+            if(teamGrp.split(":")[1].equals(sbjctId)) {
+                TeamVO teamVO = new TeamVO();
+                teamVO.setTeamCtgrCd(teamGrp.split(":")[0]);
+                List<TeamVO> teamList = teamDAO.list(teamVO);	// 팀 목록 조회
+                for(TeamVO team : teamList) {
+                	vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
+                    Map<String, Object> target = idMap.get(team.getTeamId());	// 팀아이디로 조회
+                    if(target != null) {
+                        vo.getExamDtlVO().setExamTtl((String) target.get("ttl"));
+                        vo.getExamDtlVO().setExamCts((String) target.get("cts"));
+                    } else {
+                        vo.getExamDtlVO().setExamTtl(vo.getExamTtl());
+                        vo.getExamDtlVO().setExamCts(vo.getExamCts());
+                    }
+                    examDAO.examDtlRegist(vo.getExamDtlVO());	// 퀴즈상세 등록
+
+                    ExamTrgtrVO trgtr = new ExamTrgtrVO();
+                    trgtr.setExamTrgtrId(IdGenUtil.genNewId(IdPrefixType.EXTGT));
+                    trgtr.setTeamId(team.getTeamId());
+                    trgtr.setExamDtlId(vo.getExamDtlVO().getExamDtlId());
+                    trgtr.setRgtrId(vo.getRgtrId());
+                    examDAO.examTrgtrRegist(trgtr);		// 퀴즈대상자 등록
+
+                    if("MAIN".equals(type)) {
+                    	// 부퀴즈첨부파일저장
+                    	subQuizAtflListRegist(vo.getExamDtlVO(), target);
+                    }
+
+                    // 이전 퀴즈 가져오기 문항 복사
+                    if(!"".equals(vo.getSearchValue())) {
+                    	quizQstnCopy(vo.getExamDtlVO(), vo.getSearchValue(), "N");
+                    }
+                }
+            }
+        }
+    }
+
+    // 팀퀴즈수정
+    private void teamQuizModify(List<Map<String, Object>> dtlInfos, List<String> teamGrpIds, ExamBscVO vo, ExamBscVO bfrQuiz, String sbjctId, String type) {
+    	Map<Object, Map<String, Object>> idMap = dtlInfos.stream().collect(Collectors.toMap(map -> map.get("id"), map -> map));
+        for(String teamGrp : teamGrpIds) {
+            if(teamGrp.split(":")[1].equals(sbjctId)) {
+                String teamGrpId = teamGrp.split(":")[0];		// 신규 팀그룹아이디
+                String bfrTeamGrpId = bfrQuiz.getTeamGrpId();	// 기존 팀그룹아이디
+
+                TeamVO teamVO = new TeamVO();
+                teamVO.setTeamCtgrCd(teamGrpId);
+                List<TeamVO> teamList = teamDAO.list(teamVO);	// 팀 목록 조회
+
+                // 팀그룹 불일치시
+                if(!teamGrpId.equals(bfrTeamGrpId)) {
+                	quizQstnDelete(vo.getExamBscId());			// 기존 퀴즈 문항 삭제
+                    examDAO.examTrgtrDelete(vo.getExamBscId());	// 기존 퀴즈대상자 삭제
+                    examDAO.examDtlDelete(vo.getExamBscId());	// 기존 퀴즈상세 삭제
+
+                    for(TeamVO team : teamList) {
+                        vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
+                        Map<String, Object> target = idMap.get(team.getTeamId());	// 팀아이디로 조회
+                        if(target != null) {
+                            vo.getExamDtlVO().setExamTtl((String) target.get("ttl"));
+                            vo.getExamDtlVO().setExamCts((String) target.get("cts"));
+                        } else {
+                            vo.getExamDtlVO().setExamTtl(vo.getExamTtl());
+                            vo.getExamDtlVO().setExamCts(vo.getExamCts());
+                        }
+                        examDAO.examDtlRegist(vo.getExamDtlVO());	// 신규 퀴즈상세 등록
+
+                        ExamTrgtrVO trgtr = new ExamTrgtrVO();
+                        trgtr.setExamTrgtrId(IdGenUtil.genNewId(IdPrefixType.EXTGT));
+                        trgtr.setTeamId(team.getTeamId());
+                        trgtr.setExamDtlId(vo.getExamDtlVO().getExamDtlId());
+                        trgtr.setRgtrId(vo.getRgtrId());
+                        examDAO.examTrgtrRegist(trgtr);		// 신규 퀴즈대상자 등록
+
+                        if("MAIN".equals(type)) {
+                        	// 부퀴즈첨부파일저장
+                        	subQuizAtflListRegist(vo.getExamDtlVO(), target);
+                        }
+
+                        // 이전 퀴즈 가져오기 문항 복사
+                        if(!"".equals(vo.getSearchValue())) {
+                        	quizQstnCopy(vo.getExamDtlVO(), vo.getSearchValue(), "N");
+                        }
+                    }
+                // 학습그룹 일치시 && 분반아닐시
+                } else if("MAIN".equals(type)) {
+                	List<EgovMap> quizDtlList = examDAO.quizTeamList(vo.getExamBscId());
+                	for(int i = 0; i < teamList.size(); i++) {
+                		TeamVO team = teamList.get(i);
+                		Map<String, Object> target = idMap.get(team.getTeamId());	// 팀아이디로 조회
+                        if(target != null) {
+                            vo.getExamDtlVO().setExamTtl((String) target.get("ttl"));
+                            vo.getExamDtlVO().setExamCts((String) target.get("cts"));
+                        } else {
+                            vo.getExamDtlVO().setExamTtl(vo.getExamTtl());
+                            vo.getExamDtlVO().setExamCts(vo.getExamCts());
+                        }
+                        String examDtlId = quizDtlList.stream()
+                        	    .filter(map -> team.getTeamId().equals(map.get("teamId")))
+                        	    .map(map -> String.valueOf(map.get("examDtlId")))
+                        	    .findFirst()
+                        	    .orElse(null);
+                        vo.getExamDtlVO().setExamDtlId(examDtlId);
+                        examDAO.examDtlModify(vo.getExamDtlVO());	// 퀴즈상세 수정
+
+                        // 부퀴즈첨부파일저장
+                        subQuizAtflListRegist(vo.getExamDtlVO(), target);
+
+                        // 이전 퀴즈 가져오기 문항 복사
+                        if(!"".equals(vo.getSearchValue())) {
+                        	quizQstnCopy(vo.getExamDtlVO(), vo.getSearchValue(), i == 0 ? "Y" : "N");
+                        }
+                	}
+                }
+            }
+        }
+    }
+
+    // 첨부파일저장
+    private void atflListRegist(ExamBscVO vo) {
+    	List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
 
         // 첨부파일
         if (uploadFileList.size() > 0) {
@@ -1400,146 +2167,45 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
         	attachFileService.insertAtflList(uploadFileList);
         }
 
-        // 첨부파일 삭제
-        attachFileService.deleteAtflByAtflIds(vo.getDelFileIds());
+        try {
+        	// 첨부파일 삭제
+        	attachFileService.deleteAtflByAtflIds(vo.getDelFileIds());
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+    }
 
-        if("QUIZ".equals(StringUtil.nvl(bfrQuiz.getExamTycd())) || "EXAM".equals(StringUtil.nvl(vo.getGoUrl()))) {
-            quizMrkRfltrtModify(vo);	// 퀴즈 성적반영비율 수정
-        }
+    // 부퀴즈첨부파일저장
+    private void subQuizAtflListRegist(ExamDtlVO dtlVO, Map<String, Object> map) {
+    	if(map != null) {
+    		List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(map.get("uploadFiles").toString(), map.get("uploadPath").toString());
+    		// 첨부파일
+    		if(!uploadFileList.isEmpty()) {
+    			for(AtflVO atflVO : uploadFileList) {
+    				atflVO.setRefId(dtlVO.getExamDtlId());
+    				atflVO.setRgtrId(dtlVO.getRgtrId());
+    				atflVO.setMdfrId(dtlVO.getRgtrId());
+    				atflVO.setAtflRepoId(CommConst.REPO_EXAM);
+    			}
+    			attachFileService.insertAtflList(uploadFileList);
+    		}
 
-        // 분반 수정
-        if("Y".equals(vo.getDvclasRegyn())) {
-            vo.getSbjctIds().removeIf(item -> item.equals(vo.getSbjctId()));	// 퀴즈수정 분반 목록 제거
-
-            for(String sbjctId : vo.getSbjctIds()) {
-                vo.setSbjctId(sbjctId);
-                vo.setExamBscId(examDAO.examBscIdSelect(vo));			// 시험기본아이디 조회
-                ExamBscVO dvclasBfrQuiz = examDAO.quizBscSelect(vo);	// 기존 퀴즈기본 조회
-
-                if(vo.getLrnGrpSubasmtStngyns() != null) {
-                    vo.setLrnGrpSubasmtStngyn(vo.getLrnGrpSubasmtStngyns().stream().anyMatch(item -> item.contains(sbjctId)) ? "Y" : "N");
-                } else {
-                    vo.setLrnGrpSubasmtStngyn("N");
-                }
-                examDAO.examBscModify(vo);	// 퀴즈기본 수정
-                vo.getExamDtlVO().setExamBscId(vo.getExamBscId());
-
-                // 기존 팀 퀴즈
-                if("QUIZ_TEAM".equals(dvclasBfrQuiz.getExamGbncd())) {
-                    // 신규 팀 퀴즈
-                    if("QUIZ_TEAM".equals(vo.getExamGbncd())) {
-                        Map<Object, Map<String, Object>> idMap = vo.getExamDtlVO().getDtlInfos().stream().collect(Collectors.toMap(map -> map.get("id"), map -> map));
-                        for(String lrnGrp : vo.getLrnGrpIds()) {
-                            if(lrnGrp.split(":")[1].equals(sbjctId)) {
-                                String lrnGbnId = lrnGrp.split(":")[0];				// 신규 학습그룹아이디
-                                String bfrLrnGbnId = dvclasBfrQuiz.getLrnGrpId();	// 기존 학습그룹아이디
-
-                                if(!lrnGbnId.equals(bfrLrnGbnId)) {
-                                    examDAO.examTrgtrDelete(vo.getExamBscId());	// 기존 퀴즈대상자 삭제
-                                    examDAO.examDtlDelete(vo.getExamBscId());	// 기존 퀴즈상세 삭제
-
-                                    TeamVO teamVO = new TeamVO();
-                                    teamVO.setTeamCtgrCd(lrnGbnId);
-                                    List<TeamVO> teamList = teamDAO.list(teamVO);	// 팀 목록 조회
-                                    for(TeamVO team : teamList) {
-                                        vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
-                                        Map<String, Object> target = idMap.get(team.getTeamId());	// 팀아이디로 조회
-                                        if(target != null) {
-                                            vo.getExamDtlVO().setExamTtl((String) target.get("ttl"));
-                                            vo.getExamDtlVO().setExamCts((String) target.get("cts"));
-                                        } else {
-                                            vo.getExamDtlVO().setExamTtl(vo.getExamTtl());
-                                            vo.getExamDtlVO().setExamCts(vo.getExamCts());
-                                        }
-                                        examDAO.examDtlRegist(vo.getExamDtlVO());	// 신규 퀴즈상세 등록
-
-                                        ExamTrgtrVO trgtr = new ExamTrgtrVO();
-                                        trgtr.setExamTrgtrId(IdGenUtil.genNewId(IdPrefixType.EXTGT));
-                                        trgtr.setTeamId(team.getTeamId());
-                                        trgtr.setExamDtlId(vo.getExamDtlVO().getExamDtlId());
-                                        trgtr.setRgtrId(vo.getRgtrId());
-                                        examDAO.examTrgtrRegist(trgtr);		// 신규 퀴즈대상자 등록
-                                    }
-                                }
-                            }
-                        }
-                        // 등록 과목아이디 목록 삭제
-                        vo.getLrnGrpIds().removeIf(item -> item.split(":")[1].equals(vo.getSbjctId()));
-                    // 신규 일반 퀴즈
-                    } else {
-                        examDAO.examTrgtrDelete(vo.getExamBscId());	// 기존 퀴즈대상자 삭제
-                        examDAO.examDtlDelete(vo.getExamBscId());	// 기존 퀴즈상세 삭제
-
-                        vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
-                        examDAO.examDtlRegist(vo.getExamDtlVO());	// 신규 퀴즈상세 등록
-                    }
-                // 기존 일반 퀴즈
-                } else {
-                    // 신규 팀 퀴즈
-                    if("QUIZ_TEAM".equals(vo.getExamGbncd())) {
-                        Map<Object, Map<String, Object>> idMap = vo.getExamDtlVO().getDtlInfos().stream().collect(Collectors.toMap(map -> map.get("id"), map -> map));
-                        examDAO.examDtlDelete(vo.getExamBscId());	// 기존 퀴즈상세 삭제
-
-                        for(String lrnGrp : vo.getLrnGrpIds()) {
-                            if(lrnGrp.split(":")[1].equals(sbjctId)) {
-                                TeamVO teamVO = new TeamVO();
-                                teamVO.setTeamCtgrCd(lrnGrp.split(":")[0]);
-                                List<TeamVO> teamList = teamDAO.list(teamVO);	// 팀 목록 조회
-                                for(TeamVO team : teamList) {
-                                    vo.getExamDtlVO().setExamDtlId(IdGenUtil.genNewId(IdPrefixType.EXDTL));
-                                    Map<String, Object> target = idMap.get(team.getTeamId());	// 팀아이디로 조회
-                                    if(target != null) {
-                                        vo.getExamDtlVO().setExamTtl((String) target.get("ttl"));
-                                        vo.getExamDtlVO().setExamCts((String) target.get("cts"));
-                                    } else {
-                                        vo.getExamDtlVO().setExamTtl(vo.getExamTtl());
-                                        vo.getExamDtlVO().setExamCts(vo.getExamCts());
-                                    }
-                                    examDAO.examDtlRegist(vo.getExamDtlVO());	// 신규 퀴즈상세 등록
-
-                                    ExamTrgtrVO trgtr = new ExamTrgtrVO();
-                                    trgtr.setExamTrgtrId(IdGenUtil.genNewId(IdPrefixType.EXTGT));
-                                    trgtr.setTeamId(team.getTeamId());
-                                    trgtr.setExamDtlId(vo.getExamDtlVO().getExamDtlId());
-                                    trgtr.setRgtrId(vo.getRgtrId());
-                                    examDAO.examTrgtrRegist(trgtr);		// 신규 퀴즈대상자 등록
-                                }
-                            }
-                        }
-                    // 신규 일반 퀴즈
-                    } else {
-                    	ExamDtlVO searchDtlVO = new ExamDtlVO();
-                    	searchDtlVO.setExamBscId(vo.getExamBscId());
-                        ExamDtlVO dvclasBfrQuizDtl = examDAO.quizDtlSelect(searchDtlVO);	// 기존 퀴즈상세 조회
-                        vo.getExamDtlVO().setExamDtlId(dvclasBfrQuizDtl.getExamDtlId());
-                        examDAO.examDtlModify(vo.getExamDtlVO());	// 퀴즈상세 수정
-                    }
-                }
-
-                if("QUIZ".equals(vo.getExamTycd())) {
-                    quizMrkRfltrtModify(vo);	// 퀴즈 성적반영비율 수정
-                }
-
-//                if(!"EXAM".equals(StringUtil.nvl(vo.getGoUrl())) || "QUIZ".equals(StringUtil.nvl(vo.getExamCtgrCd()))) {
-//                    // 첨부파일 복사
-//                    copyFile(vo, fileVO);
-//                }
-            }
-        }
-
-        vo.setExamBscId(bfrQuiz.getExamBscId());
-
-        return vo;
+    		try {
+    			// 첨부파일 삭제
+    			attachFileService.deleteAtflByAtflIds(map.get("delFileIdStr").toString().split(","));
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+			}
+    	}
     }
 
     /**
     * 시험기본수정
     *
     * @param ExamBscVO
-    * @throws Exception
     */
     @Override
-    public void examBscModify(ExamBscVO vo) throws Exception {
+    public void examBscModify(ExamBscVO vo) {
         examDAO.examBscModify(vo);
     }
 
@@ -1547,10 +2213,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      * 시험상세수정
      *
      * @param ExamDtlVO
-     * @throws Exception
      */
     @Override
-    public void examDtlModify(ExamDtlVO vo) throws Exception {
+    public void examDtlModify(ExamDtlVO vo) {
         examDAO.examDtlModify(vo);
     }
 
@@ -1558,11 +2223,10 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      * 퀴즈성적반영비율수정
      *
      * @param sbjctId	과목개설아이디
-     * @param mdfrId		수정자아이디
-     * @throws Exception
+     * @param mdfrId	수정자아이디
      */
     @Override
-    public void quizMrkRfltrtModify(ExamBscVO vo) throws Exception {
+    public void quizMrkRfltrtModify(ExamBscVO vo) {
         List<ExamBscVO> quizList = examDAO.mrkRfltQuizList(vo);	// 성적반영 퀴즈 목록 조회
         if(quizList.size() > 0) {
             int totalMrk = 100;
@@ -1585,10 +2249,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      *
      * @param examBscId		시험기본아이디
      * @param mdfrId		수정자아이디
-     * @throws Exception
      */
     @Override
-    public void quizDelete(ExamBscVO vo) throws Exception {
+    public void quizDelete(ExamBscVO vo) {
         ExamBscVO bscVO = examDAO.quizBscSelect(vo);
         // 대체퀴즈인 경우 시험평가대체 삭제
         if("SBST".contains(bscVO.getExamGbncd())) {
@@ -1609,10 +2272,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     * @param sbjctId 		과목아이디
     * @param searchValue 	검색내용(퀴즈명)
     * @return 퀴즈목록
-    * @throws Exception
     */
     @Override
-    public List<EgovMap> profAuthrtSbjctQuizList(Map<String, Object> params) throws Exception {
+    public List<EgovMap> profAuthrtSbjctQuizList(Map<String, Object> params) {
         return examDAO.profAuthrtSbjctQuizList(params);
     }
 
@@ -1621,24 +2283,33 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
     *
     * @param examBscId 	시험기본아이디
     * @return 과목 목록
-    * @throws Exception
     */
     @Override
-    public List<EgovMap> quizGrpSbjctList(String examBscId) throws Exception {
+    public List<EgovMap> quizGrpSbjctList(String examBscId) {
         return examDAO.quizGrpSbjctList(examBscId);
     }
 
     /**
-    * 퀴즈학습그룹부과제목록조회
+    * 퀴즈팀그룹부퀴즈목록조회
     *
-    * @param lrnGrpId 	학습그룹아이디
+    * @param teamGrpId 	팀그룹아이디
     * @param examBscId 	시험기본아이디
-    * @return 퀴즈 부과제 목록
-    * @throws Exception
+    * @return 퀴즈부퀴즈목록
     */
     @Override
-    public List<ExamDtlVO> quizLrnGrpSubAsmtList(ExamDtlVO vo) throws Exception {
-        return examDAO.quizLrnGrpSubAsmtList(vo);
+    public List<ExamDtlVO> quizTeamGrpSubQuizList(ExamDtlVO vo) {
+    	List<ExamDtlVO> dtlList = examDAO.quizTeamGrpSubQuizList(vo);
+    	for(ExamDtlVO dtl : dtlList) {
+    		// 첨부파일
+    		if(dtl.getFileCnt() > 0) {
+    			AtflVO atflVO = new AtflVO();
+    			atflVO.setRefId(dtl.getExamDtlId());
+
+    			List<AtflVO> fileList = attachFileService.selectAtflListByRefId(atflVO);
+    			dtl.setFileList(fileList);
+    		}
+    	}
+        return dtlList;
     }
 
     /**
@@ -1647,10 +2318,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      * @param examBscId		시험기본아이디
      * @param examDtlId		시험상세아이디
      * @param searchGubun 	수정상태 ( save, edit )
-     * @throws Exception
      */
     @Override
-    public void quizQstnsCmptnModify(ExamBscVO vo) throws Exception {
+    public void quizQstnsCmptnModify(ExamBscVO vo) {
     	String examQstnsCmptyn = "edit".equals(StringUtil.nvl(vo.getSearchGubun())) ? "M" : "Y";
 
     	// 팀퀴즈
@@ -1684,10 +2354,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
      *
      * @param examBscId 	시험기본아이디
      * @return 퀴즈 팀 목록
-     * @throws Exception
      */
      @Override
-     public List<EgovMap> quizTeamList(String examBscId) throws Exception {
+     public List<EgovMap> quizTeamList(String examBscId) {
          return examDAO.quizTeamList(examBscId);
      }
 
@@ -1695,10 +2364,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
  	 * 퀴즈팀문제출제완료여부조회
  	 *
  	 * @param examBscId 시험기본아이디
- 	 * @throws Exception
  	 */
      @Override
- 	 public Boolean quizTeamQstnsCmptnynSelect(String examBscId) throws Exception {
+ 	 public Boolean quizTeamQstnsCmptnynSelect(String examBscId) {
  	 	return examDAO.quizTeamQstnsCmptnynSelect(examBscId);
  	 }
 
@@ -1707,10 +2375,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
 	  *
 	  * @param examBscId 시험기본아이디
 	  * @param examDtlId 시험상세아이디
-	  * @throws Exception
 	  */
      @Override
-	 public Integer tkexamStrtUserCntSelect(ExamDtlVO vo) throws Exception {
+	 public Integer tkexamStrtUserCntSelect(ExamDtlVO vo) {
 	 	return examDAO.tkexamStrtUserCntSelect(vo);
 	 }
 
@@ -1719,10 +2386,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
 	 *
 	 * @param sbjctId		과목아이디
 	 * @return 과목분반목록
-	 * @throws Exception
 	 */
      @Override
-	 public List<EgovMap> sbjctDvclasList(String sbjctId) throws Exception {
+	 public List<EgovMap> sbjctDvclasList(String sbjctId) {
 	 	return examDAO.sbjctDvclasList(sbjctId);
 	 }
 
@@ -1730,10 +2396,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
 	 * 퀴즈성적반영비율목록수정
 	 *
 	 * @param List<ExamBscVO>
-	 * @throws Exception
 	 */
      @Override
-	 public void quizMrkRfltrtListModify(List<ExamBscVO> list) throws Exception {
+	 public void quizMrkRfltrtListModify(List<ExamBscVO> list) {
 	 	examDAO.quizMrkRfltrtListModify(list);
 	 }
 
@@ -1743,10 +2408,9 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
 	 * @param examBscId 	시험기본아이디
      * @param sbjctId 		과목이이디
 	 * @return 시험지일괄엑셀다운퀴즈대상자목록
-	 * @throws Exception
 	 */
      @Override
-	 public List<EgovMap> exampprBulkExcelDownQuizTrgtrList(ExamBscVO vo) throws Exception {
+	 public List<EgovMap> exampprBulkExcelDownQuizTrgtrList(ExamBscVO vo) {
     	 return examDAO.exampprBulkExcelDownQuizTrgtrList(vo);
      }
 
@@ -1754,36 +2418,143 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
  	* 문제가져오기학기기수목록조회
  	*
  	* @return 학기기수목록
- 	* @throws Exception
  	*/
     @Override
- 	public List<EgovMap> qstnCopySmstrList() throws Exception {
- 		return examDAO.qstnCopySmstrList();
+ 	public List<EgovMap> qstnCopySmstrList(String orgId, String dgrsYr) {
+ 		return examDAO.qstnCopySmstrList(orgId, dgrsYr);
  	}
 
  	/**
  	* 문제가져오기과목목록조회
  	*
  	* @param smstrChrtId 	학기기수아이디
-     * @param sbjctId 		과목이이디
+    * @param sbjctId 		과목이이디
  	* @return 과목목록
- 	* @throws Exception
  	*/
     @Override
- 	public List<EgovMap> qstnCopySbjctList(String smstrChrtId, String sbjctId) throws Exception {
+ 	public List<EgovMap> qstnCopySbjctList(String smstrChrtId, String sbjctId) {
  		return examDAO.qstnCopySbjctList(smstrChrtId, sbjctId);
  	}
+
+    /**
+ 	* 학기기수과목목록조회
+ 	*
+ 	* @param orgId 			기관아이디
+ 	* @param smstrChrtId 	학기기수아이디
+    * @param sbjctYr 		학사년도
+ 	* @return 과목목록
+ 	*/
+    @Override
+	public List<EgovMap> smstrChrtSbjctList(String orgId, String smstrChrtId, String sbjctYr) {
+		return examDAO.smstrChrtSbjctList(orgId, smstrChrtId, sbjctYr);
+	}
+
+    /**
+ 	* 강의주차목록조회
+ 	*
+    * @param sbjctId 		과목이이디
+ 	* @return 강의주차목록
+ 	*/
+    @Override
+	public List<EgovMap> lctrWknoList(String sbjctId) {
+		return examDAO.lctrWknoList(sbjctId);
+	}
 
  	/**
  	* 문제가져오기퀴즈목록조회
  	*
-     * @param sbjctId 		과목이이디
+    * @param sbjctId 		과목이이디
  	* @return 퀴즈목록
- 	* @throws Exception
  	*/
     @Override
- 	public List<ExamDtlVO> qstnCopyQuizList(String sbjctId) throws Exception {
+ 	public List<ExamDtlVO> qstnCopyQuizList(String sbjctId) {
     	return examDAO.qstnCopyQuizList(sbjctId);
+    }
+
+    /**
+     * 학생퀴즈목록조회
+     *
+     * @param sbjctId 	과목아이디
+     * @param searchValue  검색내용(퀴즈명)
+     * @return 퀴즈목록 페이징
+     */
+    @Override
+    public ResultDTO<EgovMap> stdntQuizListPaging(QuizPageInfo pageInfo) {
+        ResultDTO<EgovMap> resultDto = new ResultDTO<EgovMap>(pageInfo);
+		resultDto.setReturnList(examDAO.stdntQuizListPaging(pageInfo));
+		if(resultDto.getReturnList().size() > 0) {
+			resultDto.getPageInfo().setTotalRecordCount(Integer.parseInt(resultDto.getReturnList().get(0).get("totalCnt").toString()));
+		} else {
+			resultDto.getPageInfo().setTotalRecordCount(0);
+		}
+
+        return resultDto;
+    }
+
+    /**
+     * 학생퀴즈조회
+     *
+     * @param sbjctId 		과목아이디
+     * @param examBscId 	시험기본아이디
+     * @param examDtlId 	시험상세아이디
+     * @param userId 		사용자아이디
+     * @return 퀴즈정보
+     */
+    @Override
+ 	public EgovMap stdntQuizSelect(Map<String, Object> params) {
+    	// 학생퀴즈조회
+    	EgovMap vo = examDAO.stdntQuizSelect(params);
+
+    	// 첨부파일
+        if(Integer.valueOf(vo.get("fileCnt").toString()) > 0) {
+        	AtflVO atflVO = new AtflVO();
+            atflVO.setRefId(vo.get("examBscId").toString());
+
+            List<AtflVO> fileList = attachFileService.selectAtflListByRefId(atflVO);
+            vo.put("fileList", fileList);
+        }
+
+        return vo;
+    }
+
+    // 퀴즈문항삭제
+    private void quizQstnDelete(String examBscId) {
+    	qstnVwitmDAO.qstnVwitmListAllDelete(examBscId);		// 문항보기항목목록전체삭제
+    	qstnDAO.qstnListAllDelete(examBscId);				// 문항목록전체삭제
+    }
+
+    // 퀴즈문항복사
+    private void quizQstnCopy(ExamDtlVO vo, String searchValue, String delyn) {
+    	if(delyn == "Y") quizQstnDelete(vo.getExamBscId());	// 퀴즈문항삭제
+
+    	QstnVO qstnVO = new QstnVO();
+    	qstnVO.setExamDtlId(searchValue);
+    	qstnVO.setQstnGbncd("GENERAL");
+    	List<QstnVO> qstnList = qstnDAO.qstnList(qstnVO);			// 문항목록
+    	List<QstnVwitmVO> vwitmList = new ArrayList<QstnVwitmVO>();	// 문항보기항목목록
+
+    	// 문항목록
+    	for(QstnVO qstn : qstnList) {
+    		String newQstnId = IdGenUtil.genNewId(IdPrefixType.QSTN);
+    		String oldQstnId = qstn.getQstnId();
+
+    		QstnVwitmVO vwitmVO = new QstnVwitmVO();
+    		vwitmVO.setQstnId(oldQstnId);
+    		qstnVwitmDAO.qstnVwitmList(vwitmVO).forEach(vwitm -> {
+    			vwitm.setQstnVwitmId(IdGenUtil.genNewId(IdPrefixType.QSVW));
+    			vwitm.setQstnId(newQstnId);
+    			vwitm.setRgtrId(vo.getRgtrId());
+    			vwitmList.add(vwitm);
+    		});
+
+    		qstn.setQstnId(newQstnId);
+    		qstn.setExamDtlId(vo.getExamDtlId());
+    		qstn.setRgtrId(vo.getRgtrId());
+    	}
+
+    	// 일괄등록
+    	if(qstnList.size() > 0) qstnDAO.qstnBulkRegist(qstnList);
+    	if(vwitmList.size() > 0) qstnVwitmDAO.qstnVwitmBulkRegist(vwitmList);
     }
 
 
@@ -3550,5 +4321,15 @@ public class ExamServiceImpl extends ServiceBase implements ExamService {
         vo.setExamTypeCd("ETC");
         examDAO.resetInsRef(vo);
     }
+
+	@Override
+	public List<EgovMap> bySubjectQuizList(ExamBscVO vo) {
+		return examDAO.bySubjectQuizList(vo);
+	}
+
+	@Override
+	public List<EgovMap> bySubjectExamList(ExamBscVO vo){
+		return examDAO.bySubjectExamList(vo);
+	}
 
 }

@@ -35,7 +35,7 @@
 		                </div>
                 	</c:when>
                 	<c:otherwise>
-                		<div class="ui large header"><strong>요청하신 페이지를 처리중에 오류가 발생했습니다.</strong></div>
+                		<div class="ui large header"><strong>요청하신 페이지를 처리중에 오류가 발생했습니다.error_login.jsp</strong></div>
 		                <div class="text">
 		                    <p class="fcBlue">서비스 이용에 불편을 드려 죄송합니다.<br> 입력하신 주소가 정확한지 확인 후 다시 시도해 주시기 바랍니다.</p>
 		                    <p>We have encountered a system error while processing your request. We apologize for the inconvenience. Please check URL and try again.</p>

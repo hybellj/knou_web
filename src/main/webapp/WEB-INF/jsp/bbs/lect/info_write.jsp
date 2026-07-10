@@ -42,7 +42,7 @@
 		// 사용여부
 		//$("#infoWriteForm > input[name='useYn']").val($("input[name='use']:checked").val() == "Y" ? "Y" : "N");
 		
-		var bbsId = '<c:out value="${bbsInfoVO.bbsId}" />';
+		var bbsId = '<c:out value="${bbsVO.bbsId}" />';
 		var url;
 		
 		if(bbsId) {
@@ -123,7 +123,7 @@
                         <div id="info-item-box">
                         	<script type="text/javascript">
 								$(document).ready(function () {
-									var bbsId = '<c:out value="${bbsInfoVO.bbsId}" />';
+									var bbsId = '<c:out value="${bbsVO.bbsId}" />';
 									var title1 = '<spring:message code="bbs.label.bbs_manage" />'; // 게시판 관리
 									var title2;
 									
@@ -142,7 +142,7 @@
                             </h2>
                             <div class="button-area">
 								<c:choose>
-									<c:when test="${not empty bbsInfoVO}">
+									<c:when test="${not empty bbsVO}">
 				                   		<a href="javascript:void(0)" onclick="save()" class="ui blue button"><spring:message code="common.button.modify" /></a><!-- 수정 -->
 				                   	</c:when>
 				                   	<c:otherwise>
@@ -158,13 +158,13 @@
 	                        <div class="col">
 		                        <form id="infoWriteForm" name="infoWriteForm">
 				                	<input type="hidden" name="crsCreCd" 	value="<c:out value="${vo.crsCreCd}" />" />
-				                	<input type="hidden" name="bbsId" 			value="<c:out value="${bbsInfoVO.bbsId}" />" />
-				                	<input type="hidden" name="notiUseYn" 	value="<c:out value="${empty bbsInfoVO.notiUseYn ? 'N' : bbsInfoVO.notiUseYn}" />" />
-				                	<input type="hidden" name="ansrUseYn" 	value="<c:out value="${empty bbsInfoVO.ansrUseYn ? 'N' : bbsInfoVO.ansrUseYn}" />" />
-				                	<input type="hidden" name="atchUseYn" 	value="<c:out value="${bbsInfoVO.atchUseYn}" />" />
-				                	<input type="hidden" name="writeUseYn" 	value="<c:out value="${bbsInfoVO.writeUseYn}" />" />
-				                	<input type="hidden" name="cmntUseYn" 	value="<c:out value="${bbsInfoVO.cmntUseYn}" />" />
-				                	<input type="hidden" name="useYn" 		value="<c:out value="${empty bbsInfoVO.useYn ? 'Y' : bbsInfoVO.useYn}" />" />
+				                	<input type="hidden" name="bbsId" 			value="<c:out value="${bbsVO.bbsId}" />" />
+				                	<input type="hidden" name="notiUseYn" 	value="<c:out value="${empty bbsVO.notiUseYn ? 'N' : bbsVO.notiUseYn}" />" />
+				                	<input type="hidden" name="ansrUseYn" 	value="<c:out value="${empty bbsVO.ansrUseYn ? 'N' : bbsVO.ansrUseYn}" />" />
+				                	<input type="hidden" name="atchUseYn" 	value="<c:out value="${bbsVO.atchUseYn}" />" />
+				                	<input type="hidden" name="writeUseYn" 	value="<c:out value="${bbsVO.writeUseYn}" />" />
+				                	<input type="hidden" name="cmntUseYn" 	value="<c:out value="${bbsVO.cmntUseYn}" />" />
+				                	<input type="hidden" name="useYn" 		value="<c:out value="${empty bbsVO.useYn ? 'Y' : bbsVO.useYn}" />" />
 				                	
 				                	<div class="ui segment">
 				                	
@@ -176,7 +176,7 @@
 													</dt>
 													<dd>
 														<div class="ui fluid input">
-															<input type="text" id="bbsNm" name="bbsNm" autocomplete="off" value="<c:out value="${bbsInfoVO.bbsNm}" />" maxlength="100" />
+															<input type="text" id="bbsNm" name="bbsNm" autocomplete="off" value="<c:out value="${bbsVO.bbsNm}" />" maxlength="100" />
 														</div>
 													</dd>
 												</dl>
@@ -188,15 +188,15 @@
 													</dt>
 													<dd>
 												<c:choose>
-													<c:when test="${not empty bbsInfoVO and ((bbsInfoVO.sysDefaultYn eq 'Y' and bbsInfoVO.sysUseYn eq 'N') or bbsInfoVO.bbsCd eq 'TEAM')}">
+													<c:when test="${not empty bbsVO and ((bbsVO.sysDefaultYn eq 'Y' and bbsVO.sysUseYn eq 'N') or bbsVO.bbsCd eq 'TEAM')}">
 														<select class="ui dropdown" id="bbsCd" disabled="disabled">
 										            	<c:forEach items="${bbsCdList}" var="row">
-										            		<c:if test="${bbsInfoVO.bbsCd eq row.codeCd}">
+										            		<c:if test="${bbsVO.bbsCd eq row.codeCd}">
 											            		<option value="<c:out value="${row.codeCd}" />" selected><c:out value="${row.codeNm}" /></option>
 										            		</c:if>
 										            	</c:forEach>
 											        	</select>
-											        	<input type="hidden" name="bbsCd" value="<c:out value="${bbsInfoVO.bbsCd}" />" />
+											        	<input type="hidden" name="bbsCd" value="<c:out value="${bbsVO.bbsCd}" />" />
 													</c:when>
 													<c:otherwise>
 														<select class="ui dropdown" id="bbsCd" name="bbsCd" onchange="changeBbsCd(this.value)">
@@ -204,7 +204,7 @@
 										            	<c:forEach items="${bbsCdList}" var="row">
 										            		<!-- 자유게시판, 포토갤러리만 추가게시판으로 사용 -->
 										            		<c:if test="${row.codeCd eq 'FREE' or row.codeCd eq 'PHOTO'}">
-											            		<option value="<c:out value="${row.codeCd}" />" <c:if test="${bbsInfoVO.bbsCd eq row.codeCd}">selected</c:if>><c:out value="${row.codeNm}" /></option>
+											            		<option value="<c:out value="${row.codeCd}" />" <c:if test="${bbsVO.bbsCd eq row.codeCd}">selected</c:if>><c:out value="${row.codeNm}" /></option>
 										            		</c:if>
 										            	</c:forEach>
 											        	</select>
@@ -225,7 +225,7 @@
 															<div class="field">
 																<div class="ui radio checkbox">
 																	<c:choose>
-														            	<c:when test="${(empty bbsInfoVO and status.index eq 0) or bbsInfoVO.bbsTypeCd eq row.codeCd}">
+														            	<c:when test="${(empty bbsVO and status.index eq 0) or bbsVO.bbsTypeCd eq row.codeCd}">
 														            		<c:set var="bbsTypeCdSelected" value="checked" />
 														            	</c:when>
 														            	<c:otherwise>
@@ -253,13 +253,13 @@
 														<div class="fields">
 															<div class="field">
 																<div class="ui checkbox">
-																	<input type="checkbox" id="notiUse" class="hidden" <c:if test="${bbsInfoVO.notiUseYn eq 'Y'}">checked</c:if> />
+																	<input type="checkbox" id="notiUse" class="hidden" <c:if test="${bbsVO.notiUseYn eq 'Y'}">checked</c:if> />
 																	<label class="toggle_btn" for="notiUse"><spring:message code="bbs.label.notice" /><!-- 공지 --></label>
 																</div>
 															</div>
 															<div class="field">
 																<div class="ui checkbox">
-																	<input type="checkbox" id="ansrUse" class="hidden" <c:if test="${bbsInfoVO.ansrUseYn eq 'Y'}">checked</c:if> />
+																	<input type="checkbox" id="ansrUse" class="hidden" <c:if test="${bbsVO.ansrUseYn eq 'Y'}">checked</c:if> />
 																	<label class="toggle_btn" for="ansrUse"><spring:message code="bbs.label.answer_atcl" /><!-- 답글 --></label>
 																</div>
 															</div>
@@ -277,13 +277,13 @@
 														<div class="fields">
 															<div class="field">
 																<div class="ui radio checkbox">
-																	<input type="radio" id="atchUseY" name="atchUse" value="Y" <c:if test="${empty bbsInfoVO or bbsInfoVO.atchUseYn eq 'Y'}">checked</c:if> />
+																	<input type="radio" id="atchUseY" name="atchUse" value="Y" <c:if test="${empty bbsVO or bbsVO.atchUseYn eq 'Y'}">checked</c:if> />
 																	<label for="atchUseY"><spring:message code="bbs.label.yes" /><!-- 예 --></label>
 																</div>
 															</div>
 															<div class="field">
 																<div class="ui radio checkbox">
-																	<input type="radio" id="atchUseN" name="atchUse" value="N" <c:if test="${bbsInfoVO.atchUseYn eq 'N'}">checked</c:if> />
+																	<input type="radio" id="atchUseN" name="atchUse" value="N" <c:if test="${bbsVO.atchUseYn eq 'N'}">checked</c:if> />
 																	<label for="atchUseN"><spring:message code="bbs.label.no" /><!-- 아니오 --></label>
 																</div>
 															</div>
@@ -301,7 +301,7 @@
 											            	<option value=""><spring:message code="bbs.label.select_atch_file_cnt" /><!-- 첨부파일 수 선택 --></option>
 											            <c:forEach begin="1" end="5" var="i" varStatus="status">
 											            <c:choose>
-											            	<c:when test="${(empty bbsInfoVO and i eq 1) or (bbsInfoVO.atchFileCnt eq 0 and i eq 1) or bbsInfoVO.atchFileCnt eq i}">
+											            	<c:when test="${(empty bbsVO and i eq 1) or (bbsVO.atchFileCnt eq 0 and i eq 1) or bbsVO.atchFileCnt eq i}">
 											            		<c:set var="atchFileCntSelected" value="selected" />
 											            	</c:when>
 											            	<c:otherwise>
@@ -322,7 +322,7 @@
 													<dd>
 														<div class="ui right labeled input w100">
 														<c:set var="atchFileSizeLimit" value="30" />
-															<input type="text" placeholder="30" name="atchFileSizeLimit" autocomplete="off" value="<c:out value="${empty bbsInfoVO.atchFileSizeLimit ? 30 : bbsInfoVO.atchFileSizeLimit}" />" class="w70 tr" maxlength="4" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" />
+															<input type="text" placeholder="30" name="atchFileSizeLimit" autocomplete="off" value="<c:out value="${empty bbsVO.atchFileSizeLimit ? 30 : bbsVO.atchFileSizeLimit}" />" class="w70 tr" maxlength="4" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" />
 															<div class="ui basic label">MB</div>
 														</div>
 														 <div class="ui negative message">
@@ -337,11 +337,11 @@
 														<label><spring:message code="bbs.label.form_default_lang" /><!-- 게시판 기본 언어 --></label>
 													</dt>
 													<dd>
-														<select class="ui dropdown" id="dfltLangCd" name="dfltLangCd" onchange="<c:if test="${not empty bbsInfoVO}">changeDfltLangCd(this.value)</c:if>">
+														<select class="ui dropdown" id="dfltLangCd" name="dfltLangCd" onchange="<c:if test="${not empty bbsVO}">changeDfltLangCd(this.value)</c:if>">
 											            	<option value=""><spring:message code="bbs.label.select_lang" /><!-- 언어 선택 --></option>
 										            	<c:forEach items="${langCdList}" var="row" varStatus="status">
 										            	<c:choose>
-										            		<c:when test="${(empty bbsInfoVO and status.index eq 0) or bbsInfoVO.dfltLangCd eq row.codeCd}">
+										            		<c:when test="${(empty bbsVO and status.index eq 0) or bbsVO.dfltLangCd eq row.codeCd}">
 										            			<c:set var="dfltLangCdSelected" value="selected" />
 										            		</c:when>
 										            		<c:otherwise>
@@ -351,7 +351,7 @@
 										            		<option value="<c:out value="${row.codeCd}" />" <c:out value="${dfltLangCdSelected}" />><c:out value="${row.codeNm}" /></option>
 										            	</c:forEach>
 											        	</select>
-											        	<input type="hidden" id="selectedDfltLangCd" value="<c:out value="${bbsInfoVO.dfltLangCd}" />" />
+											        	<input type="hidden" id="selectedDfltLangCd" value="<c:out value="${bbsVO.dfltLangCd}" />" />
 													</dd>
 												</dl>
 					                		</li>
@@ -364,13 +364,13 @@
 														<div class="fields">
 															<div class="field">
 																<div class="ui radio checkbox">
-																	<input type="radio" id="writeUseY" name="writeUse" value="Y" <c:if test="${empty bbsInfoVO or bbsInfoVO.writeUseYn eq 'Y'}">checked</c:if> />
+																	<input type="radio" id="writeUseY" name="writeUse" value="Y" <c:if test="${empty bbsVO or bbsVO.writeUseYn eq 'Y'}">checked</c:if> />
 																	<label for="writeUseY"><spring:message code="bbs.label.yes" /><!-- 예 --></label>
 																</div>
 															</div>
 															<div class="field">
 																<div class="ui radio checkbox">
-																	<input type="radio" id="writeUseN" name="writeUse" value="N" <c:if test="${bbsInfoVO.writeUseYn eq 'N'}">checked</c:if> />
+																	<input type="radio" id="writeUseN" name="writeUse" value="N" <c:if test="${bbsVO.writeUseYn eq 'N'}">checked</c:if> />
 																	<label for="writeUseN"><spring:message code="bbs.label.no" /><!-- 아니오 --></label>
 																</div>
 															</div>
@@ -387,13 +387,13 @@
 														<div class="fields">
 															<div class="field">
 																<div class="ui radio checkbox">
-																	<input type="radio" id="cmntUseY" name="cmntUse" value="Y" <c:if test="${bbsInfoVO.cmntUseYn eq 'Y'}">checked</c:if> />
+																	<input type="radio" id="cmntUseY" name="cmntUse" value="Y" <c:if test="${bbsVO.cmntUseYn eq 'Y'}">checked</c:if> />
 																	<label for="cmntUseY"><spring:message code="bbs.label.yes" /><!-- 예 --></label>
 																</div>
 															</div>
 															<div class="field">
 																<div class="ui radio checkbox">
-																	<input type="radio" id="cmntUseN" name="cmntUse" value="N" <c:if test="${empty bbsInfoVO or bbsInfoVO.cmntUseYn eq 'N'}">checked</c:if> />
+																	<input type="radio" id="cmntUseN" name="cmntUse" value="N" <c:if test="${empty bbsVO or bbsVO.cmntUseYn eq 'N'}">checked</c:if> />
 																	<label for="cmntUseN"><spring:message code="bbs.label.no" /><!-- 아니오 --></label>
 																</div>
 															</div>
@@ -410,13 +410,13 @@
 														<div class="fields">
 															<div class="field">
 																<div class="ui radio checkbox">
-																	<input type="radio" id="stdViewY" name="stdViewYn" value="Y" <c:if test="${empty bbsInfoVO or bbsInfoVO.stdViewYn eq 'Y'}">checked</c:if> />
+																	<input type="radio" id="stdViewY" name="stdViewYn" value="Y" <c:if test="${empty bbsVO or bbsVO.stdViewYn eq 'Y'}">checked</c:if> />
 																	<label for="stdViewY"><spring:message code="bbs.label.yes" /><!-- 예 --></label>
 																</div>
 															</div>
 															<div class="field">
 																<div class="ui radio checkbox">
-																	<input type="radio" id="stdViewN" name="stdViewYn" value="N" <c:if test="${bbsInfoVO.stdViewYn eq 'N'}">checked</c:if> />
+																	<input type="radio" id="stdViewN" name="stdViewYn" value="N" <c:if test="${bbsVO.stdViewYn eq 'N'}">checked</c:if> />
 																	<label for="stdViewN"><spring:message code="bbs.label.no" /><!-- 아니오 --></label>
 																</div>
 															</div>
@@ -434,13 +434,13 @@
 														<div class="fields">
 															<div class="field">
 																<div class="ui radio checkbox">
-																	<input type="radio" id="useY" name="use" value="Y" <c:if test="${empty bbsInfoVO or bbsInfoVO.useYn eq 'Y'}">checked</c:if> />
+																	<input type="radio" id="useY" name="use" value="Y" <c:if test="${empty bbsVO or bbsVO.useYn eq 'Y'}">checked</c:if> />
 																	<label for="useY"><spring:message code="bbs.label.yes" /><!-- 예 --></label>
 																</div>
 															</div>
 															<div class="field">
 																<div class="ui radio checkbox">
-																	<input type="radio" id="useN" name="use" value="N" <c:if test="${bbsInfoVO.useYn eq 'N'}">checked</c:if> />
+																	<input type="radio" id="useN" name="use" value="N" <c:if test="${bbsVO.useYn eq 'N'}">checked</c:if> />
 																	<label for="useN"><spring:message code="bbs.label.no" /><!-- 아니오 --></label>
 																</div>
 															</div>

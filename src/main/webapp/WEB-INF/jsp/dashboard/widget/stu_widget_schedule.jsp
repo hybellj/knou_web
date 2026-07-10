@@ -1,42 +1,33 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
 <%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
 
-	<ul class="sche_list"> 
+	<ul class="sche_list">
 	    <li>
-	        <div class="item_box">                                              
+	        <div class="item_box">
 	            <div class="s_date">03.18 ~ 04.01</div>
 	            <div class="s_txt">
 	                <p class="tit">중간고사 시험문제 등록/출제/검수</p>
 	                <p class="desc">[대학원] 데이터베이스의 이해와 활용</p>
-	            </div>   
-	        </div>          
+	            </div>
+	        </div>
 	    </li>
 	    <li>
-	        <div class="item_box">                                               
-	            <div class="s_date">04.05 ~ 06.12</div>
-	            <div class="s_txt">
-	                <p class="tit">결시원 승인</p>
-	                <p class="desc">[대학원] 경영수리와 통계1반</p>
-	            </div>  
-	        </div>    
-	    </li> 
-	    <li>
-	        <div class="item_box">                                               
+	        <div class="item_box">
 	            <div class="s_date">04.08 ~ 04.11</div>
 	            <div class="s_txt">
-	                <p class="tit">2025학년도 1학기 중간고사</p>
+	                <p class="tit">2026학년도 1학기 중간고사</p>
 	                <p class="desc">[대학원] 경영수리와 통계1반</p>
 	            </div>
-	        </div>      
-	    </li>     
+	        </div>
+	    </li>
 	    <li>
-	        <div class="item_box">                                           
+	        <div class="item_box">
 	            <div class="s_date">04.18 ~ 04.22</div>
 	            <div class="s_txt">
 	                <p class="tit">시험문제 등록/출제/검수</p>
 	                <p class="desc">[대학원] 데이터베이스의 이해와 활용</p>
-	            </div>  
-	        </div>     
+	            </div>
+	        </div>
 	    </li>
 	</ul>
 

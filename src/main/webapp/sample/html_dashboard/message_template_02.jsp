@@ -1,24 +1,24 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="../common/common_inc.jsp" %><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+	<jsp:include page="../common/common_head.jsp">
 		<jsp:param name="style" value="dashboard"/>
 	</jsp:include>
 </head>
 
-<body class="home colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="home "><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
-        <%@ include file="/WEB-INF/jsp/common_new/home_header.jsp" %>
+        <%@ include file="../common/home_header.jsp" %>
         <!-- //common header -->
 
         <!-- dashboard -->
         <main class="common">
 
             <!-- gnb -->
-            <%@ include file="/WEB-INF/jsp/common_new/home_gnb_prof.jsp" %>
+            <%@ include file="../common/home_gnb_prof.jsp" %>
             <!-- //gnb -->
 
             <!-- content -->
@@ -26,7 +26,7 @@
                 <div class="dashboard_sub">
 
                     <!-- page_tab -->
-                    <%@ include file="/WEB-INF/jsp/common_new/home_page_tab.jsp" %>
+                    <%@ include file="../common/home_page_tab.jsp" %>
                     <!-- //page_tab -->
 
                     <div class="sub-content">
@@ -250,7 +250,7 @@
 
 
             <!-- common footer -->
-            <%@ include file="/WEB-INF/jsp/common_new/home_footer.jsp" %>
+            <%@ include file="../common/home_footer.jsp" %>
             <!-- //common footer -->
 
         </main>

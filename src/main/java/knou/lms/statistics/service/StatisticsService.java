@@ -9,21 +9,7 @@ import knou.lms.statistics.vo.StatisticsVO;
 import knou.lms.subject.vo.SubjectVO;
 
 public interface StatisticsService {
-	
-    public EgovMap stdntlrnPrgrtStatusSelect(SubjectVO vo) throws Exception;
 
-    public List<EgovMap> stdntLrnPrgrtList(SubjectVO vo) throws Exception;
-    
-    public List<EgovMap> listLrnPrgrtStatusByDept(SubjectVO vo) throws Exception;
-    
-    
-    
-    
-    
-    
-    
-    
-    
     /**
      * ***************************************************
      * 학습자별 콘텐츠 수강통계 목록

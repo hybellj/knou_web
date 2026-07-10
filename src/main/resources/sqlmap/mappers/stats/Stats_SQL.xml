@@ -1,0 +1,1008 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.stats.dao.StatsDAO">
+
+	<sql    id="bySubjectLearningProgressListQuery">
+		/*	설  명  : 과목별학습진도목록조회쿼리  */
+		SELECT	
+				ROW_NUMBER() OVER(ORDER BY LP.REG_DTTM) AS LINE_NO
+				, LP.*
+				, U.USERNM
+				, U.STDNT_NO
+				, ATNDLC.SCYR
+		FROM	TB_LMS_LRN_PRGRT LP
+						JOIN	TB_LMS_USER U 			ON U.USER_ID = LP.USER_ID
+				LEFT	JOIN	TB_LMS_ATNDLC	ATNDLC 	ON U.USER_ID = ATNDLC.USER_ID
+		WHERE	1 = 1
+				AND LP.SBJCT_ID = #{sbjctId}
+	</sql>
+	
+	<select id="bySubjectLearningProgressList" resultType="eGovMap">
+		/*	설  명  : 과목별학습진도목록조회  */
+		<include refid="bySubjectLearningProgressListQuery"/>
+	</select>
+
+	<select id="bySubjectLearningProgressListPaging" resultType="eGovMap">
+		/*	설  명  : 과목별학습진도목록조회페이징  */
+		<include refid="CommonSQL.pagePrefix"/>
+		<include refid="bySubjectLearningProgressListQuery"/>
+		<include refid="CommonSQL.pageSuffix"/>
+	</select>
+
+	<select id="bySubjectLearningProgressCnt" resultType="int">
+		/*	설  명  : 과목별학습진도수조회  */
+		SELECT	COUNT(LP.SBJCT_ID) AS TOTAL_CNT
+		FROM	TB_LMS_LRN_PRGRT LP
+						JOIN	TB_LMS_USER U 			ON U.USER_ID = LP.USER_ID
+				LEFT	JOIN	TB_LMS_ATNDLC	ATNDLC 	ON U.USER_ID = ATNDLC.USER_ID
+		WHERE	1 = 1
+				AND LP.SBJCT_ID = #{sbjctId}
+	</select>
+
+    <select id="lrnPrgrtStatsSummarySelect" parameterType="knou.lms.subject.vo.SubjectVO" resultType="egovMap">
+        /*
+            SQL ID : statsDAO.lrnPrgrtStatsSummarySelect
+            설  명 : 전체/운영과목 학습진도 현황(수강생수, 평균학습진도율)
+        */
+        WITH SBJ_LIST AS (
+            SELECT
+                  A.SBJCT_YR
+                , A.SBJCT_SMSTR
+                , SMSTR.SMSTR_CHRT_ID
+                , SMSTR.ORG_ID
+                , A.DEPT_ID
+                , A.SBJCT_ID
+                , A.SBJCTNM
+                , A.PROF_ID
+                , A.DVCLAS_NO
+                , A.DELYN
+            FROM TB_LMS_SBJCT A
+            JOIN TB_LMS_SMSTR_CHRT SMSTR
+                ON A.SBJCT_REF_TYCD = 'SMSTR_CHRT'
+                AND A.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+            WHERE DELYN = 'N'
+        ),
+        WHOLE_STATUS AS (
+            SELECT
+                  COUNT(A.USER_ID) AS STD_CNT
+                , SUM(A.PRGRT) AS SUM_PRGRT
+            FROM TB_LMS_LRN_PRGRT A
+            JOIN SBJ_LIST B
+                ON A.SBJCT_ID = B.SBJCT_ID
+            <if test="orgId != null and orgId != ''">
+                AND B.ORG_ID = #{orgId}
+            </if>
+        ),
+        MY_SBJCT_STATUS AS (
+            SELECT
+                  COUNT(A.USER_ID) AS STD_CNT
+                , SUM(A.PRGRT) AS SUM_PRGRT
+            FROM TB_LMS_LRN_PRGRT A
+            JOIN SBJ_LIST B
+                ON A.SBJCT_ID = B.SBJCT_ID
+            <if test="orgId != null and orgId != ''">
+                AND B.ORG_ID = #{orgId}
+            </if>
+                AND B.PROF_ID = #{userId}
+        )
+        SELECT
+              A.STD_CNT AS WHOLE_STD_CNT
+            , NVL( ROUND(A.SUM_PRGRT / A.STD_CNT, 2),0) AS WHOLE_AVG_LRN_PRGRT
+            , B.STD_CNT AS MY_STD_CNT
+            , NVL( ROUND(B.SUM_PRGRT / B.STD_CNT, 2),0) AS MY_AVG_LRN_PRGRT
+        FROM WHOLE_STATUS A, MY_SBJCT_STATUS B
+    </select>
+
+    <select id="stdntLrnPrgrtList" parameterType="knou.lms.subject.vo.SubjectVO" resultType="egovMap">
+        /*
+        SQL ID : statisticsDAO.stdntLrnPrgrtList
+        설  명 : 학습자 학습진도 현황 목록 조회
+        */
+        WITH SBJ_LIST AS (
+            SELECT
+                  A.SBJCT_YR
+                , A.SBJCT_SMSTR
+                , A.SMSTR_CHRT_ID
+                , SMSTR.ORG_ID
+                , A.DEPT_ID
+                , A.SBJCT_ID
+                , A.SBJCTNM
+                , A.DVCLAS_NO
+                , A.DELYN
+            FROM TB_LMS_SBJCT A
+            JOIN TB_LMS_SMSTR_CHRT SMSTR
+                ON A.SBJCT_REF_TYCD = 'SMSTR_CHRT'
+                AND A.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+            WHERE  DELYN = 'N'
+            <if test="sbjctYr != null and sbjctYr != ''">
+                AND A.SBJCT_YR = #{sbjctYr}
+            </if>
+            <if test="smstrChrtId != null and smstrChrtId != ''">
+                AND A.SMSTR_CHRT_ID = #{smstrChrtId}
+            </if>
+            <if test="orgId != null and orgId != ''">
+                AND SMSTR.ORG_ID = #{orgId}
+            </if>
+            <if test="deptId != null and deptId != ''">
+                AND A.DEPT_ID = #{deptId}
+            </if>
+            <if test="sbjctId != null and sbjctId != ''">
+                AND A.SBJCT_ID = #{sbjctId}
+            </if>
+        ),
+        /*과목별 오픈 주차 목록*/
+        OPEN_WK_LIST AS (
+            SELECT
+                  ORG.ORGNM
+                , A.*
+                , B.LCTR_WKNO_SCHDL_ID
+            FROM SBJ_LIST A
+            JOIN TB_LMS_LCTR_WKNO_SCHDL B
+                ON A.SBJCT_ID = B.SBJCT_ID
+                AND B.DELYN = 'N'
+                AND (
+                    FN_DT() > B.LCTR_WKNO_EYMD /*지난 주차*/
+                    OR
+                    FN_DT() BETWEEN B.LCTR_WKNO_SYMD AND B.LCTR_WKNO_EYMD) /* 현재 진행주차*/
+            LEFT JOIN TB_LMS_ORG ORG ON A.ORG_ID = ORG.ORG_ID
+        ),
+        /*과목별 오픈 주차 수*/
+        OPEN_WK_CNT AS (
+            SELECT SBJCT_ID , COUNT(*) AS OPEN_WK_CNT
+            FROM OPEN_WK_LIST
+            GROUP BY SBJCT_ID
+        ),
+        /*과목별 수강하는 학생 목록*/
+        STD_LIST AS (
+            SELECT
+                  A.SBJCT_ID
+                , B.USER_ID
+                , USR.USERNM
+                , B.SCYR
+                , USR.STDNT_NO
+            FROM SBJ_LIST A
+            JOIN TB_LMS_ATNDLC B ON A.SBJCT_ID = B.SBJCT_ID
+            JOIN TB_LMS_USER USR ON B.USER_ID = USR.USER_ID
+            WHERE B.AUDITYN = 'N'/*청강여부*/
+        )
+        SELECT
+              ROW_NUMBER() OVER(ORDER BY A.SBJCT_YR ASC, A.SBJCT_SMSTR ASC, A.ORGNM DESC, A.DEPTNM ASC, A.SBJCTNM) AS LINE_NO
+            , A.*
+        FROM (
+            SELECT
+                <!--   OWL.SBJCT_ID -->
+                <!-- , OWL.ORG_ID -->
+                  OWL.SBJCT_YR
+                , OWL.SBJCT_SMSTR
+                , OWL.ORGNM
+                <!-- , NVL(DEPT.DEPT_ID, '—') AS DEPT_ID -->
+                , NVL(DEPT.DEPTNM, '—') AS DEPTNM
+                , OWL.SBJCTNM
+                , OWL.DVCLAS_NO
+                , USR.STDNT_NO
+                , STS.USER_ID
+                , USR.USERNM
+                , USR.SCYR
+                , OWK.OPEN_WK_CNT
+                <!-- , CASE WHEN STS.PRGRT AS STUDY_YN -->
+                , COUNT(CASE WHEN NVL(STS.PRGRT,0) > 0 THEN STS.LCTR_WKNO_SCHDL_ID END ) AS LRN_WK_CNT <!-- 학습한 주차 수 (진도율 0 초과만 카운트)-->
+                , ROUND(
+                    SUM(CASE WHEN NVL(STS.PRGRT,0) > 0 THEN STS.PRGRT END ) / NULLIF(OWK.OPEN_WK_CNT, 0)
+                    , 2) AS PRGRT <!-- 진도율 -->
+            FROM OPEN_WK_LIST OWL
+            JOIN OPEN_WK_CNT OWK ON OWL.SBJCT_ID = OWK.SBJCT_ID
+            JOIN STD_LIST USR ON OWL.SBJCT_ID = USR.SBJCT_ID
+            LEFT JOIN TB_LMS_BYWKNO_USER_LRN_STS STS
+                ON OWL.LCTR_WKNO_SCHDL_ID = STS.LCTR_WKNO_SCHDL_ID
+                AND USR.USER_ID = STS.USER_ID
+            LEFT JOIN TB_LMS_DEPT DEPT ON OWL.DEPT_ID = DEPT.DEPT_ID
+            WHERE 1=1
+            <if test='searchKey == null or searchKey == ""'>
+                <!-- 미학습자 전체보기 -->
+                AND PRGRT > 0
+            </if>
+            <if test='searchKey != null and searchKey == "Y"'>
+                <!-- 미학습자 전체보기 -->
+                AND PRGRT >= 0
+            </if>
+            <if test="searchFrom != null and searchFrom != ''">
+                AND PRGRT <![CDATA[ >= ]]> #{searchFrom}
+            </if>
+            <if test="searchTo != null and searchTo != ''">
+                AND PRGRT <![CDATA[ < ]]> #{searchTo}
+            </if>
+            GROUP BY
+            OWL.SBJCT_ID , OWL.ORG_ID , OWL.SBJCT_YR , OWL.SBJCT_SMSTR , OWL.ORGNM , DEPT.DEPT_ID , DEPTNM
+            , OWL.SBJCTNM , OWL.DVCLAS_NO , USR.STDNT_NO , STS.USER_ID , USR.USERNM , USR.SCYR , OWK.OPEN_WK_CNT
+        ) A
+    </select>
+
+    <select id="stdntLrnPrgrtListPaging" parameterType="knou.lms.subject.vo.SubjectVO" resultType="egovMap">
+        /*
+            SQL ID : statsDAO.stdntLrnPrgrtList
+            설  명 : 학습자 학습진도 현황 목록 조회
+        */
+        WITH SBJ_LIST AS (
+            SELECT
+                  SMSTR.DGRS_YR
+                , SMSTR.DGRS_SMSTR_CHRT
+                , (CASE	WHEN NVL(SMSTR.SMSTR_CHRT_GBNCD, 'SMSTR') = 'SMSTR'
+                    THEN  	SMSTR.DGRS_SMSTR_CHRT || '학기'
+                    ELSE	SMSTR.DGRS_SMSTR_CHRT || '기수'
+                  END) AS SMSTR_CHRT
+                , SMSTR.SMSTR_CHRT_GBNCD
+                , ORG.ORG_ID
+                , ORG.ORGNM
+                , A.DEPT_ID
+                , DEPT.DEPTNM
+                , A.SBJCT_ID
+                , A.SBJCTNM
+                , A.DVCLAS_NO
+            FROM TB_LMS_SBJCT A
+            JOIN TB_LMS_SMSTR_CHRT SMSTR ON A.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+            LEFT JOIN TB_LMS_DEPT DEPT ON A.DEPT_ID = DEPT.DEPT_ID
+            JOIN TB_LMS_ORG ORG
+                ON SMSTR.ORG_ID = ORG.ORG_ID
+            WHERE 1=1
+                AND DELYN = 'N'
+        ),
+        /*과목별 오픈 주차 목록*/
+        OPEN_WK_LIST AS (
+            SELECT
+                  A.SBJCT_ID
+                , B.LCTR_WKNO_SCHDL_ID
+            FROM SBJ_LIST A
+            JOIN TB_LMS_LCTR_WKNO_SCHDL B
+                ON A.SBJCT_ID = B.SBJCT_ID
+                AND B.DELYN = 'N'
+                AND (
+                    FN_DT() > B.LCTR_WKNO_EYMD /*지난 주차*/
+                    OR
+                    FN_DT() BETWEEN B.LCTR_WKNO_SYMD AND B.LCTR_WKNO_EYMD) /*현재 진행주차*/
+            LEFT JOIN TB_LMS_ORG ORG ON A.ORG_ID = ORG.ORG_ID
+        ),
+        /*과목별 오픈 주차 수*/
+        OPEN_WK_CNT AS (
+            SELECT SBJCT_ID , COUNT(*) AS OPEN_WK_CNT
+            FROM OPEN_WK_LIST
+            GROUP BY SBJCT_ID
+        ),
+        /*과목별 수강하는 학생 목록*/
+        STD_LIST AS (
+            SELECT
+                  A.SBJCT_ID
+                , B.USER_ID
+                , USR.USERNM
+                , B.SCYR
+                , USR.STDNT_NO
+            FROM SBJ_LIST A
+            JOIN TB_LMS_ATNDLC B ON A.SBJCT_ID = B.SBJCT_ID
+            JOIN TB_LMS_USER USR ON B.USER_ID = USR.USER_ID
+            WHERE   B.AUDITYN = 'N'/*청강여부*/
+                AND B.ATNDLC_STSCD = 'APPROVE'
+        )
+        <include refid="CommonSQL.pagePrefix2"/>
+        SELECT
+              ROW_NUMBER() OVER(ORDER BY A.DGRS_YR ASC, A.DGRS_SMSTR_CHRT ASC, A.ORGNM DESC, A.DEPTNM ASC, A.SBJCTNM) AS LINE_NO
+            , A.*
+            , COUNT(*) OVER() AS TOTAL_CNT
+        FROM (
+            SELECT
+                  SBJ.DGRS_YR
+                , SBJ.DGRS_SMSTR_CHRT
+                , SBJ.SMSTR_CHRT
+                , SBJ.SMSTR_CHRT_GBNCD
+                , SBJ.ORG_ID
+                , SBJ.ORGNM
+                , SBJ.DEPT_ID
+                , SBJ.DEPTNM
+                , SBJ.SBJCT_ID
+                , SBJ.SBJCTNM
+                , SBJ.DVCLAS_NO
+                , STD.STDNT_NO
+                , STD.USER_ID
+                , STD.USERNM
+                , STD.SCYR
+                , OWK.OPEN_WK_CNT
+                , COUNT(CASE WHEN NVL(STS.PRGRT,0) > 0 THEN STS.LCTR_WKNO_SCHDL_ID END ) AS LRN_WK_CNT /*학습한 주차 수 (진도율 0 초과만 카운트)*/
+                , ROUND( COUNT(CASE WHEN NVL(STS.PRGRT,0) > 0 THEN STS.LCTR_WKNO_SCHDL_ID END ) / NULLIF(OWK.OPEN_WK_CNT, 0) * 100, 2) AS PRGRT /*진도율*/
+            FROM SBJ_LIST SBJ
+            JOIN OPEN_WK_LIST WK ON SBJ.SBJCT_ID = WK.SBJCT_ID
+            JOIN OPEN_WK_CNT OWK ON SBJ.SBJCT_ID = OWK.SBJCT_ID
+            JOIN STD_LIST STD ON SBJ.SBJCT_ID = STD.SBJCT_ID
+            LEFT JOIN TB_LMS_BYWKNO_USER_LRN_STS STS
+                ON WK.LCTR_WKNO_SCHDL_ID = STS.LCTR_WKNO_SCHDL_ID
+                AND STD.USER_ID = STS.USER_ID
+            GROUP BY
+                  SBJ.DGRS_YR, SBJ.DGRS_SMSTR_CHRT , SBJ.SMSTR_CHRT, SBJ.SMSTR_CHRT_GBNCD , SBJ.ORG_ID , SBJ.ORGNM , SBJ.DEPT_ID , SBJ.DEPTNM
+                , SBJ.SBJCT_ID , SBJ.SBJCTNM , SBJ.DVCLAS_NO
+                , STD.STDNT_NO , STD.USER_ID , STD.USERNM , STD.SCYR
+                , OWK.OPEN_WK_CNT
+        ) A
+        WHERE 1=1
+        <if test="dgrsYr != null and dgrsYr != ''">
+            AND A.DGRS_YR = #{dgrsYr}
+        </if>
+        <if test="dgrsSmstrChrt != null and dgrsSmstrChrt != ''">
+            AND A.DGRS_SMSTR_CHRT = #{dgrsSmstrChrt}
+        </if>
+        <if test="smstrChrtGbncd != null and smstrChrtGbncd != ''">
+            AND A.SMSTR_CHRT_GBNCD = #{smstrChrtGbncd}
+        </if>
+        <if test="orgId != null and orgId != ''">
+            AND A.ORG_ID = #{orgId}
+        </if>
+        <if test="deptId != null and deptId != ''">
+            AND A.DEPT_ID = #{deptId}
+        </if>
+        <if test="sbjctId != null and sbjctId != ''">
+            AND A.SBJCT_ID = #{sbjctId}
+        </if>
+        <if test="searchKey == null or searchKey == ''">
+            /*미학습자 제외*/
+            AND PRGRT > 0
+        </if>
+        <if test='searchKey != null and searchKey == "Y"'>
+            /*미학습자 전체보기*/
+            AND PRGRT >= 0
+        </if>
+        <if test="searchFrom != null and searchFrom != ''">
+            AND PRGRT <![CDATA[ >= ]]> #{searchFrom}
+        </if>
+        <if test="searchTo != null and searchTo != ''">
+            AND PRGRT <![CDATA[ < ]]> #{searchTo}
+        </if>
+        <include refid="CommonSQL.pageSuffix2"/>
+    </select>
+
+    <select id="listLrnPrgrtStatusByDept" parameterType="knou.lms.subject.vo.SubjectVO" resultType="egovMap">
+        /*
+        SQL ID : statsDAO.listLrnPrgrtStatusByDept
+        설       명 : 학습진도관리 > 학과별 학습진도율 목록 조회
+        */
+        WITH DEPT_LIST AS (
+            SELECT
+                  ORG.ORG_ID
+                , ORG.ORGNM
+                , DEPT.DEPT_ID
+                , DEPT.DEPTNM
+                , SMSTR.DGRS_YR
+                , SMSTR.DGRS_SMSTR_CHRT
+                , (CASE	WHEN NVL(SMSTR.SMSTR_CHRT_GBNCD, 'SMSTR') = 'SMSTR'
+                    THEN  	SMSTR.DGRS_SMSTR_CHRT || '학기'
+                    ELSE	SMSTR.DGRS_SMSTR_CHRT || '기수'
+                  END) AS DGRS_SMSTR
+                , SMSTR.SMSTR_CHRT_GBNCD
+                , SBJ.SBJCT_ID
+            FROM TB_LMS_DEPT DEPT
+            JOIN TB_LMS_SBJCT SBJ ON DEPT.DEPT_ID = SBJ.DEPT_ID AND SBJ.DELYN = 'N'
+            JOIN TB_LMS_SMSTR_CHRT SMSTR ON SBJ.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+            JOIN TB_LMS_ORG ORG ON SMSTR.ORG_ID = ORG.ORG_ID AND ORG.USEYN = 'Y'
+        ),
+        STD_CNT AS (
+            SELECT SBJ.DEPT_ID, COUNT(STD.USER_ID) AS TOT_STD_CNT
+            FROM TB_LMS_ATNDLC STD
+            JOIN TB_LMS_SBJCT SBJ ON STD.SBJCT_ID = SBJ.SBJCT_ID
+            WHERE STD.ATNDLC_STSCD ='APPROVE' AND STD.AUDITYN = 'N'
+            GROUP BY SBJ.DEPT_ID
+        )
+        SELECT
+              ROW_NUMBER() OVER(ORDER BY A.DGRS_YR ASC, A.DGRS_SMSTR_CHRT ASC, A.DGRS_SMSTR DESC, A.ORGNM ASC, A.DEPTNM ASC) AS LINE_NO
+            , A.ORG_ID
+            , A.ORGNM
+            , A.DEPT_ID
+            , A.DEPTNM
+            , A.DGRS_YR
+            , A.DGRS_SMSTR_CHRT
+            , A.DGRS_SMSTR
+            , A.SMSTR_CHRT_GBNCD
+            , CNT.TOT_STD_CNT
+            , ROUND(AVG(PRGRT.PRGRT), 2) AS AVG_PRGRT
+        FROM DEPT_LIST A
+        JOIN TB_LMS_LRN_PRGRT PRGRT ON PRGRT.SBJCT_ID = A.SBJCT_ID
+        JOIN STD_CNT CNT ON A.DEPT_ID = CNT.DEPT_ID
+        WHERE 1=1
+        <if test="dgrsYr != null and dgrsYr != ''">
+            AND A.DGRS_YR = #{dgrsYr}
+        </if>
+        <if test="dgrsSmstrChrt != null and dgrsSmstrChrt != ''">
+            AND A.DGRS_SMSTR_CHRT = #{dgrsSmstrChrt}
+        </if>
+        <if test="smstrChrtGbncd != null and smstrChrtGbncd != ''">
+            AND A.SMSTR_CHRT_GBNCD = #{smstrChrtGbncd}
+        </if>
+        <if test="orgId != null and orgId != ''">
+            AND A.ORG_ID = #{orgId}
+        </if>
+        <if test="deptId != null and deptId != ''">
+            AND A.DEPT_ID = #{deptId}
+        </if>
+        <if test="sbjctId != null and sbjctId != ''">
+            AND A.SBJCT_ID = #{sbjctId}
+        </if>
+        GROUP BY  A.ORG_ID , A.ORGNM
+                , A.DEPT_ID , A.DEPTNM
+                , A.DGRS_YR , A.DGRS_SMSTR_CHRT , A.DGRS_SMSTR , A.SMSTR_CHRT_GBNCD
+                , CNT.TOT_STD_CNT
+    </select>
+
+    <select id="lrnPrgStsListPaging" resultType="egovMap">
+        /*
+            SQL ID : statsDAO.lrnPrgStsListPaging
+            설   명 : 학습진도관리 > 과목별/담당별 학습진도현황 목록 조회
+        */
+        WITH SBJCT_INFO AS (
+            SELECT
+                  SBJ.SBJCT_ID
+                , SBJ.SBJCTNM
+                , (SBJ.SBJCT_YR || '년') AS SBJCT_YR
+                , (CASE	WHEN NVL(SMSTR.SMSTR_CHRT_GBNCD, 'SMSTR') = 'SMSTR'
+                    THEN  	SMSTR.DGRS_SMSTR_CHRT || '학기'
+                    ELSE	SMSTR.DGRS_SMSTR_CHRT || '기수'
+                  END) AS SBJCT_SMSTR
+--                 , SBJ.SBJCT_SMSTR
+                , SMSTR.SMSTR_CHRT_GBNCD
+                , SBJ.DVCLAS_NO
+                , ORG.ORG_ID
+                , ORG.ORGNM
+                , DEPT.DEPT_ID
+                , DEPT.DEPTNM
+                , SBJ.CRCLMN_NO
+                <if test="searchKey != null and searchKey != '' and searchKey == 'SBJCT_ADM'">
+                , ADM.SBJCT_ADM_TYCD
+                , ADM.USER_ID AS ADM_ID
+                , USR.USERNM AS ADMNM
+                </if>
+                , (SELECT COUNT(USER_ID)
+                   FROM TB_LMS_ATNDLC X
+                   WHERE X.SBJCT_ID = SBJ.SBJCT_ID
+                     AND X.AUDITYN = 'N' ) AS TOT_STD_CNT
+            FROM TB_LMS_SBJCT SBJ
+            JOIN TB_LMS_SMSTR_CHRT SMSTR    ON SBJ.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+            JOIN TB_LMS_DEPT DEPT           ON SBJ.DEPT_ID = DEPT.DEPT_ID
+            JOIN TB_LMS_ORG ORG             ON DEPT.ORG_ID = ORG.ORG_ID
+            <if test="searchKey != null and searchKey != '' and searchKey == 'SBJCT_ADM'">
+            -- 담당정보
+            JOIN TB_LMS_SBJCT_ADM ADM ON SBJ.SBJCT_ID = ADM.SBJCT_ID AND ADM.SBJCT_ADM_TYCD IN ('PROF', 'ASSI')
+            JOIN TB_LMS_USER USR ON ADM.USER_ID = USR.USER_ID
+            </if>
+        ),
+        -- 학습 횟수/시간, 진도율
+        LRN_INFO AS (
+            SELECT
+                  SBJ.SBJCT_ID
+                , NVL(SUM(LOG.CONTS_LRN_RND_CNT), 0) AS TOT_CONTS_LRN_RND_CNT
+                , NVL(SUM(LOG.CONTS_LRN_TOT_MNTS), 0) AS TOT_CONTS_LRN_TOT_MNTS
+                , AVG(NVL(LOG.CONTS_LRN_PRGRT, 0)) AS AVG_LRN_PRGRT
+            FROM TB_LMS_SBJCT SBJ
+            LEFT JOIN TB_LMS_ATNDLC STD         ON SBJ.SBJCT_ID = STD.SBJCT_ID AND STD.AUDITYN = 'N'
+            LEFT JOIN TB_LMS_LCTR_WKNO_SCHDL WK ON SBJ.SBJCT_ID = WK.SBJCT_ID
+            LEFT JOIN TB_LMS_LCTR LCTR          ON WK.LCTR_WKNO_SCHDL_ID = LCTR.LCTR_WKNO_SCHDL_ID
+            LEFT JOIN TB_LMS_LCTR_CONTS CNTS    ON LCTR.LCTR_ID = CNTS.LCTR_ID
+            LEFT JOIN TB_LMS_LCTR_CONTS_LRN_HSTRY LOG ON LOG.LCTR_CONTS_ID = CNTS.LCTR_CONTS_ID AND STD.USER_ID = LOG.USER_ID
+            GROUP BY SBJ.SBJCT_ID
+        ),
+        -- 시험 정보
+        EXAM_BSC_INFO AS (
+            SELECT
+                  SBJ.SBJCT_ID
+                , COALESCE(QUIZ.QUIZ_BSC_ID, BSC.EXAM_BSC_ID) AS EXAM_BSC_ID
+                , BSC.EXAM_GBNCD
+            FROM TB_LMS_SBJCT SBJ
+            JOIN TB_LMS_EXAM_BSC BSC
+                ON SBJ.SBJCT_ID     = BSC.SBJCT_ID
+                AND BSC.EXAM_TYCD   = 'EXAM'
+                AND BSC.DELYN       = 'N'
+                AND BSC.EXAMPPR_OYN = 'Y'
+                AND BSC.REGYN       = 'Y'
+            LEFT JOIN TB_LMS_ONLN_EXAMQUIZ QUIZ ON BSC.EXAM_BSC_ID = QUIZ.EXAM_BSC_ID
+        ),
+        -- 중간고사 정보
+        MID_EXAM_INFO AS (
+            SELECT BSC.SBJCT_ID
+                , COUNT(DISTINCT BSC.EXAM_BSC_ID) AS TOT_EXAM_CNT
+                , COUNT(TK.TKEXAM_ID) AS TOT_TK_CNT
+            FROM EXAM_BSC_INFO BSC
+            JOIN TB_LMS_EXAM_DTL DTL    ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+            LEFT JOIN TB_LMS_TKEXAM TK  ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+            WHERE BSC.EXAM_GBNCD IN ('EXAM_MID', 'EXAM_MID_TEAM')
+            GROUP BY BSC.SBJCT_ID
+        ),
+        -- 기말고사 정보
+        LST_EXAM_INFO AS (
+            SELECT BSC.SBJCT_ID
+                , COUNT(DISTINCT BSC.EXAM_BSC_ID) AS TOT_EXAM_CNT
+                , COUNT(TK.TKEXAM_ID) AS TOT_TK_CNT
+            FROM EXAM_BSC_INFO BSC
+            JOIN TB_LMS_EXAM_DTL DTL    ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+            LEFT JOIN TB_LMS_TKEXAM TK  ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+            WHERE BSC.EXAM_GBNCD IN ('EXAM_LST', 'EXAM_LST_TEAM')
+            GROUP BY BSC.SBJCT_ID
+        ),
+        -- 결시 정보
+        SBST_INFO AS (
+            SELECT
+                  BSC.SBJCT_ID
+                , COUNT(DISTINCT CASE WHEN BSC.EXAM_GBNCD IN ('EXAM_MID', 'EXAM_MID_TEAM')
+                    THEN COALESCE(TK_QUIZ.TKEXAM_ID, TK_ASMT.ASMT_ID) END
+                  ) AS MID_SBST_CNT
+                , COUNT(DISTINCT CASE WHEN BSC.EXAM_GBNCD IN ('EXAM_LST', 'EXAM_LST_TEAM')
+                    THEN COALESCE(TK_QUIZ.TKEXAM_ID, TK_ASMT.ASMT_ID) END
+                  ) AS LST_SBST_CNT
+            FROM TB_LMS_EXAM_EVL_SBST SBST
+            JOIN TB_LMS_EXAM_BSC BSC ON SBST.EXAM_BSC_ID = BSC.EXAM_BSC_ID
+            -- 대체퀴즈 조인
+            LEFT JOIN TB_LMS_EXAM_DTL SB_QUIZ   ON SBST.EXAM_SBST_ID = SB_QUIZ.EXAM_BSC_ID
+            LEFT JOIN TB_LMS_TKEXAM TK_QUIZ     ON SB_QUIZ.EXAM_DTL_ID = TK_QUIZ.EXAM_DTL_ID
+            -- 대체과제 조인
+            LEFT JOIN TB_LMS_ASMT SB_ASMT       ON SBST.EXAM_SBST_ID = SB_ASMT.ASMT_ID
+            LEFT JOIN TB_LMS_ASMT_SBMSN TK_ASMT ON SB_ASMT.ASMT_ID = TK_ASMT.ASMT_ID
+            GROUP BY BSC.SBJCT_ID
+        ),
+        -- 과제 기본정보
+        ASMT_BASE_INFO AS (
+            SELECT
+                  ASMT.SBJCT_ID
+                , ASMT.ASMT_ID
+                , COALESCE(ASMT.UP_ASMT_ID, ASMT.ASMT_ID ) AS BASE_ASMT_ID
+                , ASMT.ASMT_GBNCD
+            FROM TB_LMS_ASMT ASMT
+            WHERE 1=1
+              AND ASMT.ASMT_GBNCD NOT IN ('EXAM_MID_SBST', 'EXAM_LST_SBST')
+              AND ASMT.DELYN    = 'N'
+              AND ASMT.ASMT_OYN = 'Y'
+        ),
+        -- 개별과제 타겟 수
+        ASMT_INDV_TRGT AS (
+            SELECT ASMT.SBJCT_ID, COUNT(TRGT.USER_ID) AS INDIV_TRGT_CNT
+            FROM ASMT_BASE_INFO ASMT
+                     JOIN TB_LMS_ASMT_SBMSN_TRGT TRGT ON ASMT.ASMT_ID = TRGT.ASMT_ID
+            WHERE ASMT.ASMT_GBNCD = 'INDV_ASMT'
+            GROUP BY ASMT.SBJCT_ID
+        ),
+        -- 과제 제출 정보
+        ASMT_SBMT_INFO AS (
+            SELECT ASMT.SBJCT_ID
+                , COUNT(DISTINCT CASE WHEN ASMT.ASMT_GBNCD IN ('ASMT', 'ASMT_TEAM', 'PRCTC_ASMT', 'PRCTC_ASMT_TEAM') THEN SBMT.ASMT_ID || '_' || SBMT.USER_ID END) AS NORMAL_SBMT_CNT
+                , COUNT(DISTINCT CASE WHEN ASMT.ASMT_GBNCD = 'INDV_ASMT' THEN SBMT.ASMT_ID END) AS INDV_SBMT_CNT
+            FROM ASMT_BASE_INFO ASMT
+            JOIN TB_LMS_ASMT_SBMSN SBMT ON ASMT.ASMT_ID = SBMT.ASMT_ID
+            GROUP BY ASMT.SBJCT_ID
+        ),
+        -- 총 과제 건수 정보
+        ASMT_CNT_INFO AS (
+            SELECT SBJCT_ID
+                 , COUNT(DISTINCT CASE WHEN ASMT_GBNCD IN ('ASMT', 'ASMT_TEAM', 'PRCTC_ASMT', 'PRCTC_ASMT_TEAM') THEN BASE_ASMT_ID END) AS TOT_CNT
+            FROM ASMT_BASE_INFO
+            GROUP BY SBJCT_ID
+        ),
+        -- 퀴즈 정보
+        QUIZ_INFO AS (
+            SELECT BSC.SBJCT_ID
+                 , COUNT(DISTINCT BSC.EXAM_BSC_ID) AS TOT_EXAM_CNT
+                 , COUNT(TK.TKEXAM_ID) AS TOT_TK_CNT
+            FROM EXAM_BSC_INFO BSC
+                     JOIN TB_LMS_EXAM_DTL DTL ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+                     LEFT JOIN TB_LMS_TKEXAM TK ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+            WHERE BSC.EXAM_GBNCD IN ('QUIZ', 'QUIZ_TEAM')
+            GROUP BY BSC.SBJCT_ID
+        ),
+        -- 일반시험 정보
+        NORMAL_EXAM_INFO AS (
+            SELECT BSC.SBJCT_ID
+                , COUNT(DISTINCT BSC.EXAM_BSC_ID) AS TOT_EXAM_CNT
+                , COUNT(TK.TKEXAM_ID) AS TOT_TK_CNT
+            FROM EXAM_BSC_INFO BSC
+            JOIN TB_LMS_EXAM_DTL DTL    ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+            LEFT JOIN TB_LMS_TKEXAM TK  ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+            WHERE BSC.EXAM_GBNCD IN ('EXAM', 'EXAM_TEAM')
+            GROUP BY BSC.SBJCT_ID
+        ),
+        -- 설문 정보
+        SRVY_INFO AS (
+            SELECT  SRVY.SBJCT_ID
+                , COUNT(DISTINCT COALESCE(SRVY.UP_SRVY_ID , SRVY.SRVY_ID )) AS TOT_CNT
+                , COUNT(SRVY_PTCP_ID) AS PTCP_CNT
+            FROM TB_LMS_SRVY SRVY
+            LEFT JOIN TB_LMS_SRVY_PTCP PTCP ON SRVY.SRVY_ID = PTCP.SRVY_ID
+            WHERE 1=1
+              AND SRVY.SRVY_TRGT_GBNCD = 'SBJCT'
+              AND SRVY.DELYN = 'N'
+              AND SRVY.USEYN = 'Y'
+              AND SRVY.SRVY_QSTNS_CMPTNYN = 'Y'
+            GROUP BY SRVY.SBJCT_ID
+        ),
+        -- 토론 정보
+        DSCS_INFO AS (
+            SELECT DSCS.SBJCT_ID
+                , COUNT(DISTINCT COALESCE(DSCS.UP_DSCS_ID, DSCS.DSCS_ID)) AS TOT_CNT
+                , COUNT(DISTINCT ATCL.DSCS_ID || '_' || ATCL.USER_ID ) AS PTCP_CNT
+            FROM TB_LMS_DSCS DSCS
+            LEFT JOIN TB_LMS_DSCS_ATCL ATCL ON DSCS.DSCS_ID = ATCL.DSCS_ID
+            WHERE DSCS.DELYN = 'N'
+            GROUP BY DSCS.SBJCT_ID
+        ),
+        -- 세미나 정보
+        SMNR_INFO AS (
+            SELECT SMNR.SBJCT_ID
+                , COUNT(DISTINCT COALESCE(SMNR.UP_SMNR_ID , SMNR.SMNR_ID )) AS TOT_CNT
+                , COUNT(DISTINCT ATND.SMNR_ATND_ID) AS ATND_CNT
+            FROM TB_LMS_SMNR SMNR
+            LEFT JOIN TB_LMS_SMNR_ATND ATND ON SMNR.SMNR_ID = ATND.SMNR_ID
+            WHERE SMNR.DELYN = 'N'
+              AND ATND.ATND_STSCD != 'ABSNT'
+            GROUP BY SMNR.SBJCT_ID
+        )
+        <include refid="CommonSQL.pagePrefix2"/>
+            SELECT
+                  ROW_NUMBER() OVER(ORDER BY A.SBJCT_YR, A.SBJCT_SMSTR, A.ORGNM, A.DEPTNM, A.SBJCTNM, A.DVCLAS_NO) AS LINE_NO
+                , COUNT(*) OVER () AS TOTAL_CNT
+                , A.*
+                , B.TOT_CONTS_LRN_RND_CNT
+                , B.TOT_CONTS_LRN_TOT_MNTS
+                , B.AVG_LRN_PRGRT
+                , CASE WHEN MID.TOT_EXAM_CNT IS NULL
+                    THEN -1
+                    ELSE ROUND( ( NVL(MID.TOT_TK_CNT, 0) + NVL(SBST.MID_SBST_CNT, 0)) / NULLIF(MID.TOT_EXAM_CNT * A.TOT_STD_CNT, 0) * 100, 0)
+                  END AS MID_EXAM_PTCPRT
+                , CASE WHEN LST.TOT_EXAM_CNT IS NULL
+                    THEN -1
+                    ELSE ROUND( ( NVL(LST.TOT_TK_CNT, 0) + NVL(SBST.LST_SBST_CNT, 0)) / NULLIF(LST.TOT_EXAM_CNT * A.TOT_STD_CNT, 0) * 100, 0)
+                  END AS LST_EXAM_PTCPRT
+                , CASE WHEN (ASMT.TOT_CNT IS NULL AND ASMT_INDV.INDIV_TRGT_CNT IS NULL)
+                    THEN -1
+                    ELSE ROUND( ( NVL(ASMT_SBMT.NORMAL_SBMT_CNT, 0) + NVL(ASMT_SBMT.INDV_SBMT_CNT, 0)) / NULLIF(NVL(ASMT.TOT_CNT * A.TOT_STD_CNT, 0) + NVL(ASMT_INDV.INDIV_TRGT_CNT, 0), 0) * 100, 0)
+                  END AS ASMT_PTCPRT
+                , CASE WHEN QUIZ.TOT_EXAM_CNT IS NULL
+                    THEN -1
+                    ELSE ROUND( NVL(QUIZ.TOT_TK_CNT, 0) / NULLIF(QUIZ.TOT_EXAM_CNT * A.TOT_STD_CNT, 0) * 100, 0)
+                  END AS QUIZ_PTCPRT
+                , CASE WHEN EXAM.TOT_EXAM_CNT IS NULL
+                    THEN -1
+                    ELSE ROUND( NVL(EXAM.TOT_TK_CNT, 0) / NULLIF(EXAM.TOT_EXAM_CNT * A.TOT_STD_CNT, 0) * 100, 0)
+                  END AS EXAM_PTCPRT
+                , CASE WHEN DSCS.TOT_CNT IS NULL
+                    THEN -1
+                    ELSE ROUND( NVL(DSCS.PTCP_CNT, 0) / NULLIF(DSCS.TOT_CNT * A.TOT_STD_CNT, 0) * 100, 0)
+                  END AS DSCS_PTCPRT
+                , CASE WHEN SRVY.TOT_CNT IS NULL
+                    THEN -1
+                    ELSE ROUND( NVL(SRVY.PTCP_CNT, 0) / NULLIF(SRVY.TOT_CNT * A.TOT_STD_CNT, 0) * 100, 0)
+                END AS SRVY_PTCPRT
+                , CASE WHEN SMNR.TOT_CNT IS NULL
+                    THEN -1
+                    ELSE ROUND( NVL(SMNR.ATND_CNT, 0) / NULLIF(SMNR.TOT_CNT * A.TOT_STD_CNT, 0) * 100, 0)
+                  END AS SMNR_PTCPRT
+            FROM SBJCT_INFO A
+            JOIN LRN_INFO B ON A.SBJCT_ID = B.SBJCT_ID
+            LEFT JOIN MID_EXAM_INFO MID ON MID.SBJCT_ID = A.SBJCT_ID
+            LEFT JOIN LST_EXAM_INFO LST ON LST.SBJCT_ID = A.SBJCT_ID
+            --결시정보
+            LEFT JOIN SBST_INFO SBST ON A.SBJCT_ID = SBST.SBJCT_ID
+            -- 과제 조인
+            LEFT JOIN ASMT_CNT_INFO ASMT ON A.SBJCT_ID = ASMT.SBJCT_ID -- 총 과제건수
+            LEFT JOIN ASMT_SBMT_INFO ASMT_SBMT ON A.SBJCT_ID = ASMT_SBMT.SBJCT_ID -- 총 제출 건수
+            LEFT JOIN ASMT_INDV_TRGT ASMT_INDV ON A.SBJCT_ID = ASMT_INDV.SBJCT_ID -- 개별 제출 대상 수
+            --퀴즈 조인
+            LEFT JOIN QUIZ_INFO QUIZ ON QUIZ.SBJCT_ID = A.SBJCT_ID
+            --일반 시험 조인
+            LEFT JOIN NORMAL_EXAM_INFO EXAM ON A.SBJCT_ID = EXAM.SBJCT_ID
+            --토론 조인
+            LEFT JOIN DSCS_INFO DSCS ON A.SBJCT_ID = DSCS.SBJCT_ID
+            --설문 조인
+            LEFT JOIN SRVY_INFO SRVY ON A.SBJCT_ID = SRVY.SBJCT_ID
+            --세미나 조인
+            LEFT JOIN SMNR_INFO SMNR ON A.SBJCT_ID = SMNR.SBJCT_ID
+            WHERE 1=1
+            AND A.TOT_STD_CNT != 0
+        <if test="orgId != null and orgId != ''">
+            AND A.ORG_ID = #{orgId}
+        </if>
+        <if test="smstrChrtGbncd != null and smstrChrtGbncd != ''">
+            AND A.SMSTR_CHRT_GBNCD = #{smstrChrtGbncd}
+        </if>
+        <if test="dgrsYr != null and dgrsYr != ''">
+            AND A.SBJCT_YR = #{dgrsYr}
+        </if>
+        <if test="dgrsSmstrChrt != null and dgrsSmstrChrt != ''">
+            AND A.SBJCT_SMSTR = #{dgrsSmstrChrt}
+        </if>
+        <if test="deptId != null and deptId != ''">
+            AND A.DEPT_ID = #{deptId}
+        </if>
+        <if test="sbjctId != null and sbjctId != ''">
+            AND A.SBJCT_ID = #{sbjctId}
+        </if>
+        <if test="searchValue != null and searchValue != '' and searchKey == 'SBJCT'">
+            AND (
+            LOWER(A.SBJCTNM)   LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            OR LOWER(A.CRCLMN_NO) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                )
+        </if>
+        <if test="searchValue != null and searchValue != '' and searchKey == 'SBJCT_ADM'">
+            AND (
+            LOWER(A.ADMNM)   LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            )
+        </if>
+        <include refid="CommonSQL.pageSuffix2"/>
+    </select>
+
+    <select id="admLrnPrgStsAllAvgSelect" resultType="egovMap">
+        /*
+        SQL ID : statsDAO.admLrnPrgStsAllAvgSelect
+        설   명 : 학습진도관리 > 학습진도 전체 평균
+        */
+        WITH SBJCT_INFO AS (
+            SELECT
+                  SBJ.SBJCT_ID
+                , SBJ.SBJCTNM
+                , SBJ.SBJCT_YR
+                , SBJ.SBJCT_SMSTR
+                , SBJ.DVCLAS_NO
+                , ORG.ORG_ID
+                , ORG.ORGNM
+                , DEPT.DEPT_ID
+                , DEPT.DEPTNM
+                , (SELECT COUNT(USER_ID)
+                    FROM TB_LMS_ATNDLC X
+                    WHERE X.SBJCT_ID = SBJ.SBJCT_ID
+                    AND X.AUDITYN = 'N' ) AS TOT_STD_CNT
+            FROM TB_LMS_SBJCT SBJ
+            JOIN TB_LMS_SMSTR_CHRT SMSTR    ON SBJ.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+            JOIN TB_LMS_DEPT DEPT           ON SBJ.DEPT_ID = DEPT.DEPT_ID
+            JOIN TB_LMS_ORG ORG             ON DEPT.ORG_ID = ORG.ORG_ID
+        ),
+        -- 학습 횟수/시간, 진도율
+        LRN_INFO AS (
+            SELECT
+                  SBJ.SBJCT_ID
+                , NVL(SUM(LOG.CONTS_LRN_RND_CNT ), 0) AS TOT_CONTS_LRN_RND_CNT
+                , NVL(SUM(LOG.CONTS_LRN_TOT_MNTS), 0) AS TOT_CONTS_LRN_TOT_MNTS
+                , NVL(AVG(LOG.CONTS_LRN_PRGRT   ), 0) AS AVG_LRN_PRGRT
+            FROM TB_LMS_SBJCT SBJ
+            LEFT JOIN TB_LMS_ATNDLC STD         ON SBJ.SBJCT_ID = STD.SBJCT_ID AND STD.AUDITYN = 'N'
+            LEFT JOIN TB_LMS_LCTR_WKNO_SCHDL WK ON SBJ.SBJCT_ID = WK.SBJCT_ID
+            LEFT JOIN TB_LMS_LCTR LCTR          ON WK.LCTR_WKNO_SCHDL_ID = LCTR.LCTR_WKNO_SCHDL_ID
+            LEFT JOIN TB_LMS_LCTR_CONTS CNTS    ON LCTR.LCTR_ID = CNTS.LCTR_ID
+            LEFT JOIN TB_LMS_LCTR_CONTS_LRN_HSTRY LOG ON LOG.LCTR_CONTS_ID = CNTS.LCTR_CONTS_ID AND STD.USER_ID = LOG.USER_ID
+            GROUP BY SBJ.SBJCT_ID
+        ),
+        -- 시험 정보
+        EXAM_BSC_INFO AS (
+            SELECT
+                  SBJ.SBJCT_ID
+                , COALESCE(QUIZ.QUIZ_BSC_ID, BSC.EXAM_BSC_ID) AS EXAM_BSC_ID
+                , BSC.EXAM_GBNCD
+            FROM TB_LMS_SBJCT SBJ
+            JOIN TB_LMS_EXAM_BSC BSC
+                ON SBJ.SBJCT_ID     = BSC.SBJCT_ID
+                AND BSC.EXAM_TYCD   = 'EXAM'
+                AND BSC.DELYN       = 'N'
+                AND BSC.EXAMPPR_OYN = 'Y'
+                AND BSC.REGYN       = 'Y'
+            LEFT JOIN TB_LMS_ONLN_EXAMQUIZ QUIZ ON BSC.EXAM_BSC_ID = QUIZ.EXAM_BSC_ID
+        ),
+        -- 중간고사 정보
+        MID_EXAM_INFO AS (
+            SELECT BSC.SBJCT_ID
+                , COUNT(DISTINCT BSC.EXAM_BSC_ID) AS TOT_EXAM_CNT
+                , COUNT(TK.TKEXAM_ID) AS TOT_TK_CNT
+            FROM EXAM_BSC_INFO BSC
+            JOIN TB_LMS_EXAM_DTL DTL    ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+            LEFT JOIN TB_LMS_TKEXAM TK  ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+            WHERE BSC.EXAM_GBNCD IN ('EXAM_MID', 'EXAM_MID_TEAM')
+            GROUP BY BSC.SBJCT_ID
+        ),
+        -- 기말고사 정보
+        LST_EXAM_INFO AS (
+            SELECT BSC.SBJCT_ID
+                , COUNT(DISTINCT BSC.EXAM_BSC_ID) AS TOT_EXAM_CNT
+                , COUNT(TK.TKEXAM_ID) AS TOT_TK_CNT
+            FROM EXAM_BSC_INFO BSC
+            JOIN TB_LMS_EXAM_DTL DTL    ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+            LEFT JOIN TB_LMS_TKEXAM TK  ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+            WHERE BSC.EXAM_GBNCD IN ('EXAM_LST', 'EXAM_LST_TEAM')
+            GROUP BY BSC.SBJCT_ID
+        ),
+        -- 결시 정보
+        SBST_INFO AS (
+            SELECT BSC.SBJCT_ID
+                , COUNT(DISTINCT CASE WHEN BSC.EXAM_GBNCD IN ('EXAM_MID', 'EXAM_MID_TEAM')
+                    THEN COALESCE(TK_QUIZ.TKEXAM_ID, TK_ASMT.ASMT_ID) END
+                  ) AS MID_SBST_CNT
+                , COUNT(DISTINCT CASE WHEN BSC.EXAM_GBNCD IN ('EXAM_LST', 'EXAM_LST_TEAM')
+                    THEN COALESCE(TK_QUIZ.TKEXAM_ID, TK_ASMT.ASMT_ID) END
+                  ) AS LST_SBST_CNT
+            FROM TB_LMS_EXAM_EVL_SBST SBST
+            JOIN TB_LMS_EXAM_BSC BSC ON SBST.EXAM_BSC_ID = BSC.EXAM_BSC_ID
+            -- 대체퀴즈 조인
+            LEFT JOIN TB_LMS_EXAM_DTL SB_QUIZ   ON SBST.EXAM_SBST_ID = SB_QUIZ.EXAM_BSC_ID
+            LEFT JOIN TB_LMS_TKEXAM TK_QUIZ     ON SB_QUIZ.EXAM_DTL_ID = TK_QUIZ.EXAM_DTL_ID
+            -- 대체과제 조인
+            LEFT JOIN TB_LMS_ASMT SB_ASMT       ON SBST.EXAM_SBST_ID = SB_ASMT.ASMT_ID
+            LEFT JOIN TB_LMS_ASMT_SBMSN TK_ASMT ON SB_ASMT.ASMT_ID = TK_ASMT.ASMT_ID
+            GROUP BY BSC.SBJCT_ID
+        ),
+        -- 과제 기본정보
+        ASMT_BASE_INFO AS (
+            SELECT ASMT.SBJCT_ID
+                , ASMT.ASMT_ID
+                , COALESCE(ASMT.UP_ASMT_ID, ASMT.ASMT_ID ) AS BASE_ASMT_ID
+                , ASMT.ASMT_GBNCD
+            FROM TB_LMS_ASMT ASMT
+            WHERE 1=1
+                AND ASMT.ASMT_GBNCD NOT IN ('EXAM_MID_SBST', 'EXAM_LST_SBST')
+                AND ASMT.DELYN    = 'N'
+                AND ASMT.ASMT_OYN = 'Y'
+        ),
+        -- 개별과제 타겟 수
+        ASMT_INDV_TRGT AS (
+            SELECT ASMT.SBJCT_ID, COUNT(TRGT.USER_ID) AS INDIV_TRGT_CNT
+            FROM ASMT_BASE_INFO ASMT
+            JOIN TB_LMS_ASMT_SBMSN_TRGT TRGT ON ASMT.ASMT_ID = TRGT.ASMT_ID
+            WHERE ASMT.ASMT_GBNCD = 'INDV_ASMT'
+            GROUP BY ASMT.SBJCT_ID
+        ),
+        -- 과제 제출 정보
+        ASMT_SBMT_INFO AS (
+            SELECT ASMT.SBJCT_ID
+                , COUNT(DISTINCT CASE WHEN ASMT.ASMT_GBNCD IN ('ASMT', 'ASMT_TEAM', 'PRCTC_ASMT', 'PRCTC_ASMT_TEAM') THEN SBMT.ASMT_ID || '_' || SBMT.USER_ID END) AS NORMAL_SBMT_CNT
+                , COUNT(DISTINCT CASE WHEN ASMT.ASMT_GBNCD = 'INDV_ASMT' THEN SBMT.ASMT_ID END) AS INDV_SBMT_CNT
+            FROM ASMT_BASE_INFO ASMT
+            JOIN TB_LMS_ASMT_SBMSN SBMT ON ASMT.ASMT_ID = SBMT.ASMT_ID
+            GROUP BY ASMT.SBJCT_ID
+        ),
+        -- 총 과제 건수 정보
+        ASMT_CNT_INFO AS (
+            SELECT SBJCT_ID
+                , COUNT(DISTINCT CASE WHEN ASMT_GBNCD IN ('ASMT', 'ASMT_TEAM', 'PRCTC_ASMT', 'PRCTC_ASMT_TEAM') THEN BASE_ASMT_ID END) AS TOT_CNT
+            FROM ASMT_BASE_INFO
+            GROUP BY SBJCT_ID
+        ),
+        -- 퀴즈 정보
+        QUIZ_INFO AS (
+            SELECT BSC.SBJCT_ID
+                , COUNT(DISTINCT BSC.EXAM_BSC_ID) AS TOT_EXAM_CNT
+                , COUNT(TK.TKEXAM_ID) AS TOT_TK_CNT
+            FROM EXAM_BSC_INFO BSC
+            JOIN TB_LMS_EXAM_DTL DTL ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+            LEFT JOIN TB_LMS_TKEXAM TK ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+            WHERE BSC.EXAM_GBNCD IN ('QUIZ', 'QUIZ_TEAM')
+            GROUP BY BSC.SBJCT_ID
+        ),
+        -- 일반시험 정보
+        NORMAL_EXAM_INFO AS (
+            SELECT BSC.SBJCT_ID
+                , COUNT(DISTINCT BSC.EXAM_BSC_ID) AS TOT_EXAM_CNT
+                , COUNT(TK.TKEXAM_ID) AS TOT_TK_CNT
+            FROM EXAM_BSC_INFO BSC
+            JOIN TB_LMS_EXAM_DTL DTL    ON BSC.EXAM_BSC_ID = DTL.EXAM_BSC_ID
+            LEFT JOIN TB_LMS_TKEXAM TK  ON DTL.EXAM_DTL_ID = TK.EXAM_DTL_ID
+            WHERE BSC.EXAM_GBNCD IN ('EXAM', 'EXAM_TEAM')
+            GROUP BY BSC.SBJCT_ID
+        ),
+        -- 설문 정보
+        SRVY_INFO AS (
+            SELECT  SRVY.SBJCT_ID
+                , COUNT(DISTINCT COALESCE(SRVY.UP_SRVY_ID , SRVY.SRVY_ID )) AS TOT_CNT
+                , COUNT(SRVY_PTCP_ID) AS PTCP_CNT
+            FROM TB_LMS_SRVY SRVY
+            LEFT JOIN TB_LMS_SRVY_PTCP PTCP ON SRVY.SRVY_ID = PTCP.SRVY_ID
+            WHERE 1=1
+                AND SRVY.SRVY_TRGT_GBNCD = 'SBJCT'
+                AND SRVY.DELYN = 'N'
+                AND SRVY.USEYN = 'Y'
+                AND SRVY.SRVY_QSTNS_CMPTNYN = 'Y'
+            GROUP BY SRVY.SBJCT_ID
+        ),
+        -- 토론 정보
+        DSCS_INFO AS (
+            SELECT DSCS.SBJCT_ID
+                , COUNT(DISTINCT COALESCE(DSCS.UP_DSCS_ID, DSCS.DSCS_ID)) AS TOT_CNT
+                , COUNT(DISTINCT ATCL.DSCS_ID || '_' || ATCL.USER_ID ) AS PTCP_CNT
+            FROM TB_LMS_DSCS DSCS
+            LEFT JOIN TB_LMS_DSCS_ATCL ATCL ON DSCS.DSCS_ID = ATCL.DSCS_ID
+            WHERE DSCS.DELYN = 'N'
+            GROUP BY DSCS.SBJCT_ID
+        ),
+        -- 세미나 정보
+        SMNR_INFO AS (
+            SELECT SMNR.SBJCT_ID
+                , COUNT(DISTINCT COALESCE(SMNR.UP_SMNR_ID , SMNR.SMNR_ID )) AS TOT_CNT
+                , COUNT(DISTINCT ATND.SMNR_ATND_ID) AS ATND_CNT
+            FROM TB_LMS_SMNR SMNR
+            LEFT JOIN TB_LMS_SMNR_ATND ATND ON SMNR.SMNR_ID = ATND.SMNR_ID
+            WHERE SMNR.DELYN = 'N'
+            AND ATND.ATND_STSCD != 'ABSNT'
+            GROUP BY SMNR.SBJCT_ID
+        ),
+        -- 과목별 평균
+        AVG_INFO AS (
+            SELECT
+              ROW_NUMBER() OVER(ORDER BY A.SBJCT_YR, A.SBJCT_SMSTR, A.ORGNM, A.DEPTNM, A.SBJCTNM, A.DVCLAS_NO) AS LINE_NO
+            , A.*
+            , B.TOT_CONTS_LRN_RND_CNT
+            , B.TOT_CONTS_LRN_TOT_MNTS
+            , B.AVG_LRN_PRGRT
+            , CASE WHEN MID.TOT_EXAM_CNT IS NULL
+                THEN -1
+                ELSE ROUND( ( NVL(MID.TOT_TK_CNT, 0) + NVL(SBST.MID_SBST_CNT, 0)) / NULLIF(MID.TOT_EXAM_CNT * A.TOT_STD_CNT, 0) * 100, 0)
+              END AS MID_EXAM_PTCPRT
+            , CASE WHEN LST.TOT_EXAM_CNT IS NULL
+                THEN -1
+                ELSE ROUND( ( NVL(LST.TOT_TK_CNT, 0) + NVL(SBST.LST_SBST_CNT, 0)) / NULLIF(LST.TOT_EXAM_CNT * A.TOT_STD_CNT, 0) * 100, 0)
+              END AS LST_EXAM_PTCPRT
+            , CASE WHEN (ASMT.TOT_CNT IS NULL AND ASMT_INDV.INDIV_TRGT_CNT IS NULL)
+                THEN -1
+                ELSE ROUND( ( NVL(ASMT_SBMT.NORMAL_SBMT_CNT, 0) + NVL(ASMT_SBMT.INDV_SBMT_CNT, 0)) / NULLIF(NVL(ASMT.TOT_CNT * A.TOT_STD_CNT, 0) + NVL(ASMT_INDV.INDIV_TRGT_CNT, 0), 0) * 100, 0)
+              END AS ASMT_PTCPRT
+            , CASE WHEN QUIZ.TOT_EXAM_CNT IS NULL
+                THEN -1
+                ELSE ROUND( NVL(QUIZ.TOT_TK_CNT, 0) / NULLIF(QUIZ.TOT_EXAM_CNT * A.TOT_STD_CNT, 0) * 100, 0)
+              END AS QUIZ_PTCPRT
+            , CASE WHEN EXAM.TOT_EXAM_CNT IS NULL
+                THEN -1
+                ELSE ROUND( NVL(EXAM.TOT_TK_CNT, 0) / NULLIF(EXAM.TOT_EXAM_CNT * A.TOT_STD_CNT, 0) * 100, 0)
+              END AS EXAM_PTCPRT
+            , CASE WHEN DSCS.TOT_CNT IS NULL
+                THEN -1
+                ELSE ROUND( NVL(DSCS.PTCP_CNT, 0) / NULLIF(DSCS.TOT_CNT * A.TOT_STD_CNT, 0) * 100, 0)
+              END AS DSCS_PTCPRT
+            , CASE WHEN SRVY.TOT_CNT IS NULL
+                THEN -1
+                ELSE ROUND( NVL(SRVY.PTCP_CNT, 0) / NULLIF(SRVY.TOT_CNT * A.TOT_STD_CNT, 0) * 100, 0)
+              END AS SRVY_PTCPRT
+            , CASE WHEN SMNR.TOT_CNT IS NULL
+                THEN -1
+                ELSE ROUND( NVL(SMNR.ATND_CNT, 0) / NULLIF(SMNR.TOT_CNT * A.TOT_STD_CNT, 0) * 100, 0)
+              END AS SMNR_PTCPRT
+            FROM SBJCT_INFO A
+            JOIN LRN_INFO B ON A.SBJCT_ID = B.SBJCT_ID
+            LEFT JOIN MID_EXAM_INFO MID ON MID.SBJCT_ID = A.SBJCT_ID
+            LEFT JOIN LST_EXAM_INFO LST ON LST.SBJCT_ID = A.SBJCT_ID
+            --결시정보
+            LEFT JOIN SBST_INFO SBST ON A.SBJCT_ID = SBST.SBJCT_ID
+            -- 과제 조인
+            LEFT JOIN ASMT_CNT_INFO ASMT ON A.SBJCT_ID = ASMT.SBJCT_ID -- 총 과제건수
+            LEFT JOIN ASMT_SBMT_INFO ASMT_SBMT ON A.SBJCT_ID = ASMT_SBMT.SBJCT_ID -- 총 제출 건수
+            LEFT JOIN ASMT_INDV_TRGT ASMT_INDV ON A.SBJCT_ID = ASMT_INDV.SBJCT_ID -- 개별 제출 대상 수
+            --퀴즈 조인
+            LEFT JOIN QUIZ_INFO QUIZ ON QUIZ.SBJCT_ID = A.SBJCT_ID
+            --일반 시험 조인
+            LEFT JOIN NORMAL_EXAM_INFO EXAM ON A.SBJCT_ID = EXAM.SBJCT_ID
+            --토론 조인
+            LEFT JOIN DSCS_INFO DSCS ON A.SBJCT_ID = DSCS.SBJCT_ID
+            --설문 조인
+            LEFT JOIN SRVY_INFO SRVY ON A.SBJCT_ID = SRVY.SBJCT_ID
+            --세미나 조인
+            LEFT JOIN SMNR_INFO SMNR ON A.SBJCT_ID = SMNR.SBJCT_ID
+            WHERE 1=1
+            AND A.TOT_STD_CNT != 0
+        <if test="orgId != null and orgId != ''">
+            AND A.ORG_ID = #{orgId}
+        </if>
+        <if test="dgrsYr != null and dgrsYr != ''">
+            AND A.SBJCT_YR = #{dgrsYr}
+        </if>
+        <if test="dgrsSmstrChrt != null and dgrsSmstrChrt != ''">
+            AND A.SBJCT_SMSTR = #{dgrsSmstrChrt}
+        </if>
+        )
+        SELECT
+              SUM(X.TOT_CONTS_LRN_RND_CNT)  AS TOT_CONTS_LRN_RND_CNT
+            , SUM(X.TOT_CONTS_LRN_TOT_MNTS) AS TOT_CONTS_LRN_TOT_MNTS
+            , ROUND(AVG(X.AVG_LRN_PRGRT), 0) AS AVG_LRN_PRGRT
+            , NVL(ROUND(AVG(CASE WHEN X.MID_EXAM_PTCPRT != -1 THEN X.MID_EXAM_PTCPRT END), 0), -1) AS MID_EXAM_PTCPRT
+            , NVL(ROUND(AVG(CASE WHEN X.LST_EXAM_PTCPRT != -1 THEN X.LST_EXAM_PTCPRT END), 0), -1) AS LST_EXAM_PTCPRT
+            , NVL(ROUND(AVG(CASE WHEN X.ASMT_PTCPRT     != -1 THEN X.ASMT_PTCPRT 	 END), 0), -1) AS ASMT_PTCPRT
+            , NVL(ROUND(AVG(CASE WHEN X.QUIZ_PTCPRT     != -1 THEN X.QUIZ_PTCPRT 	 END), 0), -1) AS QUIZ_PTCPRT
+            , NVL(ROUND(AVG(CASE WHEN X.EXAM_PTCPRT     != -1 THEN X.EXAM_PTCPRT 	 END), 0), -1) AS EXAM_PTCPRT
+            , NVL(ROUND(AVG(CASE WHEN X.DSCS_PTCPRT     != -1 THEN X.DSCS_PTCPRT 	 END), 0), -1) AS DSCS_PTCPRT
+            , NVL(ROUND(AVG(CASE WHEN X.SRVY_PTCPRT     != -1 THEN X.SRVY_PTCPRT 	 END), 0), -1) AS SRVY_PTCPRT
+            , NVL(ROUND(AVG(CASE WHEN X.SMNR_PTCPRT     != -1 THEN X.SMNR_PTCPRT	 END), 0), -1) AS SMNR_PTCPRT
+        FROM AVG_INFO X
+    </select>
+
+
+</mapper>

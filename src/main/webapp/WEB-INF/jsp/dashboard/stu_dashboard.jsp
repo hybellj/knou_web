@@ -9,14 +9,19 @@
 	</jsp:include>
 </head>
 
+<c:set var="orgId" value="${orgId}"/>
 <c:set var="userId" value="${userId}"/>
 <c:set var="authrtGrpcd" value="${authrtGrpcd}"/>
 
-<body class="home colorA ">
+<body class="home ${uiex:getTheme()} ">
     <div id="wrap" class="main">
+
         <!-- common header -->
         <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp">
-            <jsp:param name="userId" value="${userId}" />
+            <jsp:param name="orgId" 			value="${dashboardVO.headerOrgId}" />
+            <jsp:param name="usserTycd" 		value="${dashboardVO.headerUserTycd}" />
+            <jsp:param name="userId" 			value="${userId}" />
+            <jsp:param name="authrtGrpcd" 		value="${authrtGrpcd}" />
       	</jsp:include>
         <!-- //common header -->
 
@@ -44,6 +49,7 @@
 	<script>
     let dashboardWidget = null;
     let userId = "${userId}";
+    let encParams = "${encParams}";
 
     $(document).ready(function() {
 		// 위젯 초기화
@@ -132,12 +138,13 @@
 
 	    var url = "/dashboard/widgetStngChange.do";
 	  	var data = {
-		  			userId      : "${userId}",
-		  			widgetUseId : "STU",
-		  			widgetId    : "STU",
-		    	  	widgetNm    : "STU",
-		    	  	orgId       : "LMSBASIC",
-		    		widgetUserStngCts  : JSON.stringify(finalData)
+	  			userId            : "${userId}",
+		        widgetUseId       : "${authrtGrpcd}",
+		        widgetId          : "${authrtGrpcd}",
+		        widgetNm          : "${authrtGrpcd}",
+		        widgetExpln       : "${authrtGrpcd}",
+		        orgId             : "${orgId}",
+		    	widgetUserStngCts  : JSON.stringify(finalData)
 		};
 
   	  	ajaxCall(url, data, function(res) {
@@ -155,35 +162,35 @@
 	function loadWidgetContent(widgetId) {
 		switch (widgetId) {
 			case 'wigt_stu_today': // Today
-				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetToday.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetToday.do?encParams="+encParams);
 				break;
 
 			case 'wigt_stu_schedule': // 이달의 학사일정
-				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetSchedule.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetSchedule.do?encParams="+encParams);
 				break;
 
 			case 'wigt_stu_notice': // 공지사항
-				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetNotice.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetNotice.do?encParams="+encParams);
 				break;
 
 			case 'wigt_stu_contstdy': // 강의 이어듣기
-				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetContstdy.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetContstdy.do?encParams="+encParams);
 				break;
 
 			case 'wigt_stu_subject': // 수강과목
-				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetSubject.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetSubject.do?encParams="+encParams);
 				break;
 
 			case 'wigt_stu_msg': // 알림(메시지)
-				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetMsg.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetMsg.do?encParams="+encParams);
 				break;
 
 			case 'wigt_stu_qna': // 강의Q&A
-				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetQna.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetQna.do?encParams="+encParams);
 				break;
 
 			case 'wigt_stu_pds': // 강의 자료실
-				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetPds.do");
+				dashboardWidget.loadUrl(widgetId, "/dashboard/stuWidgetPds.do?encParams="+encParams);
 				break;
 
    	  	    default:

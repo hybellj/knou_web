@@ -11,19 +11,21 @@ public class QstnVO extends DefaultVO {
 	private static final long serialVersionUID = -7350347079785613420L;
 
 	// TB_LMS_QSTN ( 문항 )
-	private String 	qstnId;				// 문항아이디
-	private String 	examDtlId;			// 시험상세아이디
-	private String 	qstnTtl;			// 문항제목
-	private String 	qstnCts;			// 문항내용
-	private Integer	qstnSeqno;			// 문항순번
-	private Integer	qstnCnddtSeqno;		// 문항후보순번
-	private String 	qstnGbncd;			// 문항구분코드 ( TXT : 텍스트, IMG : 이미지, VDO : 비디오, VOICE : 오디오 )
-	private String 	qstnRspnsTycd;		// 문항답변유형코드 ( MLT_CHC : 다중선택형, OX_CHC : OX선택형, LEVEL : 레벨형, ONE_CHC : 단일선택형 , LONG_TEXT : 서술형 , SHORT_TEXT : 단답형, LINK : 연결형 )
-	private BigDecimal qstnScr;			// 문항점수
-	private String 	qstnDfctlvTycd;		// 문항난이도유형코드 ( NONE : 상관없음, LOW : 하, MIDDLE : 중, HIGH : 상 )
-	private String 	edtrUseyn;			// 편집기사용여부
-	private String 	cransTycd;			// 정답유형코드 ( CRANS_INORDER : 정답순서에맞춰서, CRANS_NOT_INORDER : 정답순서에상관없이, CRANS_MLT : 다중정답 )
-	private String 	delyn;				// 삭제여부
+	private String 	qstnId;						// 문항아이디
+	private String 	examDtlId;					// 시험상세아이디
+	private String 	qstnTtl;					// 문항제목
+	private String 	qstnCts;					// 문항내용
+	private Integer	qstnSeqno;					// 문항순번
+	private Integer	qstnCnddtSeqno;				// 문항후보순번
+	private String 	qstnGbncd;					// 문항구분코드 ( TXT : 텍스트, IMG : 이미지, VDO : 비디오, VOICE : 오디오 )
+	private String 	qstnRspnsTycd;				// 문항답변유형코드 ( MLT_CHC : 다중선택형, OX_CHC : OX선택형, LEVEL : 레벨형, ONE_CHC : 단일선택형 , LONG_TEXT : 서술형 , SHORT_TEXT : 단답형, LINK : 연결형 )
+	private BigDecimal qstnScr;					// 문항점수
+	private String 	qstnDfctlvTycd;				// 문항난이도유형코드 ( NONE : 상관없음, LOW : 하, MIDDLE : 중, HIGH : 상 )
+	private String 	edtrUseyn;					// 편집기사용여부
+	private String 	cransTycd;					// 정답유형코드 ( CRANS_INORDER : 정답순서에맞춰서, CRANS_NOT_INORDER : 정답순서에상관없이, CRANS_MLT : 다중정답 )
+	private String 	delyn;						// 삭제여부
+	private String  exrcsSddnQstnBscId;			// 연습돌발문항기본아이디
+	private String  cransExpln;					// 정답설명
 
 	private List<Map<String, Object>> qstns;	// 문항 등록용
 	private String  examBscId;					// 시험기본아이디
@@ -139,6 +141,18 @@ public class QstnVO extends DefaultVO {
 	}
 	public void setVwitmList(List<QstnVwitmVO> vwitmList) {
 		this.vwitmList = vwitmList;
+	}
+	public String getExrcsSddnQstnBscId() {
+		return exrcsSddnQstnBscId;
+	}
+	public void setExrcsSddnQstnBscId(String exrcsSddnQstnBscId) {
+		this.exrcsSddnQstnBscId = exrcsSddnQstnBscId;
+	}
+	public String getCransExpln() {
+		return cransExpln;
+	}
+	public void setCransExpln(String cransExpln) {
+		this.cransExpln = cransExpln;
 	}
 
 }

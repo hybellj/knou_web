@@ -14,8 +14,9 @@ public class SmstrChrtSchdlVO extends DefaultVO {
 	private Integer		tocSeq;				// 목차순서
 	private String		smstrChrtSymd;		// 학기기수시작일자
 	private String		smstrChrtEymd;		// 학기기수종료일자
-	private String		atndcRcgSymd;		// 출석인정시작일자
-	private String		atndcRcgEymd;		// 출석인정종료일자
+	private String		smstrChrtAtndcRcgSymd;	// 학기기수출석인정시작일자
+	private String		smstrChrtAtndcRcgEymd;	// 학기기수출석인정종료일자
+	private String		schdlWknonm;		// 일정주차명
 
 
 	public String getSmstrChrtSchdlId() {
@@ -66,20 +67,28 @@ public class SmstrChrtSchdlVO extends DefaultVO {
 		this.smstrChrtEymd = smstrChrtEymd;
 	}
 
-	public String getAtndcRcgSymd() {
-		return atndcRcgSymd;
+	public String getSmstrChrtAtndcRcgSymd() {
+		return smstrChrtAtndcRcgSymd;
 	}
 
-	public void setAtndcRcgSymd(String atndcRcgSymd) {
-		this.atndcRcgSymd = atndcRcgSymd;
+	public void setSmstrChrtAtndcRcgSymd(String smstrChrtAtndcRcgSymd) {
+		this.smstrChrtAtndcRcgSymd = smstrChrtAtndcRcgSymd;
 	}
 
-	public String getAtndcRcgEymd() {
-		return atndcRcgEymd;
+	public String getSmstrChrtAtndcRcgEymd() {
+		return smstrChrtAtndcRcgEymd;
 	}
 
-	public void setAtndcRcgEymd(String atndcRcgEymd) {
-		this.atndcRcgEymd = atndcRcgEymd;
+	public void setSmstrChrtAtndcRcgEymd(String smstrChrtAtndcRcgEymd) {
+		this.smstrChrtAtndcRcgEymd = smstrChrtAtndcRcgEymd;
+	}
+
+	public String getSchdlWknonm() {
+		return schdlWknonm;
+	}
+
+	public void setSchdlWknonm(String schdlWknonm) {
+		this.schdlWknonm = schdlWknonm;
 	}
 
 	public static long getSerialversionuid() {

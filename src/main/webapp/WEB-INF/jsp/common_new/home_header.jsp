@@ -1,119 +1,15 @@
-<%@ page import="knou.framework.common.SessionInfo" %>
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="knou.framework.common.SessionInfo" %>
+<%@ page import="knou.framework.context2.UserContext" %>
 <%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <c:if test="${pageType ne 'iframe' or param.view eq 'on'}">
 
-<c:set var="orgId" value="${orgId}"/>
-<c:set var="userId" value="${userId}"/>
-<c:set var="authrtGrpcd" value="${authrtGrpcd}"/>
-
-<script type="text/javascript">
-/* 1. 즉시 실행 로그 - 이게 안 찍히면 스크립트 태그 위치가 잘못된 것입니다. */
-console.log("--- 스크립트 진입 성공 ---");
-
-(function() {
-    // JSP 데이터 로드
-    var userData = [
-        <c:forEach var="item" items="${SessionInfo.getUserContext(pageContext.request).getUserOrgIdsFromSubject()}" varStatus="status">
-        { 
-            orgId: "${item.orgId}".trim(), 
-            orgnm: "${item.orgnm}".trim(), 
-            userTycd: "${item.userTycd}".trim(), 
-            userId: "${item.userId}".trim() 
-        }${!status.last ? ',' : ''}
-        </c:forEach>
-    ];
-
-    console.log("데이터 개수:", userData.length);
-
-    // 문서 로드 후 실행
-    window.onload = function() {
-        console.log("window.onload 실행됨");
-        
-        var orgSelect = document.getElementById('orgSelect');
-        var typeSelect = document.getElementById('typeSelect');
-        var userIdText = document.getElementById('userIdText');
-
-        if (!orgSelect) {
-            console.error("ID가 'orgSelect'인 요소를 찾을 수 없습니다.");
-            return;
-        }
-
-        // 2. 기관 중복 제거 및 채우기
-        var orgMap = {};
-        var html = '<option value="">기관을 선택하세요</option>';
-        
-        for (var i = 0; i < userData.length; i++) {
-            var item = userData[i];
-            if (item.orgId && item.orgId !== 'ALL' && !orgMap[item.orgId]) {
-                orgMap[item.orgId] = true;
-                html += '<option value="' + item.orgId + '">' + item.orgnm + '</option>';
-            }
-        }
-        orgSelect.innerHTML = html;
-        console.log("기관 SelectBox 채우기 완료");
-
-        // 3. 기관 변경 이벤트
-        orgSelect.onchange = function() {
-            var selectedId = this.value;
-            console.log("기관 변경:", selectedId);
-            
-            typeSelect.innerHTML = '<option value="">타입 선택</option>';
-            userIdText.innerText = "-";
-
-            if (!selectedId) return;
-
-            var types = [];
-            var typeMap = {};
-            
-            // 필터링 (해당 기관 + 전체)
-            for (var j = 0; j < userData.length; j++) {
-                var item = userData[j];
-                if (item.orgId === selectedId || item.orgId === 'ALL') {
-                    if (!typeMap[item.userTycd]) {
-                        typeMap[item.userTycd] = true;
-                        types.push(item.userTycd);
-                    }
-                }
-            }
-
-            for (var k = 0; k < types.length; k++) {
-                var ty = types[k];
-                var name = (ty === 'PROF') ? '교수' : (ty === 'STDNT' ? '학생' : '전체');
-                var opt = document.createElement('option');
-                opt.value = ty;
-                opt.text = name;
-                typeSelect.appendChild(opt);
-            }
-        };
-
-        // 4. 타입 변경 이벤트
-        typeSelect.onchange = function() {
-            var selectedOrg = orgSelect.value;
-            var selectedTy = this.value;
-            var foundId = "-";
-
-            for (var m = 0; m < userData.length; m++) {
-                var item = userData[m];
-                if (selectedTy === 'ALL' && item.orgId === 'ALL') {
-                    foundId = item.userId;
-                    break;
-                } else if (item.orgId === selectedOrg && item.userTycd === selectedTy) {
-                    foundId = item.userId;
-                    break;
-                }
-            }
-            userIdText.innerText = foundId;
-        };
-    };
-})();
-</script>
-
 <div id="key_access">
     <ul>
+    	<li><a href="#header" title="헤더 위치로 바로가기">헤더 위치로 바로가기</a></li>
         <li><a href="#gnb" title="주메뉴 위치로 바로가기">주메뉴 바로가기</a></li>
         <li><a href="#content" title="본문 위치로 바로가기">본문 바로가기</a></li>
         <li><a href="#bottom" title="하단 위치로 바로가기">하단 바로가기</a></li>
@@ -124,59 +20,225 @@ console.log("--- 스크립트 진입 성공 ---");
     <p><i class="notched circle loading icon"></i></p>
 </div>
 
-<header class="common">
+<header id="header" class="common">
+
 	<button type="button" class="btn mobile-elem ctrl-gnb" aria-label="모바일 메뉴 버튼"><i class="icon-svg-menu fs-18px" aria-hidden="true"></i></button>
 
 	<h1 class="logo">
 		<a href="/">
-			<img src="<%=request.getContextPath()%>/webdoc/assets/img/logo.png" aria-hidden="true" alt="한국방송통신대학교">
+			<img src="<%=request.getContextPath()%>/webdoc/assets/img/logo.svg" aria-hidden="true" alt="한국방송통신대학교">
 		</a>
 	</h1>
-	
-	<div class="option-univ"><!-- 버튼 클릭시 on 클래스 추가 -->
-		<select id="orgSelect" class="form-select" style="font-size:15px; border-radius:100em;">
-			<option value="">기관을 선택하세요</option>
+
+	<div class="option-univ">
+		<select id="subjectOrgSelect" class="form-select" title="<spring:message code='common.message.select.org'/>"><%-- 기관을 선택하세요. --%>
 		</select>
-        <select id="typeSelect" class="form-select wide" style="font-size:15px; margin-left: 5px; border-radius:100em;">
-        	<option value="">타입 선택</option>
+        <select id="subjectUserTypeSelect" class="form-select" title="<spring:message code='common.message.select.user_type'/>"><%-- 사용자 유형을 선택하세요. --%>
+        	<option value="">-- <spring:message code='common.usertype.type'/> --</option>
         </select>
+		<select id="subjectSmstrSelect" class="form-select" title="<spring:message code='common.alert.select.term'/>"><%-- 학기를 선택하세요. --%>
+			<option value="">-- <spring:message code='common.term'/> --</option>
+        </select>
+
+		<script type="text/javascript">
+		console.log("--- 스크립트 진입 성공 ---");
+
+		let profDashboardUrl = "/dashboard/profDashboard.do";
+		let stuDashboardUrl = "/dashboard/stuDashboard.do";
+
+		(function() {
+		    // 기관 데이터 로드
+		    let subjectOrgData = [
+		        <c:forEach var="item" items="${SessionInfo.getUserContext(pageContext.request).getSubjectOrgList()}" varStatus="status">
+			        {
+			            headerOrgId: "${item.orgId}",
+			            headerOrgnm: "${item.orgnm}",
+			            headerUserTycd: "${item.userTycd}",
+			            headerUserId: "${item.userId}",
+			            headerUserTycdList: [
+			                <c:forEach var="tycd" items="${item.orgUserTycdList}" varStatus="tycdStatus">
+			                    "${tycd}"${!tycdStatus.last ? ',' : ''}
+			                </c:forEach>
+			            ]
+			        } ${!status.last ? ',' : ''}
+		        </c:forEach>
+		    ];
+
+		    // 학기 데이터 로드
+		    let smstrData = [
+		    	<c:forEach var="item" items="${SessionInfo.getUserContext(pageContext.request).getSmstrChrtList()}" varStatus="status">
+			    	{
+			    		smstrChrtId: "${item.smstrChrtId}",
+			    		smstrChrtnm: "${item.smstrChrtnm}",
+			    		nowSmstryn: "${item.nowSmstryn}",
+			    		orgId: "${item.orgId}",
+			    		orgShrtnm: "${item.orgShrtnm}",
+			    		userTycd: "${item.userTycd}"
+			    	} ${!status.last ? ',' : ''}
+		    	</c:forEach>
+		    ];
+
+		    // 기관 select 생성
+		    function drawOrgSelect() {
+		        $.each(subjectOrgData, function(index, item) {
+					let selected = item.headerOrgId === "${uiex:getParamValue('orgId')}" ? "selected" : "";
+
+		            if (index === 0 && item.headerOrgId === '') {
+		                if ("PROF" == "${authrtGrpcd}") {
+		                    $('#subjectOrgSelect').append(`<option value="" \${selected}>-- <spring:message code='common.all'/> --</option>`);
+		                }
+		                else if ("STDNT" == "${authrtGrpcd}") {
+		                    $('#subjectOrgSelect').append(`<option value="" \${selected}>-- <spring:message code='common.all'/> --</option>`);
+		                }
+		            } else {
+		                $('#subjectOrgSelect').append(`<option value="\${item.headerOrgId}" \${selected}>\${item.headerOrgnm}</option>`);
+		            }
+		        });
+
+		        $('#subjectOrgSelect').trigger("chosen:updated");
+
+		    	// 기관 선택
+		    	$("#subjectOrgSelect").on("change", function(){
+		    		let headerOrgId = $(this).val();
+		    		let orgData = subjectOrgData.find(item => item.headerOrgId === headerOrgId);
+		            let headerUserTycd = orgData ? orgData.headerUserTycd : "";
+		            let typeList = orgData ? orgData.headerUserTycdList : [];
+
+		    		if ("" === headerOrgId) {
+		                moveToDashboard(headerOrgId, "", "");
+		    		}
+		    		else if (typeList.length === 1) {
+		                let targetTycd = typeList[0];
+		                moveToDashboard(headerOrgId, targetTycd, "");
+		            }
+		            else if (typeList.length === 0 && headerUserTycd && headerUserTycd !== "null") {
+		                moveToDashboard(headerOrgId, headerUserTycd, "");
+		            }
+		    	});
+		    }
+
+		    // 사용자유형 select 생성
+		    function drawUserTycdSelect(orgId) {
+		    	let orgData = subjectOrgData.find(item => item.headerOrgId === orgId);
+		        let typeList = orgData ? orgData.headerUserTycdList : [];
+		        let userTycd = "${uiex:getParamValue('userTycd')}";
+
+		        $('#subjectUserTypeSelect').empty();
+
+		        if (typeList.length > 1 || orgId === "") {
+		            $('#subjectUserTypeSelect').append(`<option value="">-- <spring:message code='common.usertype.type'/> --</option>`);
+		        }
+		        //alert("${uiex:getParamValue('userTycd')}");
+
+		        $.each(typeList, function(index, item) {
+					let typeNm = "";
+		            if (item === 'PROF') typeNm = "<spring:message code='common.usertype.prof'/>";
+		            else if (item === 'TUT') typeNm = "<spring:message code='common.usertype.tutor'/>";
+		            else if (item === 'ASSI') typeNm = "<spring:message code='common.usertype.assist'/>";
+		            else if (item === 'STDNT') typeNm = "<spring:message code='common.usertype.stdnt'/>";
+
+		            $('#subjectUserTypeSelect').append(`<option value="\${item}" \${userTycd === item ? "selected" : ""}>\${typeNm}</option>`);
+		        });
+
+		        $('#subjectUserTypeSelect').trigger("chosen:updated");
+
+		     	// 유형 선택
+		    	$("#subjectUserTypeSelect").on("change", function(){
+		    		let headerOrgId = $('#subjectOrgSelect').val();
+		    		let headerUserTycd = $('#subjectUserTypeSelect').val();
+		    		moveToDashboard(headerOrgId, headerUserTycd, "");
+		    	});
+		    }
+
+		    // 학기 선택 select 생성
+		    function drawSmstrSelect(orgId, userTycd) {
+		        if (smstrData.length > 0) {
+			    	$('#subjectSmstrSelect').empty();
+
+				    $.each(smstrData, function(index, item) {
+						if (orgId === "" || (orgId != "" && orgId == item.orgId)) {
+							let selected = (item.smstrChrtId === "${uiex:getParamValue('smstrChrtId')}") ? "selected" : "";
+							let smstrChrtnm = item.smstrChrtnm;
+
+							if (smstrChrtnm === "ALL") {
+								smstrChrtnm = "-- 전체(현재학기) --";
+							}
+							else if (orgId === "") {
+								smstrChrtnm = "[" + item.orgShrtnm + "] " + smstrChrtnm;
+							}
+
+							$('#subjectSmstrSelect').append(`<option value="\${item.smstrChrtId}" \${selected}>\${smstrChrtnm}</option>`);
+						}
+				    });
+
+					$('#subjectSmstrSelect').trigger("chosen:updated");
+		        }
+
+		        // 학기 선택
+		    	$("#subjectSmstrSelect").on("change", function(){
+					let headerOrgId = $('#subjectOrgSelect').val();
+		    		let headerUserTycd = $('#subjectUserTypeSelect').val();
+		    		let selSmstrChrtId = $(this).val();
+		    		moveToDashboard(headerOrgId, headerUserTycd, selSmstrChrtId);
+		    	});
+		    }
+
+			// 기관/사용자유형/학기 선택시 대시보드 이동 함수
+			function moveToDashboard(headerOrgId, headerUserTycd, smstrChrtId) {
+				let extData = {
+		    		headerOrgId: headerOrgId,
+		    		headerUserTycd: headerUserTycd,
+		    		headerSmstrChrtId: smstrChrtId
+				};
+
+				if (!headerUserTycd) {
+					headerUserTycd = "${authrtGrpcd}";
+				}
+
+		        let targetUrl = (headerUserTycd === 'STDNT') ? stuDashboardUrl : profDashboardUrl;
+		        location.href = targetUrl + "?addParams=" + UiComm.makeEncParams(extData);
+		    }
+
+		    // 기관 select 생성 호출
+		    drawOrgSelect();
+
+		    // 사용자유형 select 생성 호출
+		    drawUserTycdSelect("${uiex:getParamValue('orgId')}");
+
+		    // 학기 select 생성 호출
+		   	drawSmstrSelect("${uiex:getParamValue('orgId')}", "${uiex:getParamValue('userTycd')}");
+		})();
+		</script>
 	</div>
-	
+
 	<div id="userIdText" style="margin-top: 10px; font-weight: bold; color: #007bff;"></div>
 
 	<ul class="util">
-		<li class="widget_setting"><!-- 버튼 클릭시 on 클래스 추가 -->
+		<%-- 위젯 설정 --%>
+		<li class="widget_setting">
 			<a href="#0" data-medi-ui="widget"><i class="icon-svg-widget" aria-hidden="true"></i>위젯설정</a>
-
 			<div class="menu">
-				<div class="widgetStngGrp" style="border:1px solid #cdcdcd;" ></div>
-				<div class="widgetStngGrpColr"></div>
-
+				<div class="widget_set_group">
+					<div class="info-tit">
+						<span>사용할 위젯을 선택하세요</span>
+					</div>
+					<div id="widgetTmplList" class="widget-list"></div>
+				</div>
 				<div class="info-txt2">
 					<i class="icon-svg-move"></i>
 					<span>드래그하여 위젯을 원하는 위치로 이동하세요.</span>
 				</div>
 				<div class="btns">
-					<button type="button" class="btn type5" onclick="widgetStngChange1()">저장</button>
-					<button type="button" class="btn gray2" onclick="closeModal()">취소</button>
-					<button type="button" class="btn gray2" onclick="widgetReset()">초기화</button>
+					<button type="button" class="btn type5" onclick="widgetStngChange1()"><spring:message code='button.save'/><%-- 저장 --%></button>
+					<button type="button" class="btn gray2" onclick="closeModal()"><spring:message code='button.cancel'/><%-- 취소 --%></button>
+					<button type="button" class="btn gray2" onclick="widgetReset()"><spring:message code='button.reset'/><%-- 초기화 --%></button>
 				</div>
-			</div>
-
-		</li>
-		<li class="info_time"><span>이전로그인 2026.03.17 15:01 (61.43.234.211)</span></li>
-		<li class="zoom-control">
-			<div class="icon_btns">
-				<div class="zoom_btn" aria-label="확대"><i class="xi-zoom-in"></i></div>
-				<div class="zoom_btn" aria-label="축소"><i class="xi-zoom-out"></i></div>
-				<div class="zoom_btn" aria-label="새로고침"><i class="xi-refresh"></i></div>
 			</div>
 			<script>
 				var WIDGET_SETTING_LIST = [];
 
 				$(document).ready(function() {
 					widgetStngPopView();
-					widgetStngColrPopView();
 			   	});
 
 				function widgetStngPopView() {
@@ -199,140 +261,37 @@ console.log("--- 스크립트 진입 성공 ---");
 				            if (widgetList && Array.isArray(widgetList)) {
 				                var html = "";
 
-				                // 상단 타이틀 영역
-				                html += "<div class='info-tit'>";
-				                html += "    <span>사용할 위젯을 선택하세요</span>";
-				                html += "</div>";
-
-				                html += "<div class='widget-list-container' style='margin-top:10px;'>";
-
 				                $.each(widgetList, function(index, item) {
 				                    var checkedAttr = (item.pvsnyn === 'Y') ? "checked" : "";
 
-				                    html += "    <div class='widget-item' style='margin-bottom:8px;'>";
-				                    html += "        <span class='custom-input'>";
-				                    html += "            <input type='checkbox' ";
-				                    html += "                   id='" + item.widgetId + "' ";
-				                    html += "                   name='widget_chk' "; // 일괄 관리를 위한 name 통일
-				                    html += "                   data-widget-id='" + item.widgetId + "' ";
-				                    html += "                   data-posx='" + item.posX + "' ";
-				                    html += "                   data-posy='" + item.posY + "' ";
-				                    html += "                   data-posw='" + item.posW + "' ";
-				                    html += "                   data-posh='" + item.posH + "' ";
-				                    html += "                   data-widget-nm='" + item.widgetNm + "' " + checkedAttr + ">";
-				                    html += "            <label for='" + item.widgetId + "' style='margin-left:5px; cursor:pointer;'>" + item.widgetNm + "</label>";
-				                    html += "        </span>";
-				                    html += "    </div>";
+									html += `<span class="custom-input">`;
+									html += `  <input type='checkbox' `;
+				                    html += `    id='\${item.widgetId}' `;
+				                    html += `    name='widget_chk' `; // 일괄 관리를 위한 name 통일
+				                    html += `    data-widget-id='\${item.widgetId}' `;
+				                    html += `    data-posx='\${item.posX}' `;
+				                    html += `    data-posy='\${item.posY}' `;
+				                    html += `    data-posw='\${item.posW}' `;
+				                    html += `    data-posh='\${item.posH}' `;
+				                    html += `    data-minw='\${item.minW}' `;
+				                    html += `    data-minh='\${item.minH}' `;
+				                    html += `    data-maxw='\${item.maxW}' `;
+				                    html += `    data-maxh='\${item.maxH}' `;
+				                    html += `    data-widget-nm='\${item.widgetNm}' \${checkedAttr}>`;
+				                    html += `  <label for='\${item.widgetId}' style='margin-left:5px; cursor:pointer;'>\${item.widgetNm}</label>`;
+									html += `</span>`;
 				                });
 
-				                html += "</div>";
-
-				                // 대상 영역에 렌더링
-				                $(".widgetStngGrp").empty().append(html);
+				                $("#widgetTmplList").html(html);
 
 				            } else {
 				                console.error("데이터가 배열 형태가 아닙니다.", widgetList);
 				            }
 				        } else {
 				            console.error("세션이 만료되었습니다.");
-				            // alert("로그인이 필요합니다.");
 				        }
 				    });
 				}
-
-				function widgetStngColrPopView() {
-				    var url = "/dashboard/widgetStngColrPopView.do";
-				    var data = {
-				        orgId: "${orgId}",
-				        userId: "${userId}"
-				    };
-
-				    ajaxCall(url, data, function(res) {
-				        if (res.sessChkYn === 'Y') {
-				            if (res.result > 0) {
-				                // 1. 컬러 데이터 배열 정의
-				                const colorList = [
-				                    { id: 'color1', label: '기본', value: 'basic' },
-				                    { id: 'color2', label: '블루', value: 'blue' },
-				                    { id: 'color3', label: '민트', value: 'mint' },
-				                    { id: 'color4', label: '오렌지', value: 'orange' },
-				                    { id: 'color5', label: '레드', value: 'red' },
-				                    { id: 'color6', label: '퍼플', value: 'purple' }
-				                ];
-
-				                // 2. 반복문을 통한 HTML 생성
-				                var html = "";
-				                html += "<div class='info-tit'><span>컬러를 선택하세요</span></div>";
-				                html += "<div class='widget-list'>";
-
-				                colorList.forEach(function(item) {
-				                    html += "    <span class='custom-input'>";
-				                    html += "        <input type='radio' id='" + item.id + "' name='color' value='" + item.value + "'>";
-				                    html += "        <label for='" + item.id + "'>" + item.label + "</label>";
-				                    html += "    </span>";
-				                });
-
-				                html += "</div>";
-
-				                // DOM 반영
-				                $(".widgetStngGrpColr").empty().append(html);
-
-				                // 3. 선택된 컬러 체크 로직 (find 사용)
-				                if (res.data && res.data.color) {
-				                    const selectedColor = colors.find(c => c.value === res.data.color);
-				                    if (selectedColor) {
-				                        $("#" + selectedColor.id).prop("checked", true);
-				                    }
-				                } else {
-				                    // 기본값: COLOR1 체크
-				                    $("#color1").prop("checked", true);
-				                }
-
-				            } else {
-				                console.error(res.message);
-				            }
-				        } else {
-				            console.error("세션이 존재하지 않습니다.");
-				        }
-				    }, function(xhr, status, error) {
-				        alert("<spring:message code='fail.common.msg' />");
-				    }, true);
-				}
-
-				window.currentZoom = 100;
-				function zoomIn() {
-					if (window.currentZoom < 110) window.currentZoom += 5;
-					console.log("Zoom In:", window.currentZoom);
-					updateZoomClass();
-				}
-
-				function zoomOut() {
-					if (window.currentZoom > 90) window.currentZoom -= 5;
-					console.log("Zoom Out:", window.currentZoom);
-					updateZoomClass();
-				}
-
-				function zoomReset() {
-					window.currentZoom = 100;
-					console.log("Zoom Reset:", window.currentZoom);
-					updateZoomClass();
-				}
-
-				function updateZoomClass() {
-					console.log("updateZoomClass called");
-
-					document.body.classList.remove(
-						"zoom-90","zoom-95","zoom-100","zoom-105","zoom-110"
-					);
-
-					const zoomClass = "zoom-" + window.currentZoom;
-					console.log("Adding class:", zoomClass);
-					document.body.classList.add(zoomClass);
-				}
-
-				document.querySelector('[aria-label="확대"]').addEventListener('click', zoomIn);
-				document.querySelector('[aria-label="축소"]').addEventListener('click', zoomOut);
-				document.querySelector('[aria-label="새로고침"]').addEventListener('click', zoomReset);
 
 				function widgetStngChange1() {
 					let internalGrid = null;
@@ -360,7 +319,7 @@ console.log("--- 스크립트 진입 성공 ---");
 				    var updatedList = [];
 
 				    // 2. 체크박스 순회
-				    $(".widgetStngGrp input[name='widget_chk']").each(function() {
+				    $("#widgetTmplList input[name='widget_chk']").each(function() {
 				        var $this = $(this);
 				        var widgetId = $this.attr("id");
 				        var isChecked = $this.is(":checked");
@@ -374,24 +333,27 @@ console.log("--- 스크립트 진입 성공 ---");
 				        updatedList.push({
 				            widgetId : widgetId,
 				            widgetNm : widgetNm,
-				            pvsnyn   : isChecked ? "Y" : "N",
 				            // 화면에 있으면 실시간 좌표(x, y, w, h), 없으면 input에 심어둔 data 값 사용
 				            posX     : layoutItem ? layoutItem.x : $this.data("posx"),
 				            posY     : layoutItem ? layoutItem.y : $this.data("posy"),
 				            posW     : layoutItem ? layoutItem.w : $this.data("posw"),
 				            posH     : layoutItem ? layoutItem.h : $this.data("posh"),
-				            userId   : "${userId}",
-				            visibleYn: isChecked ? "Y" : "N" // 기존 코드에서 사용하던 visibleYn도 함께 갱신
+		            		minW     : $this.data("minw"),
+				            minH     : $this.data("minh"),
+				            maxW     : $this.data("maxw"),
+				            maxH     : $this.data("maxh"),
+				            pvsnyn   : isChecked ? "Y" : "N"
 				        });
 				    });
 
 				    var url = "/dashboard/widgetStngChange.do";
 				    var data = {
 				        userId            : "${userId}",
-				        widgetUseId       : "PROF",
-				        widgetId          : "PROF",
-				        widgetNm          : "PROF",
-				        orgId             : "LMSBASIC",
+				        widgetUseId       : "${authrtGrpcd}",
+				        widgetId          : "${authrtGrpcd}",
+				        widgetNm          : "${authrtGrpcd}",
+				        widgetExpln       : "${authrtGrpcd}",
+				        orgId             : "${orgId}",
 				        widgetUserStngCts : JSON.stringify(updatedList)
 				    };
 
@@ -435,6 +397,62 @@ console.log("--- 스크립트 진입 성공 ---");
 						}
 					});
 		    	};
+			</script>
+		</li>
+
+		<li class="info_time">
+			<%
+			UserContext userContext = SessionInfo.getUserContext(request);
+			if ( userContext != null ) {
+			%>
+			<span>
+				이전로그인 <uiex:formatDate type="datetime2" value="<%=userContext.getLastLoginDttm()%>"/>
+				(<%=userContext.getLastLoginIp()%>)
+			</span>
+			<% }  %>
+		</li>
+
+		<li class="zoom-control">
+			<div class="icon_btns">
+				<div class="zoom_btn" aria-label="zoomin" title="<spring:message code='button.zoomin'/>"><i class="xi-zoom-in"></i></div><%-- 확대 --%>
+				<div class="zoom_btn" aria-label="zoomout" title="<spring:message code='button.zoomout'/>"><i class="xi-zoom-out"></i></div><%-- 축소 --%>
+				<div class="zoom_btn" aria-label="zoomreset" title="<spring:message code='button.default'/>"><i class="xi-refresh"></i></div><%-- 기본 --%>
+			</div>
+			<script>
+				window.currentZoom = 100;
+				function zoomIn() {
+					if (window.currentZoom < 110) window.currentZoom += 5;
+					console.log("Zoom In:", window.currentZoom);
+					updateZoomClass();
+				}
+
+				function zoomOut() {
+					if (window.currentZoom > 90) window.currentZoom -= 5;
+					console.log("Zoom Out:", window.currentZoom);
+					updateZoomClass();
+				}
+
+				function zoomReset() {
+					window.currentZoom = 100;
+					console.log("Zoom Reset:", window.currentZoom);
+					updateZoomClass();
+				}
+
+				function updateZoomClass() {
+					console.log("updateZoomClass called");
+
+					document.body.classList.remove(
+						"zoom-90","zoom-95","zoom-100","zoom-105","zoom-110"
+					);
+
+					const zoomClass = "zoom-" + window.currentZoom;
+					console.log("Adding class:", zoomClass);
+					document.body.classList.add(zoomClass);
+				}
+
+				document.querySelector('[aria-label="zoomin"]').addEventListener('click', zoomIn);
+				document.querySelector('[aria-label="zoomout"]').addEventListener('click', zoomOut);
+				document.querySelector('[aria-label="zoomreset"]').addEventListener('click', zoomReset);
 			</script>
 
 		</li>
@@ -631,34 +649,211 @@ console.log("--- 스크립트 진입 성공 ---");
                     $target.html(html);
                 }
 
-                /* 헤더 알림 아이템 클릭 */
+                const HEADER_SHRTNT_RCVN_URL = '<c:choose><c:when test="${fn:contains(authrtGrpcd, \'STDNT\')}">/stdntMsgShrtntRcvnSelectView.do</c:when><c:otherwise>/profMsgShrtntRcvnSelectView.do</c:otherwise></c:choose>';
+                const HEADER_PUSH_RCVN_URL = '/profMsgPushRcvnSelectView.do';
+                const HEADER_ALIM_TALK_RCVN_URL = '/profMsgAlimTalkRcvnSelectView.do';
+
+                // 학생은 교수(PROMAIN) 메뉴 매핑이 다르므로 LNB active 처리 제외
+                const HEADER_IS_STDNT = <c:choose><c:when test="${fn:contains(authrtGrpcd, 'STDNT')}">true</c:when><c:otherwise>false</c:otherwise></c:choose>;
+                const HEADER_MENU_MAP = {
+                    'SHRTNT':    { menuId: 'PROMAIN000005', upMenuId: 'PROMAIN000003', menunm: '<spring:message code="msg.title.msg.shrtnt"/>' },
+                    'PUSH':      { menuId: 'PROMAIN000004', upMenuId: 'PROMAIN000003', menunm: 'PUSH' },
+                    'ALIM_TALK': { menuId: 'PROMAIN000007', upMenuId: 'PROMAIN000003', menunm: '<spring:message code="msg.title.msg.alimTalk"/>' }
+                };
+
                 $(document).on('click', 'li.alrim .item_txt[data-sndng-tycd]', function(e) {
                     e.preventDefault();
-                    let sndngTycd = $(this).data('sndng-tycd');
-                    let sndngId = $(this).data('sndng-id');
+                    let $item = $(this);
+                    let sndngTycd = $item.data('sndng-tycd');
+                    let sndngId = $item.data('sndng-id');
 
                     if (!sndngId) return;
 
+                    // 읽음처리 우선 → 채널 수신 상세 이동
+                    let navUrl = null;
+                    let idParam = 'msgMblSndngId';
                     if (sndngTycd === 'SHRTNT') {
-                        location.href = '/profMsgShrtntRcvnSelectView.do?msgShrtntSndngId=' + encodeURIComponent(sndngId);
+                        navUrl = HEADER_SHRTNT_RCVN_URL;
+                        idParam = 'msgShrtntSndngId';
+                    } else if (sndngTycd === 'PUSH') {
+                        navUrl = HEADER_PUSH_RCVN_URL;
+                    } else if (sndngTycd === 'ALIM_TALK') {
+                        navUrl = HEADER_ALIM_TALK_RCVN_URL;
+                    }
+
+                    if (navUrl) {
+                        let detailUrl = navUrl + '?' + idParam + '=' + encodeURIComponent(sndngId);
+                        let menuInfo = HEADER_IS_STDNT ? null : HEADER_MENU_MAP[sndngTycd];
+                        let goDetail = menuInfo
+                            // 탭/LNB active를 위해 mainTabpage.do를 경유 (moveMenu tab 분기)
+                            ? function() {
+                                moveMenu(null, detailUrl, menuInfo.upMenuId, menuInfo.menuId, menuInfo.menunm, 'tab');
+                                // 탭 페이지 내 재클릭 시 addTabMenu는 LNB active를 갱신하지 않으므로 직접 갱신
+                                if (typeof TAB_MENU !== 'undefined' && TAB_MENU && TAB_MENU.resetMenuStatus) {
+                                    TAB_MENU.resetMenuStatus(menuInfo.menuId);
+                                }
+                              }
+                            : function() { location.href = detailUrl; };
+                        ajaxCall('/alimReadModifyAjax.do', { sndngId: sndngId, chnlCd: sndngTycd }, goDetail, goDetail, false);
+                        return;
+                    }
+
+                    // SMS/LMS: 이동 없이 읽음처리만
+                    if (sndngTycd === 'SMS') {
+                        ajaxCall('/alimReadModifyAjax.do', { sndngId: sndngId, chnlCd: sndngTycd }, function(data) {
+                            if (data.result > 0) {
+                                let $state = $item.closest('.item_box').find('.state .label');
+                                $state.removeClass('check_no').addClass('check_ok').text(MSG_ALIM_READ);
+                                if (data.returnVO) {
+                                    headerNotiCntUpdate(data.returnVO);
+                                }
+                            }
+                        }, function() {
+                            console.error('알림 읽음 처리 실패');
+                        }, false);
                     }
                 });
             </script>
         </li>
-        <li class="lang_change"><!-- 버튼 클릭시 on 클래스 추가 -->
-            <a href="#0" aria-label="언어선택" data-medi-ui="langs"><i class="icon-svg-globe-01"></i></a>
+
+        <%-- 언어 설정 --%>
+        <li class="lang_change">
+            <a href="#0" aria-label="Language" data-medi-ui="langs" title="Language"><i class="icon-svg-globe-01"></i></a>
             <div class="option-wrap">
-                <div class="item selected"><a href="#0">한국어</a></div>
-                <div class="item"><a href="#0">English</a></div>
-                <div class="item"><a href="#0">日本語</a></div>
-                <div class="item"><a href="#0">汉语</a></div>
+                <div class="item ${uiex:getLangCd() eq 'ko' ? 'selected' : ''}"><a href="/common/changeLang.do?language=ko" title="한국어">한국어</a></div>
+                <div class="item ${uiex:getLangCd() eq 'en' ? 'selected' : ''}"><a href="/common/changeLang.do?language=en" title="English">English</a></div>
             </div>
         </li>
+
+        <%-- 컬러 테마 설정 --%>
         <li class="mode">
-            <a href="#0" data-medi-ui="mode"><i class="icon-svg-moon-star" aria-hidden="true"></i></a>
-        </li>
+			<a href="#0" data-medi-ui="mode" title="<spring:message code='main.theme.color'/>"><i class="icon-svg-palette" aria-hidden="true"></i></a><%-- 컬러 테마 --%>
+			<div class="menu">
+				<div class="widget_set_group">
+					<div class="info-tit2" style="text-align:center;">
+						<span><spring:message code='main.theme.color'/></span><%-- 컬러 테마 --%>
+					</div>
+					<div class="widget-list">
+						<span class="custom-input">
+							<input type="radio" name="wcolor" id="wcolor" data-theme="default" value="default">
+							<label for="wcolor"><spring:message code='main.theme.default'/></label><%-- 기본 --%>
+							<span class="theme-color"></span>
+						</span>
+						<span class="custom-input">
+							<input type="radio" name="wcolor" id="wcolorA" data-theme="colorA" value="colorA">
+							<label for="wcolorA"><spring:message code='main.theme.blue'/></label><%-- 블루 --%>
+							<span class="theme-color wcolorA"></span>
+						</span>
+						<span class="custom-input">
+							<input type="radio" name="wcolor" id="wcolorB" data-theme="colorB" value="colorB">
+							<label for="wcolorB"><spring:message code='main.theme.mint'/></label><%-- 민트 --%>
+							<span class="theme-color wcolorB"></span>
+						</span>
+						<span class="custom-input">
+							<input type="radio" name="wcolor" id="wcolorC" data-theme="colorC" value="colorC">
+							<label for="wcolorC"><spring:message code='main.theme.orange'/></label><%-- 오렌지 --%>
+							<span class="theme-color wcolorC"></span>
+						</span>
+						<span class="custom-input">
+							<input type="radio" name="wcolor" id="wcolorD" data-theme="colorD" value="colorD">
+							<label for="wcolorD"><spring:message code='main.theme.red'/></label><%-- 레드 --%>
+							<span class="theme-color wcolorD"></span>
+						</span>
+						<span class="custom-input">
+							<input type="radio" name="wcolor" id="wcolorE" data-theme="colorE" value="colorE">
+							<label for="wcolorE"><spring:message code='main.theme.purple'/></label><%-- 퍼플 --%>
+							<span class="theme-color wcolorE"></span>
+						</span>
+						<span class="custom-input">
+							<input type="radio" name="wcolor" id="wcolorDark" data-theme="darkmode" value="darkmode">
+							<label for="wcolorDark"><spring:message code='main.theme.dark'/></label><%-- 다크모드 --%>
+							<span class="theme-color wcolorDark"></span>
+						</span>
+					</div>
+				</div>
+				<div class="btns mt10">
+					<button type="button" class="btn type5" onclick="saveTheme()"><spring:message code='button.save'/><%-- 저장 --%></button>
+					<button type="button" class="btn gray2" onclick="cancelTheme()"><spring:message code='button.cancel'/><%-- 취소 --%></button>
+				</div>
+			</div>
+			<script>
+				let prevTheme = "";
+				let isSaving = false;
+
+				$(document).ready(function() {
+					prevTheme = "${uiex:getTheme()}";
+					$(`.util .mode .menu input[name="wcolor"][value="\${prevTheme}"]`).prop('checked', true);
+
+					const targetNode = document.querySelector('.util .mode');
+					if (targetNode) {
+						const observer = new MutationObserver(function(mutationsList) {
+							for (const mutation of mutationsList) {
+								if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+									const hasOn = targetNode.classList.contains('on');
+									if (!hasOn) {
+										if (isSaving) {
+											isSaving = false;
+										} else {
+											cancelTheme();
+										}
+									}
+								}
+							}
+						});
+						observer.observe(targetNode, { attributes: true });
+					}
+				});
+
+				// 테마 저장
+				function saveTheme() {
+					let theme = $('.util .mode .menu input[name="wcolor"]:checked').val();
+				    let url = "/user/userHome/setUserConf.do";
+				    let data = {
+				    	confType: "theme",
+				    	confVal: theme
+				    };
+
+					isSaving = true;
+
+				    ajaxCall(url, data, function(res) {
+			            if (res.result > 0) {
+							console.log("테마 변경 성공 : "+theme);
+							prevTheme = theme;
+			            }
+			            else {
+			            	UiComm.showMessage("<spring:message code='fail.common.msg' />","error");
+				        }
+				    }, function(xhr, status, error) {
+				    	UiComm.showMessage("<spring:message code='fail.common.msg' />","error");
+				    }, true);
+
+					$(".util .mode").removeClass("on");
+				}
+
+				// 테마 적용 취소
+				function cancelTheme() {
+					let theme = $('.util .mode .menu input[name="wcolor"]:checked').val();
+				    let themeClasses = ["default", "colorA", "colorB", "colorC", "colorD", "colorE", "darkmode"];
+
+				    if (prevTheme != theme) {
+						$("body").removeClass(themeClasses.join(' '));
+				    	$("body").addClass(prevTheme);
+
+				        $("iframe").each(function () {
+				            try {
+				                const iframeBody = $(this.contentDocument || this.contentWindow.document).find("body");
+				                if (iframeBody.length) iframeBody.removeClass(themeClasses.join(' '));
+				            } catch (err) { }
+				        });
+				    }
+
+				    $(`.util .mode .menu input[name="wcolor"][value="\${prevTheme}"]`).prop('checked', true);
+					$(".util .mode").removeClass("on");
+				}
+			</script>
+		</li>
         <li class="log">
-            <a href="/user/userHome/logout.do"><i class="icon-svg-logout" aria-hidden="true"></i></a>
+        	<a href="/user/userHome/logout.do" title="<spring:message code='button.logout'/>"><i class="icon-svg-logout" aria-hidden="true"></i></a><%-- 로그아웃 --%>
         </li>
 
     </ul>

@@ -73,4 +73,34 @@
 	        )
 	</update>
 
+	<select id="onlnPltfrmAuthrtList" parameterType="onlnPltfrmStngVO" resultType="egovMap">
+		/*
+             SQL ID : OnlnPltfrmAuthrtDAO.onlnPltfrmAuthrtList
+             설  명 : 온라인플랫폼권한목록
+         */
+        SELECT
+			  ROW_NUMBER() OVER(ORDER BY STNG.REG_DTTM DESC) AS LINE_NO
+			, STNG.ONLN_PLTFRM_STNG_ID
+			, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = STNG.ORG_ID AND USEYN = 'Y') AS ORGNM
+			, AUTHRT.AUTHRT_EML
+			, AUTHRT.ONLN_PLTFRM_AUTHRT_ID
+		  FROM TB_LMS_ONLN_PLTFRM_STNG STNG
+		  JOIN TB_LMS_ONLN_PLTFRM_AUTHRT AUTHRT
+		    ON STNG.ONLN_PLTFRM_STNG_ID = AUTHRT.ONLN_PLTFRM_STNG_ID
+		 WHERE STNG.PLTFRM_GBNCD = #{pltfrmGbncd}
+		   AND STNG.ORG_ID = #{orgId}
+		 <if test="searchValue != null and searchValue != ''">
+		   AND LOWER(AUTHRT.AUTHRT_EML) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		 </if>
+	</select>
+
+	<delete id="onlnPltfrmAuthrtBulkDelete" parameterType="String">
+		/*
+             SQL ID : OnlnPltfrmAuthrtDAO.onlnPltfrmAuthrtBulkDelete
+             설  명 : 온라인플랫폼권한일괄삭제
+         */
+        DELETE FROM TB_LMS_ONLN_PLTFRM_AUTHRT
+		 WHERE ONLN_PLTFRM_STNG_ID = #{onlnPltfrmStngId}
+	</delete>
+
 </mapper>

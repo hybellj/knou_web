@@ -1,0 +1,306 @@
+﻿<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+
+<c:set var="userTypecdStdnt" value="<%=CommConst.AUTHRT_GRPCD_STDNT%>" />
+<fmt:parseDate var="startDateFmt" pattern="yyyyMMddHHmm" value="${dscsVO.dscsSdttm}" />
+<fmt:formatDate var="dscsStartDttm" pattern="yyyy.MM.dd(HH:mm)" value="${startDateFmt}" />
+<fmt:parseDate var="endDateFmt" pattern="yyyyMMddHHmm" value="${dscsVO.dscsEdttm}" />
+<fmt:formatDate var="dscsEndDttm" pattern="yyyy.MM.dd(HH:mm)" value="${endDateFmt}" />
+
+<div class="elements_wrap forum_info_wrap">
+	<ul class="accordion">
+		<li class="active forum_info_item">
+			<div class="title-wrap">
+				<a class="title" href="#0">
+					<div class="lecture_tit">
+						<strong>${dscsVO.dscsTtl}</strong>
+						<p class="desc">
+							<span><spring:message code='forum.label.forum.date' /><!-- 토론기간 --> : <strong>${dscsStartDttm} ~ ${dscsEndDttm}</strong></span>
+							<span><spring:message code='forum.label.scoreAply' /><!-- 성적반영 --> :
+								<strong>
+									<c:choose>
+										<c:when test="${dscsVO.mrkRfltyn eq 'Y'}">
+											<spring:message code='forum.common.yes'/><!-- 예 -->
+										</c:when>
+										<c:otherwise>
+											<spring:message code='forum.common.no'/><!-- 아니오 -->
+										</c:otherwise>
+									</c:choose>
+								</strong>
+							</span>
+							<span><spring:message code='forum.label.score.open' /><!-- 성적공개 --> :
+								<strong>
+									<c:choose>
+										<c:when test="${dscsVO.mrkOyn eq 'Y'}">
+											<spring:message code='forum.common.yes'/><!-- 예 -->
+										</c:when>
+										<c:otherwise>
+											<spring:message code='forum.common.no'/><!-- 아니오 -->
+										</c:otherwise>
+									</c:choose>
+								</strong>
+							</span>
+						</p>
+					</div>
+					<i class="arrow xi-angle-down"></i>
+				</a>
+			</div>
+			<div class="cont content">
+				<table class="table-type5 forum_info_list">
+					<colgroup>
+						<col width="15%" />
+						<col />
+						<col width="15%" />
+						<col />
+					</colgroup>
+					<tbody>
+						<tr>
+							<th><label for="forum_info_contents"><spring:message code='forum.label.forum.artl'/><!-- 토론 내용 --></label></th>
+							<td colspan="3" class="htmlText">
+								<div class="tb_content">
+									<c:out value="${dscsVO.dscsCts}" escapeXml="false"/>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th><label><spring:message code='forum.label.forum.date'/><!-- 토론기간 --></label></th>
+							<td colspan="3">${dscsStartDttm} ~ ${dscsEndDttm}</td>
+						</tr>
+						<tr>
+							<th><label><spring:message code='forum.label.scoreAply'/><!-- 성적반영 --></label></th>
+							<c:choose>
+								<c:when test="${userTypecd eq userTypecdStdnt}">
+									<td colspan="3">
+										<c:choose>
+											<c:when test="${dscsVO.mrkRfltyn eq 'Y'}">
+												<spring:message code='forum.common.yes'/><!-- 예 -->
+											</c:when>
+											<c:otherwise>
+												<spring:message code='forum.common.no'/><!-- 아니오 -->
+											</c:otherwise>
+										</c:choose>
+									</td>
+								</c:when>
+								<c:otherwise>
+									<td>
+										<c:choose>
+											<c:when test="${dscsVO.mrkRfltyn eq 'Y'}">
+												<spring:message code='forum.common.yes'/><!-- 예 -->
+											</c:when>
+											<c:otherwise>
+												<spring:message code='forum.common.no'/><!-- 아니오 -->
+											</c:otherwise>
+										</c:choose>
+									</td>
+								</c:otherwise>
+							</c:choose>
+							<c:if test="${userTypecd ne userTypecdStdnt}">
+								<th><label><spring:message code='forum.label.forum.gradeRef'/><!-- 성적반영비율 --></label></th>
+								<td>
+									<c:choose>
+										<c:when test="${dscsVO.mrkRfltyn ne 'Y'}">-</c:when>
+										<c:otherwise>${dscsVO.mrkRfltrt}%</c:otherwise>
+									</c:choose>
+								</td>
+							</c:if>
+						</tr>
+						<tr>
+							<th><label><spring:message code='forum.label.score.open'/><!-- 성적공개 --></label></th>
+							<td colspan="3">
+								<c:choose>
+									<c:when test="${dscsVO.mrkOyn eq 'Y'}">
+										<spring:message code='forum.common.yes'/><!-- 예 -->
+									</c:when>
+									<c:otherwise>
+										<spring:message code='forum.common.no'/><!-- 아니오 -->
+									</c:otherwise>
+								</c:choose>
+							</td>
+						</tr>
+						<tr>
+							<th><label><spring:message code='forum.label.evalCtgr'/><!-- 평가 방법 --></label></th>
+							<td colspan="3">
+								<c:choose>
+									<c:when test="${dscsVO.evlScrTycd eq 'SCR'}">
+										<spring:message code='forum.label.evalctgr.score'/><!-- 점수형 -->
+									</c:when>
+									<c:otherwise>
+										<spring:message code='forum.label.evalctgr.participate'/><!-- 참여형 -->
+										<small class="note ml10"><spring:message code='forum.label.evalctgr.participate.desc'/><!-- ( 토론 참여 : 100점, 미참여 : 0점 자동배점 ) --></small>
+									</c:otherwise>
+								</c:choose>
+							</td>
+						</tr>
+						<tr>
+							<th><label><spring:message code='forum.label.attachFile'/><!-- 첨부파일 --></label></th>
+							<td colspan="3">
+								<div class="add_file_list forum_attach_list">
+									<c:if test="${not empty dscsVO.fileList}">
+										<uiex:filedownload fileList="${dscsVO.fileList}"/>
+									</c:if>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th><label><spring:message code='forum.label.teamForumYn'/><!-- 팀 토론 --></label></th>
+							<td colspan="3">
+								<c:choose>
+									<c:when test="${dscsVO.dscsUnitTycd eq 'TEAM'}">
+										<div class="view_con forum_team_info">
+											<div><spring:message code='forum.common.yes'/><!-- 예 --></div>
+											<c:if test="${not empty dscsVO.dscsGrpnm}">
+												<div><spring:message code='forum.label.lrngrp'/><%--학습그룹--%> : ${dscsVO.dscsGrpnm}</div>
+											</c:if>
+											<c:choose>
+												<c:when test="${dscsVO.byteamDscsUseyn eq 'Y'}">
+													<div><spring:message code='forum.label.lrngrp.dscs.setting'/><%--학습그룹별 토론 설정--%> : <spring:message code='forum.label.use.y'/><!-- 사용 --></div>
+												</c:when>
+												<c:otherwise>
+													<div><spring:message code='forum.label.lrngrp.dscs.setting'/><%--학습그룹별 토론 설정--%> : <spring:message code='forum.label.use.n'/><!-- 미사용 --></div>
+												</c:otherwise>
+											</c:choose>
+										</div>
+
+										<c:if test="${dscsVO.byteamDscsUseyn eq 'Y' and not empty dscsVO.teamDscsList}">
+											<div class="table-wrap mt10">
+												<table class="table-type5 in_table forum_team_table">
+													<colgroup>
+														<col class="width-5per" />
+														<col class="width-15per" />
+														<col />
+													</colgroup>
+													<c:forEach var="item" items="${dscsVO.teamDscsList}" varStatus="status">
+														<tbody>
+															<tr>
+																<th rowspan="4" class="group-header"><label>${item.teamnm}</label></th>
+																<th><label><spring:message code='forum.label.lrngrp.mebers'/><!-- 학습그룹 구성원 --></label></th>
+																<td>${item.leaderNm} <spring:message code='forum.label.person.and'/><%--외--%> ${item.teamMbrCnt}</td>
+															</tr>
+															<tr>
+																<th><label><spring:message code='forum.label.team.ttl'/><!-- 부주제 --></label></th>
+																<td><c:out value="${empty item.dscsTtl ? '-' : item.dscsTtl}" /></td>
+															</tr>
+															<tr>
+																<th><label><spring:message code='forum.label.content'/><!-- 내용 --></label></th>
+																<td>
+																	<label class="width-100per htmlText">
+																		<c:out value="${empty item.dscsCts ? '-' : item.dscsCts}" escapeXml="false"/>
+																	</label>
+																</td>
+															</tr>
+															<tr>
+																<th><label><spring:message code='forum.label.attachFile'/><!-- 첨부파일 --></label></th>
+																<td>
+																	<div class="add_file_list forum_team_attach_list">
+																		<c:choose>
+																			<c:when test="${not empty item.fileList}">
+																				<uiex:filedownload fileList="${item.fileList}"/>
+																			</c:when>
+																			<c:otherwise>-</c:otherwise>
+																		</c:choose>
+																	</div>
+																</td>
+															</tr>
+														</tbody>
+													</c:forEach>
+												</table>
+											</div>
+										</c:if>
+									</c:when>
+									<c:otherwise>
+										<div class="view_con forum_team_info"><spring:message code='forum.common.no'/><!-- 아니오 --></div>
+									</c:otherwise>
+								</c:choose>
+							</td>
+						</tr>
+						<tr>
+							<th><label><spring:message code='forum.label.otherViewYn'/><!-- 참여글 보기 옵션 --></label></th>
+							<td colspan="3">
+								<c:choose>
+									<c:when test="${dscsVO.oatclInqyn eq 'Y'}">
+										<spring:message code='forum.common.yes'/><!-- 예 -->
+									</c:when>
+									<c:otherwise>
+										<spring:message code='forum.common.no'/><!-- 아니오 -->
+									</c:otherwise>
+								</c:choose>
+							</td>
+						</tr>
+						<tr>
+							<th><label><spring:message code='forum.label.aplyAsnYn'/><!-- 댓글 답변 요청 --></label></th>
+							<td colspan="3">
+								<c:choose>
+									<c:when test="${dscsVO.cmntRspnsReqyn eq 'Y'}">
+										<spring:message code='forum.common.yes'/><!-- 예 -->
+									</c:when>
+									<c:otherwise>
+										<spring:message code='forum.common.no'/><!-- 아니오 -->
+									</c:otherwise>
+								</c:choose>
+							</td>
+						</tr>
+						<tr>
+							<th><label><spring:message code='forum.label.prosCons'/><!-- 찬반토론 --></label></th>
+							<td colspan="3">
+								<c:choose>
+									<c:when test="${dscsVO.oknokStngyn eq 'Y'}">
+										<div class="view_con forum_pros_cons_info">
+											<div><spring:message code='forum.common.yes'/><!-- 예 --></div>
+											<div>
+												<spring:message code='forum.label.prosConsRate'/><!-- 찬반 비율 공개 --> :
+												<c:choose>
+													<c:when test="${dscsVO.oknokrtOyn eq 'Y'}">
+														<spring:message code='forum.common.yes'/><!-- 예 -->
+													</c:when>
+													<c:otherwise>
+														<spring:message code='forum.common.no'/><!-- 아니오 -->
+													</c:otherwise>
+												</c:choose>
+											</div>
+											<div>
+												<spring:message code='forum.label.regOpen'/><!-- 작성자 공개 --> :
+												<c:choose>
+													<c:when test="${dscsVO.oknokRgtrOyn eq 'Y'}">
+														<spring:message code='forum.common.yes'/><!-- 예 -->
+													</c:when>
+													<c:otherwise>
+														<spring:message code='forum.common.no'/><!-- 아니오 -->
+													</c:otherwise>
+												</c:choose>
+											</div>
+											<div>
+												<spring:message code='forum.label.multiAtcl'/><!-- 의견글 복수 등록 --> :
+												<c:choose>
+													<c:when test="${dscsVO.mltOpnnRegyn eq 'Y'}">
+														<spring:message code='forum.common.yes'/><!-- 예 -->
+													</c:when>
+													<c:otherwise>
+														<spring:message code='forum.common.no'/><!-- 아니오 -->
+													</c:otherwise>
+												</c:choose>
+											</div>
+											<div>
+												<spring:message code='forum.label.prosConsMod'/><!-- 찬반 의견 변경가능 --> :
+												<c:choose>
+													<c:when test="${dscsVO.oknokModyn eq 'Y'}">
+														<spring:message code='forum.common.yes'/><!-- 예 -->
+													</c:when>
+													<c:otherwise>
+														<spring:message code='forum.common.no'/><!-- 아니오 -->
+													</c:otherwise>
+												</c:choose>
+											</div>
+										</div>
+									</c:when>
+									<c:otherwise>
+										<spring:message code='forum.common.no'/><!-- 아니오 -->
+									</c:otherwise>
+								</c:choose>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</li>
+	</ul>
+</div>

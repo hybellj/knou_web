@@ -8,48 +8,19 @@ import knou.lms.srvy.vo.SrvyQstnVwitmLvlVO;
 
 public interface SrvyQstnVwitmLvlService {
 
-	/**
-	 * 설문문항목록보기항목레벨삭제
-	 *
-	 * @param List<SrvyQstnVO>
-	 * @throws Exception
-	 */
-	public void srvyQstnListVwitmLvlDelete(List<SrvyQstnVO> list) throws Exception;
+	// 설문문항목록보기항목레벨삭제
+	public void srvyQstnListVwitmLvlDelete(List<SrvyQstnVO> list);
 
-	/**
-	 * 설문문항보기항목레벨등록
-	 *
-	 * @param SrvyQstnVO
-	 * @param List<Map<String, Object>> lvls
-	 * @throws Exception
-	 */
-	public void srvyQstnVwitmLvlRegist(SrvyQstnVO vo, List<Map<String, Object>> lvls) throws Exception;
+	// 설문문항보기항목레벨등록
+	public void srvyQstnVwitmLvlRegist(SrvyQstnVO vo, List<Map<String, Object>> lvls);
 
-	/**
-	 * 설문문항보기항목레벨삭제
-	 *
-	 * @param srvyQstnId 설문문항아이디
-	 * @throws Exception
-	 */
-	public void srvyQstnVwitmLvlDelete(String srvyQstnId) throws Exception;
+	// 설문문항보기항목레벨삭제
+	public void srvyQstnVwitmLvlDelete(String srvyQstnId);
 
-	/**
-	 * 설문문항보기항목레벨목록조회
-	 *
-	 * @param srvyQstnId 설문문항아이디
-	 * return 설문문항보기항목레벨목록
-	 * @throws Exception
-	 */
-	public List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlList(String srvyQstnId) throws Exception;
+	// 설문문항보기항목레벨목록조회
+	public List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlList(String srvyQstnId);
 
-	/**
-	 * 설문문항보기항목레벨일괄조회
-	 *
-	 * @param srvyId 		설문아이디
-	 * @param searchType 	조회유형
-	 * return 설문문항보기항목레벨일괄목록
-	 * @throws Exception
-	 */
-	public List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlBulkList(String srvyId, String searchType) throws Exception;
+	// 설문문항보기항목레벨일괄조회
+	public List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlBulkList(String srvyId, String searchType);
 
 }

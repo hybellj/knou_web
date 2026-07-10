@@ -37,6 +37,9 @@
     font-size:0.9em;
 }
 
+.ui-timepicker {
+	z-index: 100 !important;
+}
 
 /* buttons and button pane styling */
 .ui-timepicker .ui-timepicker-buttonpane {

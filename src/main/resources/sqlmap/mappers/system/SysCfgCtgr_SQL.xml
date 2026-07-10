@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="knou.lms.system.config.dao.SysCfgCtgrDAO">
+<mapper namespace="knou.lms.xasis.dao.SysCfgCtgrDAO">
 
 	<sql id="selectQuery">
 		SELECT STNG_CTGRCD 												AS cfgCtgrCd
@@ -60,7 +60,7 @@
 	 	*/
 		<include refid="CommonSQL.pagePrefix"/>
 	 	<include refid="listQuery"/>
-	 	<include refid="CommonSQL.pageSubfix"/>
+	 	<include refid="CommonSQL.pageSuffix"/>
 	</select>
 	
 	<select id="count" parameterType="sysCfgCtgrVO" resultType="Integer">

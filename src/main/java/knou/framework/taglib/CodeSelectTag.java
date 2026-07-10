@@ -14,7 +14,7 @@ import org.apache.commons.logging.LogFactory;
 import knou.framework.common.CodeInfo;
 import knou.framework.common.Message;
 import knou.framework.util.StringUtil;
-import knou.lms.system.code.vo.SysCmmnCdVO;
+import knou.lms.system.manage.vo.CommonCodeVO;
 
 /**
  * 시스템 공통 코드 selectbox 생성
@@ -43,7 +43,7 @@ public class CodeSelectTag extends TagSupport {
 			PageContext context = this.pageContext;
             HttpServletRequest req = (HttpServletRequest)context.getRequest();
             Message message = new Message(req);
-            List<SysCmmnCdVO> codeList = null;
+            List<CommonCodeVO> codeList = null;
 
             if (!"".equals(StringUtil.nvl(id))) {
 				id = "selectbox_" + UUID.randomUUID().toString().replace("-", "").substring(0, 4);
@@ -109,7 +109,7 @@ public class CodeSelectTag extends TagSupport {
             tag.append("<label for=\""+id+"\" class=\"hide\">Select</label>");
             tag.append("<select id=\""+id+"\" id=\""+name+"\" class=\""+styleClass+"\" title=\""+title+"\" style=\""+style+"\"" + onchange + multiple + required + " data-placeholder=\""+placeHolder+"\">");
 
-            for (SysCmmnCdVO vo : codeList) {
+            for (CommonCodeVO vo : codeList) {
             	if (vo.getCdSeqno() == 0) {
             		if ("".equals(StringUtil.nvl(selectMsg))) {
             			selectMsg = vo.getCdnm();

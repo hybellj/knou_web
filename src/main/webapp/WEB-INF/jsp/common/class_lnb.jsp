@@ -55,6 +55,7 @@ pageContext.setAttribute("curMenuCd", SessionInfo.getCurMenuCd(request));
 	
 
 	function moveMenu(menuUrl, bbsId, bbsCd, parMenuCd, menuCd){
+		console.log("class_lnb.jsp");
 		
 		if (menuUrl.indexOf("?") > -1) {
 			menuUrl += "&param="+btoa("MENU,"+parMenuCd+","+menuCd);
@@ -93,7 +94,7 @@ pageContext.setAttribute("curMenuCd", SessionInfo.getCurMenuCd(request));
 
             <h1 class="logo">
                 <a href="/dashboard/main.do" title="<spring:message code="dashboard.lms_home" />"><!-- 강의실 홈 -->
-                    <img src="/webdoc/img/logo.png" alt="<spring:message code="common.logo" />">
+                    <img src="/webdoc/img/logo.svg" alt="<spring:message code="common.logo" />">
                 </a>
             </h1>
 

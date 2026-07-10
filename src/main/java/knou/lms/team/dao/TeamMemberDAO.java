@@ -16,14 +16,14 @@ public interface TeamMemberDAO {
      * @throws Exception
      ******************************************************/
     public List<TeamMemberVO> listMyTeamStd(TeamMemberVO vo) throws Exception;
-    
+
     /*****************************************************
      * TODO 팀원 목록 조회
      * @param TeamMemberVO
      * @return List<TeamMemberVO>
      * @throws Exception
      ******************************************************/
-    public List<TeamMemberVO> list(TeamMemberVO vo) throws Exception;
+    public List<TeamMemberVO> list(TeamMemberVO vo);
 
     public void insertStd(TeamMemberVO vo) throws Exception;
 
@@ -38,8 +38,8 @@ public interface TeamMemberDAO {
 
 	// 팀원 리스트
 	public String[] getTeamMemberList(TeamMemberVO vo) throws Exception;
-	
+
 	// 팀 분류코드 내 팀원 목록 조회
 	public List<TeamMemberVO> listTeamMemberByCtgrCd(TeamMemberVO vo) throws Exception;
-    
+
 }

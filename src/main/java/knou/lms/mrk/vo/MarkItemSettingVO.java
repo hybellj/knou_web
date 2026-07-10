@@ -2,6 +2,8 @@ package knou.lms.mrk.vo;
 
 import knou.lms.common.vo.DefaultVO;
 
+import java.math.BigDecimal;
+
 /**
  * TB_LMS_MRK_ITM_STNG (성적항목설정)
  */
@@ -16,9 +18,23 @@ public class MarkItemSettingVO extends DefaultVO {
     private String mrkItmExpln;        // 성적항목 설명
     private String mrkEvlGbncd;        // 성적평가구분코드 (절대,상대...)
     private String mrkItmTycd;        // 성적항목 유형코드
-    private Integer mrkRfltrt;        // 성적반영 비율
+    private BigDecimal mrkRfltrt;        // 성적반영 비율
     private String mrkOyn;            // 성적공개여부
     private String mrkItmUseyn;      // 성적항목사용여부
+    
+    public MarkItemSettingVO () {}
+    
+    public MarkItemSettingVO (String sbjctId, String orgid) {
+    	this.setSbjctId(sbjctId);
+    	this.setOrgId(orgid);
+    }
+    
+    public MarkItemSettingVO (String sbjctId, String orgid, String mrkItmUseyn, String langCd) {
+    	this.setSbjctId(sbjctId);
+    	this.setOrgId(orgid);
+    	this.setMrkItmUseyn(mrkItmUseyn);
+    	this.setLangCd(langCd);
+    }
 
     public String getMrkItmStngId() {
         return mrkItmStngId;
@@ -68,11 +84,11 @@ public class MarkItemSettingVO extends DefaultVO {
         this.mrkItmTycd = mrkItmTycd;
     }
 
-    public Integer getMrkRfltrt() {
+    public BigDecimal getMrkRfltrt() {
         return mrkRfltrt;
     }
 
-    public void setMrkRfltrt(Integer mrkRfltrt) {
+    public void setMrkRfltrt(BigDecimal mrkRfltrt) {
         this.mrkRfltrt = mrkRfltrt;
     }
 

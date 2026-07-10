@@ -13,6 +13,7 @@
  *        tableMode: "list",		// 테이블 모드(list, card), 기본값:list, (card 모드는 카드폼 있는 경우만 유효)
  *        height: 500,			// 테이블 높이, 미설정시 자동크기
  *        rowHeight: 40,			// Row 높이, 미설정시 기본값(40) 적용
+ *        columnHeaderVertAlign: "middle", // 헤더 세로 정렬(top, middle, bottom), 그룹 헤더 사용 시 일반 헤더의 세로 위치 조정
  *        selectRow: "checkbox",	// Row 선택 설정(checkbox:체크박스 표시, 1:Row 1개만 선택, selectRowFunc 지정한 함수 호출), 기본값:false
  *        selectRowFunc: func,	// Row 선택시 호출 함수, selectRow:1 인경우
  *        sortFunc: func,			// 헤더 Sort 아이콘 클릭시 호출 함수, 미설정시 테이블 자체 정렬 (칼럼에 headerSort:true 지정시)
@@ -61,29 +62,47 @@ function UiTable(tableId, opts) {
     let $table = $("#" + tableId);
     let $tableBox = $table.parent();
 
-    let lang = (!opts.lang || opts.lang != "en") ? "ko" : opts.lang;
-    UiTableComm.lang = lang;
+	let lang = (!opts.lang || opts.lang != "en") ? "ko" : opts.lang;
+	// 전역 언어변수가 있을 경우 우선 적용
+	if (typeof LANGUAGE !== 'undefined' && LANGUAGE !== null && LANGUAGE !== "") {
+		lang = LANGUAGE;
+	}
 
-    let height = !opts.height ? "auto" : opts.height;
+    let height = !opts.height ? "fit-content" : opts.height;
     let rowHeight = !opts.rowHeight ? "" : opts.rowHeight;
     let sortFunc = !opts.sortFunc ? "" : opts.sortFunc;
     let initialSort = !opts.initialSort ? "" : opts.initialSort;
     let placeholder = !opts.placeholder ? UiTableUtil.getMsg("no_data") : opts.placeholder;
-    let tableMode = !opts.tableMode ? MODE_LIST : opts.tableMode;
     let selectRow = !opts.selectRow ? false : opts.selectRow === "checkbox" ? "highlight" : (opts.selectRow === 1 || opts.selectRow === "1") ? 1 : false;
     let selectRowFunc = !opts.selectRowFunc ? "" : opts.selectRowFunc;
     let pageInfo = !opts.pageInfo ? null : opts.pageInfo;
     let pageFunc = !opts.pageFunc ? null : opts.pageFunc;
-	let changeFunc = !opts.changeFunc ? null : opts.changeFunc;
+    let changeFunc = !opts.changeFunc ? null : opts.changeFunc;
     let showTotRecord = opts.showTotRecord == undefined ? true : opts.showTotRecord;
     let showCurrentPage = opts.showCurrentPage == undefined ? true : opts.showCurrentPage;
     let data = !opts.data ? null : opts.data;
+    let columnHeaderVertAlign = !opts.columnHeaderVertAlign ? "top" : opts.columnHeaderVertAlign;
+
+	let tableMode = null;
+	if (!opts.tableMode && typeof CUR_MENU_ID !== 'undefined' && CUR_MENU_ID !== null && CUR_MENU_ID !== "") {
+		tableMode = UiComm.db.getItem("tableMode:"+CUR_MENU_ID);
+	}
+
+	if (!tableMode) {
+		tableMode = !opts.tableMode ? MODE_LIST : opts.tableMode;
+	}
 
     let mobileWidth = window.matchMedia("(max-width: " + MOBILE_WIDTH + "px)");
     let mode = tableMode === MODE_CARD ? tableMode : mobileWidth.matches ? MODE_MOBILE : MODE_LIST;
     let cardForm = $("#" + tableId + "_cardForm").html();
     let enableCard = cardForm ? true : false;
     let columnFormat = {};
+
+    // [추가] AJAX 관련 옵션 추출
+    let ajaxURL = !opts.ajaxURL ? null : opts.ajaxURL;
+    let ajaxConfig = !opts.ajaxConfig ? "GET" : opts.ajaxConfig;
+    let ajaxParams = !opts.ajaxParams ? {} : opts.ajaxParams;
+    let ajaxResponse = !opts.ajaxResponse ? null : opts.ajaxResponse;
 
     if (selectRow === "highlight") {
         opts.columns.unshift({
@@ -102,13 +121,72 @@ function UiTable(tableId, opts) {
                 if (!isSortIconClick) {
                     return;
                 }
+                // [수정] 외부 함수가 있으면 기존 로직, 없으면 Tabulator 내장 정렬 사용
                 if (uiTable.sortFunc && typeof uiTable.sortFunc === "function") {
                     uiTable.sortFunc({field: column.getField(), dir: uiTable.toggleSortState(column.getField())});
+                } else if (uiTable.options.ajaxURL) {
+                    // 내장 AJAX를 사용할 경우 정렬 파라미터를 추가하여 다시 로드
+                    uiTable.setSort(column.getField(), uiTable.toggleSortState(column.getField()));
                 }
             }
         }
 
         if (col.formatter) {
+
+            let format = col.formatter;
+
+            //console.log("===== formatter check =====");
+            //console.log("field :", col.field);
+            //console.log("formatter :", format);
+            //console.log("type :", typeof format);
+
+            if (format === "rowSelection") {
+                //console.log("rowSelection formatter skip");
+                continue;
+            }
+
+            // 사용자 formatter 함수
+            if (typeof format === "function") {
+
+                //console.log("custom formatter detected :", col.field);
+
+                const originalFormatter = format;
+
+                col.formatter = function (cell, formatterParams, onRendered) {
+
+                    // console.log("----- custom formatter run -----");
+                    // console.log("field :", col.field);
+                    // console.log("value :", cell.getValue());
+                    // console.log("row :", cell.getRow().getData());
+
+                    const result = originalFormatter(cell, formatterParams, onRendered);
+
+                    //  console.log("formatter result :", result);
+
+                    return result;
+                };
+
+                continue;
+            }
+
+            // 문자열 formatter
+            columnFormat[col.field] = format;
+
+            //console.log("common formatter applied :", format);
+
+            col.formatter = (cell) => {
+
+                //console.log("----- common formatter run -----");
+                //console.log("field :", col.field);
+                //console.log("value :", cell.getValue());
+                //console.log("format :", format);
+
+                return UiTableUtil.getFormat(cell.getValue(), format);
+            }
+        }
+
+
+        /*if (col.formatter) {
             let format = col.formatter;
 
             if (format === "rowSelection") {
@@ -119,11 +197,48 @@ function UiTable(tableId, opts) {
             col.formatter = (cell) => {
                 return UiTableUtil.getFormat(cell.getValue(), format);
             }
-        }
+        }*/
     }
 
     // Tabulator 생성
     let uiTable = new Tabulator("#" + tableId, {
+
+        ajaxURL: ajaxURL,           // [추가] 데이터 조회를 위한 URL
+        ajaxConfig: ajaxConfig,     // [추가] 통신 방식 (GET, POST 등)
+        ajaxParams: ajaxParams,     // [추가] 전송할 파라미터
+        ajaxResponse: function (url, params, response) {
+            // 1. 개발자가 외부(opts)에서 직접 정의한 ajaxResponse가 있다면 최우선 적용
+            if (typeof ajaxResponse === "function") {
+                return ajaxResponse(url, params, response);
+            }
+
+            // 2. 기존 방식 구조 지원: 응답에 pageInfo가 있으면 화면에 하단 페이징 UI를 그려줌
+            if (response && response.pageInfo) {
+                uiTable.setPageInfo(response.pageInfo);
+            }
+
+            // 3. [핵심 분기] 기존 프로그램 화면 보장을 위한 처리
+            // 기존 데이터 포맷이 { data: [...] } 형식이거나, 순수 배열[...] 형식일 때를 모두 대응합니다.
+            let rawData = response && response.data !== undefined ? response.data : response;
+
+            // 만약 외부에서 pageFunc를 쓰는 '기존 수동 페이징' 방식이라면,
+            // Tabulator 엔진에는 순수 배열 데이터만 넘겨주어야 기존 화면이 그대로 나옵니다.
+            if (uiTable.pageFunc && typeof uiTable.pageFunc === "function") {
+                return rawData;
+            }
+
+            // 만약 pageFunc가 없고 내장 AJAX 모드로 동작하길 원한다면 오브젝트 규격으로 반환
+            return {
+                last_page: (response && response.pageInfo) ? response.pageInfo.totalPageCount : 1,
+                data: rawData
+            };
+        },
+        // Tabulator 생성 옵션 내부
+        paginationMode: "remote",
+        dataSendParams: {
+            "page": "currentPageNo", // Tabulator의 page를 서버가 원하는 파라미터명으로 변경
+            "size": "pageSize",      // Tabulator의 size를 서버가 원하는 파라미터명으로 변경
+        },
         data: data,
         height: height,
         layout: "fitColumns",
@@ -133,6 +248,7 @@ function UiTable(tableId, opts) {
         placeholder: placeholder,
         rowHeight: rowHeight,
         headerHeight: rowHeight,
+        columnHeaderVertAlign: columnHeaderVertAlign,
         columnDefaults: {formatter: "html", vertAlign: "middle", headerSort: false},
         columns: opts.columns,
         sortMode: sortFunc ? "remote" : "local",
@@ -151,6 +267,7 @@ function UiTable(tableId, opts) {
                 }
             }
         }
+
     });
 
     uiTable.tableId = tableId;
@@ -161,10 +278,10 @@ function UiTable(tableId, opts) {
     uiTable.enableCard = enableCard;
     uiTable.sortFunc = sortFunc;
     uiTable.pageFunc = pageFunc;
-	uiTable.changeFunc = changeFunc;
+    uiTable.changeFunc = changeFunc;
     uiTable.isParentSet = false;
     uiTable.isRendered = false;
-	uiTable.isPaging = false;
+    uiTable.isPaging = false;
     uiTable.selectable = selectRow;
     uiTable.resizeTimer = null;
     uiTable.sortState = {};
@@ -183,7 +300,13 @@ function UiTable(tableId, opts) {
             if (listBtnArea.length > 0) {
                 // 리스트/카드 선택 버튼 생성
                 let listCardBtn = $(`<button class='btn_list_type${tableMode === MODE_CARD ? " " + MODE_CARD : ""}' type='button' role='button' aria-label='List/Card' title='${UiTableUtil.getMsg("type_btn_title")}'>`
-					+ `<i class='${"card" ? "icon-svg-list" : "icon-svg-grid"}' aria-hidden='true'></i></button>`);
+                    + `<i class='${"card" ? "icon-svg-list" : "icon-svg-grid"}' aria-hidden='true'></i></button>`);
+
+                // 버튼 생성 시 현재 설정된 tableMode에 따라 아이콘을 결정하도록 수정
+                //let initialIcon = (tableMode === MODE_CARD) ? "icon-svg-list" : "icon-svg-grid";
+                //let listCardBtn = $(`<button class='btn_list_type${tableMode === MODE_CARD ? " " + MODE_CARD : ""}' type='button' role='button' aria-label='List/Card' title='${UiTableUtil.getMsg("type_btn_title")}'>`
+                //    + `<i class='${initialIcon}' aria-hidden='true'></i></button>`);
+
                 uiTable.listCardBtn = listCardBtn;
                 listBtnArea.append(listCardBtn);
                 listCardBtn.on('click', function () {
@@ -211,8 +334,8 @@ function UiTable(tableId, opts) {
                 if (uiTable.listCardBtn) {
                     uiTable.listCardBtn.show();
                     uiTable.listCardBtn.addClass(MODE_CARD);
-					uiTable.listCardBtn.find("i").addClass("icon-svg-list");
-					uiTable.listCardBtn.find("i").removeClass("icon-svg-grid");
+                    uiTable.listCardBtn.find("i").addClass("icon-svg-list");
+                    uiTable.listCardBtn.find("i").removeClass("icon-svg-grid");
                 }
             } else {
                 $table.removeClass(MODE_MOBILE);
@@ -221,8 +344,8 @@ function UiTable(tableId, opts) {
                 if (uiTable.listCardBtn) {
                     uiTable.listCardBtn.show();
                     uiTable.listCardBtn.removeClass(MODE_CARD);
-					uiTable.listCardBtn.find("i").removeClass("icon-svg-list");
-					uiTable.listCardBtn.find("i").addClass("icon-svg-grid");
+                    uiTable.listCardBtn.find("i").removeClass("icon-svg-list");
+                    uiTable.listCardBtn.find("i").addClass("icon-svg-grid");
                 }
             }
         }
@@ -236,12 +359,11 @@ function UiTable(tableId, opts) {
             this.setParentWidth(true);
         }
 
-		if (!this.isPaging) {
-			$table.addClass("nopage");
-		}
-		else {
-			$table.removeClass("nopage");
-		}
+        if (!this.isPaging) {
+            $table.addClass("nopage");
+        } else {
+            $table.removeClass("nopage");
+        }
 
         this.isRendered = true;
 
@@ -336,8 +458,8 @@ function UiTable(tableId, opts) {
             this.on("renderComplete", handler);
         }
 
-		this.isPaging = true;
-		$table.removeClass("nopage");
+        this.isPaging = true;
+        $table.removeClass("nopage");
     }
 
     // 페이지 정보 출력
@@ -355,12 +477,20 @@ function UiTable(tableId, opts) {
         let pageCnts = "";
 
         if (showTotRecord) {
-            counterCnts += `<span class='total_page'>${UiTableUtil.getMsg("tot_count", pageInfo.totalRecordCount)}</span>`;
+            counterCnts += "<span class='total_page'>"
+                + UiTableUtil.getMsg(
+                    "tot_count",
+                    Number(pageInfo.totalRecordCount).toLocaleString()
+                )
+                + "</span>";
         }
 
         if (showCurrentPage) {
-            counterCnts += `<span class='${showTotRecord ? "current_page" : "current_page_info"}'>${UiTableUtil.getMsg("cur_page")}`;
-            counterCnts += ` <strong>${pageNo}</strong>/${pageInfo.totalPageCount}</span>`;
+            counterCnts += "<span class='" + (showTotRecord ? "current_page" : "current_page_info") + "'>";
+            counterCnts += UiTableUtil.getMsg("cur_page");
+            counterCnts += " <strong>" + Number(pageNo).toLocaleString() + "</strong>";
+            counterCnts += "/" + Number(pageInfo.totalPageCount).toLocaleString();
+            counterCnts += "</span>";
         }
 
         pageCnts += `<button class='tabulator-page first' type='button' role='button' aria-label='First Page' title='${UiTableUtil.getMsg("first_page")}' data-page='1' ${firstStatus}><i class='icon-page-first'></i></button>`;
@@ -377,11 +507,16 @@ function UiTable(tableId, opts) {
 
         $counter.html(counterCnts);
         $paginator.html(pageCnts);
+
         $paginator.find("button").on('click', function () {
-            if (uiTable.pageFunc && typeof uiTable.pageFunc === "function") {
-                let page = parseInt($(this).attr("data-page"));
-                if (pageNo !== page) {
+            let page = parseInt($(this).attr("data-page"));
+            if (pageNo !== page) {
+                // 기존 프로그램들은 pageFunc가 무조건 존재하므로 이 if문만 타고 들어갑니다 (호환성 100% 유지)
+                if (uiTable.pageFunc && typeof uiTable.pageFunc === "function") {
                     uiTable.pageFunc(page);
+                } else if (ajaxURL) {
+                    // 새롭게 내장 AJAX를 쓸 때만 Tabulator의 내장 페이지 전환 기능을 호출
+                    uiTable.setPage(page);
                 }
             }
         });
@@ -410,8 +545,13 @@ function UiTable(tableId, opts) {
         $table.addClass(MODE_TEMP);
         uiTable.redraw(true);
 
-		if (uiTable.changeFunc && typeof uiTable.changeFunc === "function") {
-			uiTable.changeFunc(uiTable.mode);
+        if (uiTable.changeFunc && typeof uiTable.changeFunc === "function") {
+            uiTable.changeFunc(uiTable.mode);
+        }
+
+		// 테이블 모드 저장
+		if (typeof CUR_MENU_ID !== 'undefined' && CUR_MENU_ID !== null && CUR_MENU_ID !== "") {
+			UiComm.db.setItem("tableMode:"+CUR_MENU_ID, uiTable.mode);
 		}
     }
 
@@ -440,9 +580,9 @@ function UiTable(tableId, opts) {
             $table.addClass(MODE_TEMP);
             uiTable.redraw(true);
 
-			if (uiTable.changeFunc && typeof uiTable.changeFunc === "function") {
-				uiTable.changeFunc(uiTable.mode);
-			}
+            if (uiTable.changeFunc && typeof uiTable.changeFunc === "function") {
+                uiTable.changeFunc(uiTable.mode);
+            }
         }, 300);
     });
 
@@ -479,6 +619,41 @@ function UiTable(tableId, opts) {
             }
         );
     }
+
+	// 관리자메뉴 테이블 너비 처리
+	const $adminMenu = $("#admin_menu");
+	if ($adminMenu.length > 0) {
+		const adminChangeCallback = function (mutationsList) {
+		    for (let mutation of mutationsList) {
+		        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+		            const currentClassList = mutation.target.classList;
+		            const oldClassValue = mutation.oldValue || "";
+		            const wasOn = oldClassValue.split(' ').includes('collapsed');
+		            const isOn = currentClassList.contains('collapsed');
+
+		            if (window.innerWidth <= GNB_FULL_WIDTH) {
+		                return;
+		            } else if ((!wasOn && isOn) || (wasOn && !isOn)) {
+		                clearTimeout(uiTable.resizeTimer);
+		                uiTable.resizeTimer = setTimeout(() => {
+		                    uiTable.setParentWidth(false);
+		                    $table.addClass(MODE_TEMP);
+		                    uiTable.redraw(true);
+		                }, 500);
+		            }
+		        }
+		    }
+		};
+
+		const observer = new MutationObserver(adminChangeCallback);
+        observer.observe(document.querySelector("#admin_menu"), {
+                attributes: true,
+                attributeFilter: ['class'],
+                attributeOldValue: true
+            }
+        );
+	}
+
 
     return uiTable;
 }

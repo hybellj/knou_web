@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="knou.lms.asmt2.dao.AsmtProfIndivDAO">
-    <select id="indivStdList" resultType="egovMap" parameterType="asmtVO">
+
+	<select id="indivStdList" resultType="egovMap" parameterType="asmtVO">
         /*
             SQL ID : AsmtProfIndivDAO.indivStdList
             설  명 : 개별 수강생 목록
@@ -18,18 +19,8 @@
         	ON DEPT.DEPT_ID = USR.DEPT_ID
         WHERE ATNDLC.SBJCT_ID = #{sbjctId}
         	AND ATNDLC.AUDITYN = 'N'
-        	AND ATNDLC.ATNDLC_STSCD = 'ATNDLC'
+        	AND ATNDLC.ATNDLC_STSCD = 'APPROVE'
         	AND USR.USER_STSCD = 'ACTV'
-        <!-- 제출 안 한 사람만 조회 -->
-        <if test='searchKey != null and searchKey != "" and searchKey == "NOSUBMIT"'>
-            AND NOT EXISTS (
-            SELECT 1
-            FROM TB_LMS_ASMT_SBMSN SBMSN
-            WHERE SBMSN.ASMT_ID = #{asmtId}
-                AND SBMSN.USER_ID = ATNDLC.USER_ID
-                AND SBMSN.DELYN = 'N'
-            )
-        </if>
         ORDER BY USR.USERNM
     </select>
     <select id="indivSbmsnTrgtList" resultType="egovMap">
@@ -54,4 +45,413 @@
             AND TRGT.TEAM_ID IS NULL
         ORDER BY USR.USERNM
     </select>
+
+    <sql id="resbmsnBaseQuery">
+      	WITH LAST_SBMSN AS (
+      		SELECT
+      			  SBMSN.ASMT_ID
+      			, SBMSN.USER_ID
+      			, SBMSN.ASMT_SBMSN_ID
+      			, SBMSN.SBMSN_STSCD
+      			, SBMSN.SBMSN_DTTM
+      			, ROW_NUMBER() OVER(
+      				PARTITION BY SBMSN.ASMT_ID, SBMSN.USER_ID
+      				ORDER BY
+      					  SBMSN.SBMSN_DTTM DESC
+      					, SBMSN.REG_DTTM DESC
+      					, SBMSN.ASMT_SBMSN_ID DESC
+      			) AS RN
+      		FROM TB_LMS_ASMT_SBMSN SBMSN
+      		WHERE SBMSN.ASMT_ID = #{asmtId}
+      			AND SBMSN.DELYN = 'N'
+      	)
+      	SELECT
+      		  TRGT.ASMT_ID
+      		, TRGT.USER_ID
+      		, USR.USERNM
+      		, USR.STDNT_NO
+      		, DEPT.DEPTNM
+      	    , NVL(TRGT.RESBMSN_PRMYN, 'N') AS RESBMSN_PRMYN
+      		, SBMSN.ASMT_SBMSN_ID
+      		, NVL(SBMSN.SBMSN_STSCD, 'NON_SBMSN') AS SBMSN_STSCD
+      		, SBMSN.SBMSN_DTTM
+      	FROM TB_LMS_ASMT_SBMSN_TRGT TRGT
+      	JOIN TB_LMS_ATNDLC ATNDLC
+      		ON ATNDLC.SBJCT_ID = #{sbjctId}
+      		AND ATNDLC.USER_ID = TRGT.USER_ID
+      		AND ATNDLC.AUDITYN = 'N'
+      		AND ATNDLC.ATNDLC_STSCD = 'APPROVE'
+      	JOIN TB_LMS_USER USR
+      		ON USR.USER_ID = TRGT.USER_ID
+      		AND USR.USER_STSCD = 'ACTV'
+      	LEFT JOIN TB_LMS_DEPT DEPT
+      		ON DEPT.DEPT_ID = USR.DEPT_ID
+      	LEFT JOIN LAST_SBMSN SBMSN
+      		ON SBMSN.ASMT_ID = TRGT.ASMT_ID
+      		AND SBMSN.USER_ID = TRGT.USER_ID
+      		AND SBMSN.RN = 1
+      	WHERE TRGT.ASMT_ID = #{asmtId}
+      		AND TRGT.USER_ID IS NOT NULL
+      </sql>
+
+      <select id="resbmsnCandidateList" resultType="egovMap" parameterType="asmtVO">
+      	/*
+      		SQL ID : AsmtProfIndivDAO.resbmsnCandidateList
+      		설  명 : 재제출 후보자 목록
+      	*/
+      	SELECT
+      		  BASE.ASMT_ID
+      		, BASE.USER_ID
+      		, BASE.USERNM
+      		, BASE.STDNT_NO
+      		, BASE.DEPTNM
+      		, BASE.ASMT_SBMSN_ID
+      		, BASE.SBMSN_STSCD
+      		, BASE.RESBMSN_PRMYN
+      		, BASE.SBMSN_DTTM
+      	FROM (
+      		<include refid="resbmsnBaseQuery"/>
+      	) BASE
+      	WHERE BASE.RESBMSN_PRMYN = 'N'
+		  AND BASE.SBMSN_STSCD IN ('NON_SBMSN')
+      	ORDER BY BASE.USERNM
+      </select>
+      <select id="resbmsnTrgtList" resultType="egovMap" parameterType="asmtVO">
+      	/*
+      		SQL ID : AsmtProfIndivDAO.resbmsnTrgtList
+      		설  명 : 재제출 대상자 목록
+      	*/
+      	SELECT
+      		  BASE.ASMT_ID
+      		, BASE.USER_ID
+      		, BASE.USERNM
+      		, BASE.STDNT_NO
+      		, BASE.DEPTNM
+      		, BASE.ASMT_SBMSN_ID
+      		, BASE.SBMSN_STSCD
+      		, BASE.RESBMSN_PRMYN
+      		, BASE.SBMSN_DTTM
+      	FROM (
+      		<include refid="resbmsnBaseQuery"/>
+      	) BASE
+      	WHERE BASE.RESBMSN_PRMYN = 'Y'
+		  AND BASE.SBMSN_STSCD IN ('NON_SBMSN')
+      	ORDER BY BASE.USERNM
+      </select>
+
+
+
+	<update id="asmtMemoModify" parameterType="asmtEvlVO">
+		/*
+			SQL ID : AsmtProfIndivDAO.asmtMemoModify
+			설  명 : 과제 메모 수정
+		*/
+		MERGE INTO TB_LMS_ASMT_EVL ASMT_EVL
+			USING (
+				SELECT
+					  #{asmtEvlId} AS ASMT_EVL_ID
+					, #{asmtId} AS ASMT_ID
+					, #{userId} AS USER_ID
+					, #{teamId} AS TEAM_ID
+					, #{evlMemo} AS EVL_MEMO
+					, #{rgtrId} AS RGTR_ID
+					, #{mdfrId} AS MDFR_ID
+				FROM DUAL
+			) USR
+			ON (
+					ASMT_EVL.ASMT_ID = USR.ASMT_ID
+				AND ASMT_EVL.USER_ID = USR.USER_ID
+			)
+			WHEN MATCHED THEN
+				UPDATE SET
+					ASMT_EVL.EVL_MEMO = SUBSTR(USR.EVL_MEMO, 1, 4000)
+					, ASMT_EVL.MDFR_ID = USR.MDFR_ID
+					, ASMT_EVL.MOD_DTTM = FN_DTTM()
+			WHEN NOT MATCHED THEN
+				INSERT (
+					  ASMT_EVL_ID
+					, EVL_MEMO
+					, EVLYN
+					, RGTR_ID
+					, REG_DTTM
+					, ASMT_ID
+					, USER_ID
+					, TEAM_ID
+				) VALUES (
+					  USR.ASMT_EVL_ID
+					, SUBSTR(USR.EVL_MEMO, 1, 4000)
+					, 'N'
+					, USR.RGTR_ID
+					, FN_DTTM()
+					, USR.ASMT_ID
+					, USR.USER_ID
+					, USR.TEAM_ID
+				)
+	</update>
+
+	<update id="asmtMemoAppendModify" parameterType="asmtEvlVO">
+		/*
+			SQL ID : AsmtProfIndivDAO.asmtMemoAppendModify
+			설  명 : 과제 메모 덧붙이기
+		*/
+		MERGE INTO TB_LMS_ASMT_EVL ASMT_EVL
+			USING (
+				SELECT
+					  #{asmtEvlId} AS ASMT_EVL_ID
+					, #{asmtId} AS ASMT_ID
+					, #{userId} AS USER_ID
+					, #{teamId} AS TEAM_ID
+					, #{evlMemo} AS EVL_MEMO
+					, #{rgtrId} AS RGTR_ID
+					, #{mdfrId} AS MDFR_ID
+				FROM DUAL
+			) USR
+			ON (
+					ASMT_EVL.ASMT_ID = USR.ASMT_ID
+				AND ASMT_EVL.USER_ID = USR.USER_ID
+			)
+			WHEN MATCHED THEN
+				UPDATE SET
+					ASMT_EVL.EVL_MEMO =
+						SUBSTR(
+							CASE
+								WHEN ASMT_EVL.EVL_MEMO IS NULL OR ASMT_EVL.EVL_MEMO = ''
+								THEN USR.EVL_MEMO
+								ELSE ASMT_EVL.EVL_MEMO || CHR(10) || USR.EVL_MEMO
+							END
+							, 1
+							, 4000
+						)
+					, ASMT_EVL.MDFR_ID = USR.MDFR_ID
+					, ASMT_EVL.MOD_DTTM = FN_DTTM()
+			WHEN NOT MATCHED THEN
+				INSERT (
+					  ASMT_EVL_ID
+					, EVL_MEMO
+					, EVLYN
+					, RGTR_ID
+					, REG_DTTM
+					, ASMT_ID
+					, USER_ID
+					, TEAM_ID
+				) VALUES (
+					  USR.ASMT_EVL_ID
+					, SUBSTR(USR.EVL_MEMO, 1, 4000)
+					, 'N'
+					, USR.RGTR_ID
+					, FN_DTTM()
+					, USR.ASMT_ID
+					, USR.USER_ID
+					, USR.TEAM_ID
+				)
+	</update>
+
+	<select id="prevAsmtSbmsnList" resultType="egovMap" parameterType="asmtVO">
+		/*
+			SQL ID : AsmtProfIndivDAO.prevAsmtSbmsnList
+			설  명 : 이전과제제출목록
+		*/
+		SELECT
+			ROW_NUMBER() OVER(
+				ORDER BY
+					USER_SBMSN.SBMSN_DTTM DESC
+				   , ASMT.ASMT_ID DESC
+			) AS LINE_NO
+			, COUNT(1) OVER() AS TOTAL_CNT
+		    , ASMT.ASMT_ID
+		    , ASMT.SBJCT_ID
+		    , ASMT.ASMT_GBNCD
+		    , GBNCD.CDNM AS ASMT_GBNNM
+		    , ASMT.ASMT_TTL
+		    /* 제출 */
+		    , USER_SBMSN.ASMT_SBMSN_ID
+		    , USER_SBMSN.SBMSN_DTTM
+		    , USER_SBMSN.SBMSN_STSCD
+			, USER_SBMSN.SBMSN_CTS
+			, USER_SBMSN.SBMSN_TXT
+			, USER_SBMSN.SBMSN_TYCD
+			, FN_REF_FILE_CNT(USER_SBMSN.ASMT_SBMSN_ID) AS FILE_CNT
+			, TRGT.USER_ID
+			, EVL.ASMT_EVL_ID
+		    , EVL.SCR
+		FROM TB_LMS_ASMT ASMT
+		JOIN TB_LMS_ASMT_SBMSN_TRGT TRGT
+		ON TRGT.ASMT_ID = ASMT.ASMT_ID
+		    AND TRGT.USER_ID = #{userId}
+		LEFT JOIN (
+		    SELECT
+		        SBMSN.ASMT_ID
+		        , SBMSN.USER_ID
+		        , SBMSN.ASMT_SBMSN_ID
+		        , SBMSN.SBMSN_DTTM
+		        , SBMSN.SBMSN_STSCD
+		        , SBMSN.SBMSN_CTS
+		        , SBMSN.SBMSN_TXT
+		        , SBMSN.SBMSN_TYCD
+		        , ROW_NUMBER() OVER(
+		            PARTITION BY
+		                SBMSN.ASMT_ID
+		                , SBMSN.USER_ID
+		            ORDER BY
+		                SBMSN.SBMSN_DTTM DESC
+		                , SBMSN.REG_DTTM DESC
+		                , SBMSN.ASMT_SBMSN_ID DESC
+		        ) RN
+		    FROM TB_LMS_ASMT_SBMSN SBMSN
+		    WHERE SBMSN.DELYN = 'N'
+			  AND SBMSN.USER_ID = #{userId}
+		) USER_SBMSN
+			ON USER_SBMSN.ASMT_ID = ASMT.ASMT_ID
+			AND USER_SBMSN.USER_ID = TRGT.USER_ID
+			AND USER_SBMSN.RN = 1
+		/* 평가 */
+		LEFT JOIN TB_LMS_ASMT_EVL EVL
+		    ON EVL.ASMT_ID = ASMT.ASMT_ID
+		    AND EVL.USER_ID = #{userId}
+		LEFT JOIN TB_LMS_CMMN_CD GBNCD
+			ON GBNCD.LANG_CD = NVL(#{langCd}, 'ko')
+			AND GBNCD.UP_CD = 'ASMT_GBNCD'
+			AND GBNCD.CD = ASMT.ASMT_GBNCD
+		WHERE ASMT.DELYN = 'N'
+		    AND ASMT.SBJCT_ID = #{sbjctId}
+		  /*
+		   현재 일반과제 → 해당 과제만 제외
+		   현재 부과제 → 같은 상위과제의 모든 부과제 제외
+		   현재 상위과제 → 상위과제 + 그 부과제들 제외
+		   */
+		    AND NVL(ASMT.UP_ASMT_ID, ASMT.ASMT_ID) != (
+		    	SELECT NVL(CURR_ASMT.UP_ASMT_ID, CURR_ASMT.ASMT_ID)
+		    	FROM TB_LMS_ASMT CURR_ASMT
+		    	WHERE CURR_ASMT.ASMT_ID = #{asmtId}
+		    )
+		ORDER BY
+		    USER_SBMSN.SBMSN_DTTM DESC
+		    , ASMT.ASMT_ID DESC
+	</select>
+
+
+	<update id="asmtExlnBulkModify" parameterType="list">
+		/*
+		   SQL ID : AsmtProfIndivDAO.asmtExlnBulkModify
+		   설  명 : 우수과제 일괄 수정
+		*/
+		MERGE INTO TB_LMS_ASMT_EVL EVL
+			USING (
+				<foreach collection="list" item="item" separator="UNION ALL">
+					SELECT
+						  #{item.asmtEvlId}   AS ASMT_EVL_ID
+						, #{item.asmtId}      AS ASMT_ID
+						, #{item.userId}      AS USER_ID
+						, #{item.asmtSbmsnId} AS ASMT_SBMSN_ID
+						, #{item.exlnAsmtyn}  AS EXLN_ASMTYN
+						, #{item.rgtrId}      AS RGTR_ID
+						, #{item.mdfrId}      AS MDFR_ID
+					FROM DUAL
+				</foreach>
+			) SRC
+			ON (
+					EVL.ASMT_ID = SRC.ASMT_ID
+				AND EVL.USER_ID = SRC.USER_ID
+			)
+			WHEN MATCHED THEN
+				UPDATE SET
+					  EVL.ASMT_SBMSN_ID = SRC.ASMT_SBMSN_ID
+					, EVL.EXLN_ASMTYN   = SRC.EXLN_ASMTYN
+					, EVL.MDFR_ID       = SRC.MDFR_ID
+					, EVL.MOD_DTTM      = FN_DTTM()
+			WHEN NOT MATCHED THEN
+				INSERT (
+					  ASMT_EVL_ID
+					, ASMT_ID
+					, USER_ID
+					, ASMT_SBMSN_ID
+					, EVLYN
+					, EXLN_ASMTYN
+					, RGTR_ID
+					, REG_DTTM
+				)
+				VALUES (
+					  SRC.ASMT_EVL_ID
+					, SRC.ASMT_ID
+					, SRC.USER_ID
+					, SRC.ASMT_SBMSN_ID
+					, 'N'
+					, SRC.EXLN_ASMTYN
+					, SRC.RGTR_ID
+					, FN_DTTM()
+				)
+	</update>
+	<update id="asmtExlnModify" parameterType="asmtEvlVO">
+		/*
+			SQL ID : AsmtProfIndivDAO.asmtExlnModify
+			설  명 : 우수과제 선정 수정
+		*/
+		UPDATE TB_LMS_ASMT_EVL
+		   SET EXLN_ASMTYN = #{exlnAsmtyn}
+			 , MDFR_ID     = #{mdfrId}
+			 , MOD_DTTM    = FN_DTTM()
+		 WHERE ASMT_ID     = #{asmtId}
+		   AND USER_ID     = #{userId}
+	</update>
+
+
+	<select id="asmtSbmsnHistList" resultType="egovMap" parameterType="asmtVO">
+		/*
+			SQL ID : AsmtProfIndivDAO.asmtSbmsnHistList
+			설 명 : 과제 제출 이력 조회
+		*/
+		SELECT
+			  SBMSN.ASMT_SBMSN_ID
+			, SBMSN.ASMT_ID
+			, SBMSN.USER_ID
+			, SBMSN.TEAM_ID
+			, SBMSN.SBMSN_STSCD
+		    , SBMSN.SBMSN_TYCD
+			, SBMSN.SBMSN_DTTM
+			, SBMSN.SBMSN_CTS
+			, SBMSN.SBMSN_TXT
+		FROM TB_LMS_ASMT_SBMSN SBMSN
+		WHERE SBMSN.ASMT_ID = #{asmtId}
+			AND SBMSN.USER_ID = #{userId}
+			AND SBMSN.DELYN = 'N'
+		ORDER BY
+			  SBMSN.SBMSN_DTTM DESC
+			, SBMSN.REG_DTTM DESC
+			, SBMSN.ASMT_SBMSN_ID DESC
+	</select>
+
+	<select id="lastAsmtSbmsnSelect" parameterType="asmtSbmsnVO" resultType="egovMap">
+		/*
+			SQL ID : AsmtProfIndivDAO.lastAsmtSbmsnSelect
+			설 명 : 마지막 과제 제출 조회
+		*/
+		SELECT *
+		FROM (
+			SELECT SBMSN.ASMT_ID
+				, SBMSN.USER_ID
+				, SBMSN.ASMT_SBMSN_ID
+				, SBMSN.TEAM_ID
+				, SBMSN.SBMSN_DTTM
+				, SBMSN.SBMSN_TYCD
+				, SBMSN.SBMSN_CTS
+				, SBMSN.SBMSN_TXT
+				, SBMSN.SBMSN_STSCD
+				, SBMSN.SBMSN_CNT
+                   , ROW_NUMBER() OVER (
+                PARTITION BY
+                    SBMSN.ASMT_ID
+                    , SBMSN.USER_ID
+                ORDER BY
+                    SBMSN.SBMSN_DTTM DESC
+                    , SBMSN.REG_DTTM DESC
+                    , SBMSN.ASMT_SBMSN_ID DESC
+                ) RN
+              FROM TB_LMS_ASMT_SBMSN SBMSN
+              WHERE SBMSN.DELYN = 'N'
+                AND SBMSN.ASMT_ID = #{asmtId}
+                AND SBMSN.USER_ID = #{userId}
+	  	) MAIN
+		WHERE MAIN.RN = 1
+
+	</select>
 </mapper>

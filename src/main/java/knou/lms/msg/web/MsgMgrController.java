@@ -1,239 +1,248 @@
 package knou.lms.msg.web;
 
-import javax.servlet.http.HttpServletRequest;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.MessageSource;
+import knou.framework.common.CommConst;
+import knou.framework.common.ControllerBase;
+import knou.framework.context2.UserContext;
+import knou.framework.util.StringUtil;
+import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.msg.service.MsgMgrService;
+import knou.lms.msg.vo.MsgMgrVO;
+import knou.lms.msg.web.util.MsgAuthUtil;
+import knou.lms.org.vo.OrgInfoVO;
+import knou.lms.user.CurrentUser;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import knou.framework.common.CommConst;
-import knou.framework.common.ControllerBase;
-import knou.framework.common.SessionInfo;
-import knou.framework.exception.AccessDeniedException;
-import knou.framework.util.StringUtil;
-import knou.lms.cmmn.vo.CmmnCdVO;
+import javax.annotation.Resource;
+import java.util.List;
 
 @Controller
-@RequestMapping(value = "/msg/msgMgr")
 public class MsgMgrController extends ControllerBase {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(MsgMgrController.class);
-    
-    @Autowired @Qualifier("messageSource")
-    private MessageSource messageSource;
-    
-    /***************************************************** 
-     * @Method Name : msgMgrList
-     * @Method 설명 : 코드관리 > 코드 리스트
+
+    @Resource(name = "msgMgrService")
+    private MsgMgrService msgMgrService;
+
+    /*****************************************************
+     * 전체시스템관리자 권한 조회
+     * @param userCtx
+     * @return boolean
+     ******************************************************/
+    private boolean isAdminUser(UserContext userCtx) {
+        return CommConst.AUTHRT_CD_ADM.equals(StringUtil.nvl(userCtx.getAuthrtCd()));
+    }
+
+    /*****************************************************
+     * 기관 목록 AJAX 조회
      * @param vo
-     * @param commandMap
-     * @param model
-     * @param request
-     * @return "msg/main/code_list.jsp"
+     * @param userCtx
+     * @return ProcessResultVO<OrgInfoVO>
      * @throws Exception
-     ******************************************************/ 
-    @RequestMapping(value="/msgPushList.do")
-    public String msgPushList(CmmnCdVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-    	String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
-        vo.setOrgId(orgId);
+     ******************************************************/
+    @RequestMapping({"/msgMgrOrgListAjax.do", "/admMsgMgrOrgListAjax.do"})
+    @ResponseBody
+    public ProcessResultVO<OrgInfoVO> msgMgrOrgListAjax(MsgMgrVO vo, @CurrentUser UserContext userCtx) throws Exception {
+        ProcessResultVO<OrgInfoVO> resultVO = new ProcessResultVO<>();
 
-        if(!menuType.contains("ADM")) {
-            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
-        }
+        List<OrgInfoVO> list = isAdminUser(userCtx)
+                ? msgMgrService.selectActiveOrgListByAuth(userCtx.getUserId(), true)
+                : msgMgrService.selectProfSbjctOrgList(userCtx.getUserId());
+        resultVO.setReturnList(list);
+        resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        resultVO.setEncParams(getEncParams());
 
-        model.addAttribute("vo", vo);
-        model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
-
-        model.addAttribute("orgId", orgId);
-        model.addAttribute("menuType", "ADM");
-        model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
-        
-    	return "msg/main/msg_push_list";
+        return resultVO;
     }
-    
-    @RequestMapping(value="/msgShrtntList.do")
-    public String msgShrtntList(CmmnCdVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-    	String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
-        vo.setOrgId(orgId);
 
-        if(!menuType.contains("ADM")) {
-            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
+    /*****************************************************
+     * 학사년도 목록 AJAX 조회
+     * @param vo
+     * @param userCtx
+     * @return ProcessResultVO<MsgMgrVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping({"/msgMgrYrListAjax.do", "/admMsgMgrYrListAjax.do"})
+    @ResponseBody
+    public ProcessResultVO<MsgMgrVO> msgMgrYrListAjax(MsgMgrVO vo, @CurrentUser UserContext userCtx) throws Exception {
+        ProcessResultVO<MsgMgrVO> resultVO = new ProcessResultVO<>();
+
+        if (!MsgAuthUtil.isAdmin(userCtx)) {
+            vo.setUserId(userCtx.getUserId());
         }
 
-        model.addAttribute("vo", vo);
-        model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
+        List<MsgMgrVO> list = msgMgrService.selectYrList(vo);
+        resultVO.setReturnList(list);
+        resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        resultVO.setEncParams(getEncParams());
 
-        model.addAttribute("orgId", orgId);
-        model.addAttribute("menuType", "ADM");
-        model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
-        
-    	return "msg/main/msg_shrtnt_list";
+        return resultVO;
     }
-    
-    @RequestMapping(value="/msgEmlList.do")
-    public String msgEmlList(CmmnCdVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-    	String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
-        vo.setOrgId(orgId);
 
-        if(!menuType.contains("ADM")) {
-            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
+    /*****************************************************
+     * 학기 목록 AJAX 조회
+     * @param vo
+     * @param userCtx
+     * @return ProcessResultVO<EgovMap>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping({"/msgMgrSmstrListAjax.do", "/admMsgMgrSmstrListAjax.do"})
+    @ResponseBody
+    public ProcessResultVO<EgovMap> msgMgrSmstrListAjax(MsgMgrVO vo, @CurrentUser UserContext userCtx) throws Exception {
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
+
+        if (!MsgAuthUtil.isAdmin(userCtx)) {
+            vo.setUserId(userCtx.getUserId());
         }
 
-        model.addAttribute("vo", vo);
-        model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
+        List<EgovMap> list = msgMgrService.selectSmstrList(vo);
+        resultVO.setReturnList(list);
+        resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        resultVO.setEncParams(getEncParams());
 
-        model.addAttribute("orgId", orgId);
-        model.addAttribute("menuType", "ADM");
-        model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
-        
-    	return "msg/main/msg_eml_list";
+        return resultVO;
     }
-    
-    @RequestMapping(value="/msgAlimTalkList.do")
-    public String msgAlimTalkList(CmmnCdVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-    	String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
-        vo.setOrgId(orgId);
 
-        if(!menuType.contains("ADM")) {
-            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
+    /*****************************************************
+     * 운영과목 목록 AJAX 조회
+     * @param vo
+     * @param userCtx
+     * @return ProcessResultVO<MsgMgrVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping({"/msgMgrSbjctListAjax.do", "/admMsgMgrSbjctListAjax.do"})
+    @ResponseBody
+    public ProcessResultVO<MsgMgrVO> msgMgrSbjctListAjax(MsgMgrVO vo, @CurrentUser UserContext userCtx) throws Exception {
+        ProcessResultVO<MsgMgrVO> resultVO = new ProcessResultVO<>();
+
+        if (!MsgAuthUtil.isAdmin(userCtx)) {
+            vo.setUserId(userCtx.getUserId());
         }
 
-        model.addAttribute("vo", vo);
-        model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
+        List<MsgMgrVO> list = msgMgrService.selectSbjctList(vo);
+        resultVO.setReturnList(list);
+        resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        resultVO.setEncParams(getEncParams());
 
-        model.addAttribute("orgId", orgId);
-        model.addAttribute("menuType", "ADM");
-        model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
-        
-    	return "msg/main/msg_alim_talk_list";
+        return resultVO;
     }
-    
-    @RequestMapping(value="/msgSmsList.do")
-    public String msgSmsList(CmmnCdVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-    	String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
-        vo.setOrgId(orgId);
 
-        if(!menuType.contains("ADM")) {
-            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
-        }
+    /*****************************************************
+     * 학생 학사년도 목록 AJAX 조회 (수강과목 기준)
+     * @param vo
+     * @param userCtx
+     * @return ProcessResultVO<MsgMgrVO>
+     ******************************************************/
+    @RequestMapping("/stdntMsgMgrYrListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgMgrVO> stdntMsgMgrYrListAjax(MsgMgrVO vo, @CurrentUser UserContext userCtx) {
+        ProcessResultVO<MsgMgrVO> resultVO = new ProcessResultVO<>();
 
-        model.addAttribute("vo", vo);
-        model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
+        vo.setUserId(userCtx.getUserId());
+        List<MsgMgrVO> list = msgMgrService.selectStdntYrList(vo);
+        resultVO.setReturnList(list);
+        resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        resultVO.setEncParams(getEncParams());
 
-        model.addAttribute("orgId", orgId);
-        model.addAttribute("menuType", "ADM");
-        model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
-        
-    	return "msg/main/msg_sms_list";
+        return resultVO;
     }
-    
-    @RequestMapping(value="/msgTmpltList.do")
-    public String msgTmpltList(CmmnCdVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-    	String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
-        vo.setOrgId(orgId);
 
-        if(!menuType.contains("ADM")) {
-            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
-        }
+    /*****************************************************
+     * 학생 학기 목록 AJAX 조회 (수강과목 기준)
+     * @param vo
+     * @param userCtx
+     * @return ProcessResultVO<EgovMap>
+     ******************************************************/
+    @RequestMapping("/stdntMsgMgrSmstrListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<EgovMap> stdntMsgMgrSmstrListAjax(MsgMgrVO vo, @CurrentUser UserContext userCtx) {
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
 
-        model.addAttribute("vo", vo);
-        model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
+        vo.setUserId(userCtx.getUserId());
+        List<EgovMap> list = msgMgrService.selectStdntSmstrList(vo);
+        resultVO.setReturnList(list);
+        resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        resultVO.setEncParams(getEncParams());
 
-        model.addAttribute("orgId", orgId);
-        model.addAttribute("menuType", "ADM");
-        model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
-        
-    	return "msg/main/msg_tmplt_list";
+        return resultVO;
     }
-    
-    @RequestMapping(value="/msgAutoAlimDlvrList.do")
-    public String msgAutoAlimDlvrList(CmmnCdVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-    	String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
-        vo.setOrgId(orgId);
 
-        if(!menuType.contains("ADM")) {
-            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
-        }
+    /*****************************************************
+     * 학생 운영과목 목록 AJAX 조회 (수강과목 기준)
+     * @param vo
+     * @param userCtx
+     * @return ProcessResultVO<MsgMgrVO>
+     ******************************************************/
+    @RequestMapping("/stdntMsgMgrSbjctListAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MsgMgrVO> stdntMsgMgrSbjctListAjax(MsgMgrVO vo, @CurrentUser UserContext userCtx) {
+        ProcessResultVO<MsgMgrVO> resultVO = new ProcessResultVO<>();
 
-        model.addAttribute("vo", vo);
-        model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
+        vo.setUserId(userCtx.getUserId());
+        List<MsgMgrVO> list = msgMgrService.selectStdntSbjctList(vo);
+        resultVO.setReturnList(list);
+        resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        resultVO.setEncParams(getEncParams());
 
-        model.addAttribute("orgId", orgId);
-        model.addAttribute("menuType", "ADM");
-        model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
-    	
-    	return "msg/main/msg_auto_alim_dlvr_list";
+        return resultVO;
     }
-    
-    @RequestMapping(value="/msgDlvrHistList.do")
-    public String msgDlvrHistList(CmmnCdVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-    	String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
-        vo.setOrgId(orgId);
 
-        if(!menuType.contains("ADM")) {
-            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
+    /*****************************************************
+     * 받는 사람 검색 AJAX
+     * @param vo
+     * @param userCtx
+     * @return ProcessResultVO<MsgMgrVO>
+     * @throws Exception
+     ******************************************************/
+    @RequestMapping({"/msgMgrRcvrSearchAjax.do", "/admMsgMgrRcvrSearchAjax.do"})
+    @ResponseBody
+    public ProcessResultVO<MsgMgrVO> msgMgrRcvrSearchAjax(MsgMgrVO vo, @CurrentUser UserContext userCtx) throws Exception {
+        ProcessResultVO<MsgMgrVO> resultVO = new ProcessResultVO<>();
+
+        if (!"POPUP".equals(vo.getGubun())) {
+            MsgAuthUtil.applyOrgScope(vo, userCtx);
         }
+        if (MsgAuthUtil.isAdmin(userCtx)) {
+            vo.setAdminYn("Y");
+        }
+        vo.setSndngrId(userCtx.getUserId());
 
-        model.addAttribute("vo", vo);
-        model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
+        resultVO = msgMgrService.selectRcvrSearchListPage(vo);
+        resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        resultVO.setEncParams(getEncParams());
 
-        model.addAttribute("orgId", orgId);
-        model.addAttribute("menuType", "ADM");
-        model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
-        
-    	return "msg/main/msg_dlvr_hist_list";
+        return resultVO;
     }
-    
-    @RequestMapping(value="/msgMngPopView.do")
-    public String msgMngPopView(CmmnCdVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-    	String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
-        vo.setOrgId(orgId);
 
-        if(!menuType.contains("ADM")) {
-            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
-        }
-
+    /*****************************************************
+     * 받는 사람 검색 팝업 화면
+     * @param vo
+     * @param userCtx
+     * @param model
+     * @return "msg/modal/msg_rcvr_popview"
+     ******************************************************/
+    @RequestMapping({"/msgMgrRcvrPopView.do", "/admMsgMgrRcvrPopView.do"})
+    public String msgMgrRcvrPopView(MsgMgrVO vo, @CurrentUser UserContext userCtx, ModelMap model) {
+        model.addAttribute("orgId", userCtx.getOrgId());
+        model.addAttribute("isAdmin", MsgAuthUtil.isAdmin(userCtx));
+        model.addAttribute("userTycdList", msgMgrService.selectUserTycdList());
         model.addAttribute("vo", vo);
-        model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
 
-        model.addAttribute("orgId", orgId);
-        model.addAttribute("menuType", "ADM");
-        model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
-        
-    	return "msg/popup/msg_mng_pop_view";
+        return "msg/modal/msg_rcvr_popview";
     }
-    
-    @RequestMapping(value="/msgAlimRcvStsList.do")
-    public String msgAlimRcvStsList(CmmnCdVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-    	String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
-        vo.setOrgId(orgId);
 
-        if(!menuType.contains("ADM")) {
-            throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
-        }
-
+    /*****************************************************
+     * 템플릿에 저장 팝업 화면
+     * @param vo
+     * @param model
+     * @return "msg/modal/msg_tmplt_popview"
+     ******************************************************/
+    @RequestMapping({"/msgMgrTmpltRegistPopView.do", "/admMsgMgrTmpltRegistPopView.do"})
+    public String msgMgrTmpltRegistPopView(MsgMgrVO vo, @CurrentUser UserContext userCtx, ModelMap model) {
+        model.addAttribute("isAdmin", MsgAuthUtil.isAdmin(userCtx));
         model.addAttribute("vo", vo);
-        model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
 
-        model.addAttribute("orgId", orgId);
-        model.addAttribute("menuType", "ADM");
-        model.addAttribute("authGrpCd", SessionInfo.getAuthrtCd(request));
-    	
-    	return "msg/main/msg_alim_rcv_sts_list";
+        return "msg/modal/msg_tmplt_popview";
     }
 }

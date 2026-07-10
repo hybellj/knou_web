@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="../common/common_inc.jsp" %><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+	<jsp:include page="../common/common_head.jsp">
 		<jsp:param name="style" value="login"/>
 	</jsp:include>
 </head>
@@ -16,7 +16,7 @@
 				</div>
 				<div class="right_box">
 					<div class="login_content">
-						<div class="login_logo"><img src="<%=request.getContextPath()%>/webdoc/assets/img/logo.png" alt="한국방송통신대학교" /></div>
+						<div class="login_logo"><img src="<%=request.getContextPath()%>/webdoc/assets/img/logo.svg" alt="한국방송통신대학교" /></div>
 						<div class="login_wrap">
 							<div class="login_input">
 								<div class="login_title">

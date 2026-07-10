@@ -1,25 +1,30 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="../common/common_inc.jsp" %><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+	<jsp:include page="../common/common_head.jsp">
 		<jsp:param name="module" value="chart"/>
 		<jsp:param name="style" value="dashboard"/>
 	</jsp:include>
+
+<script src="../../webdoc/uilib/chart/d3.v4.js"></script><!-- chart d3.js -->
+			<script src="../../webdoc/uilib/chart/chart4.min.js"></script><!-- chart4 -->
+			<script src="../../webdoc/uilib/chart/chart-utils.min.js"></script><!-- chart util -->
+			<script src="../../webdoc/uilib/chart/chartjs-plugin-datalabels.min.js"></script>    
 </head>
 
-<body class="home colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="home"><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
-        <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
+        <jsp:include page="../common/home_header.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
         <!-- //common header -->
 
         <!-- dashboard -->
         <main class="common">
 
             <!-- gnb -->
-			<jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
+			<jsp:include page="../common/home_gnb_prof.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
             <!-- //gnb -->
 
             <!-- content -->
@@ -27,7 +32,7 @@
                 <div class="dashboard_sub">
 
                     <!-- page_tab -->
-                    <jsp:include page="/WEB-INF/jsp/common_new/home_page_tab.jsp"/>
+                    <jsp:include page="../common/home_page_tab.jsp"/>
                     <!-- //page_tab -->
 
                     <div class="sub-content">
@@ -352,7 +357,8 @@
                 <div class="modal-btn-box">
                     <button type="button" class="btn modal__btn" data-modal-open="modal1">학습자 학습현황</button>
                     <button type="button" class="btn modal__btn" data-modal-open="modal2">학습자 주차 학습현황</button>      
-                    <button type="button" class="btn modal__btn" data-modal-open="modal3">학습자 학습요소 참여현황</button>             
+                    <button type="button" class="btn modal__btn" data-modal-open="modal3">학습자 학습요소 참여현황</button>
+                    <button type="button" class="btn modal__btn" data-modal-open="modal4">출석 관리 사유</button>
                 </div>
                 <!--// modal popup 보여주기 버튼(개발시 삭제) -->
 
@@ -361,7 +367,7 @@
 
 
             <!-- common footer -->
-            <jsp:include page="/WEB-INF/jsp/common_new/home_footer.jsp"/>
+            <jsp:include page="../common/home_footer.jsp"/>
             <!-- //common footer -->
 
         </main>
@@ -395,7 +401,7 @@
                             <div class="user-img">
                                 <div class="user-photo">
                                     <!--프로필 사진-->
-                                    <img src="/lms_design_sample/webdoc/assets/img/common/photo_user_sample.png" alt="사진">
+                                    <img src="/lms_design_sample/webdoc/assets/img/common/default_prof.png" alt="사진">
                                 </div>
                             </div>
 
@@ -862,7 +868,7 @@
                             <div class="user-img">
                                 <div class="user-photo">
                                     <!--프로필 사진-->
-                                    <img src="/lms_design_sample/webdoc/assets/img/common/photo_user_sample.png" alt="사진">
+                                    <img src="/webdoc/assets/img/common/default_stu.png" alt="사진">
                                 </div>
                             </div>
 
@@ -928,6 +934,7 @@
                                     <span>학습시간<strong>10분 30초 ( 기간 후 : 5분 30초 )</strong></span>                                        
                                 </p>                                    
                                 <button class="btn s_type2">출석처리</button>
+                                <button class="btn s_type2">출석처리 취소</button>
                             </div>
                         </div>
                         <div class="h_content">
@@ -935,14 +942,19 @@
                                 <li class="active"><!-- 클릭시 active 추가 -->
                                     <div class="title-wrap">
                                         <div class="chasi_tit">[ 1차시 ] 차시제목1</div>
-                                        <a class="title" href="#">                                                
-                                            <div class="lecture_box">
+                                        <a class="title" href="#">
+                                            <div class="lecture_box work">
                                                 <div class="lecture_tit">
                                                     <p class="labels">
                                                         <label class="label s_basic">동영상</label>
                                                     </p>
                                                     <strong>우리 생활 주변의 데이터베이스</strong>
                                                 </div>
+                                                <p class="desc">
+                                                    <span>학습기간<strong>2026.03.05 ~ 2026.03.16</strong></span>
+                                                    <span><strong>37분</strong></span>
+                                                    <span><strong>출결대상</strong></span>
+                                                </p>
                                                 <div class="btn_right">
                                                     <label class="state">학습완료</label>
                                                 </div>
@@ -1009,13 +1021,18 @@
                                         <div class="chasi_tit">[ 2차시 ] 차시제목1</div>
                                         <a class="title" href="#">
                                             
-                                            <div class="lecture_box">
+                                            <div class="lecture_box work">
                                                 <div class="lecture_tit">
                                                     <p class="labels">
                                                         <label class="label s_basic">동영상</label>
                                                     </p>
                                                     <strong>데이터베이스 관리 시스템</strong>
                                                 </div>
+                                                <p class="desc">
+                                                    <span>학습기간<strong>2026.03.05 ~ 2026.03.16</strong></span>
+                                                    <span><strong>37분</strong></span>
+                                                    <span><strong>출결대상</strong></span>
+                                                </p>                                                
                                                 <div class="btn_right">
                                                     <label class="state">학습중</label>
                                                 </div>
@@ -1113,7 +1130,7 @@
                             <div class="user-img">
                                 <div class="user-photo">
                                     <!--프로필 사진-->
-                                    <img src="/lms_design_sample/webdoc/assets/img/common/photo_user_sample.png" alt="사진">
+                                    <img src="/lms_design_sample/webdoc/assets/img/common/default_prof.png" alt="사진">
                                 </div>
                             </div>
 
@@ -1307,6 +1324,26 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal 4 출석 관리 사유 -->
+        <div class="modal-overlay" id="modal4" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal4Title" >
+            <div class="modal-content modal-lg" tabindex="-1">
+                <div class="modal-header">
+                    <h2 id="modal4Title">출석 관리 사유</h2>
+                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
+                </div>
+                <div class="modal-body">
+                    <!--등록-->
+                    <textarea class="form-control width-100per min-height-200px" placeholder="사유 입력"></textarea>
+
+                    <div class="modal_btns">
+                        <button type="button" class="btn type2">닫기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- //Modal 4 출석 관리 사유 -->
+
 
         <script src="<%=request.getContextPath()%>/webdoc/assets/js/modal.js" defer></script>
 

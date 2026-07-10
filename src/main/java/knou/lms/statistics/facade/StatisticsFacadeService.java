@@ -6,6 +6,6 @@ import knou.framework.context2.UserContext;
 
 public interface StatisticsFacadeService {
 	
-	EgovMap loadFilterOptions(UserContext userCtx) throws Exception;
+	EgovMap loadFilterOptions(UserContext userCtx);
 
 }

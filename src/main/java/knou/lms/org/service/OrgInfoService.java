@@ -22,17 +22,15 @@ public interface OrgInfoService {
      * @return List<OrgInfoVO>
      * @throws Exception
      ******************************************************/
-    public List<OrgInfoVO> list(OrgInfoVO vo) throws Exception;
+    public List<OrgInfoVO> list(OrgInfoVO vo) ;
     
     /*****************************************************
      * 소속(테넌시)관리 페이징 목록
      * @param vo
-     * @param model
-     * @param request
      * @return ProcessResultVO<OrgInfoVO>
-     * @throws Exception
+     * @throws Exception 
      ******************************************************/
-    public ProcessResultVO<OrgInfoVO> listPaging(OrgInfoVO vo) throws Exception;
+    public ProcessResultVO<EgovMap> listPaging(OrgInfoVO vo) throws Exception;
     
     /*****************************************************
      * 소속(테넌시)관리 등록
@@ -72,4 +70,12 @@ public interface OrgInfoService {
      * @throws Exception
      ******************************************************/
     public List<OrgInfoVO> listActiveOrg() throws Exception;
+
+    /*****************************************************
+     * 사용자에 연결된 운영 기관 조회
+     * @param userId
+     * @return List<OrgInfoVO>
+     * @throws Exception
+     ******************************************************/
+    public List<OrgInfoVO> listActiveOrgByUser(String userId) throws Exception;
 }

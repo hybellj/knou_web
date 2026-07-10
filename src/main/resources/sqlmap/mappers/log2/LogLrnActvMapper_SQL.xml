@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.log2.user.dao.LogLrnActvDAO">
+
+    <insert id="mergeLrnActvInqHstry" parameterType="logLrnActvInqHstryVO">
+        /*
+            SQL ID : LogLrnActvDAO.mergeLrnActvInqHstry
+            설  명 : 학습활동조회이력 저장
+        */
+        MERGE INTO TB_LMS_LOG_LRN_ACTV_INQ_HSTRY HSTRY
+        USING (
+            SELECT
+                  #{lrnActvId} AS LRN_ACTV_ID
+                , USR.USER_ID
+                , #{lrnActvTycd} AS LRN_ACTV_TYCD
+                , #{orgnm} AS ORGNM
+                , #{deptId} AS DEPT_ID
+                , USR.STDNT_NO
+                , USR.USERNM
+                , FN_DTTM() AS INQ_DTTM
+                , USR.USER_ID AS RGTR_ID
+                , FN_DTTM() AS REG_DTTM
+            FROM
+                TB_LMS_USER USR
+            WHERE
+                USR.USER_ID = #{userId}
+        ) SRC
+        ON (
+            HSTRY.LRN_ACTV_ID = SRC.LRN_ACTV_ID
+            AND HSTRY.USER_ID = SRC.USER_ID
+        )
+        WHEN NOT MATCHED THEN
+            INSERT (
+                  LRN_ACTV_ID
+                , USER_ID
+                , LRN_ACTV_TYCD
+                , ORGNM
+                , DEPT_ID
+                , STDNT_NO
+                , USERNM
+                , INQ_DTTM
+                , RGTR_ID
+                , REG_DTTM
+            ) VALUES (
+                  SRC.LRN_ACTV_ID
+                , SRC.USER_ID
+                , SRC.LRN_ACTV_TYCD
+                , SRC.ORGNM
+                , SRC.DEPT_ID
+                , SRC.STDNT_NO
+                , SRC.USERNM
+                , SRC.INQ_DTTM
+                , SRC.RGTR_ID
+                , SRC.REG_DTTM
+            )
+    </insert>
+
+</mapper>

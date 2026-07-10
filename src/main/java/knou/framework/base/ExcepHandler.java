@@ -6,14 +6,13 @@ import org.slf4j.LoggerFactory;
 
 public class ExcepHandler implements ExceptionHandler  {
 	
-	private static final Logger log = LoggerFactory.getLogger(ExcepHandler.class);
-
+	private static final Logger log = LoggerFactory.getLogger(ExcepHandler.class);	
 	/**
 	* @param ex
 	* @param packageName
 	*/
 	@Override
 	public void occur(Exception ex, String packageName) {
-		//log.error("[ERROR] 위치: {} | 내용: {}", packageName, ex.getMessage());
+	    //log.error("Service 단에서 발생한 Exception >>>>>>>>>>>>> ExcepHandler.occur > Exception 발생", ex.toString());
 	}
 }

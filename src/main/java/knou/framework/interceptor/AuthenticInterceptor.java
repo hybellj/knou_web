@@ -61,7 +61,7 @@ public class AuthenticInterceptor extends HandlerInterceptorAdapter {
 	 */
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-		
+
         String uri = request.getRequestURI();
         String profiles = messageSource.getMessage("SERVER.MODE", null, null);
         String userAgent = StringUtil.nvl(request.getHeader("User-Agent"));
@@ -69,7 +69,7 @@ public class AuthenticInterceptor extends HandlerInterceptorAdapter {
         Locale locale = LocaleUtil.getLocale(request);
 
 	    // 시스템 점검중 안내페이지 표시여부
-	    if ("Y".equals(CommConst.WORK_PAGE_YN)) {    
+	    if ("Y".equals(CommConst.WORK_PAGE_YN)) {
             response.sendRedirect("/");
             return false;
 	    }
@@ -84,6 +84,8 @@ public class AuthenticInterceptor extends HandlerInterceptorAdapter {
                 || uri.contains("/crsHomeStdTest.do")
                 || uri.contains("/saveStdyRecord.do")
                 || uri.contains("/index.do")
+                || uri.contains("/preLogin.do")
+                || uri.contains("/passkey/")
                 ) {
             checkSession = false;
         }
@@ -104,7 +106,7 @@ public class AuthenticInterceptor extends HandlerInterceptorAdapter {
         	response.sendRedirect("/sso/CreateRequest.jsp");
 	        return false;
         }
-	    
+
         if(checkSession && !SessionInfo.isLogin(request)) {
 	        response.sendRedirect("/");
 	        return false;
@@ -154,7 +156,7 @@ public class AuthenticInterceptor extends HandlerInterceptorAdapter {
                 loginVO.setUserId(userId);
                 loginVO = usrLoginService.selectSessionId(loginVO);
                 String sid = loginVO.getSessionId();
-                
+
                 System.out.println("sid=" + sid + ", sessionId="+sessionId);
 
                 // 중복 로그인 시
@@ -167,7 +169,7 @@ public class AuthenticInterceptor extends HandlerInterceptorAdapter {
                     valid = false;
                 }
             }
-            
+
 
             // 사용자 접속상태 저장
             if (valid) {
@@ -177,7 +179,8 @@ public class AuthenticInterceptor extends HandlerInterceptorAdapter {
             // 관리자 강의실 접근권한 추가
             String menuTycd = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
 
-            if(menuTycd.contains("ADM") && !(menuTycd.contains("PROF") || menuTycd.contains("USR"))) {
+            if(menuTycd.contains(CommConst.AUTHRT_GRPCD_ADM)
+            		&& !(menuTycd.contains(CommConst.AUTHRT_GRPCD_PROF) || menuTycd.contains("USER"))) {
             	menuTycd += "|PROFESSOR";
                 SessionInfo.setAuthrtGrpcd(request, menuTycd);
             }

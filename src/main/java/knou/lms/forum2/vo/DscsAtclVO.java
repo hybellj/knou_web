@@ -7,46 +7,41 @@ import knou.lms.common.vo.DefaultVO;
 
 public class DscsAtclVO extends DefaultVO {
 
-    private String dscsAtclId;
-    private String dscsId;
-    private String upDscsAtclId;
-    private int atclLv;
-    private int atclSeqno;
-    private String dscsAtclTycd;
-    private String oknokGbncd;
-    private String atclTtl;
-    private String atclCts;
-    private int atclCtsLen;
-    private int inqCnt;
-    private int likes;
-    private String usernm;
-    private String rgtrId;
-    private String regDttm;
-    private String mdfrId;
-    private String modDttm;
-    private String edtrUseyn;
-    private String delyn;
+    private String dscsAtclId; // 토론게시글아이디
+    private String dscsId; // 토론아이디
+    private String upDscsAtclId; // 상위토론게시글아이디
+    private int atclLv; // 게시글레벨
+    private int atclSeqno; // 게시글순번
+    private String dscsAtclTycd; // 토론게시글유형코드
+    private String oknokGbncd; // 찬성반대구분코드
+    private String atclTtl; // 게시글제목
+    private String atclCts; // 게시글내용
+    private int atclCtsLen; // 게시글내용길이
+    private int inqCnt; // 조회수
+    private String usernm; // 사용자명
+    private String rgtrId; // 등록자아이디
+    private String regDttm; // 등록일시
+    private String mdfrId; // 수정자아이디
+    private String modDttm; // 수정일시
+    private String edtrUseyn; // 에디터사용여부
+    private String delyn; // 삭제여부
 
-    private String recomStatus;
-    private List<?> cmntList;
+    private List<?> cmntList; // 댓글 목록
 
-    private int dscsAtclCnt;
-    private int dscsAtclPorsCnt;
-    private int dscsAtclConsCnt;
-    private int cmntCount;
-    private int myCmntCount;
-    private int maxOdr;
-    private int afterAtclCnt;
-    private String userId;
-    private String stdId;
-    private String stdList;
+    private int dscsAtclCnt; // 게시글 갯수
+    private int cmntCount; // 댓글 갯수
+    private int writerCmntCount; // 작성자 댓글 갯수
+    private int viewerCmntCount; // 조회자 댓글 갯수
+    private int maxOdr; // 최대 게시글 순번
+    private String userId; // 사용자아이디
+    private String stdntNo; // 학번
+    private String stdId; // 학습자 아이디
+    private String stdList; // 학습자 목록
 
-    private boolean viewAll;
-    private String[] sqlForeach;
-    private String phtFile;
-    private byte[] phtFileByte;
-    private String aplyAsnYn;
-    private String konanMaxCopyRate;
+    private boolean viewAll; // 전체 조회 여부
+    private String[] sqlForeach; // WHERE IN 배열 파라미터
+    private String phtFile; // 프로필 사진 파일
+    private byte[] phtFileByte; // 프로필 사진 파일 바이트
 
     public String getDscsAtclId() {
         return dscsAtclId;
@@ -136,14 +131,6 @@ public class DscsAtclVO extends DefaultVO {
         this.inqCnt = inqCnt;
     }
 
-    public int getLikes() {
-        return likes;
-    }
-
-    public void setLikes(int likes) {
-        this.likes = likes;
-    }
-
     public String getUsernm() {
         return usernm;
     }
@@ -200,14 +187,6 @@ public class DscsAtclVO extends DefaultVO {
         this.delyn = delyn;
     }
 
-    public String getRecomStatus() {
-        return recomStatus;
-    }
-
-    public void setRecomStatus(String recomStatus) {
-        this.recomStatus = recomStatus;
-    }
-
     public List<?> getCmntList() {
         return cmntList;
     }
@@ -224,22 +203,6 @@ public class DscsAtclVO extends DefaultVO {
         this.dscsAtclCnt = dscsAtclCnt;
     }
 
-    public int getDscsAtclPorsCnt() {
-        return dscsAtclPorsCnt;
-    }
-
-    public void setDscsAtclPorsCnt(int dscsAtclPorsCnt) {
-        this.dscsAtclPorsCnt = dscsAtclPorsCnt;
-    }
-
-    public int getDscsAtclConsCnt() {
-        return dscsAtclConsCnt;
-    }
-
-    public void setDscsAtclConsCnt(int dscsAtclConsCnt) {
-        this.dscsAtclConsCnt = dscsAtclConsCnt;
-    }
-
     public int getCmntCount() {
         return cmntCount;
     }
@@ -248,12 +211,20 @@ public class DscsAtclVO extends DefaultVO {
         this.cmntCount = cmntCount;
     }
 
-    public int getMyCmntCount() {
-        return myCmntCount;
+    public int getWriterCmntCount() {
+        return writerCmntCount;
     }
 
-    public void setMyCmntCount(int myCmntCount) {
-        this.myCmntCount = myCmntCount;
+    public void setWriterCmntCount(int writerCmntCount) {
+        this.writerCmntCount = writerCmntCount;
+    }
+
+    public int getViewerCmntCount() {
+        return viewerCmntCount;
+    }
+
+    public void setViewerCmntCount(int viewerCmntCount) {
+        this.viewerCmntCount = viewerCmntCount;
     }
 
     public int getMaxOdr() {
@@ -264,20 +235,20 @@ public class DscsAtclVO extends DefaultVO {
         this.maxOdr = maxOdr;
     }
 
-    public int getAfterAtclCnt() {
-        return afterAtclCnt;
-    }
-
-    public void setAfterAtclCnt(int afterAtclCnt) {
-        this.afterAtclCnt = afterAtclCnt;
-    }
-
     public String getUserId() {
         return userId;
     }
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public String getStdntNo() {
+        return stdntNo;
+    }
+
+    public void setStdntNo(String stdntNo) {
+        this.stdntNo = stdntNo;
     }
 
     public String getStdId() {
@@ -329,125 +300,5 @@ public class DscsAtclVO extends DefaultVO {
 
     public void setPhtFileByte(byte[] phtFileByte) {
         this.phtFileByte = phtFileByte;
-    }
-
-    public String getAplyAsnYn() {
-        return aplyAsnYn;
-    }
-
-    public void setAplyAsnYn(String aplyAsnYn) {
-        this.aplyAsnYn = aplyAsnYn;
-    }
-
-    public String getKonanMaxCopyRate() {
-        return konanMaxCopyRate;
-    }
-
-    public void setKonanMaxCopyRate(String konanMaxCopyRate) {
-        this.konanMaxCopyRate = konanMaxCopyRate;
-    }
-
-    public String getAtclSn() {
-        return getDscsAtclId();
-    }
-
-    public void setAtclSn(String atclSn) {
-        setDscsAtclId(atclSn);
-    }
-
-    public String getParAtclSn() {
-        return getUpDscsAtclId();
-    }
-
-    public void setParAtclSn(String parAtclSn) {
-        setUpDscsAtclId(parAtclSn);
-    }
-
-    public int getAtclLvl() {
-        return getAtclLv();
-    }
-
-    public void setAtclLvl(int atclLvl) {
-        setAtclLv(atclLvl);
-    }
-
-    public int getAtclOdr() {
-        return getAtclSeqno();
-    }
-
-    public void setAtclOdr(int atclOdr) {
-        setAtclSeqno(atclOdr);
-    }
-
-    public String getAtclTypeCd() {
-        return getDscsAtclTycd();
-    }
-
-    public void setAtclTypeCd(String atclTypeCd) {
-        setDscsAtclTycd(atclTypeCd);
-    }
-
-    public String getProsConsTypeCd() {
-        return getOknokGbncd();
-    }
-
-    public void setProsConsTypeCd(String prosConsTypeCd) {
-        setOknokGbncd(prosConsTypeCd);
-    }
-
-    public String getTitle() {
-        return getAtclTtl();
-    }
-
-    public void setTitle(String title) {
-        setAtclTtl(title);
-    }
-
-    public String getCts() {
-        return getAtclCts();
-    }
-
-    public void setCts(String cts) {
-        setAtclCts(cts);
-    }
-
-    public int getCtsLen() {
-        return getAtclCtsLen();
-    }
-
-    public void setCtsLen(int ctsLen) {
-        setAtclCtsLen(ctsLen);
-    }
-
-    public int getHits() {
-        return getInqCnt();
-    }
-
-    public void setHits(int hits) {
-        setInqCnt(hits);
-    }
-
-    public String getRegNm() {
-        return getUsernm();
-    }
-
-    public void setRegNm(String regNm) {
-        setUsernm(regNm);
-    }
-
-    public String getEditorYn() {
-        return getEdtrUseyn();
-    }
-
-    public void setEditorYn(String editorYn) {
-        setEdtrUseyn(editorYn);
-    }
-
-    public String getDelYn() {
-        return getDelyn();
-    }
-
-    public void setDelYn(String delYn) {
-        setDelyn(delYn);
     }
 }

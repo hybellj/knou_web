@@ -31,10 +31,9 @@ public class ExampprServiceImpl extends ServiceBase implements ExampprService {
 	* @param tkexamId 	시험응시아이디
     * @param userId 	사용자아이디
 	* @return 퀴즈응시답안목록
-	* @throws Exception
 	*/
 	@Override
-	public List<EgovMap> tkexamExampprAnswShtList(String tkexamId, String userId) throws Exception {
+	public List<EgovMap> tkexamExampprAnswShtList(String tkexamId, String userId) {
 		// 시험응시시험지답안목록조회
 		List<EgovMap> list = exampprDAO.tkexamExampprAnswShtList(tkexamId, userId);
 
@@ -84,97 +83,105 @@ public class ExampprServiceImpl extends ServiceBase implements ExampprService {
 
 			// 연결형
 			} else if("LINK".equals(qstnRspnsTycd)) {
-				String answShtCts = String.valueOf(map.get("answShtCts"));					// 제출답안
-				String qstnVwitmDsplySeq = String.valueOf(map.get("qstnVwitmDsplySeq"));	// 문항보기항목화면표시순번
-				String cransCts = String.valueOf(map.get("cransCts"));						// 정답내용
+				// 답안 제출시
+				if(ObjectUtils.isNotEmpty(map.get("answShtCts"))) {
+					String answShtCts = String.valueOf(map.get("answShtCts"));					// 제출답안
+					String qstnVwitmDsplySeq = String.valueOf(map.get("qstnVwitmDsplySeq"));	// 문항보기항목화면표시순번
+					String cransCts = String.valueOf(map.get("cransCts"));						// 정답내용
 
-				// 문항보기항목화면표시순번 목록화
-				List<Integer> displayList = Arrays.stream(qstnVwitmDsplySeq.split("@#"))
-												        .map(Integer::parseInt)
-												        .collect(Collectors.toList());
+					// 문항보기항목화면표시순번 목록화
+					List<Integer> displayList = Arrays.stream(qstnVwitmDsplySeq.split("@#"))
+							.map(Integer::parseInt)
+							.collect(Collectors.toList());
 
-				// 제출답안 목록화
-				List<String> answList = Arrays.asList(answShtCts.split("@#"));
+					// 제출답안 목록화
+					List<String> answList = Arrays.asList(answShtCts.split("@#"));
 
-				// 정답내용 정렬 목록화
-				List<String> cransList = Arrays.stream(cransCts.split("@#"))
-				        .map(item -> item.split("\\|")[1])
-				        .collect(Collectors.collectingAndThen(
-				            Collectors.toList(),
-				            (List<String> crans) -> displayList.stream()
-				                .map(i -> crans.get(i - 1))
-				                .collect(Collectors.toList())
-				        ));
+					// 정답내용 정렬 목록화
+					List<String> cransList = Arrays.stream(cransCts.split("@#"))
+							.map(item -> item.split("\\|")[1])
+							.collect(Collectors.collectingAndThen(
+									Collectors.toList(),
+									(List<String> crans) -> displayList.stream()
+									.map(i -> crans.get(i - 1))
+									.collect(Collectors.toList())
+									));
 
-				if(answList.equals(cransList)) {
-					map.put("ansrYn", "Y");
+					if(answList.equals(cransList)) {
+						map.put("ansrYn", "Y");
+					}
 				}
 
 			// OX선택형
 			} else if("OX_CHC".equals(qstnRspnsTycd)) {
-				String answShtCts = String.valueOf(StringUtil.nvl(map.get("answShtCts"),"1"));	// 제출답안
-				String qstnVwitmDsplySeq = String.valueOf(map.get("qstnVwitmDsplySeq"));		// 문항보기항목화면표시순번
-				String cransNo = String.valueOf(map.get("cransNo"));							// 정답번호
+				// 답안 제출시
+				if(ObjectUtils.isNotEmpty(map.get("answShtCts"))) {
+					String answShtCts = String.valueOf(StringUtil.nvl(map.get("answShtCts"),"1"));	// 제출답안
+					String qstnVwitmDsplySeq = String.valueOf(map.get("qstnVwitmDsplySeq"));		// 문항보기항목화면표시순번
+					String cransNo = String.valueOf(map.get("cransNo"));							// 정답번호
 
-				// 문항보기항목화면표시순번 목록화
-				String[] displayList = qstnVwitmDsplySeq.split("@#");
-				if(displayList[Integer.parseInt(answShtCts) - 1].equals(cransNo)) {
-					map.put("ansrYn", "Y");
+					// 문항보기항목화면표시순번 목록화
+					String[] displayList = qstnVwitmDsplySeq.split("@#");
+					if(displayList[Integer.parseInt(answShtCts) - 1].equals(cransNo)) {
+						map.put("ansrYn", "Y");
+					}
 				}
 
 			// 단답형
 			} else if("SHORT_TEXT".equals(qstnRspnsTycd)) {
-				String answShtCts = String.valueOf(map.get("answShtCts"));					// 제출답안
-				String qstnVwitmDsplySeq = String.valueOf(map.get("qstnVwitmDsplySeq"));	// 문항보기항목화면표시순번
-				String cransCts = String.valueOf(map.get("cransCts"));						// 정답내용
+				// 답안 제출시
+				if(ObjectUtils.isNotEmpty(map.get("answShtCts"))) {
+					String answShtCts = String.valueOf(map.get("answShtCts"));					// 제출답안
+					String qstnVwitmDsplySeq = String.valueOf(map.get("qstnVwitmDsplySeq"));	// 문항보기항목화면표시순번
+					String cransCts = String.valueOf(map.get("cransCts"));						// 정답내용
 
-				// 문항보기항목화면표시순번 목록화
-				List<Integer> displayList = Arrays.stream(qstnVwitmDsplySeq.split("@#"))
-						.map(Integer::parseInt)
-						.collect(Collectors.toList());
+					// 문항보기항목화면표시순번 목록화
+					List<Integer> displayList = Arrays.stream(qstnVwitmDsplySeq.split("@#"))
+							.map(Integer::parseInt)
+							.collect(Collectors.toList());
 
-				// 제출답안 목록화
-				List<String> answList = Arrays.asList(answShtCts.split("@#"));
+					// 제출답안 목록화
+					List<String> answList = Arrays.asList(answShtCts.split("@#"));
 
-				// 정답내용 정렬 목록화
-				List<String> cransList = Arrays.stream(cransCts.split("@#"))
-						.collect(Collectors.collectingAndThen(
-								Collectors.toList(),
-								(List<String> list2) -> displayList.stream()
-								.map(i -> list2.get(i - 1))
-								.collect(Collectors.toList())
-								));
+					// 정답내용 정렬 목록화
+					List<String> cransList = Arrays.stream(cransCts.split("@#"))
+							.collect(Collectors.collectingAndThen(
+									Collectors.toList(),
+									(List<String> list2) -> displayList.stream()
+									.map(i -> list2.get(i - 1))
+									.collect(Collectors.toList())
+									));
 
-				// 순서에 상관없이 정답
-				if("cransNotInorder".equals(map.get("cransTycd"))) {
-					List<String> remainCrans = new ArrayList<>(cransList);
+					// 순서에 상관없이 정답
+					if("cransNotInorder".equals(map.get("cransTycd"))) {
+						List<String> remainCrans = new ArrayList<>(cransList);
 
-					boolean isMatch = answList.stream()
-					        .allMatch(answ -> {
-					            for (int i = 0; i < remainCrans.size(); i++) {
-					                if (Arrays.asList(remainCrans.get(i).split("\\|")).contains(answ)) {
-					                    remainCrans.remove(i);
-					                    return true;
-					                }
-					            }
-					            return false;
-					        });
+						boolean isMatch = answList.stream()
+								.allMatch(answ -> {
+									for (int i = 0; i < remainCrans.size(); i++) {
+										if (Arrays.asList(remainCrans.get(i).split("\\|")).contains(answ)) {
+											remainCrans.remove(i);
+											return true;
+										}
+									}
+									return false;
+								});
 
-					if(isMatch) {
-						map.put("ansrYn", "Y");
-					}
+						if(isMatch) {
+							map.put("ansrYn", "Y");
+						}
 
-				// 순서에 맞게 정답
-				} else {
-					boolean isMatch = IntStream.range(0, answList.size())
-					        .allMatch(i -> Arrays.asList(cransList.get(i).split("\\|"))
-					                             .contains(answList.get(i)));
+						// 순서에 맞게 정답
+					} else {
+						boolean isMatch = IntStream.range(0, answList.size())
+								.allMatch(i -> Arrays.asList(cransList.get(i).split("\\|"))
+										.contains(answList.get(i)));
 
-					if(isMatch) {
-						map.put("ansrYn", "Y");
+						if(isMatch) {
+							map.put("ansrYn", "Y");
+						}
 					}
 				}
-
 			}
 		}
 
@@ -187,10 +194,9 @@ public class ExampprServiceImpl extends ServiceBase implements ExampprService {
 	* @param examBscId 	시험기본아이디
     * @param sbjctId 	과목아이디
 	* @return 시험지일괄엑셀다운퀴즈문항목록
-	* @throws Exception
 	*/
 	@Override
-	public List<EgovMap> exampprBulkExcelDownQuizQstnList(ExamBscVO vo) throws Exception {
+	public List<EgovMap> exampprBulkExcelDownQuizQstnList(ExamBscVO vo) {
 		return exampprDAO.exampprBulkExcelDownQuizQstnList(vo);
 	}
 

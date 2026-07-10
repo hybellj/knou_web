@@ -3,6 +3,10 @@ package knou.lms.common.vo;
 import java.util.List;
 
 import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import knou.framework.common.PageInfo;
 import knou.lms.common.AbstractResult;
 
 /**
@@ -10,9 +14,13 @@ import knou.lms.common.AbstractResult;
  * @param <T>
  */
 public class ProcessResultVO<T> extends AbstractResult {
-    public final static int RESULT_SUCC = 1;		// 처리결과 성공
-    public final static int RESULT_FAIL = -1;	// 처리결과 실패
 
+	private static final Logger log = LoggerFactory.getLogger(ProcessResultVO.class);
+
+    public final static int RESULT_SUCC =  1;		// 처리결과 성공
+    public final static int RESULT_FAIL = -1;		// 처리결과 실패
+    
+    private T data; 								// 단건데이터
     private List<T> returnList;						// 처리결과 목록
     private List<T> returnListSub;					// 처리결과 서브목록
     private Object returnVO;						// 처리결과 반환 VO
@@ -23,18 +31,53 @@ public class ProcessResultVO<T> extends AbstractResult {
 
     public ProcessResultVO() {
         super();
+        this.success = false;
+        super.setResult(RESULT_FAIL);
+    }    
+    
+    public T getData() {
+		return data;
+	}
+
+	public void setData(T data) {
+		this.data = data;
+	}
+
+	public ProcessResultVO<T> setReturnList(List<T> returnList) {
+        this.returnList = returnList;
+        return this;
+    }
+    
+    public ProcessResultVO<T> setSuccessCount(int successCnt) {
+    	if ( 1 <= successCnt )
+    		setResult(RESULT_SUCC);
+    	else
+    		setResult(RESULT_FAIL);
+        return this;
+    }
+    
+    public ProcessResultVO<T> returnMessage(String message) {
+        super.setMessage(message);
+        return this;
     }
 
-    public ProcessResultVO(List<T> returnList) {
+	public ProcessResultVO(List<T> returnList) {
         super();
         this.returnList = returnList;
     }
 
-    public List<T> getReturnList() {
-        return returnList;
-    }
-    public void setReturnList(List<T> returnList) {
+    public ProcessResultVO(List<T> returnList, int result) {
+        super();
         this.returnList = returnList;
+        setResult(result);
+    }
+
+    public ProcessResultVO(PageInfo pageInfo2) {
+    	this.pageInfo = pageInfo2;
+	}
+
+	public List<T> getReturnList() {
+        return returnList;
     }
 
     public List<T> getReturnListSub() {
@@ -43,7 +86,6 @@ public class ProcessResultVO<T> extends AbstractResult {
     public void setReturnListSub(List<T> returnList) {
         this.returnListSub = returnList;
     }
-
     public PaginationInfo getPageInfo() {
         return pageInfo;
     }
@@ -54,8 +96,9 @@ public class ProcessResultVO<T> extends AbstractResult {
     public Object getReturnVO() {
         return returnVO;
     }
-    public void setReturnVO(Object returnVO) {
+    public ProcessResultVO<T> setReturnVO(Object returnVO) {
         this.returnVO = returnVO;
+        return this;
     }
 
     public Object getReturnSubVO() {
@@ -65,15 +108,21 @@ public class ProcessResultVO<T> extends AbstractResult {
     public void setReturnSubVO(Object returnSubVO) {
         this.returnSubVO = returnSubVO;
     }
-
-
-
     /**
      * 성공 코드를 설정하고 자신을 반환한다.
      * @return
      */
     public ProcessResultVO<T> setResultSuccess() {
         super.setResult(RESULT_SUCC);
+        return this;
+    }
+    /**
+     * 성공 코드를 설정하고 자신을 반환한다.
+     * @return
+     */
+    public ProcessResultVO<T> setResultSuccess(String message) {
+        super.setResult(RESULT_SUCC);
+        super.setMessage(message);
         return this;
     }
 

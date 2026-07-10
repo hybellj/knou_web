@@ -1,12 +1,47 @@
 package knou.lms.crs.home.web;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.RequestContextUtils;
+
 import knou.framework.common.CommConst;
 import knou.framework.common.ControllerBase;
 import knou.framework.common.SessionInfo;
 import knou.framework.context2.UserContext;
 import knou.framework.exception.AccessDeniedException;
 import knou.framework.exception.MediopiaDefineException;
-import knou.framework.util.*;
+import knou.framework.util.FileUtil;
+import knou.framework.util.LocaleUtil;
+import knou.framework.util.RedisUtil;
+import knou.framework.util.SecureUtil;
+import knou.framework.util.SessionUtil;
+import knou.framework.util.StringUtil;
+import knou.framework.util.ValidationUtils;
 import knou.framework.vo.FileVO;
 import knou.lms.asmt.service.AsmtProService;
 import knou.lms.asmt.vo.AsmtVO;
@@ -35,7 +70,14 @@ import knou.lms.forum.vo.ForumVO;
 import knou.lms.lesson.service.LessonScheduleService;
 import knou.lms.lesson.service.LessonService;
 import knou.lms.lesson.service.LessonStudyService;
-import knou.lms.lesson.vo.*;
+import knou.lms.lesson.vo.LessonCntsVO;
+import knou.lms.lesson.vo.LessonPageVO;
+import knou.lms.lesson.vo.LessonScheduleVO;
+import knou.lms.lesson.vo.LessonStudyPageVO;
+import knou.lms.lesson.vo.LessonStudyRecordVO;
+import knou.lms.lesson.vo.LessonStudyStateVO;
+import knou.lms.lesson.vo.LessonTimeVO;
+import knou.lms.lesson.vo.LessonVO;
 import knou.lms.log.lesson.service.LogLessonActnHstyService;
 import knou.lms.log.userconn.service.LogUserConnService;
 import knou.lms.log.userconn.vo.LogUserConnStateVO;
@@ -47,29 +89,11 @@ import knou.lms.std.service.StdService;
 import knou.lms.std.vo.StdVO;
 import knou.lms.sys.service.SysJobSchService;
 import knou.lms.sys.vo.SysJobSchVO;
+import knou.lms.user.CurrentUser;
 import knou.lms.user.vo.UsrUserInfoVO;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
-import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
-import org.egovframe.rte.psl.dataaccess.util.EgovMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.support.RequestContextUtils;
-
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 @Controller
 @RequestMapping(value="/crs")
@@ -575,27 +599,8 @@ public class CrsHomeController extends ControllerBase {
      * @throws Exception
      */
     @RequestMapping(value={"/crsHomeProf.do"})
-    public String crsHomeProf(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
-    	
-    	
-    	//  TODO: 데이터정리
-        // 	UserContext 	- 기관아이디, 대표아이디, 사용자아이디, 사용자유형, 사용자접속장치, IP, 마지마로그인 일시, 접속위치?, 날짜, 언어코드;
-        //					- 이전접속위치, 이전접속일시, 이전접속체크번호
-        //	AcademyContext 	- 학기, 주차, 
-        //	AuthrityContext - 권한타입
-        //	MenuContext 	- 메뉴타입
-        //	SubjectContext 	- 과목정보 저장;
-    	
-    	//	사용자세션에서 가져오는 UserContext
-    	UserContext userCtx = new UserContext( 	SessionInfo.getOrgId(request),
-    											SessionInfo.getUserId(request),
-    											SessionInfo.getUserType(request),
-    											SessionInfo.getAuthrtCd(request),
-    											SessionInfo.getAuthrtGrpcd(request),
-    											SessionInfo.getUserRprsId(request), 
-    											SessionInfo.getLastLogin(request) );
-    	
-    	request.getSession().setAttribute("USER_CONTEXT", userCtx);
+    public String crsHomeProf(@CurrentUser UserContext userCtx, 
+    		HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
     	
         String type = StringUtil.nvl(request.getParameter("type"));
         String sbjctOfrngId = request.getParameter("crsCreCd");
@@ -994,6 +999,7 @@ public class CrsHomeController extends ControllerBase {
 
     /**
      * 강의실 학기 목록 조회
+     * ASIS 소스같아서 수정합니다. by jinkoon
      *
      * @param request
      * @param response
@@ -1003,8 +1009,8 @@ public class CrsHomeController extends ControllerBase {
      */
     @RequestMapping(value="/listClassroomTerm.do")
     @ResponseBody
-    public ProcessResultVO<TermVO> listClassroomTerm(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
-        ProcessResultVO<TermVO> resultVO = new ProcessResultVO<>();
+    public ProcessResultVO<EgovMap> listClassroomTerm(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
         // 사용자 세션정보
         String orgId = SessionInfo.getOrgId(request);
         String userId = SessionInfo.getUserId(request);
@@ -1015,7 +1021,7 @@ public class CrsHomeController extends ControllerBase {
             TermVO termVO = new TermVO();
             termVO.setUserId(userId);
             termVO.setOrgId(orgId);
-            ProcessResultVO<TermVO> termResult = null;
+            ProcessResultVO<EgovMap> termResult = null;
 
             if(curCorHome.indexOf("crsHomeStd") > -1) {
                 termResult = dashboardService.listStdTerm(termVO);
@@ -1174,9 +1180,9 @@ public class CrsHomeController extends ControllerBase {
             vo.setOrgId(orgId);
 
             // 전체 목록 조회
-            if(authrtCd.contains("STDNT")) {
+            if(authrtCd.contains(CommConst.AUTHRT_GRPCD_STDNT)) {
                 vo.setUserId(userId);
-                vo.setAuthrtGrpcd("STDNT");
+                vo.setAuthrtGrpcd(CommConst.AUTHRT_GRPCD_STDNT);
             }
 
             List<EgovMap> list = crsHomeService.listEvalCriteria(vo);

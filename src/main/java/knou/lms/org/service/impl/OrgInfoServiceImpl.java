@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import knou.framework.common.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -52,38 +53,30 @@ public class OrgInfoServiceImpl implements OrgInfoService {
      * @throws Exception
      ******************************************************/
 	@Override
-    public List<OrgInfoVO> list(OrgInfoVO vo) throws Exception {
+    public List<OrgInfoVO> list(OrgInfoVO vo) {
         return orgInfoDAO.list(vo);
     }
 	
 	/*****************************************************
      * 소속(테넌시)관리 페이징 목록
      * @param vo
-     * @param model
-     * @param request
      * @return ProcessResultVO<OrgInfoVO>
-     * @throws Exception
      ******************************************************/
     @Override
-    public ProcessResultVO<OrgInfoVO> listPaging(OrgInfoVO vo) throws Exception {
-        ProcessResultVO<OrgInfoVO> resultVO = new ProcessResultVO<>();
+    public ProcessResultVO<EgovMap> listPaging(OrgInfoVO vo) throws Exception {
+        ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
 
-        PaginationInfo paginationInfo = new PaginationInfo();
-        paginationInfo.setCurrentPageNo(vo.getPageIndex());
-        paginationInfo.setRecordCountPerPage(vo.getListScale());
-        paginationInfo.setPageSize(vo.getListScale());
+        PageInfo pageInfo = new PageInfo(vo);
+        resultVO.setPageInfo(pageInfo);
 
-        vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
-        vo.setLastIndex(paginationInfo.getLastRecordIndex());
-        
-        int totalCnt = orgInfoDAO.count(vo);
-        
-        paginationInfo.setTotalRecordCount(totalCnt);
-        
-        List<OrgInfoVO> list = orgInfoDAO.listPaging(vo);
-     
+        // 목록 조회
+        List<EgovMap> list = orgInfoDAO.listPaging(vo);
+
+        // 페이지 전체 건수 정보 설정
+        pageInfo.setTotalRecord(list);
+
         resultVO.setReturnList(list);
-        resultVO.setPageInfo(paginationInfo);
+        resultVO.setPageInfo(pageInfo);
         resultVO.setResult(1);
         
         return resultVO;
@@ -279,5 +272,16 @@ public class OrgInfoServiceImpl implements OrgInfoService {
     @Override
     public List<OrgInfoVO> listActiveOrg() throws Exception {
         return orgInfoDAO.listActiveOrg();
+    }
+
+    /*****************************************************
+     * 사용자에 연결된 운영 기관 조회
+     * @param userId
+     * @return List<OrgInfoVO>
+     * @throws Exception
+     ******************************************************/
+    @Override
+    public List<OrgInfoVO> listActiveOrgByUser(String userId) throws Exception {
+        return orgInfoDAO.listActiveOrgByUser(userId);
     }
 }

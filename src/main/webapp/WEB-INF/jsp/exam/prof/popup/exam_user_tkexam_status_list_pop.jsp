@@ -50,15 +50,15 @@
         function initSbstUserInfoListTable() {
             if (sbstUserInfoListTable) return;
             var examInfoColumns =  [
-                {title:"No",       field:"lineNo",      headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:50},
-                {title:"학과",     field:"deptnm",       headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
-                {title:"대표아이디",field:"userRprsId",   headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
-                {title:"학번",     field:"stdntNo",      headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"이름",     field:"usernm",       headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
-                {title:"중간고사", field:"midExamScr",  headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"중간고사(대체)", field:"midAbsnceScr",  headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"기말고사", field:"lstExamScr",  headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"기말고사(대체)", field:"lstAbsnceScr",  headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100}
+                {title:"No", field:"lineNo", headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:50},
+                {title:"<spring:message code="exam.label.dept" />", field:"deptnm", headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},               /* 학과 */
+                {title:"<spring:message code='exam.label.user.rprs.id' />",field:"userRprsId", headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},    /* 대표아이디 */
+                {title:"<spring:message code="exam.label.user.no" />", field:"stdntNo", headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},           /* 학번 */
+                {title:"<spring:message code="exam.label.user.nm" />", field:"usernm", headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},             /* 이름 */
+                {title:"<spring:message code="exam.label.mid.exam" />", field:"midExamScr",  headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},      /* 중간고사 */
+                {title:"<spring:message code="exam.label.mid.exam.ins" />", field:"midAbsnceScr",  headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},/* 중간고사(대체) */
+                {title:"<spring:message code="exam.label.end.exam" />", field:"lstExamScr",  headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},      /* 기말고사 */
+                {title:"<spring:message code="exam.label.end.exam.ins" />", field:"lstAbsnceScr",  headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100} /* 기말고사(대체) */
             ];
             sbstUserInfoListTable = UiTable("sbstUserList", {
                 lang: "ko",
@@ -83,7 +83,7 @@
                     // 중간고사 점수
                     var midExamScr
                     if ((v.midExamScr == "" || v.midExamScr == null) && (v.midAbsnceScr == "" || v.midAbsnceScr == null)) {
-                        midExamScr = "<span class='fcRed'>미응시</span>"
+                        midExamScr = "<span class='fcRed'><spring:message code="exam.label.no.stare" /></span>" /* 미응시 */
                     } else if (v.midExamScr == "" || v.midExamScr == null) {
                         midExamScr = "-";
                     } else {
@@ -99,7 +99,7 @@
                     // 기말고사 점수
                     var lstExamScr
                     if ((v.lstExamScr == "" || v.lstExamScr == null) && (v.lstAbsnceScr == "" || v.lstAbsnceScr == null)) {
-                        lstExamScr = "<span class='fcRed'>미응시</span>"
+                        lstExamScr = "<span class='fcRed'><spring:message code="exam.label.no.stare" /></span>" /* 미응시 */
                     } else if (v.lstExamScr == "" || v.lstExamScr == null) {
                         lstExamScr = "-";
                     } else {
@@ -154,7 +154,7 @@
                     }
                 },
                 error: function() {
-                    alert("에러가 발생했습니다!");
+                    UiComm.showMessage("<spring:message code='exam.error.list' />", "error"); /* 리스트 조회 중 에러가 발생하였습니다. */
                 },
                 complete: function() {
                     UiComm.showLoading(false);

@@ -224,8 +224,16 @@ function onDX5Created(id) {
 		$("#"+id+"-btn-area").css("display","flex");
 	}
 	else {
-		dx.setUIStyle({_headerHeight:itemHeight, footerHeight:itemHeight, itemHeight:itemHeight});
+		dx.setUIStyle({footerHeight:itemHeight, itemHeight:itemHeight});
 		$("#"+id+"-btn-area").css("display","block");
+	}
+
+	// darkmode 테마 설정 (THEME_MODE: 전역 javascript 변수)
+	if (typeof THEME_MODE !== 'undefined' && THEME_MODE === "darkmode") {
+		dx.setUIStyle({headerSolidColor:"#303030", headerFontColor:"#CCCCCC",
+			itemFontColor:"#fff", itemBackColor:"#262626", backgroundColor:"#262626",
+			statusBarFontColor:"#fff", statusBarSolidColor:"#303030",
+			gridLineColor:"#555555", scrollRailColor:"#2E2E2E", scrollHandleColor:"#828282" });
 	}
 
 	$("#"+id+"_btn-delete").on('click',function() {

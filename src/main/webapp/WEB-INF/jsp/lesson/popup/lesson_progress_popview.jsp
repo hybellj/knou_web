@@ -25,7 +25,7 @@
 			let basicOptn = `<option value='ALL'><spring:message code="crs.label.open.term" /></option>`;	// 학기
 			
 			$.ajax({
-				url  : "/crs/termMgr/smstrListByDgrsYr.do",
+				url  : "/crs/termMgr/admSmstrListByDgrsYrAjax.do",
 				data : {
 					dgrsYr 	: $("#sbjctYr").val()
 				<%--	,orgId	: $("#orgId").val() --%>

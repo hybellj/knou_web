@@ -22,7 +22,7 @@ import knou.lms.user.vo.UsrUserInfoVO;
  * 세션 정보
  */
 public class SessionInfo {
-	
+
 	/**
      * UserContext 삭제
      * @param request
@@ -31,7 +31,7 @@ public class SessionInfo {
     public static final void removeUserContext(HttpServletRequest request) {
         SessionUtil.removeSessionValue(request, CommConst.USER_CONTEXT);
     }
-    
+
     /**
      * UserContext Set
      * @param request
@@ -40,7 +40,7 @@ public class SessionInfo {
     public static final void setUserContext(HttpServletRequest request, UserContext userCtx) {
         SessionUtil.setSessionValue(request, CommConst.USER_CONTEXT, userCtx);
     }
-    
+
     /**
      * UserContext Get
      *
@@ -50,7 +50,7 @@ public class SessionInfo {
     public static final UserContext getUserContext(HttpServletRequest request) {
         return (UserContext) SessionUtil.getSessionValue(request, CommConst.USER_CONTEXT);
     }
-    
+
 
     private SessionInfo() {
         throw new IllegalStateException(getClass().getName());
@@ -92,6 +92,7 @@ public class SessionInfo {
      * @param request
      * @return
      */
+    @Deprecated
     public static String getUserRprsId(HttpServletRequest request) {
         return (String) SessionUtil.getSessionValue(request, CommConst.LOGIN_USERRPRSID);
     }
@@ -108,13 +109,20 @@ public class SessionInfo {
     }
 
     /**
-     * 사용자NO 가져오기
-     *
+     * 사용자ID 가져오기
+     * (UserContext 에 있는 사용자ID 반환)
      * @param request
      * @return
      */
     public static String getUserId(HttpServletRequest request) {
-        return (String) SessionUtil.getSessionValue(request, CommConst.LOGIN_USERID);
+    	String userId = "";
+
+    	UserContext userContext = getUserContext(request);
+    	if (userContext != null && userContext.getLoginUser() != null) {
+    		userId = userContext.getLoginUser().getUserId();
+    	}
+
+    	return userId;
     }
 
     /**
@@ -130,12 +138,19 @@ public class SessionInfo {
 
     /**
      * 사용자명 가져오기
-     *
+     * (UserContext 에 있는 사용자 이름 반환)
      * @param request
      * @return
      */
     public static String getUserNm(HttpServletRequest request) {
-        return (String) SessionUtil.getSessionValue(request, CommConst.LOGIN_USERNAME);
+    	String userNm = "";
+
+    	UserContext userContext = getUserContext(request);
+    	if (userContext != null && userContext.getLoginUser() != null) {
+    		userNm = userContext.getLoginUser().getUsernm();
+    	}
+
+    	return userNm;
     }
 
     /**
@@ -144,6 +159,7 @@ public class SessionInfo {
      * @param request
      * @param value
      */
+    @Deprecated
     public static final void setUserNm(HttpServletRequest request, String value) {
         SessionUtil.setSessionValue(request, CommConst.LOGIN_USERNAME, value);
     }
@@ -192,6 +208,7 @@ public class SessionInfo {
      *
      * @param request
      */
+    @Deprecated
     public static String getAuthrtCd(HttpServletRequest request) {
         return (String) SessionUtil.getSessionValue(request, CommConst.LOGIN_AUTHRTCD);
     }
@@ -296,6 +313,7 @@ public class SessionInfo {
      * @param request
      * @return
      */
+    @Deprecated
     public static final String getAuthrtGrpcd(HttpServletRequest request) {
         return (String) SessionUtil.getSessionValue(request, CommConst.CUR_AUTHRT_CD);
     }
@@ -685,6 +703,7 @@ public class SessionInfo {
      * @param request
      * @return
      */
+    @Deprecated
     public static final String getOrgId(HttpServletRequest request) {
         return StringUtil.nvl((String) SessionUtil.getSessionValue(request, CommConst.LOGIN_ORGID));
     }
@@ -1023,6 +1042,7 @@ public class SessionInfo {
      *
      * @param request
      */
+    @Deprecated
     public static final String getAdmYn(HttpServletRequest request) {
         return (String) SessionUtil.getSessionValue(request, CommConst.LOGIN_ADMYN);
     }
@@ -1033,6 +1053,7 @@ public class SessionInfo {
      * @param request
      * @param value
      */
+    @Deprecated
     public static final void setAdmYn(HttpServletRequest request, String value) {
         SessionUtil.setSessionValue(request, CommConst.LOGIN_ADMYN, value);
     }
@@ -1328,12 +1349,19 @@ public class SessionInfo {
     /**
      * **************************************************
      * 사용자 사진  가져오기
-     *
+     * (UserContext 에 있는 사진 반환)
      * @param request
      * @return ****************************************************
      */
     public static String getUserPhoto(HttpServletRequest request) {
-        return StringUtil.nvl((String) SessionUtil.getSessionValue(request, "USER_PHTOTO"));
+    	String userPhoto = "";
+
+    	UserContext userContext = getUserContext(request);
+    	if (userContext != null && userContext.getLoginUser() != null) {
+    		userPhoto = userContext.getUserPhoto();
+    	}
+
+    	return userPhoto;
     }
 
     /**
@@ -1366,18 +1394,6 @@ public class SessionInfo {
      */
     public static String getThemeMode(HttpServletRequest request) {
         String themeMode = StringUtil.nvl((String) SessionUtil.getSessionValue(request, "THEME_MODE"));
-        if ("".equals(themeMode)) {
-            //themeMode = "dark";
-            themeMode = "";
-        }
-
-        if (!isKnou(request)) { // 외부기관인 경우
-            if ("".equals(themeMode)) {
-                themeMode = "org-uni";
-            } else {
-                themeMode += " org-uni";
-            }
-        }
 
         return themeMode;
     }
@@ -1465,6 +1481,7 @@ public class SessionInfo {
      * @param request
      * @return ****************************************************
      */
+    @Deprecated
     public static String getLastLogin(HttpServletRequest request) {
         return StringUtil.nvl((String) SessionUtil.getSessionValue(request, "LAST_LOGIN_INFO"));
     }

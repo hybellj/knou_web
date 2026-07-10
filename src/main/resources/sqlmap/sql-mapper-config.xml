@@ -13,6 +13,14 @@
     <typeAliases>
 		<typeAlias alias="egovMap" type="org.egovframe.rte.psl.dataaccess.util.EgovMap"/>
 
+		<typeAlias alias="pageInfo" type="knou.framework.common.PageInfo"/>
+		<typeAlias alias="srvyPageInfo" type="knou.lms.srvy.web.view.SrvyPageInfo"/>
+		<typeAlias alias="smnrPageInfo" type="knou.lms.smnr.web.view.SmnrPageInfo"/>
+		<typeAlias alias="quizPageInfo" type="knou.lms.exam.web.view.QuizPageInfo"/>
+		<typeAlias alias="qbnkPageInfo" type="knou.lms.qbnk.web.view.QbnkPageInfo"/>
+		<typeAlias alias="sbjctTmpltPageInfo" type="knou.lms.crs.sbjct.web.paging.SbjctTmpltPageInfo"/>
+		<typeAlias alias="sbjctOfringPageInfo" type="knou.lms.crs.sbjct.web.paging.SbjctOfringPageInfo"/>
+
 		<!-- VO Alias -->
 
 		<!-- framework 공통 -->
@@ -46,22 +54,6 @@
 
 		<!-- 대시보드 -->
 		<package name="knou.lms.dashboard.vo" />
-
-        <!-- 전체 수업현황 -->
-        <package name="knou.lms.std.vo.ClsAccessChartVO" />
-        <package name="knou.lms.std.vo.ClsActivityLogVO" />
-        <package name="knou.lms.std.vo.ClsAsmtSbmsnLogVO" />
-        <package name="knou.lms.std.vo.ClsChsiLrnVO" />
-        <package name="knou.lms.std.vo.ClsElemStatsVO" />
-        <package name="knou.lms.std.vo.ClsLrnLogVO" />
-        <package name="knou.lms.std.vo.ClsStdntInfoVO" />
-        <package name="knou.lms.std.vo.ClsStdntVO" />
-        <package name="knou.lms.std.vo.ClsVO" />
-        <package name="knou.lms.std.vo.ClsWkLrnVO" />
-        <package name="knou.lms.std.vo.ClsWklyStatsVO" />
-        <package name="knou.lms.std.vo.LearnStopRiskIndexVO" />
-        <package name="knou.lms.std.vo.StdVO" />
-
 		<!-- 시험 -->
 		<package name="knou.lms.exam.vo" />
 
@@ -77,12 +69,14 @@
 
 		<!-- 로그 -->
 		<package name="knou.lms.log.adminconnlog.vo" />
+		<package name="knou.lms.log.haksa.vo" />	<!-- 학사연동 로그 공통 -->
 		<package name="knou.lms.log.lesson.vo" />
 		<package name="knou.lms.log.logintry.vo" />
 		<package name="knou.lms.log.privateinfo.vo" />
 		<package name="knou.lms.log.recom.vo" />
 		<package name="knou.lms.log.sysjobsch.vo" />
 		<package name="knou.lms.log.userconn.vo" />
+		<package name="knou.lms.log2.user.vo" />
 
 		<!-- 로그인 -->
 		<package name="knou.lms.login.vo" />
@@ -129,7 +123,7 @@
 		<package name="knou.lms.user.vo" />
 
 		<!-- 일정 -->
-		<package name="knou.lms.sch.vo" />
+		<package name="knou.lms.schedule.vo" />
 
 		<!-- 세미나 -->
 		<package name="knou.lms.seminar.vo" />
@@ -140,10 +134,10 @@
 		<package name="knou.lms.system.config.vo" />
 
 		<!-- 시스템관리 -->
-		<package name="knou.lms.system.manager.vo" />
+		<package name="knou.lms.system.manage.vo" />
 
 		<!-- 시스템 공통코드 관리 -->
-		<package name="knou.lms.system.code.vo" />
+		<!--<package name="knou.lms.system.code.vo" />-->
 
 		<!-- 성적등급 -->
 		<package name="knou.lms.grade.vo" />
@@ -162,6 +156,16 @@
 
 		<package name="knou.lms.lecture2.vo" />
 		<package name="knou.lms.mrk.vo" />
+
+        <!-- 루브릭 -->
+        <package name="knou.lms.crs.rubric.vo" />
+		<!-- 수업운영현황및이력 -->
+        <package name="knou.lms.crs.opHstry.vo" />
+        
+        
+        <!-- asis 삭제할 것들 -->
+        <package name="knou.lms.xasis.vo" />
+
 
 
 

@@ -8,7 +8,7 @@
 <%@include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <%
 String authrtGrpcd = SessionInfo.getAuthrtGrpcd(request);
-String orgId = SessionInfo.getOrgId(request);
+String orgId = ParamInfo.getParamValue(request, "orgId");
 String sbjctId = ParamInfo.getParamValue(request, "sbjctId");
 
 // 강의실메뉴 가져 오기
@@ -22,6 +22,7 @@ List<MenuVO> menuList = MenuInfo.getLectMenuInfo(request, menuVO);
 pageContext.setAttribute("menuList", menuList);
 %>
 	<aside id="gnb_class" class="common class gnb-menu expanded">
+		<!--  filename class_gnb_prof.jsp -->
 		<form id="moveForm" method="post">
 			<input name="encParams" type="hidden" value="${encParams}">
 			<input name="addParams" type="hidden" value="">
@@ -52,7 +53,7 @@ pageContext.setAttribute("menuList", menuList);
 			            <%-- 상위 메뉴 --%>
 			            <a id="MENU_${menu.menuId}" href="#0"
 			                class="<c:if test='${menu.menuId == curMenuId or (empty curMenuId and status.index == 0)}'>current</c:if>"
-			                onclick='moveMenu(this, "${menu.menuUrl}", "${menu.upMenuId}", "${menu.menuId}", "${menu.menunm}", "${menu.linkTargetTycd}");return false;'
+			                onclick='lectMoveMenu(this, "${menu.menuUrl}", "${menu.upMenuId}", "${menu.menuId}", "${menu.menunm}", "${menu.linkTargetTycd}", {sbjctId:"<%=sbjctId%>"} );return false;'
 			                title="${menu.menunm}">
 			                <i class="${menu.menuImgFileId}" aria-hidden="true"></i>
 			                <span>${menu.menunm}</span>
@@ -65,7 +66,7 @@ pageContext.setAttribute("menuList", menuList);
 			                        <li id="${sub.menuId}">
 			                            <a id="SUBMENU_${sub.menuId}" href="#0"
 			                                class="<c:if test='${sub.menuId == curMenuId}'>current</c:if>"
-			                                onclick='moveMenu(this, "${sub.menuUrl}", "${sub.upMenuId}", "${sub.menuId}", "${sub.menunm}", "${sub.linkTargetTycd}");return false;'
+			                                onclick='lectMoveMenu(this, "${sub.menuUrl}", "${sub.upMenuId}", "${sub.menuId}", "${sub.menunm}", "${sub.linkTargetTycd}",  {sbjctId:"<%=sbjctId%>"} );return false;'
 			                                title="${sub.menunm}">
 			                                <span>${sub.menunm}</span>
 			                            </a>

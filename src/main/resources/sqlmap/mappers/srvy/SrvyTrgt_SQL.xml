@@ -12,6 +12,7 @@
 			, USER_ID
 			, SRVY_ID
 			, TEAM_ID
+			, SRVY_TRGT_TYCD
 			, RGTR_ID
 			, REG_DTTM
          ) VALUES (
@@ -19,6 +20,7 @@
          	, #{userId}
          	, #{srvyId}
          	, #{teamId}
+         	, #{srvyTrgtTycd}
          	, #{rgtrId}
          	, FN_DTTM()
          )
@@ -32,5 +34,17 @@
          DELETE FROM TB_LMS_SRVY_TRGT
           WHERE SRVY_ID IN (SELECT SRVY_ID FROM TB_LMS_SRVY WHERE UP_SRVY_ID = #{srvyId})
 	</delete>
+
+	<update id="srvyTrgtTycdModify" parameterType="srvyTrgtVO">
+		/*
+             SQL ID : SrvyTrgtDAO.srvyTrgtTycdModify
+             설  명  : 설문대상유형코드수정
+         */
+		UPDATE TB_LMS_SRVY_TRGT SET
+			  MDFR_ID = #{mdfrId}
+			, MOD_DTTM = FN_DTTM()
+			, SRVY_TRGT_TYCD = #{srvyTrgtTycd}
+		 WHERE SRVY_ID = #{srvyId}
+	</update>
 
 </mapper>

@@ -19,12 +19,14 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import knou.framework.common.CommConst;
 import knou.framework.common.ControllerBase;
 import knou.framework.common.SessionInfo;
+import knou.framework.context2.UserContext;
 import knou.framework.exception.AccessDeniedException;
 import knou.framework.exception.BadRequestUrlException;
 import knou.framework.exception.MediopiaDefineException;
@@ -45,6 +47,8 @@ import knou.lms.crs.crecrs.vo.CreCrsVO;
 import knou.lms.crs.crs.service.CrsService;
 import knou.lms.crs.crs.vo.CrsVO;
 import knou.lms.crs.crsCtgr.service.CrsCtgrService;
+import knou.lms.crs.sbjct.service.SbjctService;
+import knou.lms.crs.sbjct.vo.SbjctVO;
 import knou.lms.crs.term.service.TermService;
 import knou.lms.crs.term.vo.TermVO;
 import knou.lms.dashboard.service.DashboardService;
@@ -54,6 +58,7 @@ import knou.lms.score.service.ScoreService;
 import knou.lms.std.service.StdService;
 import knou.lms.std.vo.StdVO;
 import knou.lms.subject.vo.SubjectVO;
+import knou.lms.user.CurrentUser;
 import knou.lms.user.service.UsrDeptCdService;
 import knou.lms.user.service.UsrUserInfoService;
 import knou.lms.user.vo.UsrDeptCdVO;
@@ -101,6 +106,149 @@ public class CrecrsMgrController extends ControllerBase {
 
     @Resource(name="sysFileService")
     private SysFileService sysFileService;
+
+    @Resource(name="sbjctService")
+    private SbjctService sbjctService;
+
+    /*****************************************************
+     * 신규 작성 Controller 영역
+     *****************************************************/
+
+    /**
+     * 이전학기 가져오기 화면을 조회한다.
+     * @param vo
+     * @param model
+     * @param request
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value={"/loadBeforeSmstrView.do", "/admLoadBeforeSmstrView.do"})
+    public String loadBeforeSmstrView(CreCrsVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        boolean admRequest = isAdmLoadBeforeSmstrView(request);
+        String sbjctId = admRequest ? StringUtil.nvl(vo.getSbjctId()) : (vo.getSbjctId() == null ? "SBJCT_OFRNG_ID2" : vo.getSbjctId());
+
+        // 각 가져오기 항목의 실행 가능 여부를 초기화한다.
+        // 1=공지사항, 2=강의자료실, 3=학습자료, 4=과제, 5=퀴즈, 6=설문, 7=토론, 8=연습문제, 9=돌발퀴즈
+        String[] types = new String[10]; // index 1~9 사용
+        for (int i = 1; i <= 9; i++) {
+            types[i] = "N";
+        }
+
+        if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
+            throw new AccessDeniedException(getCommonNoAuthMessage()); // 페이지 접근 권한이 없습니다.
+        }
+
+        if(admRequest && ValidationUtils.isEmpty(sbjctId)) {
+            throw new BadRequestUrlException(getMessage("fail.common.msg")); /* 실패했습니다. */
+        }
+
+        if(admRequest) {
+            // 관리자화면에서 호출시 과목교수id 를 조회한다.
+            userId = selectSbjctOfringProfId(sbjctId);
+        }
+
+        vo.setSbjctId(sbjctId);
+        vo.setUserId(userId);
+        String prevSbjctId = crecrsService.selectBeforeSbjctId(vo);
+
+        if(prevSbjctId != null && !prevSbjctId.isEmpty()) {
+            for (int i = 1; i <= 9; i++) {
+                int typePrev = 0;   // 이전학기 건수
+                int typeCurr = 0;   // 현재학기 건수
+                vo.setImportType(i);
+                vo.setIsCurr("N");
+                vo.setSbjctId(prevSbjctId);
+                typePrev = crecrsService.countPrevCurrDataList(vo); // 이전학기 record 조회
+
+                vo.setIsCurr("Y");
+                vo.setSbjctId(sbjctId);
+                typeCurr = crecrsService.countPrevCurrDataList(vo); // 현재학기 record 조회
+
+                // 이전학기 데이터가 있고 현재학기 데이터가 없으면 가져오기 가능 상태로 표시한다.
+                if(typePrev != 0 && typeCurr == 0) {
+                    types[i] = "Y";
+                }
+            }
+        }
+
+        resetEncParam();
+        addEncParam("sbjctId",     sbjctId);
+        addEncParam("prevSbjctId", StringUtil.nvl(prevSbjctId));
+
+        model.addAttribute("vo", vo);
+        model.addAttribute("menuType", admRequest ? "ADM" : (menuType.contains("USR") ? "USR" : "PROF"));
+        model.addAttribute("sbjctId", sbjctId);
+        model.addAttribute("prevSbjctId", prevSbjctId);
+        model.addAttribute("encParams", getEncParams());
+        for (int i = 1; i <= 9; i++) {
+            model.addAttribute("type" + i, types[i]);
+        }
+
+        if (admRequest) {
+            return "/crs/sbjct/popup/adm_sbjct_ofring_copy_prev_semstr_popview";
+        }
+
+        return "/crs/smstr/copy_prev_semester";
+    }
+
+    /**
+     * 이전학기 데이터를 등록한다.
+     * @param vo
+     * @param model
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = {"/prevSmstrDataRegist.do", "/admPrevSmstrDataRegist.do"}, method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<CreCrsVO> prevSemesterDataRegist(CreCrsVO vo, ModelMap model, HttpServletRequest request) {
+        ProcessResultVO<CreCrsVO> resultVO = new ProcessResultVO<>();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+
+        vo.setUserId(userId);
+        vo.setOrgId(orgId);
+        if(ValidationUtils.isEmpty(userId)) {
+            throw new BadRequestUrlException("시스템 오류가 발생하였거나 비정상적인 접근입니다.<br><br>웹브라우저를 다시 시작하여 접속하세요.<br>오류가 지속되면 관리자에게 문의하세요.");
+        }
+        resultVO.setReturnVO(crecrsService.prevSemesterDataRegist(vo));
+        resultVO.setResultSuccess();
+        return resultVO;
+    }
+
+    /**
+     * 관리자 이전학기 가져오기 요청 여부를 확인한다.
+     * @param request
+     * @return
+     */
+    private boolean isAdmLoadBeforeSmstrView(HttpServletRequest request) {
+        return StringUtil.nvl(request.getRequestURI()).endsWith("/admLoadBeforeSmstrView.do");
+    }
+
+    /**
+     * 과목개설 담당교수 아이디를 조회한다.
+     * @param sbjctId
+     * @return
+     * @throws Exception
+     */
+    private String selectSbjctOfringProfId(String sbjctId) throws Exception {
+        SbjctVO searchVO = new SbjctVO();
+        searchVO.setSbjctId(sbjctId);
+        SbjctVO sbjctVO = sbjctService.selectSbjctOfringAccess(searchVO);
+
+        if(sbjctVO == null || ValidationUtils.isEmpty(sbjctVO.getProfId())) {
+            throw new BadRequestUrlException(getMessage("fail.common.msg")); /* 실패했습니다. */
+        }
+
+        return sbjctVO.getProfId();
+    }
+
+    /*****************************************************
+     * 기존에 있던 Controller 영역
+     *****************************************************/
 
     /*****************************************************
      * 강의실 목록
@@ -1991,24 +2139,21 @@ public class CrecrsMgrController extends ControllerBase {
         return "crs/clasop/rltm_link";
     }
 
-    @GetMapping("/sbjctOfrngList.do")
+    /**
+     * 개설과목 목록 조회 (by 학위연도, 학기기수, 기관, 학과부서아이디)
+     * @param vo
+     * @param userCtx
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/sbjctListAjax.do")
     @ResponseBody
-    public ProcessResultVO<EgovMap> sbjctOfringList (SubjectVO sbjctOfrngVO, HttpServletRequest request) throws Exception{
-    	ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<EgovMap>();
+    public ProcessResultVO<EgovMap> sbjctOfringList (SubjectVO vo, @CurrentUser UserContext userCtx) throws Exception {
 
     	// TODO: 학위연도, 기관, 학기기수, 학과에 따른 개설 과목 목록 조회
-    	String orgId = StringUtil.nvl(sbjctOfrngVO.getOrgId(), SessionInfo.getOrgId(request));
-    	sbjctOfrngVO.setOrgId(orgId);
+    	String orgId = StringUtil.nvl(vo.getOrgId(), userCtx.getOrgId());
+        vo.setOrgId(orgId);
 
-    	try {
-    		resultVO.setReturnList(crecrsService.listSbjctOfrng(sbjctOfrngVO));
-    		resultVO.setResultSuccess();
-		} catch (Exception e) {
-			resultVO.setResultFailed();
-			resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
-		}
-
-
-    	return resultVO;
+    	return crecrsService.listSbjctPaging(vo);
     }
 }

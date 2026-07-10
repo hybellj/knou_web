@@ -31,15 +31,16 @@
 .dx5-pop-container.ud { width: 90%; height: 140px; max-width: 300px; max-height: 140px; background: none; box-shadow: none; }
 
 .dx5-pop-pv-media {
+	display: none;
     position: fixed;
     top: -100px;
     left: -100px;
     width: 1px;
     height: 1px;
-    /*box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);*/
 }
 
 .dx5-pop-pv-media.is-visible {
+	display: inline;
     top: 50%;
     left: 50%;
     max-height: 80%;
@@ -47,6 +48,8 @@
     width: auto;
     height: auto;
     transform: translate(-50%, -50%);
+	cursor: pointer;
+  	box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
 }
 
 @media only screen and (min-width: 1170px) {

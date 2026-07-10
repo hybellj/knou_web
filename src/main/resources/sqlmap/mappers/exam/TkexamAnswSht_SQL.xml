@@ -109,4 +109,128 @@
 		 WHERE EXAMPPR.QSTN_ID = #{qstnId}
 	</select>
 
+	<select id="stdntExampprAnswShtList" parameterType="map" resultType="TkexamAnswShtVO">
+		/*
+             SQL ID : TkexamAnswShtDAO.stdntExampprAnswShtList
+             설  명  : 학생시험지응시답안목록조회
+        */
+        SELECT
+			  EXAMPPR.QSTN_ID
+			, ANSW.ANSW_SHT_CTS
+		  FROM TB_LMS_EXAMPPR EXAMPPR
+		  JOIN TB_LMS_TKEXAM_ANSW_SHT ANSW
+		    ON EXAMPPR.EXAMPPR_ID = ANSW.EXAMPPR_ID
+		   AND EXAMPPR.USER_ID = ANSW.USER_ID
+		   AND EXAMPPR.QSTN_ID = ANSW.QSTN_ID
+		 WHERE EXAMPPR.TKEXAM_ID = #{tkexamId}
+		   AND EXAMPPR.USER_ID = #{userId}
+		 ORDER BY EXAMPPR.QSTN_DSPLY_SEQNO
+	</select>
+
+	<update id="stdntSsnlQstnTempSave" parameterType="map">
+		/*
+             SQL ID : TkexamAnswShtDAO.stdntSsnlQstnTempSave
+             설  명  : 학생단일문항임시저장
+         */
+		MERGE INTO TB_LMS_TKEXAM_ANSW_SHT ANSW_SHT
+	    USING (
+	        SELECT
+			   	  EXAMPPR_ID
+			   	, QSTN_ID
+			   	, USER_ID
+			   	, #{answShtCts} AS ANSW_SHT_CTS
+		     FROM TB_LMS_EXAMPPR
+		    WHERE TKEXAM_ID = #{tkexamId}
+		      AND QSTN_ID 	= #{qstnId}
+		      AND USER_ID 	= #{userId}
+	    ) CTS
+	    ON (
+	     		ANSW_SHT.EXAMPPR_ID = CTS.EXAMPPR_ID
+	     	AND ANSW_SHT.QSTN_ID 	= CTS.QSTN_ID
+	     	AND ANSW_SHT.USER_ID 	= CTS.USER_ID
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	        	  ANSW_SHT.ANSW_SHT_CTS = CTS.ANSW_SHT_CTS
+	        	, ANSW_SHT.MDFR_ID 		= CTS.USER_ID
+				, ANSW_SHT.MOD_DTTM 	= FN_DTTM()
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	        	  TKEXAM_ANSW_SHT_ID
+				, EXAMPPR_ID
+				, QSTN_ID
+				, USER_ID
+				, ANSW_SHT_CTS
+				, SCR
+				, RGTR_ID
+				, REG_DTTM
+	        ) VALUES (
+	        	  FN_NEW_ID('TKANS')
+				, CTS.EXAMPPR_ID
+				, CTS.QSTN_ID
+				, CTS.USER_ID
+				, CTS.ANSW_SHT_CTS
+				, 0
+				, CTS.USER_ID
+				, FN_DTTM()
+	        )
+	</update>
+
+	<update id="stdntQstnBulkTempSave" parameterType="map">
+		/*
+             SQL ID : TkexamAnswShtDAO.stdntQstnBulkTempSave
+             설  명  : 학생문항일괄임시저장
+         */
+        MERGE INTO TB_LMS_TKEXAM_ANSW_SHT ANSW_SHT
+	    USING (
+	        SELECT
+			   	  EXAMPPR.EXAMPPR_ID
+			   	, EXAMPPR.QSTN_ID
+			   	, EXAMPPR.USER_ID
+			   	, SHT.ANSW_SHT_CTS
+		     FROM TB_LMS_EXAMPPR EXAMPPR
+		     JOIN (
+				 <foreach collection="rspns" item="item" separator="UNION ALL">
+				 	SELECT
+				 		  #{item.qstnId} 		AS QSTN_ID
+				 		, #{item.answShtCts} 	AS ANSW_SHT_CTS
+				 	  FROM DUAL
+				 </foreach>
+		     ) SHT
+		       ON EXAMPPR.QSTN_ID = SHT.QSTN_ID
+		    WHERE EXAMPPR.TKEXAM_ID = #{tkexamId}
+		      AND EXAMPPR.USER_ID 	= #{userId}
+	    ) CTS
+	    ON (
+	     		ANSW_SHT.EXAMPPR_ID = CTS.EXAMPPR_ID
+	     	AND ANSW_SHT.QSTN_ID 	= CTS.QSTN_ID
+	     	AND ANSW_SHT.USER_ID 	= CTS.USER_ID
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	        	  ANSW_SHT.ANSW_SHT_CTS = CTS.ANSW_SHT_CTS
+	        	, ANSW_SHT.MDFR_ID 		= CTS.USER_ID
+				, ANSW_SHT.MOD_DTTM 	= FN_DTTM()
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	        	  TKEXAM_ANSW_SHT_ID
+				, EXAMPPR_ID
+				, QSTN_ID
+				, USER_ID
+				, ANSW_SHT_CTS
+				, SCR
+				, RGTR_ID
+				, REG_DTTM
+	        ) VALUES (
+	        	  FN_NEW_ID('TKANS')
+				, CTS.EXAMPPR_ID
+				, CTS.QSTN_ID
+				, CTS.USER_ID
+				, CTS.ANSW_SHT_CTS
+				, 0
+				, CTS.USER_ID
+				, FN_DTTM()
+	        )
+	</update>
+
 </mapper>

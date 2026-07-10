@@ -8,7 +8,6 @@ import knou.lms.file.vo.AtflVO;
 public class MsgShrtntVO extends DefaultVO {
     private static final long serialVersionUID = 1L;
 
-    // === TB_LMS_MSG ===
     private String msgId;
     private String msgTmpltId;
     private String msgTycd;
@@ -20,7 +19,6 @@ public class MsgShrtntVO extends DefaultVO {
     private String smstr;
     private String rsrvSndngCnclDttm;
 
-    // === TB_LMS_MSG_SHRTNT_SNDNG ===
     private String msgShrtntSndngId;
     private String replyMsgShrtntSndngId;
     private String upMsgShrtntSndngId;
@@ -35,48 +33,38 @@ public class MsgShrtntVO extends DefaultVO {
     private String sndngrDelyn;
     private String rcvrDelyn;
 
-    // === 검색 조건 ===
     private String sbjctYr;
     private String sbjctSmstr;
-    private String deptId;
     private String sndngSdttm;
     private String sndngEdttm;
     private String listType;
 
-    // === 목록/상세 표시용 (가공 데이터) ===
     private String efctvSndngDttm;
 
-    // === 목록 표시용 ===
-    private int rnum;
     private String orgnm;
-    private String deptnm;
     private String dvclasNo;
     private String readYn;
     private int rcvrCnt;
     private String rsrvYn;
+    private String fullyPendingYn;
     private String sndngYn;
+    private String sndngStscd;
+    private String sndngRsltCts;
     private int sndngSuccCnt;
 
-    // === 발신 폼용 ===
     private String rcvrListJson;
     private String sndngrPhnno;
 
-    // === 엑셀 업로드용 ===
     private List<String> userIdList;
 
-    // === 사용자 검색용 ===
     private String adminYn;
     private String userTycd;
     private String stdntNo;
     private String usernm;
     private String mblPhn;
     private String eml;
-    private String userRprsId2;
 
-    // === 첨부파일 ===
     private List<AtflVO> atflList;
-
-    // Getter/Setter
 
     public String getMsgId() {
         return msgId;
@@ -278,14 +266,6 @@ public class MsgShrtntVO extends DefaultVO {
         this.sbjctSmstr = sbjctSmstr;
     }
 
-    public String getDeptId() {
-        return deptId;
-    }
-
-    public void setDeptId(String deptId) {
-        this.deptId = deptId;
-    }
-
     public String getSndngSdttm() {
         return sndngSdttm;
     }
@@ -318,14 +298,6 @@ public class MsgShrtntVO extends DefaultVO {
         this.efctvSndngDttm = efctvSndngDttm;
     }
 
-    public int getRnum() {
-        return rnum;
-    }
-
-    public void setRnum(int rnum) {
-        this.rnum = rnum;
-    }
-
     public String getOrgnm() {
         return orgnm;
     }
@@ -334,13 +306,6 @@ public class MsgShrtntVO extends DefaultVO {
         this.orgnm = orgnm;
     }
 
-    public String getDeptnm() {
-        return deptnm;
-    }
-
-    public void setDeptnm(String deptnm) {
-        this.deptnm = deptnm;
-    }
 
     public String getDvclasNo() {
         return dvclasNo;
@@ -374,12 +339,36 @@ public class MsgShrtntVO extends DefaultVO {
         this.rsrvYn = rsrvYn;
     }
 
+    public String getFullyPendingYn() {
+        return fullyPendingYn;
+    }
+
+    public void setFullyPendingYn(String fullyPendingYn) {
+        this.fullyPendingYn = fullyPendingYn;
+    }
+
     public String getSndngYn() {
         return sndngYn;
     }
 
     public void setSndngYn(String sndngYn) {
         this.sndngYn = sndngYn;
+    }
+
+    public String getSndngStscd() {
+        return sndngStscd;
+    }
+
+    public void setSndngStscd(String sndngStscd) {
+        this.sndngStscd = sndngStscd;
+    }
+
+    public String getSndngRsltCts() {
+        return sndngRsltCts;
+    }
+
+    public void setSndngRsltCts(String sndngRsltCts) {
+        this.sndngRsltCts = sndngRsltCts;
     }
 
     public int getSndngSuccCnt() {
@@ -454,13 +443,6 @@ public class MsgShrtntVO extends DefaultVO {
         this.eml = eml;
     }
 
-    public String getUserRprsId2() {
-        return userRprsId2;
-    }
-
-    public void setUserRprsId2(String userRprsId2) {
-        this.userRprsId2 = userRprsId2;
-    }
 
     public List<String> getUserIdList() {
         return userIdList;

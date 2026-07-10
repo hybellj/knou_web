@@ -311,6 +311,49 @@
          ORDER BY PTCP.SRVY_ID, PTCP.USER_ID, SRVYPPR.SRVY_SEQNO, QSTN.QSTN_SEQNO
     </select>
 
+    <select id="srvylctrEvlExcelDownQstnRspnsList" parameterType="String" resultType="egovMap">
+    	/*
+             SQL ID : SrvyRspnsDAO.srvylctrEvlExcelDownQstnRspnsList
+             설  명  : 설문강의평가엑셀다운문항답변목록
+         */
+    	SELECT SRVY.UP_SRVY_ID AS SRVY_ID
+             , PTCP.USER_ID
+             , (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = PTCP.USER_ID) AS USERNM
+             , SRVYPPR.SRVYPPR_ID
+             , RSPNS.SRVY_QSTN_ID
+             , RSPNS.SRVY_VWITM_ID
+             , CASE WHEN VWITM.ETC_INPTYN = 'Y'
+             		THEN RSPNS.RSPNS
+             		ELSE VWITM.VWITM_CTS
+             		END AS VWITM_CTS
+             , LVL.LVL_CTS
+             , LVL.SRVY_QSTN_VWITM_LVL_ID
+             , SRVYPPR.SRVY_SEQNO
+             , QSTN.QSTN_SEQNO
+             , CASE WHEN QSTN.QSTN_RSPNS_TYCD = 'LEVEL' THEN VWITM.VWITM_SEQNO ELSE NULL END AS VWITM_SEQNO
+          FROM TB_LMS_SRVY_PTCP PTCP
+          JOIN TB_LMS_SRVY_RSPNS RSPNS
+            ON PTCP.SRVY_PTCP_ID = RSPNS.SRVY_PTCP_ID
+          JOIN TB_LMS_SRVY SRVY
+            ON SRVY.DELYN = 'N'
+           AND SRVY.USEYN = 'Y'
+           AND PTCP.SRVY_ID = SRVY.SRVY_ID
+          JOIN TB_LMS_SRVY_QSTN QSTN
+            ON RSPNS.SRVY_QSTN_ID = QSTN.SRVY_QSTN_ID
+           AND QSTN.DELYN = 'N'
+          JOIN TB_LMS_SRVYPPR SRVYPPR
+            ON QSTN.SRVYPPR_ID = SRVYPPR.SRVYPPR_ID
+           AND SRVY.UP_SRVY_ID = SRVYPPR.SRVY_ID
+          LEFT JOIN TB_LMS_SRVY_VWITM VWITM
+            ON RSPNS.SRVY_QSTN_ID = VWITM.SRVY_QSTN_ID
+           AND RSPNS.SRVY_VWITM_ID = VWITM.SRVY_VWITM_ID
+          LEFT JOIN TB_LMS_SRVY_QSTN_VWITM_LVL LVL
+            ON LVL.SRVY_QSTN_ID = RSPNS.SRVY_QSTN_ID
+           AND LVL.SRVY_QSTN_VWITM_LVL_ID = RSPNS.SRVY_QSTN_VWITM_LVL_ID
+         WHERE SRVY.SRVY_ID = #{srvyId} OR SRVY.UP_SRVY_ID = #{srvyId}
+         ORDER BY PTCP.SRVY_ID, PTCP.USER_ID, SRVYPPR.SRVY_SEQNO, QSTN.QSTN_SEQNO
+    </select>
+
     <select id="srvyRspnsList" parameterType="String" resultType="srvyRspnsVO">
     	/*
              SQL ID : SrvyRspnsDAO.srvyRspnsList
@@ -433,6 +476,754 @@
 		    ) A
 		) A
 		ORDER BY A.SRVY_SEQNO, A.QSTN_SEQNO, A.VWITM_SEQNO
+    </select>
+
+    <update id="srvyRspnsBulkSave" parameterType="map">
+		/*
+             SQL ID : SrvyRspnsDAO.srvyRspnsBulkSave
+             설  명  : 설문답변일괄저장
+         */
+        MERGE INTO TB_LMS_SRVY_RSPNS SRVY_RSPNS
+	    USING (
+			<foreach collection="rspns" item="item" separator="UNION ALL">
+				SELECT
+					  #{srvyPtcpId}					AS SRVY_PTCP_ID
+					, #{userId}						AS USER_ID
+					, #{item.srvyQstnId} 			AS SRVY_QSTN_ID
+					, #{item.srvyVwitmId} 			AS SRVY_VWITM_ID
+					, #{item.srvyQstnVwitmLvlId} 	AS SRVY_QSTN_VWITM_LVL_ID
+					, #{item.rspns} 				AS RSPNS
+				  FROM DUAL
+			</foreach>
+	    ) CTS
+	    ON (
+	     	SRVY_RSPNS.SRVY_PTCP_ID = CTS.SRVY_PTCP_ID
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	        	  SRVY_RSPNS.SRVY_QSTN_ID 			= CTS.SRVY_QSTN_ID
+	        	, SRVY_RSPNS.SRVY_VWITM_ID 			= CTS.SRVY_VWITM_ID
+	        	, SRVY_RSPNS.SRVY_QSTN_VWITM_LVL_ID = CTS.SRVY_QSTN_VWITM_LVL_ID
+	        	, SRVY_RSPNS.RSPNS 					= CTS.RSPNS
+	        	, SRVY_RSPNS.MDFR_ID 				= CTS.USER_ID
+				, SRVY_RSPNS.MOD_DTTM 				= FN_DTTM()
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	        	  SRVY_RSPNS_ID
+				, SRVY_PTCP_ID
+				, SRVY_QSTN_ID
+				, SRVY_VWITM_ID
+				, SRVY_QSTN_VWITM_LVL_ID
+				, RSPNS
+				, RGTR_ID
+				, REG_DTTM
+	        ) VALUES (
+	        	  FN_NEW_ID('SRRSP')
+				, CTS.SRVY_PTCP_ID
+				, CTS.SRVY_QSTN_ID
+				, CTS.SRVY_VWITM_ID
+				, CTS.SRVY_QSTN_VWITM_LVL_ID
+				, CTS.RSPNS
+				, CTS.USER_ID
+				, FN_DTTM()
+	        )
+	</update>
+
+	<select id="lctrEvlChcQstnRspnsStatusList" parameterType="map" resultType="egovMap">
+		/*
+             SQL ID : SrvyRspnsDAO.lctrEvlChcQstnRspnsStatusList
+             설  명  : 강의평가선택형문항답변현황목록
+         */
+		SELECT
+			    A.SRVY_VWITM_ID
+			  , A.SRVY_QSTN_ID
+			  , A.VWITM_CTS
+			  , A.VWITM_SEQNO
+			  , A.ETC_INPTYN
+			  , A.JOIN_CNT
+			  , A.TOT_JOIN_CNT
+			  , CASE WHEN A.TOT_JOIN_CNT = 0
+			  		 THEN '0'
+			  		 ELSE REPLACE(TO_CHAR(
+						        CASE WHEN A.RNUM = 1
+						             THEN 100 - ACUM_RATIO
+						             ELSE A.RATIO
+						        END
+						    ), '.0', '')
+				  	 END AS RATIO
+		  FROM (
+		    SELECT
+		         	A.*
+			      , ROW_NUMBER() OVER (PARTITION BY A.QNUM ORDER BY A.JOIN_CNT DESC, A.VWITM_SEQNO DESC) AS RNUM
+			      , ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1) AS RATIO
+			      , SUM(ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1))
+			            OVER (PARTITION BY A.QNUM ORDER BY A.JOIN_CNT DESC, A.VWITM_SEQNO DESC)
+			        - ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1) AS ACUM_RATIO
+		      FROM (
+		        SELECT DISTINCT
+			            A.SRVY_QSTN_ID
+			          , A.SRVY_VWITM_ID
+			          , A.VWITM_CTS
+			          , A.SRVY_SEQNO
+			          , A.QSTN_SEQNO
+			          , A.VWITM_SEQNO
+			          , A.ETC_INPTYN
+			          , A.JOIN_CNT
+			          , A.TOT_JOIN_CNT
+			          , A.QNUM
+		          FROM (
+		            SELECT
+			                A.*
+			              , DENSE_RANK() OVER (ORDER BY A.SRVY_QSTN_ID) AS QNUM
+		              FROM (
+		                WITH RSPNS AS (
+							SELECT
+								  RSPNS.SRVY_QSTN_ID
+								, RSPNS.SRVY_VWITM_ID
+								, RSPNS.SRVY_QSTN_VWITM_LVL_ID
+								, RSPNS.RSPNS
+							  FROM TB_LMS_SRVY_PTCP PTCP
+							  JOIN TB_LMS_SRVY_RSPNS RSPNS
+							    ON PTCP.SRVY_PTCP_ID = RSPNS.SRVY_PTCP_ID
+							  JOIN TB_LMS_SRVY SRVY
+							    ON PTCP.SRVY_ID = SRVY.SRVY_ID
+							   AND SRVY.DELYN = 'N'
+							   AND SRVY.USEYN = 'Y'
+							  JOIN TB_LMS_SBJCT SBJCT
+							    ON SRVY.SBJCT_ID = SBJCT.SBJCT_ID
+							   AND SBJCT.DELYN = 'N'
+							   AND SBJCT.USEYN = 'Y'
+							  JOIN TB_LMS_SMSTR_CHRT CHRT
+							    ON SBJCT.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+							  JOIN TB_LMS_USER USR
+							    ON PTCP.USER_ID = USR.USER_ID
+							   AND USR.USER_ID_STSCD = 'APRV_CMPTN'
+							 WHERE SRVY.UP_SRVY_ID = #{srvyId}
+							   <if test="orgId != null and orgId != ''">
+								    AND CHRT.ORG_ID = #{orgId}
+							   </if>
+							   <if test="smstrChrtId != null and smstrChrtId != ''">
+							      	AND CHRT.SMSTR_CHRT_ID = #{smstrChrtId}
+							   </if>
+							   <if test="sbjctId != null and sbjctId != ''">
+							      	AND SBJCT.SBJCT_ID = #{sbjctId}
+							   </if>
+							   <if test="srvyPtcp != null and srvyPtcp == 'COMPLETED'">
+							   		AND PTCP.PTCP_EDTTM IS NOT NULL
+							   </if>
+							   <if test="srvyPtcp != null and srvyPtcp == 'NOPTCP'">
+							   		AND PTCP.PTCP_EDTTM IS NULL
+							   </if>
+							   <if test="searchValue != null and searchValue != ''">
+							   		AND (   LOWER(USR.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+							   		 	 OR LOWER(USR.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+							   		)
+							   </if>
+						)
+		                SELECT
+			                    VWITM.SRVY_QSTN_ID
+			                  , VWITM.SRVY_VWITM_ID
+			                  , VWITM.VWITM_CTS
+			                  , VWITM.ETC_INPTYN
+			                  , SRVYPPR.SRVY_SEQNO
+			                  , QSTN.QSTN_SEQNO
+			                  , VWITM.VWITM_SEQNO
+			                  , (SELECT COUNT(SRVY_VWITM_ID) FROM RSPNS WHERE SRVY_VWITM_ID = VWITM.SRVY_VWITM_ID) AS JOIN_CNT
+							  , (SELECT COUNT(SRVY_QSTN_ID) FROM RSPNS WHERE SRVY_QSTN_ID = QSTN.SRVY_QSTN_ID) AS TOT_JOIN_CNT
+		                  FROM TB_LMS_SRVYPPR SRVYPPR
+		                  JOIN TB_LMS_SRVY_QSTN QSTN
+		                    ON SRVYPPR.SRVYPPR_ID = QSTN.SRVYPPR_ID
+		                   AND QSTN.DELYN = 'N'
+		                   AND QSTN.QSTN_RSPNS_TYCD IN ('ONE_CHC', 'MLT_CHC', 'OX_CHC')
+		                  JOIN TB_LMS_SRVY_VWITM VWITM
+		                    ON QSTN.SRVY_QSTN_ID = VWITM.SRVY_QSTN_ID
+						 WHERE SRVYPPR.SRVY_ID = #{srvyId}
+		            ) A
+		        ) A
+		    ) A
+		) A
+		ORDER BY A.SRVY_SEQNO, A.QSTN_SEQNO, A.VWITM_SEQNO
+	</select>
+
+	<select id="lctrEvlTextQstnRspnsStatusList" parameterType="map" resultType="egovMap">
+		/*
+             SQL ID : SrvyRspnsDAO.lctrEvlTextQstnRspnsStatusList
+             설  명  : 강의평가서술형문항답변현황목록
+         */
+        SELECT
+			  RSPNS.RSPNS
+			, USR.USERNM AS USERNM
+			, QSTN.SRVY_QSTN_ID
+		  FROM TB_LMS_SRVYPPR SRVYPPR
+		  JOIN TB_LMS_SRVY_QSTN QSTN
+		    ON SRVYPPR.SRVYPPR_ID = QSTN.SRVYPPR_ID
+		   AND QSTN.DELYN = 'N'
+		   AND QSTN.QSTN_RSPNS_TYCD = 'LONG_TEXT'
+		  JOIN TB_LMS_SRVY SRVY
+		    ON SRVY.UP_SRVY_ID = SRVYPPR.SRVY_ID
+		   AND SRVY.DELYN = 'N'
+		   AND SRVY.USEYN = 'Y'
+		  JOIN TB_LMS_SBJCT SBJCT
+		    ON SRVY.SBJCT_ID = SBJCT.SBJCT_ID
+		   AND SBJCT.DELYN = 'N'
+		   AND SBJCT.USEYN = 'Y'
+		  JOIN TB_LMS_SMSTR_CHRT CHRT
+		    ON SBJCT.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+		  JOIN TB_LMS_SRVY_PTCP PTCP
+		    ON PTCP.SRVY_ID = SRVY.SRVY_ID
+		  JOIN TB_LMS_SRVY_RSPNS RSPNS
+		    ON PTCP.SRVY_PTCP_ID = RSPNS.SRVY_PTCP_ID
+		   AND QSTN.SRVY_QSTN_ID = RSPNS.SRVY_QSTN_ID
+		  JOIN TB_LMS_USER USR
+		    ON PTCP.USER_ID = USR.USER_ID
+		   AND USR.USER_ID_STSCD = 'APRV_CMPTN'
+		 WHERE SRVYPPR.SRVY_ID = #{srvyId}
+		 <if test="orgId != null and orgId != ''">
+		    	AND CHRT.ORG_ID = #{orgId}
+		 </if>
+		 <if test="smstrChrtId != null and smstrChrtId != ''">
+		    	AND CHRT.SMSTR_CHRT_ID = #{smstrChrtId}
+		 </if>
+		 <if test="sbjctId != null and sbjctId != ''">
+		    	AND SBJCT.SBJCT_ID = #{sbjctId}
+		 </if>
+		 <if test="srvyPtcp != null and srvyPtcp == 'COMPLETED'">
+		 		AND PTCP.PTCP_EDTTM IS NOT NULL
+		 </if>
+		 <if test="srvyPtcp != null and srvyPtcp == 'NOPTCP'">
+		 		AND PTCP.PTCP_EDTTM IS NULL
+		 </if>
+		 <if test="searchValue != null and searchValue != ''">
+		 		AND (   LOWER(USR.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		 		 	 OR LOWER(USR.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+		 		)
+		 </if>
+		 ORDER BY RSPNS.RSPNS, PTCP.USER_ID
+	</select>
+
+	<select id="lctrEvlLevelQstnRspnsStatusList" parameterType="map" resultType="egovMap">
+		/*
+             SQL ID : SrvyRspnsDAO.lctrEvlLevelQstnRspnsStatusList
+             설  명  : 강의평가레벨형문항답변현황목록
+         */
+        SELECT
+			    A.SRVY_VWITM_ID
+			  , A.SRVY_QSTN_ID
+			  , A.SRVY_QSTN_VWITM_LVL_ID
+			  , A.VWITM_CTS
+			  , A.LVL_SEQNO
+			  , A.JOIN_CNT
+			  , A.TOT_JOIN_CNT
+			  , CASE WHEN A.TOT_JOIN_CNT = 0
+			  		 THEN '0'
+			  		 ELSE REPLACE(TO_CHAR(
+						        CASE WHEN A.RNUM = 1
+						             THEN 100 - ACUM_RATIO
+						             ELSE A.RATIO
+						        END
+						    ), '.0', '')
+					 END AS RATIO
+		  FROM (
+		    SELECT
+		         	A.*
+			      , ROW_NUMBER() OVER (PARTITION BY A.QNUM ORDER BY A.JOIN_CNT DESC, A.LVL_SEQNO DESC) AS RNUM
+			      , ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1) AS RATIO
+			      , SUM(ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1))
+			            OVER (PARTITION BY A.QNUM ORDER BY A.JOIN_CNT DESC, A.LVL_SEQNO DESC)
+			        - ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1) AS ACUM_RATIO
+		      FROM (
+		        SELECT DISTINCT
+			            A.SRVY_QSTN_ID
+			          , A.SRVY_VWITM_ID
+			          , A.SRVY_QSTN_VWITM_LVL_ID
+			          , A.VWITM_CTS
+			          , A.SRVY_SEQNO
+			          , A.QSTN_SEQNO
+			          , A.VWITM_SEQNO
+			          , A.LVL_SEQNO
+			          , A.JOIN_CNT
+			          , A.TOT_JOIN_CNT
+			          , A.QNUM
+		          FROM (
+		            SELECT
+			                A.*
+			              , DENSE_RANK() OVER (ORDER BY A.SRVY_QSTN_ID, A.SRVY_VWITM_ID) AS QNUM
+		              FROM (
+		              	WITH RSPNS AS (
+							SELECT
+								  RSPNS.SRVY_QSTN_ID
+								, RSPNS.SRVY_VWITM_ID
+								, RSPNS.SRVY_QSTN_VWITM_LVL_ID
+								, RSPNS.RSPNS
+							  FROM TB_LMS_SRVY_PTCP PTCP
+							  JOIN TB_LMS_SRVY_RSPNS RSPNS
+							    ON PTCP.SRVY_PTCP_ID = RSPNS.SRVY_PTCP_ID
+							  JOIN TB_LMS_SRVY SRVY
+							    ON PTCP.SRVY_ID = SRVY.SRVY_ID
+							   AND SRVY.DELYN = 'N'
+							   AND SRVY.USEYN = 'Y'
+							  JOIN TB_LMS_SBJCT SBJCT
+							    ON SRVY.SBJCT_ID = SBJCT.SBJCT_ID
+							   AND SBJCT.DELYN = 'N'
+							   AND SBJCT.USEYN = 'Y'
+							  JOIN TB_LMS_SMSTR_CHRT CHRT
+							    ON SBJCT.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+							  JOIN TB_LMS_USER USR
+							    ON PTCP.USER_ID = USR.USER_ID
+							   AND USR.USER_ID_STSCD = 'APRV_CMPTN'
+							 WHERE SRVY.UP_SRVY_ID = #{srvyId}
+							   <if test="orgId != null and orgId != ''">
+							      	AND CHRT.ORG_ID = #{orgId}
+							   </if>
+							   <if test="smstrChrtId != null and smstrChrtId != ''">
+							      	AND CHRT.SMSTR_CHRT_ID = #{smstrChrtId}
+							   </if>
+							   <if test="sbjctId != null and sbjctId != ''">
+							      	AND SBJCT.SBJCT_ID = #{sbjctId}
+							   </if>
+							   <if test="srvyPtcp != null and srvyPtcp == 'COMPLETED'">
+							   		AND PTCP.PTCP_EDTTM IS NOT NULL
+							   </if>
+							   <if test="srvyPtcp != null and srvyPtcp == 'NOPTCP'">
+							   		AND PTCP.PTCP_EDTTM IS NULL
+							   </if>
+							   <if test="searchValue != null and searchValue != ''">
+							   		AND (   LOWER(USR.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+							   		 	 OR LOWER(USR.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+							   		)
+							   </if>
+						)
+		                SELECT
+			                    VWITM.SRVY_QSTN_ID
+			                  , VWITM.SRVY_VWITM_ID
+			                  , LVL.SRVY_QSTN_VWITM_LVL_ID
+			                  , VWITM.VWITM_CTS
+			                  , SRVYPPR.SRVY_SEQNO
+			                  , QSTN.QSTN_SEQNO
+			                  , VWITM.VWITM_SEQNO
+			                  , LVL.LVL_SEQNO
+			                  , (SELECT COUNT(SRVY_QSTN_ID) FROM RSPNS WHERE SRVY_QSTN_ID = QSTN.SRVY_QSTN_ID AND SRVY_VWITM_ID = VWITM.SRVY_VWITM_ID) AS TOT_JOIN_CNT
+			                  , (SELECT COUNT(SRVY_QSTN_ID) FROM RSPNS WHERE SRVY_QSTN_ID = QSTN.SRVY_QSTN_ID AND SRVY_VWITM_ID = VWITM.SRVY_VWITM_ID AND SRVY_QSTN_VWITM_LVL_ID = LVL.SRVY_QSTN_VWITM_LVL_ID) AS JOIN_CNT
+		                  FROM TB_LMS_SRVYPPR SRVYPPR
+		                  JOIN TB_LMS_SRVY_QSTN QSTN
+		                    ON SRVYPPR.SRVYPPR_ID = QSTN.SRVYPPR_ID
+		                   AND QSTN.DELYN = 'N'
+		                   AND QSTN.QSTN_RSPNS_TYCD = 'LEVEL'
+		                  JOIN TB_LMS_SRVY_VWITM VWITM
+		                    ON QSTN.SRVY_QSTN_ID = VWITM.SRVY_QSTN_ID
+		                  JOIN TB_LMS_SRVY_QSTN_VWITM_LVL LVL
+		                    ON QSTN.SRVY_QSTN_ID = LVL.SRVY_QSTN_ID
+		                 WHERE SRVYPPR.SRVY_ID = #{srvyId}
+		            ) A
+		        ) A
+		    ) A
+		) A
+		ORDER BY A.SRVY_SEQNO, A.QSTN_SEQNO, A.VWITM_SEQNO, A.LVL_SEQNO
+    </select>
+
+    <select id="wholSrvyChcQstnRspnsStatusList" parameterType="map" resultType="egovMap">
+		/*
+             SQL ID : SrvyRspnsDAO.wholSrvyChcQstnRspnsStatusList
+             설  명  : 전체설문선택형문항답변현황목록
+         */
+		SELECT
+			    A.SRVY_VWITM_ID
+			  , A.SRVY_QSTN_ID
+			  , A.VWITM_CTS
+			  , A.VWITM_SEQNO
+			  , A.ETC_INPTYN
+			  , A.JOIN_CNT
+			  , A.TOT_JOIN_CNT
+			  , CASE WHEN A.TOT_JOIN_CNT = 0
+			  		 THEN '0'
+			  		 ELSE REPLACE(TO_CHAR(
+						        CASE WHEN A.RNUM = 1
+						             THEN 100 - ACUM_RATIO
+						             ELSE A.RATIO
+						        END
+						    ), '.0', '')
+				  	 END AS RATIO
+		  FROM (
+		    SELECT
+		         	A.*
+			      , ROW_NUMBER() OVER (PARTITION BY A.QNUM ORDER BY A.JOIN_CNT DESC, A.VWITM_SEQNO DESC) AS RNUM
+			      , ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1) AS RATIO
+			      , SUM(ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1))
+			            OVER (PARTITION BY A.QNUM ORDER BY A.JOIN_CNT DESC, A.VWITM_SEQNO DESC)
+			        - ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1) AS ACUM_RATIO
+		      FROM (
+		        SELECT DISTINCT
+			            A.SRVY_QSTN_ID
+			          , A.SRVY_VWITM_ID
+			          , A.VWITM_CTS
+			          , A.SRVY_SEQNO
+			          , A.QSTN_SEQNO
+			          , A.VWITM_SEQNO
+			          , A.ETC_INPTYN
+			          , A.JOIN_CNT
+			          , A.TOT_JOIN_CNT
+			          , A.QNUM
+		          FROM (
+		            SELECT
+			                A.*
+			              , DENSE_RANK() OVER (ORDER BY A.SRVY_QSTN_ID) AS QNUM
+		              FROM (
+		                WITH RSPNS AS (
+							SELECT
+								  RSPNS.SRVY_QSTN_ID
+								, RSPNS.SRVY_VWITM_ID
+								, RSPNS.SRVY_QSTN_VWITM_LVL_ID
+								, RSPNS.RSPNS
+							  FROM TB_LMS_SRVY_PTCP PTCP
+							  JOIN TB_LMS_SRVY_RSPNS RSPNS
+							    ON PTCP.SRVY_PTCP_ID = RSPNS.SRVY_PTCP_ID
+							  JOIN (
+								SELECT DISTINCT
+									  SRVY.SRVY_ID
+									, COALESCE(STDNT.USER_ID, PROF.USER_ID, ADM.USER_ID) AS USER_ID
+									, COALESCE(STDNT.USERNM, PROF.USERNM, ADM.USERNM) AS USERNM
+								  FROM TB_LMS_SRVY SRVY
+								  JOIN TB_LMS_SRVY_TRGT TRGT
+								    ON SRVY.SRVY_ID = TRGT.SRVY_ID
+								  JOIN TB_LMS_SMSTR_CHRT CHRT
+								    ON SRVY.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+								  JOIN TB_LMS_ORG ORG
+								    ON CHRT.ORG_ID = ORG.ORG_ID
+								  JOIN TB_LMS_AUTHRT AUTHRT
+								    ON CASE WHEN TRGT.SRVY_TRGT_TYCD = 'ALL' THEN '1'
+								    		WHEN TRGT.SRVY_TRGT_TYCD = 'ADM' THEN AUTHRT.AUTHRT_GRPCD
+								            ELSE AUTHRT.AUTHRT_CD
+								       END
+								       LIKE
+								       CASE WHEN TRGT.SRVY_TRGT_TYCD = 'ALL' THEN '1'
+								            ELSE FN_LIKE_VAL(TRGT.SRVY_TRGT_TYCD)
+								       END
+								   AND AUTHRT.AUTHRT_CD NOT IN ('AUDIT', 'OBSVR', 'GUEST')
+								  JOIN TB_LMS_USER_AUTHRT USR_AUTHRT
+								    ON AUTHRT.AUTHRT_ID = USR_AUTHRT.AUTHRT_ID
+								  JOIN TB_LMS_SBJCT SBJCT
+								    ON CHRT.SMSTR_CHRT_ID = SBJCT.SMSTR_CHRT_ID
+								   AND SBJCT.DELYN = 'N'
+								   AND SBJCT.USEYN = 'Y'
+								  LEFT JOIN TB_LMS_ATNDLC ATNDLC
+								    ON SBJCT.SBJCT_ID = ATNDLC.SBJCT_ID
+								   AND ATNDLC.AUDITYN = 'N'
+								   AND USR_AUTHRT.USER_ID = ATNDLC.USER_ID
+								  LEFT JOIN TB_LMS_SBJCT_ADM SBJCT_ADM
+								    ON SBJCT.SBJCT_ID = SBJCT_ADM.SBJCT_ID
+								   AND SBJCT_ADM.SBJCT_ADM_TYCD LIKE FN_LIKE_VAL(TRGT.SRVY_TRGT_TYCD)
+								   AND USR_AUTHRT.USER_ID = SBJCT_ADM.USER_ID
+								  LEFT JOIN TB_LMS_USER STDNT
+								    ON ATNDLC.USER_ID = STDNT.USER_ID
+								   AND STDNT.USER_ID_STSCD = 'APRV_CMPTN'
+								  LEFT JOIN TB_LMS_USER PROF
+								    ON SBJCT_ADM.USER_ID = PROF.USER_ID
+								   AND PROF.USER_ID_STSCD = 'APRV_CMPTN'
+								  LEFT JOIN TB_LMS_USER ADM
+								    ON USR_AUTHRT.USER_ID = ADM.USER_ID
+								 WHERE SRVY.SRVY_GBNCD = 'HOMEPAGE_SRVY'
+								   AND SRVY.SRVY_TYCD = 'SRVY_WHOL'
+								   AND SRVY.DELYN = 'N'
+								   AND SRVY.USEYN = 'Y'
+								   AND SRVY.SRVY_ID = #{srvyId}
+								   AND CHRT.ORG_ID = #{orgId}
+								   <if test="smstrChrtId != null and smstrChrtId != ''">
+								   	AND CHRT.SMSTR_CHRT_ID = #{smstrChrtId}
+								   </if>
+								   <if test="srvyTrgtTycd != null and srvyTrgtTycd != ''">
+								  	AND TRGT.SRVY_TRGT_TYCD = #{srvyTrgtTycd}
+								   </if>
+							  ) SRVY
+							    ON PTCP.USER_ID = SRVY.USER_ID
+							   AND PTCP.SRVY_ID = SRVY.SRVY_ID
+							 WHERE 1 = 1
+							 <if test="srvyPtcp != null and srvyPtcp == 'COMPLETED'">
+							 	AND PTCP.PTCP_EDTTM IS NOT NULL
+							 </if>
+							 <if test="srvyPtcp != null and srvyPtcp == 'NOPTCP'">
+							 	AND PTCP.PTCP_EDTTM IS NULL
+							 </if>
+
+							 <if test="searchValue != null and searchValue != ''">
+								AND (   LOWER(SRVY.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+								 	 OR LOWER(SRVY.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+								)
+							 </if>
+						)
+		                SELECT
+			                    VWITM.SRVY_QSTN_ID
+			                  , VWITM.SRVY_VWITM_ID
+			                  , VWITM.VWITM_CTS
+			                  , VWITM.ETC_INPTYN
+			                  , SRVYPPR.SRVY_SEQNO
+			                  , QSTN.QSTN_SEQNO
+			                  , VWITM.VWITM_SEQNO
+			                  , (SELECT COUNT(SRVY_VWITM_ID) FROM RSPNS WHERE SRVY_VWITM_ID = VWITM.SRVY_VWITM_ID) AS JOIN_CNT
+							  , (SELECT COUNT(SRVY_QSTN_ID) FROM RSPNS WHERE SRVY_QSTN_ID = QSTN.SRVY_QSTN_ID) AS TOT_JOIN_CNT
+		                  FROM TB_LMS_SRVYPPR SRVYPPR
+		                  JOIN TB_LMS_SRVY_QSTN QSTN
+		                    ON SRVYPPR.SRVYPPR_ID = QSTN.SRVYPPR_ID
+		                   AND QSTN.DELYN = 'N'
+		                   AND QSTN.QSTN_RSPNS_TYCD IN ('ONE_CHC', 'MLT_CHC', 'OX_CHC')
+		                  JOIN TB_LMS_SRVY_VWITM VWITM
+		                    ON QSTN.SRVY_QSTN_ID = VWITM.SRVY_QSTN_ID
+						 WHERE SRVYPPR.SRVY_ID = #{srvyId}
+		            ) A
+		        ) A
+		    ) A
+		) A
+		ORDER BY A.SRVY_SEQNO, A.QSTN_SEQNO, A.VWITM_SEQNO
+	</select>
+
+	<select id="wholSrvyTextQstnRspnsStatusList" parameterType="map" resultType="egovMap">
+		/*
+             SQL ID : SrvyRspnsDAO.wholSrvyTextQstnRspnsStatusList
+             설  명  : 전체설문서술형문항답변현황목록
+         */
+        SELECT
+			  RSPNS.RSPNS
+			, SRVY.USERNM AS USERNM
+			, QSTN.SRVY_QSTN_ID
+		  FROM TB_LMS_SRVYPPR SRVYPPR
+		  JOIN TB_LMS_SRVY_QSTN QSTN
+		    ON SRVYPPR.SRVYPPR_ID = QSTN.SRVYPPR_ID
+		   AND QSTN.DELYN = 'N'
+		   AND QSTN.QSTN_RSPNS_TYCD = 'LONG_TEXT'
+		  JOIN (
+			SELECT DISTINCT
+				  SRVY.SRVY_ID
+				, COALESCE(STDNT.USER_ID, PROF.USER_ID, ADM.USER_ID) AS USER_ID
+				, COALESCE(STDNT.USERNM, PROF.USERNM, ADM.USERNM) AS USERNM
+			  FROM TB_LMS_SRVY SRVY
+			  JOIN TB_LMS_SRVY_TRGT TRGT
+			    ON SRVY.SRVY_ID = TRGT.SRVY_ID
+			  JOIN TB_LMS_SMSTR_CHRT CHRT
+			    ON SRVY.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+			  JOIN TB_LMS_ORG ORG
+			    ON CHRT.ORG_ID = ORG.ORG_ID
+			  JOIN TB_LMS_AUTHRT AUTHRT
+			    ON CASE WHEN TRGT.SRVY_TRGT_TYCD = 'ALL' THEN '1'
+			    		WHEN TRGT.SRVY_TRGT_TYCD = 'ADM' THEN AUTHRT.AUTHRT_GRPCD
+			            ELSE AUTHRT.AUTHRT_CD
+			       END
+			       LIKE
+			       CASE WHEN TRGT.SRVY_TRGT_TYCD = 'ALL' THEN '1'
+			            ELSE FN_LIKE_VAL(TRGT.SRVY_TRGT_TYCD)
+			       END
+			   AND AUTHRT.AUTHRT_CD NOT IN ('AUDIT', 'OBSVR', 'GUEST')
+			  JOIN TB_LMS_USER_AUTHRT USR_AUTHRT
+			    ON AUTHRT.AUTHRT_ID = USR_AUTHRT.AUTHRT_ID
+			  JOIN TB_LMS_SBJCT SBJCT
+			    ON CHRT.SMSTR_CHRT_ID = SBJCT.SMSTR_CHRT_ID
+			   AND SBJCT.DELYN = 'N'
+			   AND SBJCT.USEYN = 'Y'
+			  LEFT JOIN TB_LMS_ATNDLC ATNDLC
+			    ON SBJCT.SBJCT_ID = ATNDLC.SBJCT_ID
+			   AND ATNDLC.AUDITYN = 'N'
+			   AND USR_AUTHRT.USER_ID = ATNDLC.USER_ID
+			  LEFT JOIN TB_LMS_SBJCT_ADM SBJCT_ADM
+			    ON SBJCT.SBJCT_ID = SBJCT_ADM.SBJCT_ID
+			   AND SBJCT_ADM.SBJCT_ADM_TYCD LIKE FN_LIKE_VAL(TRGT.SRVY_TRGT_TYCD)
+			   AND USR_AUTHRT.USER_ID = SBJCT_ADM.USER_ID
+			  LEFT JOIN TB_LMS_USER STDNT
+			    ON ATNDLC.USER_ID = STDNT.USER_ID
+			   AND STDNT.USER_ID_STSCD = 'APRV_CMPTN'
+			  LEFT JOIN TB_LMS_USER PROF
+			    ON SBJCT_ADM.USER_ID = PROF.USER_ID
+			   AND PROF.USER_ID_STSCD = 'APRV_CMPTN'
+			  LEFT JOIN TB_LMS_USER ADM
+			    ON USR_AUTHRT.USER_ID = ADM.USER_ID
+			 WHERE SRVY.SRVY_GBNCD = 'HOMEPAGE_SRVY'
+			   AND SRVY.SRVY_TYCD = 'SRVY_WHOL'
+			   AND SRVY.DELYN = 'N'
+			   AND SRVY.USEYN = 'Y'
+			   AND SRVY.SRVY_ID = #{srvyId}
+			   AND CHRT.ORG_ID = #{orgId}
+			   <if test="smstrChrtId != null and smstrChrtId != ''">
+			   	AND CHRT.SMSTR_CHRT_ID = #{smstrChrtId}
+			   </if>
+			   <if test="srvyTrgtTycd != null and srvyTrgtTycd != ''">
+			  	AND TRGT.SRVY_TRGT_TYCD = #{srvyTrgtTycd}
+			   </if>
+			) SRVY
+		    ON SRVY.SRVY_ID = SRVYPPR.SRVY_ID
+		  JOIN TB_LMS_SRVY_PTCP PTCP
+		    ON PTCP.SRVY_ID = SRVY.SRVY_ID
+		   AND PTCP.USER_ID = SRVY.USER_ID
+		  JOIN TB_LMS_SRVY_RSPNS RSPNS
+		    ON PTCP.SRVY_PTCP_ID = RSPNS.SRVY_PTCP_ID
+		   AND QSTN.SRVY_QSTN_ID = RSPNS.SRVY_QSTN_ID
+		 WHERE SRVYPPR.SRVY_ID = #{srvyId}
+		 <if test="srvyPtcp != null and srvyPtcp == 'COMPLETED'">
+		 	AND PTCP.PTCP_EDTTM IS NOT NULL
+		 </if>
+		 <if test="srvyPtcp != null and srvyPtcp == 'NOPTCP'">
+		 	AND PTCP.PTCP_EDTTM IS NULL
+		 </if>
+		 <if test="searchValue != null and searchValue != ''">
+			 AND (   LOWER(SRVY.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			  	 OR LOWER(SRVY.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			 )
+		 </if>
+		 ORDER BY RSPNS.RSPNS, PTCP.USER_ID
+	</select>
+
+	<select id="wholSrvyLevelQstnRspnsStatusList" parameterType="map" resultType="egovMap">
+		/*
+             SQL ID : SrvyRspnsDAO.wholSrvyLevelQstnRspnsStatusList
+             설  명  : 전체설문레벨형문항답변현황목록
+         */
+        SELECT
+			    A.SRVY_VWITM_ID
+			  , A.SRVY_QSTN_ID
+			  , A.SRVY_QSTN_VWITM_LVL_ID
+			  , A.VWITM_CTS
+			  , A.LVL_SEQNO
+			  , A.JOIN_CNT
+			  , A.TOT_JOIN_CNT
+			  , CASE WHEN A.TOT_JOIN_CNT = 0
+			  		 THEN '0'
+			  		 ELSE REPLACE(TO_CHAR(
+						        CASE WHEN A.RNUM = 1
+						             THEN 100 - ACUM_RATIO
+						             ELSE A.RATIO
+						        END
+						    ), '.0', '')
+					 END AS RATIO
+		  FROM (
+		    SELECT
+		         	A.*
+			      , ROW_NUMBER() OVER (PARTITION BY A.QNUM ORDER BY A.JOIN_CNT DESC, A.LVL_SEQNO DESC) AS RNUM
+			      , ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1) AS RATIO
+			      , SUM(ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1))
+			            OVER (PARTITION BY A.QNUM ORDER BY A.JOIN_CNT DESC, A.LVL_SEQNO DESC)
+			        - ROUND(A.JOIN_CNT / CASE WHEN A.TOT_JOIN_CNT = 0 THEN 1 ELSE A.TOT_JOIN_CNT END * 100, 1) AS ACUM_RATIO
+		      FROM (
+		        SELECT DISTINCT
+			            A.SRVY_QSTN_ID
+			          , A.SRVY_VWITM_ID
+			          , A.SRVY_QSTN_VWITM_LVL_ID
+			          , A.VWITM_CTS
+			          , A.SRVY_SEQNO
+			          , A.QSTN_SEQNO
+			          , A.VWITM_SEQNO
+			          , A.LVL_SEQNO
+			          , A.JOIN_CNT
+			          , A.TOT_JOIN_CNT
+			          , A.QNUM
+		          FROM (
+		            SELECT
+			                A.*
+			              , DENSE_RANK() OVER (ORDER BY A.SRVY_QSTN_ID, A.SRVY_VWITM_ID) AS QNUM
+		              FROM (
+		              	WITH RSPNS AS (
+							SELECT
+								  RSPNS.SRVY_QSTN_ID
+								, RSPNS.SRVY_VWITM_ID
+								, RSPNS.SRVY_QSTN_VWITM_LVL_ID
+								, RSPNS.RSPNS
+							  FROM TB_LMS_SRVY_PTCP PTCP
+							  JOIN TB_LMS_SRVY_RSPNS RSPNS
+							    ON PTCP.SRVY_PTCP_ID = RSPNS.SRVY_PTCP_ID
+							  JOIN (
+								SELECT DISTINCT
+									  SRVY.SRVY_ID
+									, COALESCE(STDNT.USER_ID, PROF.USER_ID, ADM.USER_ID) AS USER_ID
+									, COALESCE(STDNT.USERNM, PROF.USERNM, ADM.USERNM) AS USERNM
+								  FROM TB_LMS_SRVY SRVY
+								  JOIN TB_LMS_SRVY_TRGT TRGT
+								    ON SRVY.SRVY_ID = TRGT.SRVY_ID
+								  JOIN TB_LMS_SMSTR_CHRT CHRT
+								    ON SRVY.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+								  JOIN TB_LMS_ORG ORG
+								    ON CHRT.ORG_ID = ORG.ORG_ID
+								  JOIN TB_LMS_AUTHRT AUTHRT
+								    ON CASE WHEN TRGT.SRVY_TRGT_TYCD = 'ALL' THEN '1'
+								    		WHEN TRGT.SRVY_TRGT_TYCD = 'ADM' THEN AUTHRT.AUTHRT_GRPCD
+								            ELSE AUTHRT.AUTHRT_CD
+								       END
+								       LIKE
+								       CASE WHEN TRGT.SRVY_TRGT_TYCD = 'ALL' THEN '1'
+								            ELSE FN_LIKE_VAL(TRGT.SRVY_TRGT_TYCD)
+								       END
+								   AND AUTHRT.AUTHRT_CD NOT IN ('AUDIT', 'OBSVR', 'GUEST')
+								  JOIN TB_LMS_USER_AUTHRT USR_AUTHRT
+								    ON AUTHRT.AUTHRT_ID = USR_AUTHRT.AUTHRT_ID
+								  JOIN TB_LMS_SBJCT SBJCT
+								    ON CHRT.SMSTR_CHRT_ID = SBJCT.SMSTR_CHRT_ID
+								   AND SBJCT.DELYN = 'N'
+								   AND SBJCT.USEYN = 'Y'
+								  LEFT JOIN TB_LMS_ATNDLC ATNDLC
+								    ON SBJCT.SBJCT_ID = ATNDLC.SBJCT_ID
+								   AND ATNDLC.AUDITYN = 'N'
+								   AND USR_AUTHRT.USER_ID = ATNDLC.USER_ID
+								  LEFT JOIN TB_LMS_SBJCT_ADM SBJCT_ADM
+								    ON SBJCT.SBJCT_ID = SBJCT_ADM.SBJCT_ID
+								   AND SBJCT_ADM.SBJCT_ADM_TYCD LIKE FN_LIKE_VAL(TRGT.SRVY_TRGT_TYCD)
+								   AND USR_AUTHRT.USER_ID = SBJCT_ADM.USER_ID
+								  LEFT JOIN TB_LMS_USER STDNT
+								    ON ATNDLC.USER_ID = STDNT.USER_ID
+								   AND STDNT.USER_ID_STSCD = 'APRV_CMPTN'
+								  LEFT JOIN TB_LMS_USER PROF
+								    ON SBJCT_ADM.USER_ID = PROF.USER_ID
+								   AND PROF.USER_ID_STSCD = 'APRV_CMPTN'
+								  LEFT JOIN TB_LMS_USER ADM
+								    ON USR_AUTHRT.USER_ID = ADM.USER_ID
+								 WHERE SRVY.SRVY_GBNCD = 'HOMEPAGE_SRVY'
+								   AND SRVY.SRVY_TYCD = 'SRVY_WHOL'
+								   AND SRVY.DELYN = 'N'
+								   AND SRVY.USEYN = 'Y'
+								   AND SRVY.SRVY_ID = #{srvyId}
+								   AND CHRT.ORG_ID = #{orgId}
+								   <if test="smstrChrtId != null and smstrChrtId != ''">
+								   	AND CHRT.SMSTR_CHRT_ID = #{smstrChrtId}
+								   </if>
+								   <if test="srvyTrgtTycd != null and srvyTrgtTycd != ''">
+								  	AND TRGT.SRVY_TRGT_TYCD = #{srvyTrgtTycd}
+								   </if>
+							  ) SRVY
+							    ON PTCP.USER_ID = SRVY.USER_ID
+							   AND PTCP.SRVY_ID = SRVY.SRVY_ID
+							 WHERE 1 = 1
+							 <if test="srvyPtcp != null and srvyPtcp == 'COMPLETED'">
+							 	AND PTCP.PTCP_EDTTM IS NOT NULL
+							 </if>
+							 <if test="srvyPtcp != null and srvyPtcp == 'NOPTCP'">
+							 	AND PTCP.PTCP_EDTTM IS NULL
+							 </if>
+
+							 <if test="searchValue != null and searchValue != ''">
+								AND (   LOWER(SRVY.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+								 	 OR LOWER(SRVY.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+								)
+							 </if>
+						)
+		                SELECT
+			                    VWITM.SRVY_QSTN_ID
+			                  , VWITM.SRVY_VWITM_ID
+			                  , LVL.SRVY_QSTN_VWITM_LVL_ID
+			                  , VWITM.VWITM_CTS
+			                  , SRVYPPR.SRVY_SEQNO
+			                  , QSTN.QSTN_SEQNO
+			                  , VWITM.VWITM_SEQNO
+			                  , LVL.LVL_SEQNO
+			                  , (SELECT COUNT(SRVY_QSTN_ID) FROM RSPNS WHERE SRVY_QSTN_ID = QSTN.SRVY_QSTN_ID AND SRVY_VWITM_ID = VWITM.SRVY_VWITM_ID) AS TOT_JOIN_CNT
+			                  , (SELECT COUNT(SRVY_QSTN_ID) FROM RSPNS WHERE SRVY_QSTN_ID = QSTN.SRVY_QSTN_ID AND SRVY_VWITM_ID = VWITM.SRVY_VWITM_ID AND SRVY_QSTN_VWITM_LVL_ID = LVL.SRVY_QSTN_VWITM_LVL_ID) AS JOIN_CNT
+		                  FROM TB_LMS_SRVYPPR SRVYPPR
+		                  JOIN TB_LMS_SRVY_QSTN QSTN
+		                    ON SRVYPPR.SRVYPPR_ID = QSTN.SRVYPPR_ID
+		                   AND QSTN.DELYN = 'N'
+		                   AND QSTN.QSTN_RSPNS_TYCD = 'LEVEL'
+		                  JOIN TB_LMS_SRVY_VWITM VWITM
+		                    ON QSTN.SRVY_QSTN_ID = VWITM.SRVY_QSTN_ID
+		                  JOIN TB_LMS_SRVY_QSTN_VWITM_LVL LVL
+		                    ON QSTN.SRVY_QSTN_ID = LVL.SRVY_QSTN_ID
+		                 WHERE SRVYPPR.SRVY_ID = #{srvyId}
+		            ) A
+		        ) A
+		    ) A
+		) A
+		ORDER BY A.SRVY_SEQNO, A.QSTN_SEQNO, A.VWITM_SEQNO, A.LVL_SEQNO
     </select>
 
 </mapper>

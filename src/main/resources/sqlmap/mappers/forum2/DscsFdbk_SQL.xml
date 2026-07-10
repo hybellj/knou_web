@@ -2,230 +2,10 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="knou.lms.forum2.dao.DscsFdbkDAO">
 
-	<select id="dscsFdbkList" parameterType="dscsFdbkVO" resultType="egovMap">
-		/*
-			피드백 조회
-			DscsFdbkDAO.dscsFdbkList
-		*/
-		WITH RECURSIVE fdbk as 
-		(
-			SELECT a.DSCS_FDBK_ID
-				,  a.UP_DSCS_FDBK_ID
-				,  a.USER_ID
-				,  a.TEAM_ID
-				,  a.DSCS_ID
-				,  a.FDBK_CTS
-				,  a.RGTR_ID
-				,  a.FRST_INQ_DTTM
-				,  a.MDFR_ID
-				,  a.MOD_DTTM
-				,  a.DELYN
-				, 1 AS LEVEL 
-				, CONVERT(a.DSCS_FDBK_ID, char(100)) AS PATH
-				, a.RGTR_ID AS TO_USER_ID
-			FROM TB_LMS_DSCS_FDBK a
-			WHERE a.UP_DSCS_FDBK_ID IS NULL
-			AND a.DSCS_ID = #{dscsId} 
-			UNION ALL 
-			SELECT a.DSCS_FDBK_ID
-				,  a.UP_DSCS_FDBK_ID
-				,  a.USER_ID
-				,  a.TEAM_ID
-				,  a.DSCS_ID
-				,  a.FDBK_CTS
-				,  a.RGTR_ID
-				,  a.REG_DTTM
-				,  a.MDFR_ID
-				,  a.MOD_DTTM
-				,  a.DELYN
-				, 1+LEVEL AS LEVEL
-				, CONCAT(b.PATH, '-', a.DSCS_FDBK_ID) AS PATH
-				, b.RGTR_ID  AS TO_USER_ID
-			FROM TB_LMS_DSCS_FDBK a 
-			INNER JOIN fdbk b
-			ON a.UP_DSCS_FDBK_ID = b.DSCS_FDBK_ID
-			WHERE a.DSCS_ID = #{dscsId}
-		)
-		SELECT R.*
-		  FROM (SELECT DSCS_FDBK_ID
-					, UP_DSCS_FDBK_ID
-					, USER_ID
-					, TEAM_ID
-					, DSCS_ID
-					, FDBK_CTS
-					, RGTR_ID
-					, REG_DTTM
-					, MDFR_ID
-					, MOD_DTTM
-					, DELYN
-					, LEVEL
-					, PATH
-					, (
-						SELECT B.USER_ID
-						FROM TB_LMS_USER_ACNT AS B
-						WHERE B.USER_ID = A.RGTR_ID
-					) AS USER_ID
-					, (
-						SELECT 
-							CASE WHEN  A.RGTR_ID = '000000000000'
-							THEN
-								'관리자'
-							ELSE 
-								IFNULL(USERNM, 'UnKnown')
-							END
-						FROM TB_LMS_USR
-						WHERE USER_ID = A.RGTR_ID
-					) AS RGTRNM
-					, RIGHT(CASE WHEN level > 2 THEN (
-						SELECT 
-							CASE WHEN  RGTR_ID = '000000000000'
-							THEN
-								'관리자'
-							ELSE 
-								IFNULL(USERNM, 'UnKnown')
-							END
-						FROM TB_LMS_USR
-						WHERE USER_ID = RGTR_ID
-					) ELSE '' END, 2) AS USERNM
-					, CASE WHEN LEVEL > 2 THEN (
-						SELECT 
-							case when  TO_USER_ID = '000000000000'
-							then
-								'관리자'
-							ELSE 
-								IFNULL(USERNM, 'UnKnown')
-							END
-						FROM TB_LMS_USR
-						WHERE USER_ID = TO_USER_ID
-					) ELSE '' END AS TO_USER_NM
-					, (SELECT COUNT(*) FROM FDBK B WHERE B.DSCS_ID = A.DSCS_ID AND B.PATH LIKE CONCAT('%', A.DSCS_FDBK_ID, '%') AND B.DELYN = 'N' AND B.DSCS_FDBK_ID != A.DSCS_FDBK_ID) AS CMNT_CNT
-					, RIGHT(RGTR_ID,1) AS USER_ID_COLOR
-				FROM FDBK  A
-				WHERE DSCS_ID = #{dscsId}
-				<choose>
-					<when test='teamId != null and teamId != ""'>
-						AND TEAM_ID=#{teamId}
-					</when>
-					<otherwise>
-						AND USER_ID = #{stdId}
-					</otherwise>
-				</choose>
-			) R
-			WHERE (R.DELYN ='N' OR R.CMNT_CNT > 0)
-			ORDER BY PATH
-	</select>
-
-	<insert id="insertDscsFdbk" parameterType="dscsFdbkVO">
-		/*
-			토론 피드백 등록
-			DscsFdbkDAO.insertDscsFdbk
-		*/
-		INSERT INTO TB_LMS_DSCS_FDBK (
-			DSCS_FDBK_ID
-			, DSCS_ID
-			, USER_ID
-			, UP_DSCS_FDBK_ID
-			, TEAM_ID
-			, FDBK_CTS
-			, DELYN
-			, RGTR_ID
-			, REG_DTTM
-			, MDFR_ID
-			, MOD_DTTM
-		) VALUES (
-			#{dscsFdbkId}
-			, #{dscsId}
-			, #{stdId}
-			, #{upDscsFdbkId}
-			, #{teamId}
-			, #{fdbkCts}
-			, 'N'
-			, #{rgtrId}
-			, FN_DTTM()
-			, #{mdfrId}
-			, FN_DTTM()
-		)
-	</insert>
-	
-	<update id="updateDscsFdbk" parameterType="dscsFdbkVO">
-		/*
-			토론 피드백 수정
-			DscsFdbkDAO.updateDscsFdbk
-		*/
-		UPDATE TB_LMS_DSCS_FDBK SET
-			  MDFR_ID = #{mdfrId}
-			, MOD_DTTM = FN_DTTM()
-			<if test="upDscsFdbkId != null and upDscsFdbkId != ''">
-			, UP_DSCS_FDBK_ID = #{upDscsFdbkId}
-			</if>
-			<if test="teamId != null and teamId != ''">
-			, TEAM_ID = #{teamId}
-			</if>
-			<if test="fdbkCts != null and fdbkCts != ''">
-			, FDBK_CTS = #{fdbkCts}
-			</if>
-			<if test="delYn != null and delYn != ''">
-			, DELYN = #{delYn}
-			</if>
-		WHERE DSCS_FDBK_ID = #{dscsFdbkId}
-			AND DSCS_ID = #{dscsId}
-			<if test="stdId != null and stdId != ''">
-			AND USER_ID = #{stdId}
-			</if>
-	</update>
-	
-	<update id="deleteDscsFdbk" parameterType="dscsFdbkVO">
-		/*
-			토론 피드백 삭제
-			DscsFdbkDAO.deleteDscsFdbk
-		*/
-		UPDATE TB_LMS_DSCS_FDBK SET
-			  MDFR_ID = #{mdfrId}
-			, MOD_DTTM = FN_DTTM()
-			, DELYN = 'Y'
-		WHERE DSCS_FDBK_ID = #{dscsFdbkId}
-			AND DSCS_ID = #{dscsId}
-			<if test="stdId != null and stdId != ''">
-			AND USER_ID = #{stdId}
-			</if>
-	</update>
-
-	<insert id="insertDscsAllFdbk" parameterType="dscsFdbkVO">
-		/*
-			일괄 피드백 등록
-			DscsFdbkDAO.insertDscsAllFdbk
-		*/
-		INSERT INTO TB_LMS_DSCS_FDBK (
-			DSCS_FDBK_ID
-			, DSCS_ID
-			, USER_ID
-			, TEAM_ID
-			, FDBK_CTS
-			, DELYN
-			, RGTR_ID
-			, REG_DTTM
-			, MDFR_ID
-			, MOD_DTTM
-		)
-		SELECT
-			FN_NEW_ID('FDBK')
-			, DSCS_ID
-			, USER_ID
-			, TEAM_ID
-			, #{fdbkCts}
-			, 'N'
-			, #{rgtrId}
-			, FN_DTTM()
-			, #{mdfrId}
-			, FN_DTTM()
-		FROM TB_LMS_DSCS_PTCP
-		WHERE DSCS_ID = #{dscsId}
-	</insert>
-
 	<insert id="insertFdbk" parameterType="dscsFdbkVO">
 		/*
-			패드백 등록
-			ForumFdbkDAO.insertFdbk2
+			SQL ID : DscsFdbkDAO.insertFdbk
+			설명 : 피드백 등록
 		*/
 		INSERT INTO TB_LMS_DSCS_FDBK (
 			DSCS_FDBK_ID
@@ -233,7 +13,7 @@
 			, USER_ID
 			, UP_DSCS_FDBK_ID
 			, TEAM_ID
-			, FDBK_CTS
+			, DSCS_FDBK_CTS
 			, DELYN
 			, RGTR_ID
 			, REG_DTTM
@@ -246,19 +26,19 @@
 			, #{stdId}
 			, #{upDscsFdbkId}
 			, #{teamId}
-			, #{fdbkCts}
+			, #{dscsFdbkCts}
 			, 'N'
-			, #{userId}
+			, #{rgtrId}
 			, FN_DTTM()
-			, #{userId}
+			, #{mdfrId}
 			, FN_DTTM()
 		)
 	</insert>
 
 	<select id="selectFdbk" parameterType="dscsFdbkVO" resultType="dscsFdbkVO">
 		/*
-			피드백 조회
-			ForumFdbkDAO.selectFdbk
+			SQL ID : DscsFdbkDAO.selectFdbk
+			설명 : 피드백 조회
 		*/
 		SELECT
 			ROW_NUMBER() OVER(ORDER BY REG_DTTM) AS LINE_NO
@@ -268,7 +48,7 @@
 			, DSCS_ID AS dscsId
 			, USER_ID AS stdId
 			, TEAM_ID AS teamId
-			, FDBK_CTS
+			, DSCS_FDBK_CTS AS dscsFdbkCts
 			, DELYN
 			, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = A.USER_ID) AS RGTRNM
 			, RGTR_ID
@@ -284,32 +64,37 @@
 
 	<update id="updateFdbk" parameterType="dscsFdbkVO">
 		/*
-			 피드백 수정
-			ForumFdbkDAO.updateFdbk
+			SQL ID : DscsFdbkDAO.updateFdbk
+			설명 : 피드백 수정 및 삭제 여부 변경
 		*/
 		UPDATE TB_LMS_DSCS_FDBK
-		   SET MDFR_ID = #{userId}
+		   SET MDFR_ID = #{mdfrId}
 			   , MOD_DTTM = FN_DTTM()
-			   , FDBK_CTS = #{fdbkCts}
+			   <if test="upDscsFdbkId != null and upDscsFdbkId != ''">
+			   , UP_DSCS_FDBK_ID = #{upDscsFdbkId}
+			   </if>
+			   <if test="teamId != null and teamId != ''">
+			   , TEAM_ID = #{teamId}
+			   </if>
+			   <if test="dscsFdbkCts != null and dscsFdbkCts != ''">
+			   , DSCS_FDBK_CTS = #{dscsFdbkCts}
+			   </if>
+			   <if test="delYn != null and delYn != ''">
+			   , DELYN = #{delYn}
+			   </if>
 		 WHERE DSCS_FDBK_ID = #{dscsFdbkId}
-	</update>
-
-	<update id="deleteFdbk" parameterType="dscsFdbkVO">
-		/*
-			피드백 삭제
-			ForumFdbkDAO.deleteFdbk
-		*/
-		UPDATE TB_LMS_DSCS_FDBK
-		   SET MDFR_ID = #{userId}
-			   , MOD_DTTM = FN_DTTM()
-			   , DELYN = 'Y'
-		 WHERE DSCS_FDBK_ID = #{dscsFdbkId}
+		   <if test="dscsId != null and dscsId != ''">
+		   AND DSCS_ID = #{dscsId}
+		   </if>
+		   <if test="stdId != null and stdId != ''">
+		   AND USER_ID = #{stdId}
+		   </if>
 	</update>
 
 	<select id="cntFdbk" resultType="int">
 		/*
-			피드백 갯수
-			ForumFdbkDAO.cntFdbk
+			SQL ID : DscsFdbkDAO.cntFdbk
+			설명 : 피드백 개수 조회
 		*/
 		SELECT
 			COUNT(*) AS cntFdbk

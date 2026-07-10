@@ -1548,7 +1548,7 @@
                                 </div>
                             </div>
 
-                            <c:if test="${vo.evlScrTycd ne 'RUBRIC_SCR' && !fn:contains(authGrpCd, 'TUT') }">
+                            <c:if test="${vo.evlScrTycd ne 'RUBRIC_SCR' && !fn:contains(authGrpCd, 'TUT') }"> <!--  -->
                                 <div class="ui segment">
                                     <div class="fields">
                                         <div class="field flex-item">

@@ -7,7 +7,7 @@ import knou.lms.crs.crecrs.vo.HpIntchVO;
 
 public class DashboardVO extends DefaultVO {
     private static final long serialVersionUID = 1L;
-    
+
     private String             uniCd;
     private String             univGbn;
     private String             deptCd;
@@ -16,6 +16,14 @@ public class DashboardVO extends DefaultVO {
     private String 				orgKnouRltn = "N";
     private List<MainCreCrsVO> creCrsList;
     private List<HpIntchVO> hpIntchList;
+
+    /*
+     * ControllerInitResolver의
+     * ((ControllerBase) controller).init(request, mavContainer.getModel(), paramVO); 구문으로 인해... by jinkoon 20260701
+     */
+    private	 String	headerOrgId ; 		// 대시보드 home_header.jsp 에서 사용하는 조직아이디
+    private String	headerUserTycd; 	// 대시보드 home_header.jsp에서 사용하는 사용자유형코드
+    private String headerSmstrChrtId;	// 대시보드 학기기수ID
 
     /* 관리자 메인페이지 > 개설과목 현황 엑셀 다운로드 */
     private String crsCreCd;			// 개설과정코드
@@ -133,8 +141,28 @@ public class DashboardVO extends DefaultVO {
     private String widgetNm;
     private String widgetUseId;
     private String widgetUserStngCts;
+    private String widgetExpln;
 
-    public String getUserGbn() {
+
+    public DashboardVO() {}
+
+    public String getHeaderOrgId() {
+		return headerOrgId;
+	}
+
+	public void setHeaderOrgId(String headerOrgId) {
+		this.headerOrgId = headerOrgId;
+	}
+
+	public String getHeaderUserTycd() {
+		return headerUserTycd;
+	}
+
+	public void setHeaderUserTycd(String headerUserTycd) {
+		this.headerUserTycd = headerUserTycd;
+	}
+
+	public String getUserGbn() {
 		return userGbn;
 	}
 
@@ -1050,5 +1078,21 @@ public class DashboardVO extends DefaultVO {
 
 	public void setAuthrtGrpcd(String authrtGrpcd) {
 		this.authrtGrpcd = authrtGrpcd;
+	}
+
+	public String getWidgetExpln() {
+		return widgetExpln;
+	}
+
+	public void setWidgetExpln(String widgetExpln) {
+		this.widgetExpln = widgetExpln;
+	}
+
+	public String getHeaderSmstrChrtId() {
+		return headerSmstrChrtId;
+	}
+
+	public void setHeaderSmstrChrtId(String headerSmstrChrtId) {
+		this.headerSmstrChrtId = headerSmstrChrtId;
 	}
 }

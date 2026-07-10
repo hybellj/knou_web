@@ -1,16 +1,309 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
+<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko">
-<%@ include file="/WEB-INF/jsp/common_new/home_common.jsp" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
 <head>
     <title></title>
     <jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
         <jsp:param name="module" value="fileuploader"/>
         <jsp:param name="style" value="dashboard"/>
     </jsp:include>
+
+
+    <script type="text/javascript">
+        $(function () {
+
+            // 기관 삭제
+            $('#orgLabelList').on('click', '.labelRemove', function () {
+                $(this).closest('li').remove();
+            });
+
+            // 기관 추가
+            $('#btn_org_add').on('click', function () {
+
+                var orgId = $('#univ_label').val();
+                if (!orgId) return;
+
+                var orgnm = $('#univ_label option:selected').text();
+
+                // 중복 방지
+                if ($('#orgLabelList li.addedLabel[data-org-id="' + orgId + '"]').length > 0) {
+                    return;
+                }
+
+                var html = '';
+                html += '<li class="addedLabel" data-org-id="' + orgId + '">';
+                html += '    <label>' + orgnm + '</label>';
+                html += '    <span class="labelRemove"><i class="xi-close-min"></i></span>';
+                html += '</li>';
+
+                $('#orgLabelList').append(html);
+            });
+
+            // 이메일 도메인 select 선택 시 indvEml2 자동 세팅
+            $('#selectEmail').on('change', function () {
+                var domain = $(this).val();
+                if (domain) {
+                    $('#indvEml2').val(domain).prop('readonly', true);
+                }
+            });
+
+            // 이메일 도메인 직접입력 버튼
+            $('#btnEmailDirect').on('click', function () {
+                $('#selectEmail').val('');
+                $('#indvEml2').val('').prop('readonly', false).focus();
+            });
+
+
+        });
+
+        // 파일 업로드 완료
+        function finishUpload() {
+            let url = "/common/uploadFileCheck.do"; // 업로드된 파일 검증 URL
+            let dx = dx5.get("fileUploader");
+            let data = {
+                "uploadFiles": dx.getUploadFiles(),
+                "uploadPath": dx.getUploadPath()
+            };
+
+
+            ajaxCall(url, data, function (data) {
+                if (data.result > 0) {
+                    $("#uploadFiles").val(dx.getUploadFiles()); // 업로드된 파일 ID 를 Form 필드에 설정
+                    saveUserProfileAjax();
+                } else {
+                    UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error");
+                }
+            }, function (xhr, status, error) {
+                UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error");
+            }, true);
+        }
+
+
+        function saveUserProfileAjax() {
+            let dx = dx5.get("fileUploader");
+            $("#delFileIdStr").val(dx.getDelFileIdStr()); // 삭제파일 ID 설정
+
+
+            const url = "/user/userHome/userPrfilModifyAjax.do";
+            const data = $('#frmUserModify').serialize(); // orgIdList도 hidden으로 들어가 있어야 함
+
+            ajaxCall(url, data, function (res) {
+                if (res.result > 0) {
+                    UiComm.showMessage('<spring:message code="success.common.save" />', "Success")
+                    .then(function () {
+                        location.href = "/user/userHome/userPrfilView.do";
+                    });
+                } else {
+                    UiComm.showMessage(res.message || '<spring:message code="fail.common.msg" />', "error");
+                }
+
+            }, function () {
+                UiComm.showMessage('<spring:message code="fail.common.msg" />', "error");
+            }, true);
+        }
+
+
+        /**
+         * 전송 데이터 셋팅
+         */
+        function setData() {
+            // 등록할 기관 목록 추가
+            $('#orgHiddenArea').empty();
+            $('#orgLabelList li.addedLabel').each(function () {
+                $('<input>', {
+                    type: 'hidden',
+                    name: 'orgIdList',
+                    value: $(this).data('org-id')
+                }).appendTo('#orgHiddenArea');
+            });
+
+            // 휴대폰
+            buildMobilePhone();
+            // 개인이메일 조합
+            buildIndvEmail();
+
+        }
+
+        /**
+         * 개인이메일 조합
+         * @returns {string} 개인이메일주소
+         */
+        function buildIndvEmail() {
+            var a = $.trim($('#indvEml1').val());
+            var b = $.trim($('#indvEml2').val());
+
+            if (!a && !b) {
+                $('#indvEml').val('');
+                return '';
+            }
+
+            var email = a + '@' + b;
+            $('#indvEml').val(email);
+            return email;
+        }
+
+        /**
+         * 휴대폰 번호 조합 (010-1234-5678)
+         * @returns {string} 휴대폰번호 조합 결과
+         */
+        function buildMobilePhone() {
+            var p1 = $('#mobileLabel').val();
+            var p2 = $.trim($('#mobileLabel').nextAll('input').eq(0).val());
+            var p3 = $.trim($('#mobileLabel').nextAll('input').eq(1).val());
+
+            if (!p1 || !p2 || !p3) {
+                $('#mblPhn').val('');
+                return '';
+            }
+
+            var phone = p1 + '-' + p2 + '-' + p3;
+            $('#mblPhn').val(phone);
+            return phone;
+        }
+
+        /**
+         * 비밀번호 일치 확인
+         * @param successFn 비밀번호 일치 시 function
+         */
+        function checkPswdMtch(successFn) {
+            let url = '/user/userHome/userPrfilPswdChkAjax.do';
+            let data = {
+                "userIdEncpswd": $('#curPswd').val()
+            }
+            ajaxCall(url, data, function (res) {
+                if (res.result !== 1) {
+                    alert(res.message || '<spring:message code="fail.common.msg" />');
+                    return;
+                }
+
+                if (res.returnVO && res.returnVO.pswdMtchyn === 'Y') {
+                    successFn();
+                } else {
+                    alert("<spring:message code='user.message.userjoin.validate.password.check' />");/* 비밀번호 확인이 일치하지 않습니다. */
+                }
+            }, function (xhr, status, error) {
+                alert('<spring:message code="fail.common.msg" />'); // 에러가 발생했습니다!
+            }, true);
+
+        }
+
+        /**
+         * 이메일 유효성 검사
+         * @param email 이메일
+         * @returns {boolean} true/false
+         */
+        function isValidEmail(email) {
+            var regEmail = /^([0-9a-zA-Z_\.-]+)@([0-9a-zA-Z_-]+)(\.[0-9a-zA-Z_-]+){1,2}$/;
+            return regEmail.test(email);
+        }
+
+
+        /**
+         * 빈값 체크
+         * @returns {boolean}
+         */
+        function validateForm() {
+            // 기관 1개 이상 선택(요구사항이면)
+            if ($('#orgLabelList li.addedLabel').length === 0) {
+                UiComm.showMessage('기관을 1개 이상 추가하세요.', "warning");
+                return false;
+            }
+
+            /*if (!$.trim($('#usernm').val())) {
+                alert('이름을 입력하세요.');
+                $('#usernm').focus();
+                return false;
+            }*/
+            /*if (!$.trim($('#userNcnm').val())) {
+                alert('사용자별칭을 입력하세요.');
+                $('#userNcnm').focus();
+                return false;
+            }*/
+
+            if (!$('input[name=gndrTycd]:checked').val()) {
+                UiComm.showMessage('성별을 선택하세요.', "warning");
+                return false;
+            }
+
+            /*if (!$.trim($('#curPswd').val())) {
+                alert('비밀번호를 입력하세요.');
+                $('#curPswd').focus();
+                return false;
+            }*/
+
+            /*if (!$('#mblPhn').val()) {
+                alert('휴대폰 번호를 입력하세요.');
+                return false;
+            }*/
+
+            // 사용 이메일 선택 여부
+            let useEmlGbncd = $('input[name=useEmlGbncd]:checked').val();
+
+            if (!useEmlGbncd) {
+                UiComm.showMessage('사용 이메일을 선택하세요.', "warning");
+                return false;
+            }
+
+            // 사용 이메일 구분에 따라 개인 이메일 검증(INDV일 때만 필수/검증)
+            if (useEmlGbncd === 'INDV') {
+                let email = $('#indvEml').val(); // setData에서 조립됨
+
+                if (!email) {
+                    UiComm.showMessage('개인 이메일을 입력하세요.', "warning");
+                    $('#indvEml1').focus();
+                    return false;
+                }
+
+                if (!isValidEmail(email)) {
+                    UiComm.showMessage('개인 이메일 형식이 올바르지 않습니다.', "warning");
+                    $('#indvEml1').focus();
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        function save() {
+            // 데이터 조립
+            setData();
+
+
+            let validator = UiValidator("frmUserModify");
+            validator.then(function (result) {
+                if (result) {
+                    // 유효성 체크-로직포함
+                    if (!validateForm()) {
+                        return;
+                    }
+
+                    // 패스워드 체크 -> 파일업로드 -> 저장
+                    checkPswdMtch(function () {
+                        let dx = dx5.get("fileUploader");
+                        // 첨부파일 있으면 업로드
+                        if (dx.availUpload()) {
+                            dx.startUpload();
+                        }
+                        // 첨부파일 없으면 저장 호출
+                        else {
+                            saveUserProfileAjax();  // 파일 없이 저장
+                        }
+                    });
+
+                } else {
+                    return false;
+                }
+            });
+        }
+
+        function cancel() {
+            location.href = '/user/userHome/userPrfilView.do';
+        }
+
+    </script>
 </head>
-<body class="home colorA ${bodyClass}"><!-- 컬러선택시 클래스변경 -->
+<body class="home ${uiex:getTheme()} ${bodyClass}"><!-- 컬러선택시 클래스변경 -->
 <div id="wrap" class="main">
     <!-- common header -->
     <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
@@ -20,7 +313,14 @@
     <main class="common">
 
         <!-- gnb -->
-        <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
+        <c:choose>
+            <c:when test="${fn:contains(vo.authrtGrpcd, 'PROF')}">
+                <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_prof.jsp"/>
+            </c:when>
+            <c:otherwise>
+                <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_stu.jsp"/>
+            </c:otherwise>
+        </c:choose>
         <!-- //gnb -->
 
         <!-- content -->
@@ -42,18 +342,19 @@
 
                         <input type="hidden" id="indvEml" name="indvEml" value="${vo.indvEml}"/>
                         <input type="hidden" id="mblPhn" name="mblPhn" value="${vo.mblPhn}"/>
-                        <input type="hidden" id="userRprsId" name="userRprsId" value="${vo.userRprsId}"/>
-                        <input type="hidden" name="uploadFiles"/>
-                        <input type="hidden" name="copyFiles"/>
-                        <input type="hidden" name="uploadPath"/>
+                        <input type="hidden" id="userId" name="userId" value="${vo.userId}"/>
+                        <input type="hidden" name="uploadFiles" id="uploadFiles" value=""/>
+                        <input type="hidden" name="uploadPath" id="uploadPath" value="${vo.uploadPath}"/>
+                        <input type="hidden" name="delFileIdStr" id="delFileIdStr" value=""/>
                         <div class="user-wrap">
 
                             <div class="user-img">
                                 <div class="user-photo">
+                                    <%--TODO: TOBE용 첨부파일 연결. 현재 공통 첨부파일 저장에 대표아이디로 저장.--%>
                                     <!--프로필 사진-->
                                     <img alt="<spring:message code='crs.title.letcuser'/><spring:message code='lesson.label.img'/>"
                                          style="max-width:100%;max-height:100%"
-                                         src="${empty photoFileId ? '/webdoc/dm_assets/img/common/photo_user_sample.png' : photoFileId}"/>
+                                         src="${empty vo.photoFileId ? '/webdoc/dm_assets/img/common/photo_user_sample.png' : vo.photoFileId}"/>
                                 </div>
                             </div>
 
@@ -141,18 +442,14 @@
                                     </tr>
                                     <tr>
                                         <%--학번 또는 교번으로 변경하기--%>
-                                        <th><label for="name_label">
-                                            <c:choose>
-                                                <c:when test="${fn:contains(vo.authrtGrpcd,'PROF')}">
-                                                    교번
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <spring:message
-                                                            code="user.title.userinfo.manage.userid"/><!-- 학번 -->
-                                                </c:otherwise>
-                                            </c:choose>
+                                        <th>
+                                            <label for="name_label">
+                                                <c:choose>
+                                                    <c:when test="${fn:contains(vo.authrtGrpcd, 'PROF')}">교번</c:when>
+                                                    <c:otherwise>학번</c:otherwise>
+                                                </c:choose>
 
-                                        </label>
+                                            </label>
                                         </th>
                                         <td>
                                             <div class="form-inline">
@@ -164,7 +461,7 @@
                                         <th><label for="id_label">아이디</label></th>
                                         <td>
                                             <div class="form-inline">
-                                                ${vo.userRprsId}
+                                                ${vo.userId}
                                                 <small class="note2">! 수정불가</small>
                                             </div>
                                         </td>
@@ -266,9 +563,22 @@
                                         <th><label for="attchFile"><spring:message
                                                 code="user.title.userinfo.profile.image"/></label><!--프로필사진--></th>
                                         <td>
+                                            <uiex:dextuploader
+                                                    id="fileUploader"
+                                                    path="${vo.uploadPath }"
+                                                    limitCount="1"
+                                                    limitSize="3"
+                                                    oneLimitSize="3"
+                                                    listSize="1"
+                                                    fileList="${vo.fileList}"
+                                                    finishFunc="finishUpload()"
+                                                    allowedTypes="jpg,jpeg,png.gif"
+                                            />
+
 
                                             <!--업로드-->
-                                            <div id="upload">
+                                            <%--<div id="upload">
+
 
                                                 <!--파일업로드-->
                                                 <div id="drop">
@@ -294,7 +604,7 @@
                                                 </ul>
                                                 <!--//파일 목록-->
 
-                                            </div>
+                                            </div>--%>
                                             <!--//업로드-->
 
                                             <small class="note2 flex margin-top-2">! 프로필 사진 첨부시 기존 프로필 사진은 업데이트
@@ -335,293 +645,6 @@
 
 </div>
 
-<script type="text/javascript">
-    $(function () {
-
-        // 기관 삭제
-        $('#orgLabelList').on('click', '.labelRemove', function () {
-            $(this).closest('li').remove();
-        });
-
-        // 기관 추가
-        $('#btn_org_add').on('click', function () {
-
-            var orgId = $('#univ_label').val();
-            if (!orgId) return;
-
-            var orgnm = $('#univ_label option:selected').text();
-
-            // 중복 방지
-            if ($('#orgLabelList li.addedLabel[data-org-id="' + orgId + '"]').length > 0) {
-                return;
-            }
-
-            var html = '';
-            html += '<li class="addedLabel" data-org-id="' + orgId + '">';
-            html += '    <label>' + orgnm + '</label>';
-            html += '    <span class="labelRemove"><i class="xi-close-min"></i></span>';
-            html += '</li>';
-
-            $('#orgLabelList').append(html);
-        });
-
-        // 이메일 도메인 select 선택 시 indvEml2 자동 세팅
-        $('#selectEmail').on('change', function () {
-            var domain = $(this).val();
-            if (domain) {
-                $('#indvEml2').val(domain).prop('readonly', true);
-            }
-        });
-
-        // 이메일 도메인 직접입력 버튼
-        $('#btnEmailDirect').on('click', function () {
-            $('#selectEmail').val('');
-            $('#indvEml2').val('').prop('readonly', false).focus();
-        });
-
-
-    });
-
-    // 파일 업로드 완료
-    function finishUpload() {
-        var fileUploader = dx5.get("fileUploader");
-        var url = "/file/fileHome/saveFileInfo.do";
-        var data = {
-            "uploadFiles": fileUploader.getUploadFiles(),
-            "copyFiles": fileUploader.getCopyFiles(),
-            "uploadPath": fileUploader.getUploadPath()
-        };
-
-        ajaxCall(url, data, function (data) {
-            if (data.result > 0) {
-                $("#frmUserModify input[name=uploadFiles]").val(fileUploader.getUploadFiles());
-                $("#frmUserModify input[name=copyFiles]").val(fileUploader.getCopyFiles());
-                $("#frmUserModify input[name=uploadPath]").val(fileUploader.getUploadPath());
-
-                saveUserProfileAjax();
-            } else {
-                alert("<spring:message code='success.common.file.transfer.fail'/>"); // 업로드를 실패하였습니다.
-            }
-        }, function (xhr, status, error) {
-            alert("<spring:message code='success.common.file.transfer.fail'/>"); // 업로드를 실패하였습니다.
-        }, true);
-    }
-
-
-    function saveUserProfileAjax() {
-
-        var url = "/user/userHome/userPrfilModifyAjax.do";
-        var data = $('#frmUserModify').serialize(); // orgIdList도 hidden으로 들어가 있어야 함
-
-        ajaxCall(url, data, function (res) {
-            if (res.result > 0) {
-                alert('<spring:message code="success.common.save" />')
-            } else {
-                alert(res.message || '<spring:message code="fail.common.msg" />');
-            }
-            location.href = "/user/userHome/userPrfilView.do";
-        }, function () {
-            alert('<spring:message code="fail.common.msg" />');
-        }, true);
-    }
-
-
-    /**
-     * 전송 데이터 셋팅
-     */
-    function setData() {
-        // 등록할 기관 목록 추가
-        $('#orgHiddenArea').empty();
-        $('#orgLabelList li.addedLabel').each(function () {
-            $('<input>', {
-                type: 'hidden',
-                name: 'orgIdList',
-                value: $(this).data('org-id')
-            }).appendTo('#orgHiddenArea');
-        });
-
-        // 휴대폰
-        buildMobilePhone();
-        // 개인이메일 조합
-        buildIndvEmail();
-
-    }
-
-    /**
-     * 개인이메일 조합
-     * @returns {string} 개인이메일주소
-     */
-    function buildIndvEmail() {
-        var a = $.trim($('#indvEml1').val());
-        var b = $.trim($('#indvEml2').val());
-
-        if (!a && !b) {
-            $('#indvEml').val('');
-            return '';
-        }
-
-        var email = a + '@' + b;
-        $('#indvEml').val(email);
-        return email;
-    }
-
-    /**
-     * 휴대폰 번호 조합 (010-1234-5678)
-     * @returns {string} 휴대폰번호 조합 결과
-     */
-    function buildMobilePhone() {
-        var p1 = $('#mobileLabel').val();
-        var p2 = $.trim($('#mobileLabel').nextAll('input').eq(0).val());
-        var p3 = $.trim($('#mobileLabel').nextAll('input').eq(1).val());
-
-        if (!p1 || !p2 || !p3) {
-            $('#mblPhn').val('');
-            return '';
-        }
-
-        var phone = p1 + '-' + p2 + '-' + p3;
-        $('#mblPhn').val(phone);
-        return phone;
-    }
-
-    /**
-     * 비밀번호 일치 확인
-     * @param successFn 비밀번호 일치 시 function
-     */
-    function checkPswdMtch(successFn) {
-        let url = '/user/userHome/userPrfilPswdChkAjax.do';
-        let data = {
-            "userIdEncpswd": $('#curPswd').val()
-        }
-        ajaxCall(url, data, function (res) {
-            if (res.result !== 1) {
-                alert(res.message || '<spring:message code="fail.common.msg" />');
-                return;
-            }
-
-            if (res.returnVO && res.returnVO.pswdMtchyn === 'Y') {
-                successFn();
-            } else {
-                alert("<spring:message code='user.message.userjoin.validate.password.check' />");/* 비밀번호 확인이 일치하지 않습니다. */
-            }
-        }, function (xhr, status, error) {
-            alert('<spring:message code="fail.common.msg" />'); // 에러가 발생했습니다!
-        }, true);
-
-    }
-
-    /**
-     * 이메일 유효성 검사
-     * @param email 이메일
-     * @returns {boolean} true/false
-     */
-    function isValidEmail(email) {
-        var regEmail = /^([0-9a-zA-Z_\.-]+)@([0-9a-zA-Z_-]+)(\.[0-9a-zA-Z_-]+){1,2}$/;
-        return regEmail.test(email);
-    }
-
-
-    /**
-     * 빈값 체크
-     * @returns {boolean}
-     */
-    function validateForm() {
-        // 기관 1개 이상 선택(요구사항이면)
-        if ($('#orgLabelList li.addedLabel').length === 0) {
-            alert('기관을 1개 이상 추가하세요.');
-            return false;
-        }
-
-        /*if (!$.trim($('#usernm').val())) {
-            alert('이름을 입력하세요.');
-            $('#usernm').focus();
-            return false;
-        }*/
-        /*if (!$.trim($('#userNcnm').val())) {
-            alert('사용자별칭을 입력하세요.');
-            $('#userNcnm').focus();
-            return false;
-        }*/
-
-        if (!$('input[name=gndrTycd]:checked').val()) {
-            alert('성별을 선택하세요.');
-            return false;
-        }
-
-        /*if (!$.trim($('#curPswd').val())) {
-            alert('비밀번호를 입력하세요.');
-            $('#curPswd').focus();
-            return false;
-        }*/
-
-        /*if (!$('#mblPhn').val()) {
-            alert('휴대폰 번호를 입력하세요.');
-            return false;
-        }*/
-
-        // 사용 이메일 선택 여부
-        let useEmlGbncd = $('input[name=useEmlGbncd]:checked').val();
-
-        if (!useEmlGbncd) {
-            alert('사용 이메일을 선택하세요.');
-            return false;
-        }
-
-        // 사용 이메일 구분에 따라 개인 이메일 검증(INDV일 때만 필수/검증)
-        if (useEmlGbncd === 'INDV') {
-            let email = $('#indvEml').val(); // setData에서 조립됨
-
-            if (!email) {
-                alert('개인 이메일을 입력하세요.');
-                $('#indvEml1').focus();
-                return false;
-            }
-
-            if (!isValidEmail(email)) {
-                alert('개인 이메일 형식이 올바르지 않습니다.');
-                $('#indvEml1').focus();
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    function save() {
-        // 데이터 조립
-        setData();
-
-
-        let validator = UiValidator("frmUserModify");
-        validator.then(function (result) {
-            if (result) {
-                // 유효성 체크-로직포함
-                if (!validateForm()) {
-                    return;
-                }
-
-                // 패스워드 체크 -> 파일업로드 -> 저장
-                checkPswdMtch(function () {
-                    // const fileUploader = dx5.get("fileUploader");
-                    //
-                    // if (fileUploader.getFileCount() > 0) {
-                    //     fileUploader.startUpload(); // finishUpload로 이어짐
-                    // } else {
-                    saveUserProfileAjax();  // 파일 없이 저장
-                    // }
-                });
-
-            } else {
-                return false;
-            }
-        });
-    }
-
-    function cancel() {
-        location.href = '/user/userHome/userPrfilView.do';
-    }
-
-</script>
 </body>
 </html>
 

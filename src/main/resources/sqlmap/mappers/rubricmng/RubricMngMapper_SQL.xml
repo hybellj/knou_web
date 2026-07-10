@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.rubricmng.dao.RubricMngDAO">
+
+    <!-- 루브릭 목록 조회 공통 쿼리 -->
+    <sql id="listQueryForRubric">
+        SELECT
+            ROW_NUMBER() OVER (ORDER BY RBRC.REG_DTTM DESC) AS "LINE_NO"
+            , RBRC.RUBRIC_ID
+            , RBRC.ORG_ID
+            , ORG.ORGNM
+            , ORG.ORGNM AS ORG_NM
+            , RBRC.USER_ID
+            , RBRC.RUBRIC_TTL
+            , RBRC.RUBRIC_QSTN_CNT
+            , RBRC.RUBRIC_TYCD
+            , RGTR.USERNM AS "RGTRNM"
+            , RBRC.REG_DTTM
+            , RBRC.USEYN
+        FROM
+            TB_LMS_RUBRIC RBRC
+            JOIN TB_LMS_ORG ORG
+                ON RBRC.ORG_ID = ORG.ORG_ID
+            JOIN TB_LMS_USER RGTR
+                ON RBRC.RGTR_ID = RGTR.USER_ID
+        WHERE
+            RBRC.UP_RUBRIC_ID IS NULL
+            AND RBRC.RUBRIC_TYCD = 'ORG'
+            AND RBRC.DELYN = 'N'
+        <if test="orgId != null and orgId != ''">
+            AND RBRC.ORG_ID = #{orgId}
+        </if>
+        <if test="rubricTtl != null and rubricTtl != ''">
+            AND RBRC.RUBRIC_TTL LIKE '%' || #{rubricTtl} || '%'
+        </if>
+    </sql>
+
+    <!-- 기관 목록 조회 -->
+    <select id="listOrg" parameterType="knou.lms.rubricmng.vo.RubricMngVO" resultType="knou.lms.rubricmng.vo.RubricMngVO">
+        SELECT
+            O.ORG_ID
+            , O.ORGNM
+            , O.ORGNM AS ORG_NM
+            , O.ORG_SHRTNM
+            , O.ORG_SHRTNM AS ORG_SHRT_NM
+            , O.ORG_TYCD
+        FROM
+            TB_LMS_ORG O
+        WHERE
+            NVL(O.USEYN, 'Y') = 'Y'
+        <if test="orgId != null and orgId != ''">
+            AND O.ORG_ID = #{orgId}
+        </if>
+        ORDER BY
+            O.ORGNM ASC
+    </select>
+
+    <!-- 루브릭 등록 -->
+    <insert id="rubricRegist" parameterType="knou.lms.rubricmng.vo.RubricMngVO">
+        INSERT INTO TB_LMS_RUBRIC
+            ( RUBRIC_ID
+            , ORG_ID
+            , USER_ID
+            , RUBRIC_TTL
+            , RUBRIC_QSTN_CNT
+            , RUBRIC_TYCD
+            , USEYN
+            , RGTR_ID
+            , REG_DTTM )
+        VALUES
+            ( #{rubricId}
+            , #{orgId}
+            , #{userId}
+            , #{rubricTtl}
+            , #{rubricQstnCnt}
+            , #{rubricTycd}
+            , 'Y'
+            , #{rgtrId}
+            , FN_DTTM() )
+    </insert>
+
+    <!-- 루브릭 문항 등록 -->
+    <insert id="rubricQstnRegist" parameterType="knou.lms.rubricmng.vo.RubricMngVO">
+        INSERT INTO TB_LMS_RUBRIC_QSTN
+            ( RUBRIC_QSTN_ID
+            , RUBRIC_ID
+            , RUBRIC_QSTN_TTL
+            , RUBRIC_QSTN_SEQNO
+            , EVLRT
+            , RUBRIC_EVL_TYCD
+            , RGTR_ID
+            , REG_DTTM
+        <if test="mdfrId != null and mdfrId != ''">
+            , MDFR_ID
+            , MOD_DTTM
+        </if>
+            )
+        VALUES
+            ( #{rubricQstnId}
+            , #{rubricId}
+            , #{rubricQstnTtl}
+            , #{rubricQstnSeqno}
+            , #{evlrt}
+            , #{rubricEvlTycd}
+            , #{rgtrId}
+            , FN_DTTM()
+        <if test="mdfrId != null and mdfrId != ''">
+            , #{mdfrId}
+            , FN_DTTM()
+        </if>
+            )
+    </insert>
+
+    <!-- 루브릭 문항 보기항목 등록 -->
+    <insert id="rubricVwitmRegist" parameterType="knou.lms.rubricmng.vo.RubricMngVO">
+        INSERT INTO TB_LMS_RUBRIC_VWITM
+            ( RUBRIC_VWITM_ID
+            , RUBRIC_QSTN_ID
+            , RUBRIC_VWITM_TTL
+            , RUBRIC_VWITM_PNT
+            , RUBRIC_VWITM_SEQNO
+            , RGTR_ID
+            , REG_DTTM
+        <if test="mdfrId != null and mdfrId != ''">
+            , MDFR_ID
+            , MOD_DTTM
+        </if>
+            )
+        VALUES
+            ( #{rubricVwitmId}
+            , #{rubricQstnId}
+            , #{rubricVwitmTtl}
+            , #{rubricVwitmPnt}
+            , #{rubricVwitmSeqno}
+            , #{rgtrId}
+            , FN_DTTM()
+        <if test="mdfrId != null and mdfrId != ''">
+            , #{mdfrId}
+            , FN_DTTM()
+        </if>
+            )
+    </insert>
+
+    <!-- 루브릭 목록 조회 -->
+    <select id="listRubricPaging" parameterType="knou.lms.rubricmng.vo.RubricMngVO" resultType="knou.lms.rubricmng.vo.RubricMngVO">
+        <include refid="CommonSQL.pagePrefix" />
+        <include refid="listQueryForRubric" />
+        <include refid="CommonSQL.pageSuffix" />
+    </select>
+
+    <!-- 루브릭 목록 건수 조회 -->
+    <select id="countRubric" parameterType="knou.lms.rubricmng.vo.RubricMngVO" resultType="Integer">
+        SELECT COUNT(1)
+        FROM (
+            <include refid="listQueryForRubric" />
+        ) Z
+    </select>
+
+    <!-- 루브릭 기본정보 조회 -->
+    <select id="selectRubricRegistInfo" parameterType="knou.lms.rubricmng.vo.RubricMngVO" resultType="knou.lms.rubricmng.vo.RubricMngVO">
+        SELECT
+            RBRC.ORG_ID
+            , ORG.ORGNM
+            , ORG.ORGNM AS ORG_NM
+            , RBRC.RUBRIC_TTL
+            , RGTR.USERNM AS RGTRNM
+        FROM
+            TB_LMS_RUBRIC RBRC
+            JOIN TB_LMS_ORG ORG
+                ON RBRC.ORG_ID = ORG.ORG_ID
+            LEFT JOIN TB_LMS_USER RGTR
+                ON RBRC.RGTR_ID = RGTR.USER_ID
+        WHERE
+            RBRC.RUBRIC_ID = #{rubricId}
+            AND RBRC.RUBRIC_TYCD = 'ORG'
+            AND RBRC.DELYN = 'N'
+        <if test="orgId != null and orgId != ''">
+            AND RBRC.ORG_ID = #{orgId}
+        </if>
+    </select>
+
+    <!-- 등록 화면 기본정보 조회 -->
+    <select id="selectRegisterInfo" parameterType="knou.lms.rubricmng.vo.RubricMngVO" resultType="knou.lms.rubricmng.vo.RubricMngVO">
+        SELECT
+            ORG.ORG_ID
+            , ORG.ORGNM
+            , ORG.ORGNM AS ORG_NM
+            , NULL AS RUBRIC_TTL
+        FROM
+            TB_LMS_ORG ORG
+        WHERE
+            ORG.ORG_ID = #{orgId}
+    </select>
+
+    <!-- 루브릭 문항/평가등급 정보 조회 -->
+    <select id="listRubricInfo" parameterType="knou.lms.rubricmng.vo.RubricMngVO" resultType="egovMap">
+        SELECT
+            QSTN.RUBRIC_QSTN_ID
+            , QSTN.RUBRIC_QSTN_TTL
+            , QSTN.EVLRT
+            , QSTN.RUBRIC_EVL_TYCD
+            , VWITM.RUBRIC_VWITM_ID
+            , VWITM.RUBRIC_VWITM_TTL
+            , VWITM.RUBRIC_VWITM_PNT
+            , VWITM.RUBRIC_VWITM_SEQNO
+        FROM
+            TB_LMS_RUBRIC RBRC
+            JOIN TB_LMS_RUBRIC_QSTN QSTN
+                ON RBRC.RUBRIC_ID = QSTN.RUBRIC_ID
+            JOIN TB_LMS_RUBRIC_VWITM VWITM
+                ON QSTN.RUBRIC_QSTN_ID = VWITM.RUBRIC_QSTN_ID
+        WHERE
+            RBRC.RUBRIC_ID = #{rubricId}
+            AND RBRC.RUBRIC_TYCD = 'ORG'
+            AND RBRC.DELYN = 'N'
+        <if test="orgId != null and orgId != ''">
+            AND RBRC.ORG_ID = #{orgId}
+        </if>
+        ORDER BY
+            QSTN.RUBRIC_QSTN_SEQNO
+            , VWITM.RUBRIC_VWITM_SEQNO ASC
+    </select>
+
+    <!-- 루브릭 수정 -->
+    <update id="rubricModify" parameterType="knou.lms.rubricmng.vo.RubricMngVO">
+        UPDATE TB_LMS_RUBRIC
+        SET
+            RUBRIC_TTL = #{rubricTtl}
+            , RUBRIC_QSTN_CNT = #{rubricQstnCnt}
+            , MDFR_ID = #{mdfrId}
+            , MOD_DTTM = FN_DTTM()
+        WHERE
+            RUBRIC_ID = #{rubricId}
+            AND ORG_ID = #{orgId}
+            AND RUBRIC_TYCD = 'ORG'
+    </update>
+
+    <!-- 루브릭 사용여부 수정 -->
+    <update id="rubricUseynModify" parameterType="knou.lms.rubricmng.vo.RubricMngVO">
+        UPDATE TB_LMS_RUBRIC
+        SET
+            USEYN = #{useyn}
+            , MDFR_ID = #{mdfrId}
+            , MOD_DTTM = FN_DTTM()
+        WHERE
+            RUBRIC_ID = #{rubricId}
+            AND ORG_ID = #{orgId}
+            AND RUBRIC_TYCD = 'ORG'
+    </update>
+
+    <!-- 루브릭 삭제 -->
+    <update id="rubricDelete" parameterType="knou.lms.rubricmng.vo.RubricMngVO">
+        UPDATE TB_LMS_RUBRIC
+        SET
+            DELYN = 'Y'
+            , MDFR_ID = #{mdfrId}
+            , MOD_DTTM = FN_DTTM()
+        WHERE
+            RUBRIC_ID = #{rubricId}
+            AND ORG_ID = #{orgId}
+            AND RUBRIC_TYCD = 'ORG'
+    </update>
+
+    <!-- 루브릭 문항 삭제 -->
+    <delete id="rubricQstnDelete" parameterType="knou.lms.rubricmng.vo.RubricMngVO">
+        DELETE FROM TB_LMS_RUBRIC_QSTN
+        WHERE RUBRIC_ID IN (
+            SELECT RUBRIC_ID
+            FROM TB_LMS_RUBRIC
+            WHERE RUBRIC_ID = #{rubricId}
+              AND ORG_ID = #{orgId}
+              AND RUBRIC_TYCD = 'ORG'
+        )
+    </delete>
+
+    <!-- 루브릭 문항 보기항목 삭제 -->
+    <delete id="rubricVwitmDelete" parameterType="knou.lms.rubricmng.vo.RubricMngVO">
+        DELETE FROM TB_LMS_RUBRIC_VWITM
+        WHERE RUBRIC_QSTN_ID IN (
+            SELECT QSTN.RUBRIC_QSTN_ID
+            FROM TB_LMS_RUBRIC_QSTN QSTN
+            JOIN TB_LMS_RUBRIC RBRC
+              ON QSTN.RUBRIC_ID = RBRC.RUBRIC_ID
+            WHERE RBRC.RUBRIC_ID = #{rubricId}
+              AND RBRC.ORG_ID = #{orgId}
+              AND RBRC.RUBRIC_TYCD = 'ORG'
+        )
+    </delete>
+</mapper>

@@ -9,11 +9,9 @@ public class AbstractResult implements IAbstractResult {
 	
 	private int result = 0; // 처리 결과
 	private String message; // 결과 메시지
-	private int pageAuthor = 0; // 페이지 권한
 
 	// 기본생성자
-	public AbstractResult() {
-	}
+	public AbstractResult() {}
 
 	/**
 	 * {@code result}값을 설정하는 생성자
@@ -50,13 +48,5 @@ public class AbstractResult implements IAbstractResult {
 
 	public void setResult(int result) {
 		this.result = result;
-	}
-
-	public int getPageAuthor() {
-		return pageAuthor;
-	}
-
-	public void setPageAuthor(int pageAuthor) {
-		this.pageAuthor = pageAuthor;
 	}
 }

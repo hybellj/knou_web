@@ -5,53 +5,19 @@
 <head>
     <jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
         <jsp:param name="style" value="dashboard"/>
+        <jsp:param name="module" value="table"/>
     </jsp:include>
 </head>
-<style>
-    /* 부모 컨테이너: 박스들을 가로로 배치 */
-    .summary-container {
-        display: flex;
-        gap: 20px; /* 박스 사이의 간격 */
-        margin-bottom: 20px;
-    }
 
-    /* 개별 박스 공통 스타일 */
-    .summary-box {
-        flex: 1; /* 부모 너비를 동일하게 나눠 가짐 */
-        display: flex;
-        align-items: center; /* 세로 중앙 정렬 */
-        border: 1px solid #adc1d6; /* 파란 계열 테두리 */
-        height: 50px;
-    }
-
-    /* 왼쪽 파란색 제목 부분 */
-    .label {
-        width: 100px;
-        height: 100%;
-        background-color: #6a89a7; /* 이미지의 진한 하늘/파란색 */
-        color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    /* 오른쪽 데이터 내용 부분 */
-    .content {
-        padding-left: 20px;
-        font-size: 14px;
-        color: #333;
-    }
-
-    .value {
-        font-weight: bold;
-    }
-</style>
-
-<body class="home colorA ${bodyClass}"  style=""><!-- 컬러선택시 클래스변경 -->
+<body class="home ${uiex:getTheme()} ${bodyClass}"  style=""><!-- 컬러선택시 클래스변경 -->
     <script src="<%=request.getContextPath()%>/webdoc/assets/js/modal.js" defer></script>
     <script type="text/javascript">
-        var USER_DEPT_LIST = [];
-        var CRS_CRE_LIST = [];
+        let RECORD_COUNT_PER_PAGE = '<c:out value="${pageInfo.recordCountPerPage}" />';
+        let CURRENT_PAGE_NO = '<c:out value="${pageInfo.currentPageNo}" />';
+        let EPARAM = "${encParams}";
+
+        let USER_DEPT_LIST = [];
+        let CRS_CRE_LIST = [];
 
         $(function() {
             // 부서정보
@@ -64,23 +30,28 @@
             setStatus();
             changeSbjctList();
 
-            $("#sbjctYr").on("change", function() {changeSmstrChrt();});
+            $("#dgrsYr").on("change", function() {changeSmstrChrt();});
             $("#deptId").on("change", function() {changeSbjctList();});
         });
+
+        // list scale 변경
+        function changeRecoredCnt(scale) {
+            RECORD_COUNT_PER_PAGE = scale;
+            listPaging(1);
+        }
 
         // 전체 학습 현황 조회
         function setStatus() {
             let searchKey = $("#noStudyAll").is(":checked") ? "Y" : "";
 
             // [전체]
-            //var url = "/lesson/lessonMgr/selectLessonProgressTotalStatus.do";
-            let url = "/stats/LrnPrgrtStatusAjax.do";
+            let url = "/stats/lrnPrgrtStatsSummaryAjax.do";
             let data = {
-                sbjctYr		: $("#sbjctYr").val(),
+                dgrsYr		: $("#dgrsYr").val(),
                 smstrChrtId	: $("#sbjctSmstr").val(),
                 orgId		: $("#orgId").val(),
                 deptId		: ($("#deptId").val() || "").replace("ALL", ""),
-                sbjctOfrngId: ($("#sbjctOfrngId").val() || "").replace("ALL", ""),
+                sbjctId     : ($("#sbjctId").val() || "").replace("ALL", ""),
                 searchKey	: searchKey,
                 searchFrom	: $("#searchFrom").val(),
                 searchTo	: $("#searchTo").val(),
@@ -101,14 +72,34 @@
 
                         // [전체]
                         let wholeStauts = '';
-                        wholeStauts += `<spring:message code='crs.learner.count' /> : \${wholeStdCnt} <spring:message code='exam.label.nm' />, `;
-                        wholeStauts += `<spring:message code='exam.label.avg' /><spring:message code='dashboard.study_prog' /> : \${wholeAvgLrnPrgrt} %`;
+                        wholeStauts += `
+                            <p class="desc">
+                                <i class="icon-svg-group" aria-hidden="true"></i>
+                                <spring:message code="crs.learner.count" /> : <strong> \${wholeStdCnt} <spring:message code="exam.label.nm" /></strong>
+                            </p>
+                        `;
+                        wholeStauts +=`
+                            <p class="desc">
+                                <i class="icon-svg-bar-chart" aria-hidden="true"></i>
+                                <spring:message code="exam.label.avg" /> <spring:message code="dashboard.study_prog" /> : <strong>\${wholeAvgLrnPrgrt} %</strong>
+                            </p>
+                        `;
                         $("#allLessonDiv").html(wholeStauts);
 
                         // [운영과목]
                         let myStatus = '';
-                        myStatus += `<spring:message code='crs.learner.count' /> : \${myStdCnt} <spring:message code='exam.label.nm' />, `;
-                        myStatus += `<spring:message code='exam.label.avg' /><spring:message code='dashboard.study_prog' /> : \${myAvgLrnPrgrt} %`;
+                        myStatus += `
+                            <p class="desc">
+                                <i class="icon-svg-group" aria-hidden="true"></i>
+                                <spring:message code="crs.learner.count" /> : <strong> \${myStdCnt} <spring:message code="exam.label.nm" /></strong>
+                            </p>
+                        `;
+                        myStatus +=`
+                            <p class="desc">
+                                <i class="icon-svg-bar-chart" aria-hidden="true"></i>
+                                <spring:message code="exam.label.avg" /> <spring:message code="dashboard.study_prog" /> : <strong>\${myAvgLrnPrgrt} %</strong>
+                            </p>
+                        `;
                         $("#myLessonDiv").html(myStatus);
 
                     } else {
@@ -129,9 +120,9 @@
             $sbjctSmstr.empty();
 
             $.ajax({
-                url  : "/crs/termMgr/smstrListByDgrsYr.do",
+                url  : "/crs/termMgr/admSmstrListByDgrsYrAjax.do",
                 data : {
-                    dgrsYr 	: $("#sbjctYr").val()
+                    dgrsYr 	: $("#dgrsYr").val()
                     <%--	,orgId	: $("#orgId").val() --%>
                 },
                 type : "GET",
@@ -164,10 +155,10 @@
             // 기존 옵션 초기화
             $sbjctOfrngId.empty();
 
-            let url = "/crs/creCrsMgr/sbjctOfrngList.do";
-            /* var url = "/crs/creCrsHome/creCrsList.do"; */
+            let url = "/crs/creCrsMgr/sbjctListAjax.do";
+
             let data = {
-                sbjctYr		: $("#sbjctYr").val(),
+                dgrsYr		: $("#dgrsYr").val(),
                 smstrChrtId	: $("#sbjctSmstr").val(),
                 orgId		: $("#orgId").val(),
                 deptId		: $("#deptId").val()
@@ -196,100 +187,85 @@
         }
 
         // 학습현황 목록
-        function listStd() {
-            let searchKey = $("#noStudyAll").is(":checked") ? "Y" : "";
+        function listPaging(pageNo) {
+            UiComm.showLoading(true);
 
-            let url  = "/stats/lrnPrgrtStatusListAjax.do";
-            let data = {
-                sbjctYr		: $("#sbjctYr").val(),
-                smstrChrtId	: $("#sbjctSmstr").val(),
-                orgId		: $("#orgId").val(),
-                deptId		: ($("#deptId").val() || "").replace("ALL", ""),
-                sbjctOfrngId: ($("#sbjctOfrngId").val() || "").replace("ALL", ""),
-                searchKey	: searchKey,
-                searchFrom	: $("#searchFrom").val(),
-                searchTo	: $("#searchTo").val(),
+            CURRENT_PAGE_NO = pageNo;
+
+            let searchKey = $("#noStudyAll").is(":checked") ? "Y" : "";
+            let param = {
+                currentPageNo       : CURRENT_PAGE_NO,
+                recordCountPerPage  : RECORD_COUNT_PER_PAGE,
+                yrSmstr         : $("#yrSmstr").val() || "",
+                smstrChrtGbncd  : $("#yrSmstr option:selected").data("type") || "",
+                orgId		    : $("#orgId").val(),
+                deptId		    : ($("#deptId").val() || "").replace("ALL", ""),
+                sbjctId         : ($("#sbjctOfrngId").val() || "").replace("ALL", ""),
+                searchFrom	    : $("#searchFrom").val(),
+                searchTo	    : $("#searchTo").val(),
+                searchKey       : searchKey,
             };
 
             $.ajax({
-                url	: url,
-                data: data,
+                url	: "/stats/lrnPrgrtStatsListAjax.do",
+                data: param,
                 type: "GET",
+                headers: {"X-Requested-With": "XMLHttpRequest"},
                 success: function(data) {
+                    if (data.encParams != null && data.encParams !== '') {
+                        EPARAM = data.encParams;
+                    }
+
                     if (data.result > 0) {
                         let returnList = data.returnList || [];
-                        let html = "";
-                        if (returnList.length > 0) {
-                            returnList.forEach(function(v, i) {
-                                html +=`
-                                        <tr>
-                                            <td>
-                                                <div class='ui checkbox'>
-        /* 											<input type='checkbox' name='stdChk' onchange='checkStd(this)' id='stdChk\${i}' userNo='\${v.userNo}' userNm='\${v.userNm}' email='\${v.email}' mobile='\${v.mobileNo}' /> */
-                                                    <input type='checkbox' name='stdChk' onchange='checkStd(this)' id='stdChk\${i}' userId='\${v.userId}' usernm='\${v.usernm}' email='\${v.email}' mobile='\${v.mobileNo}' />
-                                                    <label for='stdChk\${i}'></label>
-                                                </div>
-                                            </td>
-                                            <td>\${v.lineNo}</td>
-                                            <td>\${v.sbjctYr}</td>
-                                            <td>\${v.sbjctSmstr}</td>
-                                            <td>\${v.orgnm}</td>
-                                            <td>\${v.deptnm}</td>
-                                            <td>\${v.sbjctnm}</td>
-                                            <td>\${v.dvclasNo}</td>
-                                            <td>\${v.userId}</td>
-                                            <td>\${v.stdntNo}</td>
-                                            <td>\${v.usernm}</td>
-                                            <td>\${v.scyr}</td>
-                                            <td>\${v.openWkCnt}</td>
-                                            <td>\${v.lrnWkCnt}</td>
-                                            <td>\${v.prgrt}%</td>
-                                        </tr>
-                                    `;
-                            });
 
-                        }else {
-                            html = `<tr><td colspan="15">조회된 데이터가 없습니다.</td></tr>`;
-                        }
+                        let dataList = createListHtml(returnList, data.pageInfo)
+                        listTable.clearData();
+                        listTable.replaceData(dataList);
+                        listTable.setPageInfo(data.pageInfo);
 
-                        $("#totStdCnt").text(returnList.length);
-                        $("#stdTbody").empty().html(html);
-                        /*$("#stdTable").footable();*/
+                        $("#totStdCnt").text(data.pageInfo.totalRecordCount);
 
                         setStatus();
 
-                        /* if(data.returnVO != null) {
-                            var lessonVO = data.returnVO;
-                            $("#allLessonDiv").html("<spring:message code='crs.learner.count' /> : "+lessonVO.allStdCnt+" <spring:message code='exam.label.nm' />, <spring:message code='exam.label.avg' /><spring:message code='dashboard.study_prog' /> : "+lessonVO.allLessonAvg+" %");
-                                $("#myLessonDiv").html("<spring:message code='crs.learner.count' /> : "+lessonVO.myStdCnt+" <spring:message code='exam.label.nm' />, <spring:message code='exam.label.avg' /><spring:message code='dashboard.study_prog' /> : "+lessonVO.myLessonAvg+" %");
-                            } */
                     } else {
-                        alert(data.message);
+                        UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>","error"); // 에러 메세지
                     }
                 },
                 error : function(xhr, status, error) {
-                    alert("<spring:message code='fail.common.msg' />");/* 에러가 발생했습니다! */
+                    UiComm.showMessage('<spring:message code="fail.common.msg" />', "error"); // 에러가 발생했습니다!
+                },
+                complete: function (){
+                    UiComm.showLoading(false);
                 }
             });
         }
 
-        // 체크박스 이벤트
-        function checkStd(obj) {
-            if($(obj).attr("id") == "allChk") {
-                $("input[name=stdChk]").prop("checked", $(obj).is(":checked"));
-                if($(obj).is(":checked")) {
-                    $("input[name=stdChk]").closest("tr").addClass("on");
-                } else {
-                    $("input[name=stdChk]").closest("tr").removeClass("on");
-                }
-            } else {
-                if($(obj).is(":checked")) {
-                    $(obj).closest("tr").addClass("on");
-                } else {
-                    $(obj).closest("tr").removeClass("on");
-                }
-                $("#allChk").prop("checked", $("input[name=stdChk]").length == $("input[name=stdChk]:checked").length);
-            }
+        // 테이블 그리기
+        function createListHtml(list) {
+            let dataList = [];
+
+            list.forEach(item => {
+
+                dataList.push({
+                    no: item.lineNo,
+                    dgrsYr      : item.dgrsYr,
+                    smstrChrt  : item.smstrChrt,
+                    orgnm       : item.orgnm,
+                    deptnm      : item.deptnm || '-',
+                    sbjctnm     : item.sbjctnm,
+                    dvclasNo    : item.dvclasNo || '-',
+                    userId      : item.userId,
+                    stdntNo     : item.stdntNo,
+                    usernm      : item.usernm,
+                    orgTycd     : item.orgTycd,
+                    openWkCnt   : item.openWkCnt,
+                    lrnWkCnt    : item.lrnWkCnt,
+                    prgrt       : item.prgrt
+                })
+            });
+
+            return dataList;
         }
 
         // 쪽지 보내기
@@ -327,7 +303,7 @@
             var excelGrid = {
                 colModel:[
                     {label:"<spring:message code='common.no' />", name:'lineNo', align:'center', width:'3000'}, /* 번호 */
-                    {label:"<spring:message code='common.year' />", name:'sbjctYr', align:'center', width:'3000'}, /* 년도 */
+                    {label:"<spring:message code='common.year' />", name:'dgrsYr', align:'center', width:'3000'}, /* 년도 */
                     {label:"<spring:message code='common.term' />", name:'sbjctSmstr', align:'center', width:'3000'}, /* 학기 */
                     {label:"<spring:message code='common.label.org' />", name:'orgId', align:'center', width:'3000'}, /* 기관 */
                     {label:"<spring:message code='common.dept_name'/>", name:'deptnm', align:'left', width:'8000'}, /* 학과 */
@@ -347,7 +323,7 @@
             form.attr("method", "POST");
             form.attr("name", "excelForm");
             form.attr("action", "/lesson/lessonHome/lessonProgressExcelDown.do");
-            form.append($('<input/>', {type: 'hidden', name: 'sbjctYr', 	value: $("#sbjctYr").val()}));
+            form.append($('<input/>', {type: 'hidden', name: 'dgrsYr', 	value: $("#dgrsYr").val()}));
             form.append($('<input/>', {type: 'hidden', name: 'smstrChrtId', value: $("#sbjctSmstr").val()}));
             form.append($('<input/>', {type: 'hidden', name: 'orgId', 		value: $("#orgId").val()}));
             form.append($('<input/>', {type: 'hidden', name: 'deptId', 		value: ($("#deptId").val() || "").replace("ALL", "")}));
@@ -395,19 +371,44 @@
                             <%--타이틀--%>
                             <h2 class="page-title"><spring:message code="common.label.lesson.process.manage"/></h2><%--학습진도관리--%>
                             <%--네비게이션바--%>
-                            <div class="navi_bar">
-                                <ul>
-                                    <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                                    <li><span class="current"><spring:message code="common.label.lesson.process.manage"/></span></li><%--학습진도관리--%>
-                                </ul>
-                            </div>
+                            <uiex:navibar type="main"/> <%-- 네비게이션바 --%>
+                        </div>
+
+                        <div class="msg-box info">
+                            <p class="txt">운영과목과 수강생의 학습현황을 조회할 수 있습니다. <strong>학습 부진자 관리</strong>에 활용하시기 바랍니다.</p>
+                        </div>
+                        <div class="msg-box basic">
+                            <ul class="list-dot">
+                                <li>출석율은 현재 오픈 차시 중 정상 출석한 차시에 대한 비율로 표기됩니다.</li>
+                                <li>매 주차별로 부진자 (출석율 100% 미만)에게 알림 발송 가능합니다.</li>
+                                <li>운영과목 수강생의 수에 따라 조회에 다소 시간이 걸릴 수 있습니다</li>
+                            </ul>
                         </div>
 
                         <!-- search typeA -->
                         <div class="search-typeA">
                             <div class="item">
-                                <div class="itemList" style="width: 100%!important;">
-                                    <select class="form-select" id="sbjctYr">
+                                <span class="item_tit"><label for="selectDate">기관</label></span>
+                                <div class="itemList">
+                                    <select class="form-select" id="orgId" disabled><!-- 기관 -->
+                                        <option value="">기관</option>
+                                        <c:forEach var="list" items="${filterOptions.orgList }">
+                                            <option value="${list.orgId }" ${list.orgId eq filterOptions.orgId ? 'selected' : '' }>${list.orgnm }</option>
+                                        </c:forEach>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="item">
+                                <span class="item_tit"><label for="selectDate">학사년도/학기</label></span>
+                                <div class="itemList">
+                                    <select class="form-select" id="yrSmstr">
+                                        <option value=""><spring:message code="msg.common.label.yearSmstr" /></option>
+                                        <c:forEach var="item" items="${filterOptions.yrSmstrList }" varStatus="i">
+                                            <option value="${item.dgrsYr}${item.dgrsSmstrChrt}" <%--${i.index eq 0 ? 'selected' : '' }--%> data-type="${item.smstrChrtGbncd}">${item.yrSmstrnm}</option>
+                                        </c:forEach>
+                                    </select>
+                                    <%--<select class="form-select" id="dgrsYr">
                                         <option value=""><spring:message code="crs.label.open.year" /></option><!-- 개설년도 -->
                                         <c:forEach var="item" items="${filterOptions.yearList }">
                                             <option value="${item }" ${item eq filterOptions.curYear ? 'selected' : '' }>${item }</option>
@@ -416,106 +417,123 @@
                                     <select class="form-select" id="sbjctSmstr"><!-- 개설학기 -->
                                         <option value=""><spring:message code="crs.label.open.term" /></option>
                                         <c:forEach var="list" items="${filterOptions.smstrChrtList }">
-                                            <%-- <option value="${list.smstrChrtId }" ${list.dgrsSmstrChrt eq curSmstrChrtVO.dgrsSmstrChrt ? 'selected' : '' }>${list.smstrChrtnm }</option> --%>
+                                            &lt;%&ndash; <option value="${list.smstrChrtId }" ${list.dgrsSmstrChrt eq curSmstrChrtVO.dgrsSmstrChrt ? 'selected' : '' }>${list.smstrChrtnm }</option> &ndash;%&gt;
                                             <option value="${list.smstrChrtId }">${list.smstrChrtnm }</option>
                                         </c:forEach>
-                                    </select>
-                                    <select class="form-select" id="orgId" disabled><!-- 기관 -->
-                                        <option value="">기관</option>
-                                        <c:forEach var="list" items="${filterOptions.orgList }">
-                                            <option value="${list.orgId }" ${list.orgId eq filterOptions.orgId ? 'selected' : '' }>${list.orgnm }</option>
-                                        </c:forEach>
-                                    </select>
+                                    </select>--%>
+                                </div>
+                            </div>
+
+                            <div class="item">
+                                <span class="item_tit"><label for="selectCourse">운영과목</label></span>
+                                <div class="itemList">
                                     <select class="form-select" id="deptId">
                                         <option value=""><spring:message code="exam.label.dept" /></option><!-- 학과 -->
                                         <c:forEach var="list" items="${filterOptions.deptList }">
                                             <option value="${list.deptId }">${list.deptnm }</option>
                                         </c:forEach>
                                     </select>
-                                    <select class="form-select" id="sbjctOfrngId">
+                                    <select class="form-select" id="sbjctId">
                                         <option value=""><spring:message code="common.subject" /></option><!-- 과목 -->
                                     </select>
+                                </div>
+                            </div>
+
+                            <div class="item">
+                                <span class="item_tit"><label for="selectSearch">검색 조건</label></span>
+                                <div class="itemList">
                                     <span class="custom-input">
                                         <input type="checkbox" id="noStudyAll"/>
                                         <label for="noStudyAll"><spring:message code="std.label.nostudy_student" /><spring:message code="sys.common.search.all" /></label><!-- 미학습자전체 -->
                                     </span>
-                                    <div>
-                                        <spring:message code="lesson.label.study.status.complete.yule" /> <!-- 출석율 -->
-                                            <input type="text" id="searchFrom" inputmask="numeric" maxVal="100" style="width: 50px" />% <spring:message code="common.label.over" /><!-- 이상 -->
-                                        ~
-                                            <input type="text" id="searchTo" inputmask="numeric" maxVal="100" style="width: 50px" />% <spring:message code="common.label.under" /><!-- 미만 -->
+                                    <div class="percent_area">
+                                        <span class="tit"><spring:message code="lesson.label.study.status.complete.yule" /> <!-- 출석율 --></span>
+                                        <div class="input_btn">
+                                            <input class="form-control sm" type="text" id="searchFrom" inputmask="numeric" maxVal="100"/><label>% <spring:message code="common.label.over" /><!-- 이상 --></label>
+                                        </div>
+                                        <span class="txt-sort">~</span>
+                                        <div class="input_btn">
+                                            <input class="form-control sm" type="text" id="searchTo" inputmask="numeric" maxVal="100"/><label>% <spring:message code="common.label.under" /><!-- 미만 --></label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="button-area">
-                                <button type="button" class="btn search" onclick="listStd()"><spring:message code="sys.button.search" /></button>
+                                <button type="button" class="btn search" onclick="listPaging(1)"><spring:message code="sys.button.search" /></button>
                             </div>
                         </div>
 
-                        <%--<div class="table_list">
-                            <ul class="list">
-                                <li class="head"><label><spring:message code="dashboard.all" /></label></li>&lt;%&ndash;전체&ndash;%&gt;
-                                <li id="allLessonDiv"><spring:message code="crs.learner.count" /><!-- 수강생 수 --> : - <spring:message code="exam.label.nm" /><!-- 명 -->, <spring:message code="exam.label.avg" /> <spring:message code="dashboard.study_prog" /><!-- 평균 학습진도율 --> : - %</li>
-                                <li class="head"><label><spring:message code="crs.course.crsnm" /></label></li>&lt;%&ndash;운영과목&ndash;%&gt;
-                                <li id="myLessonDiv"><spring:message code="crs.learner.count" /><!-- 수강생 수 --> : - <spring:message code="exam.label.nm" /><!-- 명 -->, <spring:message code="exam.label.avg" /> <spring:message code="dashboard.study_prog" /><!-- 평균 학습진도율 --> : - %</li>
-                            </ul>
-                        </div>--%>
-
-                        <div class="summary-container">
-                            <div class="summary-box">
-                                <div class="label total"><spring:message code="dashboard.all" /></div><%--전체--%>
-                                <div class="content" id="allLessonDiv">
-                                    <spring:message code="crs.learner.count" /><%--수강생 수--%> : - <spring:message code="exam.label.nm" /><%--명--%>, <spring:message code="exam.label.avg" /> <spring:message code="dashboard.study_prog" /><%--평균 학습진도율--%> : - %
+                        <div class="lecture_status_box">
+                            <div class="box_item">
+                                <div class="title"><spring:message code="dashboard.all" /><%--전체--%><i class="xi-angle-right-min"></i></div>
+                                <div class="item_txt" id="allLessonDiv">
+                                    <p class="desc">
+                                        <i class="icon-svg-group" aria-hidden="true"></i>
+                                        <spring:message code="crs.learner.count" /><%--수강생 수--%> : <strong> - <spring:message code="exam.label.nm" /><%--명--%></strong>
+                                    </p>
+                                    <p class="desc">
+                                        <i class="icon-svg-bar-chart" aria-hidden="true"></i>
+                                        <spring:message code="exam.label.avg" /> <spring:message code="dashboard.study_prog" /><%--평균 학습진도율--%> : <strong>- %</strong>
+                                    </p>
                                 </div>
                             </div>
-
-                            <div class="summary-box">
-                                <div class="label active"><spring:message code="crs.course.crsnm" /></div><%--운영과목--%>
-                                <div class="content" id="myLessonDiv">
-                                    <spring:message code="crs.learner.count" /><%--수강생 수--%> : - <spring:message code="exam.label.nm" /><%--명--%>, <spring:message code="exam.label.avg" /> <spring:message code="dashboard.study_prog" /><%--평균 학습진도율--%> : - %
+                            <div class="box_item">
+                                <div class="title"><spring:message code="crs.course.crsnm" /><%--운영과목--%><i class="xi-angle-right-min"></i></div>
+                                <div class="item_txt" id="myLessonDiv">
+                                    <p class="desc">
+                                        <i class="icon-svg-group" aria-hidden="true"></i>
+                                        <spring:message code="crs.learner.count" /><%--수강생 수--%> : <strong>- <spring:message code="exam.label.nm" /><%--명--%></strong>
+                                    </p>
+                                    <p class="desc">
+                                        <i class="icon-svg-bar-chart" aria-hidden="true"></i>
+                                        <spring:message code="exam.label.avg" /> <spring:message code="dashboard.study_prog" /><%--평균 학습진도율--%> : <strong>- %</strong>
+                                    </p>
                                 </div>
                             </div>
                         </div>
 
                         <div class="board_top">
                             <h3 class="board-title"><spring:message code="lesson.label.study.status" /></h3><%--학습현황--%>
-                            <span>[ <spring:message code="user.title.total.count" /><!-- 총건수 --> : <span class="fcBlue" id="totStdCnt">0</span>]</span>
                             <div class="right-area">
                                 <button type="button" class="btn basic" onclick="sendMsg()"><i class="paper plane outline icon"></i><spring:message code="common.button.message" /></button><!-- 메시지 -->
                                 <button type="button" class="btn type1" onclick="allProgressPop()">학과별 전체 통계</button>
                                 <button type="button" class="btn basic" onclick="excelDown()"><spring:message code="exam.button.excel.down" /></button><!-- 엑셀 다운로드 -->
+                                <uiex:listScale func="changeRecoredCnt" value="${pageInfo.recordCountPerPage}" />
                             </div>
                         </div>
 
                         <div class="table-wrap">
-                            <table class="table-type2">
-                                <colgroup>
-                                    <col style="width: 50px">
-                                    <col style="width: 50px">
-                                </colgroup>
-                                <thead>
-                                    <tr>
-                                        <th><span class="custom-input onlychk"><input type="checkbox" id="chkall"><label for="chkall"></label></span></th>
-                                        <th><spring:message code="common.no" /></th><%--번호--%>
-                                        <th><spring:message code="common.year" /></th><%--년도--%>
-                                        <th><spring:message code="common.term" /></th><%--학기--%>
-                                        <th><spring:message code="common.label.org" /></th><%--기관--%>
-                                        <th><spring:message code="common.dept_name" /></th><%--학과--%>
-                                        <th><spring:message code="common.label.crsauth.crsnm" /></th><%--개설과목명--%>
-                                        <th><spring:message code="common.label.decls.no" /></th><%--분반--%>
-                                        <th><spring:message code="common.id" /></th><%--아이디--%>
-                                        <th><spring:message code="common.label.student.number" /></th><%--학번--%>
-                                        <th><spring:message code="common.name" /></th><%--이름--%>
-                                        <th><spring:message code="common.label.userdept.grade" /></th><%--학년--%>
-                                        <th><spring:message code='common.label.lesson.open.week'/> (A)</th><%--오픈주차--%>
-                                        <th><spring:message code='common.label.lesson.learn.week'/> (B)</th><%--학습주차--%>
-                                        <th><spring:message code="lesson.label.study.status.complete.yule" /> (B/A)</th><%--출석율--%>
-                                    </tr>
-                                </thead>
-                                <tbody id="stdTbody">
-                                    <tr><td colspan="15">조회된 데이터가 없습니다.</td></tr>
-                                </tbody>
-                            </table>
+                            <div id="list"></div>
+                            <script type="text/javascript">
+                                let listTable;
+                                $(function () {
+                                    let cols = [
+                                        {title: "<spring:message code='common.no'/>", field: "no", headerHozAlign:"center", hozAlign:"center", width: 40, minWidth: 40},
+                                        {title: "<spring:message code="common.year" />",  field: "dgrsYr", headerHozAlign: "center", hozAlign: "center", width: 70, minWidth: 70},
+                                        {title: "<spring:message code="common.term" />",  field: "smstrChrt", headerHozAlign: "center", hozAlign: "center", width: 50, minWidth: 50},
+                                        {title: "<spring:message code="common.label.org" />",  field: "orgnm", headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 100},
+                                        {title: "<spring:message code="common.dept_name" />",  field: "deptnm", headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 130},
+                                        {title: "<spring:message code="common.label.crsauth.crsnm" />",  field: "sbjctnm", headerHozAlign: "center", hozAlign: "center", width: 0, minWidth: 180},
+                                        {title: "<spring:message code="common.label.decls.no" />",  field: "dvclasNo", headerHozAlign: "center", hozAlign: "center", width: 50, minWidth: 50},
+                                        {title: "<spring:message code="common.id" />",  field: "userId", headerHozAlign: "center", hozAlign: "center", width: 100, minWidth: 100},
+                                        {title: "<spring:message code="common.label.student.number" />",  field: "stdntNo", headerHozAlign: "center", hozAlign: "center", width: 90, minWidth: 90},
+                                        {title: "<spring:message code="common.name" />",  field: "usernm", headerHozAlign: "center", hozAlign: "center", width: 100, minWidth: 100},
+                                        {title: "<spring:message code='common.label.lesson.open.week'/> (A)", field: "openWkCnt", headerHozAlign:"center", hozAlign:"center", width: 90, minWidth: 90},
+                                        {title: "<spring:message code='common.label.lesson.learn.week'/> (B)", field: "lrnWkCnt", headerHozAlign:"center", hozAlign:"center", width: 90, minWidth: 90},
+                                        {title: "<spring:message code="lesson.label.study.status.complete.yule" /> (B/A)", field: "prgrt", headerHozAlign:"center", hozAlign:"center", width: 100, minWidth: 100}
+                                    ];
+
+                                    listTable = UiTable("list", {
+                                        lang: "ko",
+                                        table: "list",
+                                        selectRow: "checkbox",
+                                        columns: cols,    // 컬럼정보
+                                        pageFunc: listPaging,
+                                    });
+
+                                    //listPaging(1);
+                                });
+                            </script>
                         </div>
 
                         <!-- 학과별 전체통계 모달 -->

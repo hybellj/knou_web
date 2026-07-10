@@ -1125,7 +1125,7 @@
 		FROM (
 			<include refid="selectQuery" />
 		) A
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="listMyCreCrsExamOld" parameterType="examVO" resultType="examVO">
@@ -1186,7 +1186,7 @@
          	</if>
          </if>
          ORDER BY C.EXAM_ID
-         <include refid="CommonSQL.pageSubfix"/>
+         <include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="listExamCreCrsDeclsOld" parameterType="examVO" resultType="egovMap">

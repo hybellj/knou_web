@@ -6,74 +6,56 @@
 	<head>
     	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
 			<jsp:param name="style" value="classroom"/>
-			<jsp:param name="module" value="table"/>
+			<jsp:param name="module" value="table,chart"/>
 		</jsp:include>
     </head>
 
     <script type="text/javascript">
     	$(document).ready(function(){
     		if(${fn:length(srvypprList) > 1}) {
-				controllNextPrevBtn();
+    			initSrvyppr();
 			}
     	});
 
-    	/**
-		 *  이전 다음 버튼 표시
-		 */
-		function controllNextPrevBtn() {
-		    var curSeqno = Number($("div.srvypprDiv:visible").attr("data-seqno"));
-		    var srvypprCnt   = $("div.srvypprDiv").length;
+    	function initSrvyppr() {
+    		showSrvyppr(1);
+    	}
 
-		    $("div.srvypprDiv").hide();
-		    $("div.srvypprDiv[data-seqno=1]").show();
-		    $("#btnPrevSrvyppr").hide();
-		    $("#btnNextSrvyppr").hide();
-		    if (curSeqno > 1) {
-		        $("#btnPrevSrvyppr").show();
-		    }
-		    if (curSeqno < srvypprCnt) {
-		        $("#btnNextSrvyppr").show();
-		    }
-		}
+    	// 해당 순번 설문지 표시 및 버튼 제어
+    	function showSrvyppr(seqno) {
+    		let srvypprCnt = $("div.srvypprDiv").length;
 
-    	/**
-		 *  이전 버튼 클릭 시 앞 설문지로 이동
-		 */
-		function goPrevSrvyppr() {
-		    var curSrvyppr   = $("div.srvypprDiv:visible");
-		    var curSrvySeqno = Number(curSrvyppr.attr("data-seqno"));
-		    if (curSrvySeqno > 1) {
-		        $("#btnNextSrvyppr").show();
-		        $("div.srvypprDiv").hide();
-		        $("div.srvypprDiv[data-seqno=" + (curSrvySeqno - 1) + "]").show();
-		        if (curSrvySeqno - 1 == 1) {
-		            $("#btnPrevSrvyppr").hide();
-		        }
-		    }
-		}
+    		$("div.srvypprDiv").hide();
+    		$("div.srvypprDiv[data-seqno=" + seqno + "]").show();
 
-		/**
-		 *  다음 버튼 클릭 시 뒤 설문지로 이동
-		 */
-		function goNextSrvyppr() {
-		    var curSrvyppr   = $("div.srvypprDiv:visible");
-		    var curSrvySeqno = Number(curSrvyppr.attr("data-seqno"));
+    		$("#btnPrevSrvyppr").toggle(seqno > 1);
+    		$("#btnNextSrvyppr").toggle(seqno < srvypprCnt);
+    		dialogHeightChange();
+    	}
 
-		    var srvypprCnt = $("div.srvypprDiv").length;
-		    if (curSrvySeqno < srvypprCnt) {
-		        $("#btnPrevSrvyppr").show();
-		        $("div.srvypprDiv").hide();
-		        $("div.srvypprDiv[data-seqno=" + (curSrvySeqno + 1) + "]").show();
-		        if (curSrvySeqno + 1 == srvypprCnt) {
-		            $("#btnNextSrvyppr").hide();
-		        }
-		    }
-		}
+    	// 이전 설문지로 이동
+    	function goPrevSrvyppr() {
+    		let curSeqno = Number($("div.srvypprDiv:visible").attr("data-seqno"));
+
+    		if (curSeqno > 1) {
+    			showSrvyppr(curSeqno - 1);
+    		}
+    	}
+
+    	// 다음 설문지로 이동
+    	function goNextSrvyppr() {
+    		let curSeqno = Number($("div.srvypprDiv:visible").attr("data-seqno"));
+    		let srvypprCnt = $("div.srvypprDiv").length;
+
+    		if (curSeqno < srvypprCnt) {
+    			showSrvyppr(curSeqno + 1);
+    		}
+    	}
 
     	// 이전, 다음 평가정보
 		function chgUserEval(type) {
-			var targetUser 	= null;
-			var userList 	= [];
+			let targetUser 	= null;
+			let userList 	= [];
 			<c:forEach var="list" items="${srvyPtcpList}">
 				userList.push({
 			        srvyId    : "${list.srvyId}",
@@ -112,176 +94,131 @@
 			if($(obj).hasClass("on")) {
 				$(obj).next("div.resultStatus").css("display", "none");
 			} else {
-				var url  = "/srvy/srvyQstnDistributionChartAjax.do";
-				var data = {
-					"srvyId" 	: $("#srvyEvalForm input[name=srvyId]").val(),
-					"srvyQstnId": srvyQstnId,
-					"srvypprId"	: srvypprId,
-					"sbjctId"	: "${vo.sbjctId}"
+				const url  = "/srvy/srvyQstnDistributionChartAjax.do";
+				const data = {
+					srvyId 		: $("#srvyEvalForm input[name=srvyId]").val(),
+					srvyQstnId	: srvyQstnId,
+					srvypprId	: srvypprId,
+					sbjctId		: "${vo.sbjctId}"
 				};
 
-				UiComm.showLoading(true);
 				$.ajax({
-				    url 	 : url,
-				    async	 : false,
-				    type 	 : "POST",
-				    data	 : JSON.stringify(data),
-				    dataType : "json",
-				    contentType: "application/json; charset=UTF-8"
-				}).done(function(data) {
-					UiComm.showLoading(false);
-					if (data.result > 0) {
-						if(data.returnVO != null) {
-							var srvyMainView = data.returnVO;
-							var rspnsList = srvyMainView.srvyQstnRspnsDistributionList;	// 설문문항답변분포목록
-							var colorList = srvyMainView.colorList;						// 색상배열목록
+				    url 	 	: url,
+				    async	 	: false,
+				    type 	 	: "POST",
+				    data	 	: JSON.stringify(data),
+				    dataType 	: "json",
+				    contentType	: "application/json; charset=UTF-8",
+				    beforeSend	: () => UiComm.showLoading(true),
+		            success		: function (data) {
+		            	if (data.result > 0) {
+							if(data.data != null) {
+								var srvyMainView = data.data;
+								var rspnsList = srvyMainView.egovList;		// 설문문항답변분포목록
+								var colorList = srvyMainView.colorList;		// 색상배열목록
 
-							var labelsArray	= new Array();
-							var rspnsArray  = new Array();
-							var ratioArray	= new Array();
-							var colorArray	= new Array();
+								var labelsArray	= new Array();
+								var rspnsArray  = new Array();
+								var ratioArray	= new Array();
+								var colorArray	= new Array();
 
-							for(const rspns of rspnsList) {
-								if(rspns.qstnRspnsTycd == "ONE_CHC" || rspns.qstnRspnsTycd == "MLT_CHC" || rspns.qstnRspnsTycd == "OX_CHC") {
-									labelsArray.push(rspns.qstnRspnsTycd == "OX_CHC" ? rspns.vwitmCts : rspns.vwitmSeqno);
-									rspnsArray.push(rspns.joinCnt);
-									ratioArray.push(rspns.ratio);
+								for(const rspns of rspnsList) {
+									if(rspns.qstnRspnsTycd == "ONE_CHC" || rspns.qstnRspnsTycd == "MLT_CHC" || rspns.qstnRspnsTycd == "OX_CHC") {
+										labelsArray.push(rspns.qstnRspnsTycd == "OX_CHC" ? rspns.vwitmCts : rspns.vwitmSeqno);
+										rspnsArray.push(rspns.joinCnt);
+										ratioArray.push(rspns.ratio);
+									}
 								}
-							}
 
-							for(const color of colorList) {
-								colorArray.push(color.code);
-							}
+								for(const color of colorList) {
+									colorArray.push(color.code);
+								}
 
-							// bar차트
-							var ctx = document.getElementById(srvyQstnId+"_barChart");
-							var myChart = new Chart(ctx, {
-								type: 'horizontalBar',
-								data: {
-									labels: labelsArray,
-									datasets: [{
-										data: ratioArray,
-										backgroundColor: colorArray,
-										borderWidth: 1
-									}]
-								},
-								options: {
-									events: false,
-									showTooltips: false,
-									title: {
-									  display: true,
-									  text: "<spring:message code='exam.label.dev.qstn.status' /> (%)",/* 보기 분포 현황 */
-									  fontSize: 14,
-									  fontColor: "#666",
-									},
-									animation: {
-									duration: 1000,
-									onComplete: function () {
-										var ctx = this.chart.ctx;
-										ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, 'normal', Chart.defaults.global.defaultFontFamily);
-										ctx.fillStyle = this.chart.config.options.defaultFontColor;
-										ctx.textAlign = 'center';
-										ctx.textBaseline = 'bottom';
-										this.data.datasets.forEach(function (dataset) {
-											for (var i = 0; i < dataset.data.length; i++) {
-												var model = dataset._meta[Object.keys(dataset._meta)[0]].data[i]._model;
-												ctx.fillStyle = '#fff'; // label color
-												ctx.fillText(dataset.data[i] + '%', model.x, model.y + 8);
-											}
-										});
-									}},
-									scales: {
-										yAxes: [{
-											barPercentage: 0.6,
-											scaleLabel: {
-												display: true
-											}
-										}],
-										xAxes: [{
-											ticks: {
-												min: 0,
-												max: 100,
-												stepSize: 20,
-												callback: function(value){return value+ "%"}
-											}
+								// bar차트
+								var ctx = document.getElementById(srvyQstnId+"_barChart");
+								var myChart = new Chart(ctx, {
+									type: 'bar',
+									data: {
+										labels: labelsArray,
+										datasets: [{
+											data: ratioArray,
+											backgroundColor: colorArray,
+											borderWidth: 1,
+											barThickness: 30
 										}]
 									},
-									legend: {
-										display: false
-									}
-								}
-							});
-
-							// pie차트
-							var ctx = document.getElementById(srvyQstnId+"_pieChart");
-							var myChart = new Chart(ctx, {
-								type: 'pie',
-								data: {
-								  labels: labelsArray,
-								  datasets: [{
-									backgroundColor: colorArray,
-									borderWidth:1,
-									data: rspnsArray
-								  }]
-								},
-								options: {
-									pieceLabel: {
-									  render: function (args) {
-										return args.percentage + '%';
-									  },
-									  fontColor : '#fff'
+									options: {
+										indexAxis: 'y', // 가로 막대
+										responsive: true,
+			                            maintainAspectRatio: false,
+			                            plugins: {
+			                                legend: { display: false },
+			                                title: { display: true, text: "<spring:message code='srvy.label.option.distribution.status' />(%)", font: { size: 16 }, color: '#333' },/* 보기 분포 현황 */
+			                                datalabels: {
+			                                    display: true,
+			                                    anchor: 'end',        // 막대 끝에 붙이기
+			                                    align: 'right',       // 오른쪽으로 정렬
+			                                    formatter: (value, context) => {
+			                                        const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+			                                        return (value / total * 100).toFixed(1) + '%';
+			                                    }
+			                                }
+			                            },
+			                            scales: {
+			                                x: {
+			                                    beginAtZero: true,
+			                                    max: Math.max(...rspnsArray) * 1.2, // 막대 끝에 라벨 공간 확보
+			                                    ticks: { color: '#666' },
+			                                    title: { display: false, text: "<spring:message code='srvy.label.people.cnt' />" },/* 인원수 */
+			                                    grid: { color: '#eee' }
+			                                },
+			                                y: {
+			                                    reverse: true,
+			                                    ticks: { color: '#666', font: { size: 11 } },
+			                                }
+			                            }
 									},
-									title: {
-									  display: true,
-									  text: "설문통계 (%)",
-									  fontSize: 14,
-									  fontColor: "#666",
-									},
-									legend: {
-										display: true,
-										position: 'bottom',
-										labels: {
-											boxWidth: 12,
-											generateLabels: function(chart) {
-												var data = chart.data;
-												if (data.labels.length && data.datasets.length) {
-													return data.labels.map(function(label, i) {
-														var meta = chart.getDatasetMeta(0);
-														var ds = data.datasets[0];
-														var arc = meta.data[i];
-														var custom = arc && arc.custom || {};
-														var getValueAtIndexOrDefault = Chart.helpers.getValueAtIndexOrDefault;
-														var arcOpts = chart.options.elements.arc;
-														var fill = custom.backgroundColor ? custom.backgroundColor : getValueAtIndexOrDefault(ds.backgroundColor, i, arcOpts.backgroundColor);
-														var stroke = custom.borderColor ? custom.borderColor : getValueAtIndexOrDefault(ds.borderColor, i, arcOpts.borderColor);
-														var bw = custom.borderWidth ? custom.borderWidth : getValueAtIndexOrDefault(ds.borderWidth, i, arcOpts.borderWidth);
-														var value = chart.config.data.datasets[arc._datasetIndex].data[arc._index];
+			                        plugins: [ChartDataLabels] // datalabels 플러그인 활성화
+								});
 
-														return {
-															text: label + " : " + value + "<spring:message code='exam.label.nm' />",/* 명 */
-															fillStyle: fill,
-															strokeStyle: stroke,
-															lineWidth: bw,
-															hidden: isNaN(ds.data[i]) || meta.data[i].hidden,
-															index: i
-														};
-													});
-												} else {
-													return [];
-												}
-											}
-										}
-									}
-								}
-							});
-						}
-				    } else {
-				    	UiComm.showMessage(data.message, "error");
-				    }
-					$(obj).next("div.resultStatus").css("display", "block");
-				}).fail(function() {
-					UiComm.showLoading(false);
-					UiComm.showMessage("<spring:message code='fail.common.msg' />", "error");	/* 에러가 발생했습니다! */
+								// pie차트
+								var ctx = document.getElementById(srvyQstnId+"_pieChart");
+								var myChart = new Chart(ctx, {
+									type: 'pie',
+									data: {
+									  labels: labelsArray,
+									  datasets: [{
+										backgroundColor: colorArray,
+										borderWidth:1,
+										data: rspnsArray
+									  }]
+									},
+									options: {
+			                            responsive: true,
+			                            maintainAspectRatio: false,
+			                            plugins: {
+			                            	legend: { position: 'bottom' },
+			                            	title: { display: true, text: "<spring:message code='srvy.label.srvy.statistics' /> (%)", font: { size: 16 }, color: '#333' },/* 설문통계 */
+			                            	datalabels: {
+			                                    color: '#fff',
+			                                    font: { weight: 'bold', size: 11 },
+			                                    formatter: (value, context) => {
+			                                        const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+			                                        return (value / total * 100).toFixed(1) + '%';
+			                                    }
+			                                }
+			                            }
+			                        },
+			                        plugins: [ChartDataLabels] // datalabels 플러그인 활성화
+								});
+							}
+					    } else {
+					    	UiComm.showMessage(data.message, "error");
+					    }
+						$(obj).next("div.resultStatus").css("display", "block");
+		            },
+		            error		: () => UiComm.showMessage("<spring:message code='fail.common.msg' />", "error"),	/* 에러가 발생했습니다! */
+		            complete	: () => UiComm.showLoading(false)
 				});
 			}
 			$(obj).toggleClass("on");
@@ -312,31 +249,40 @@
 			<input type="hidden" name="searchKey"		value="${params.searchKey }" />
 		</form>
         <div id="wrap">
-        	<div class="board_top">
+        	<div class="board_top class">
         		<c:if test="${fn:length(srvyPtcpList) > 1 }">
-					<a href="javascript:chgUserEval('prev')" class="btn basic small"><spring:message code="exam.label.prev" /></a><!-- 이전 -->
-					<a href="javascript:chgUserEval('next')" class="btn basic small"><spring:message code="exam.label.next" /></a><!-- 다음 -->
+        			<button type="button" class="btn type2" onclick="chgUserEval('prev')"><i class="xi-angle-left-min"></i><spring:message code="srvy.button.prev" /><!-- 이전 --></button>
+	                <button type="button" class="btn type2" onclick="chgUserEval('next')"><spring:message code="srvy.button.next" /><!-- 다음 --><i class="xi-angle-right-min"></i></button>
 		        </c:if>
-	        	<div class="right-area fcBlue">
-			    	<b>${srvyPtcpnt.deptnm } ${srvyPtcpnt.stdntNo } ${srvyPtcpnt.usernm } <span class="f150">${srvyPtcpnt.ptcpEvlScr }<spring:message code="exam.label.score.point" /></span><!-- 점 --></b>
-			    </div>
+		        <div class="right-area">
+                    <div class="feedback-info">
+                        <p class="desc">
+                            <span><strong>${srvyPtcpnt.deptnm }</strong></span>
+                            <span><strong>${srvyPtcpnt.stdntNo }</strong></span>
+                            <span><strong>${srvyPtcpnt.usernm }</strong></span>
+                            <span class="score"><strong>${srvyPtcpnt.totScr }<spring:message code="srvy.label.score.point" /><!-- 점 --></strong></span>
+                        </p>
+                    </div>
+                </div>
         	</div>
 
-        	<div class="board_top">
-        		<div class="right-area">
-        			<a href="javascript:srvypprPrint()" class="btn type1">설문지 인쇄</a>
-        			<a href="javascript:window.parent.closeDialog()" class="btn type1">취소</a>
-        		</div>
-        	</div>
+			<div class="quiz_paper_wrap">
+            	<div class="board_top">
+                    <div class="right-area">
+                        <button type="button" class="btn basic" onclick="srvypprPrint()"><spring:message code="srvy.button.srvy.print" /><!-- 설문지 인쇄 --></button>
+                        <button type="button" class="btn type2" onclick="window.parent.closeDialog()"><spring:message code="srvy.button.cancel" /><!-- 취소 --></button>
+                    </div>
+                </div>
+            </div>
 
-			<jsp:include page="/WEB-INF/jsp/srvy/common/srvy_qstn_inc.jsp" />
+			<%@ include file="/WEB-INF/jsp/srvy/common/srvy_qstn_inc.jsp" %>
 
-            <div class="btns">
+            <div class="modal_btns">
             	<c:if test="${fn:length(srvypprList) > 1}">
-            		<a href="javascript:goPrevSrvyppr();" class="btn type2" id="btnPrevSrvyppr">이전</a>
-            		<a href="javascript:goNextSrvyppr();" class="btn type2" id="btnNextSrvyppr">다음</a>
+            		<a href="javascript:goPrevSrvyppr();" class="btn type2" id="btnPrevSrvyppr"><spring:message code="srvy.button.prev" /><!-- 이전 --></a>
+            		<a href="javascript:goNextSrvyppr();" class="btn type2" id="btnNextSrvyppr"><spring:message code="srvy.button.next" /><!-- 다음 --></a>
             	</c:if>
-                <button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code="resh.button.close" /></button><!-- 닫기 -->
+                <button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code="srvy.button.close" /></button><!-- 닫기 -->
             </div>
         </div>
 		<script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>

@@ -36,7 +36,7 @@ public class BbsServiceImpl implements BbsService {
 
 	private EgovMap bbsIdWithBbsAuthrtSelect(String bbsId, UserContext userCtx) throws Exception {
 		
-		String userId = userCtx.getSelectedUser().getUserId();
+		String userId = userCtx.getLoginUser().getUserId();
 		
 		if (userCtx.isAdmin()) {
 	        EgovMap result = new EgovMap();

@@ -129,7 +129,7 @@
          <include refid="CommonSQL.pagePrefix"/>
          <include refid="userSizeLimitListInnerSql"/>
           ORDER BY A.USER_ID
-         <include refid="CommonSQL.pageSubfix"/>
+         <include refid="CommonSQL.pageSuffix"/>
     </select>
 
     <update id="updateAuthGrpSizeLimit" parameterType="fileSizeMgrVO">
@@ -310,7 +310,7 @@
          <include refid="CommonSQL.pagePrefix"/>
          <include refid="crsSizeLimitListInnerSql"/>
           ORDER BY B.SBJCTNM
-         <include refid="CommonSQL.pageSubfix"/>
+         <include refid="CommonSQL.pageSuffix"/>
     </select>
 
     <update id="updateCrsSizeLimit" parameterType="crsSizeMgrVO">

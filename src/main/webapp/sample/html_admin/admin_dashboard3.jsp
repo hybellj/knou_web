@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="../common/common_inc.jsp" %><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+	<jsp:include page="../common/common_head.jsp">
 		<jsp:param name="style" value="admin"/>
 	</jsp:include>
 </head>
@@ -11,14 +11,14 @@
 <body class="admin">
     <div id="wrap" class="main">
         <!-- common header -->
-        <%@ include file="/WEB-INF/jsp/common_new/admin_header.jsp" %>
+        <jsp:include page="../common/admin_header.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
         <!-- //common header -->
 
         <!-- admin -->
         <main class="common">
 
             <!-- gnb -->
-            <%@ include file="/WEB-INF/jsp/common_new/admin_aside.jsp" %>
+            <jsp:include page="../common/admin_aside.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
             <!-- //gnb -->
 
             <!-- content -->
@@ -30,6 +30,17 @@
                 </div>
                 <div class="admin_sub">
                     <div class="sub-content">
+
+                        <div class="page-info">
+                            <div class="navi_bar">
+                                <ul>
+                                    <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
+                                    <li>관리자</li>
+                                    <li><span class="current">학생 접속현황</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                        
                         <div class="row">
                             <div class="box">
                                 <div class="listTab">
@@ -591,13 +602,13 @@
                                         <colgroup>
                                             <col style="width:35px">
                                             <col style="width:70px">
-                                            <col style="width:150px"> 
+                                            <col style="width:150px">
                                             <col style="width:200px">
                                             <col style="width:150px">
                                             <col style="width:120px">
                                             <col style="width:150px">
                                             <col style="width:120px">
-                                            <col style="width:150px">                                                                                                                             
+                                            <col style="width:150px">
                                             <col style="">
                                             <col style="width:100px">
                                         </colgroup>
@@ -613,9 +624,9 @@
                                                 <th>대표ID</th>
                                                 <th>학번/사번</th>
                                                 <th>이름</th>
-                                                <th>핸드폰</th>                                               
+                                                <th>핸드폰</th>
                                                 <th>이메일</th>
-                                                <th>로그인</th>                                             
+                                                <th>로그인</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -631,10 +642,10 @@
                                                 <td data-th="학번/사번">2021215478</td>
                                                 <td data-th="이름"><a href="#0" class="link">학습자1</a></td>
                                                 <td data-th="핸드폰">010-1234-5698</td>
-                                                <td data-th="이메일">k202154774@knou.ac.kr</td>                                                
-                                                <td data-th="로그인"><button class="btn basic small">로그인</button></td>                                                
+                                                <td data-th="이메일">k202154774@knou.ac.kr</td>
+                                                <td data-th="로그인"><button class="btn basic small">로그인</button></td>
                                             </tr>
-                                            
+
                                         </tbody>
                                     </table>
                                 </div>
@@ -664,44 +675,44 @@
                     <h2 id="modal1Title">사용자 정보</h2>
                     <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
                 </div>
-                <div class="modal-body">                   
+                <div class="modal-body">
                     <div class="user-wrap">
                         <div class="user-img">
                             <div class="user-photo">
                                 <!--프로필 사진-->
-                                <img src="/lms_design_sample/webdoc/assets/img/common/photo_user_sample.png" alt="사진">
+                                <img src="/lms_design_sample/webdoc/assets/img/common/default_prof.png" alt="사진">
                             </div>
                         </div>
-                                             
+
                         <div class="table_list">
                             <ul class="list">
                                 <li class="head"><label>기관</label></li>
-                                <li>대학원 / 평생교육원 / 학위과정</li>                                
+                                <li>대학원 / 평생교육원 / 학위과정</li>
                             </ul>
                             <ul class="list">
                                 <li class="head"><label>이름</label></li>
-                                <li>학습자4</li>                             
+                                <li>학습자4</li>
                             </ul>
                             <ul class="list">
                                 <li class="head"><label>학번</label></li>
-                                <li>2021215478</li>                                
+                                <li>2021215478</li>
                             </ul>
                             <ul class="list">
                                 <li class="head"><label>아이디</label></li>
-                                <li>TESTID04</li>                                
+                                <li>TESTID04</li>
                             </ul>
                             <ul class="list">
                                 <li class="head"><label>휴대폰번호</label></li>
-                                <li>010-1234-5698</li>                                
+                                <li>010-1234-5698</li>
                             </ul>
                             <ul class="list">
                                 <li class="head"><label>사용 이메일</label></li>
-                                <li>k202154774@knou.ac.kr (연계 이메일)</li>                                
-                            </ul>                          
+                                <li>k202154774@knou.ac.kr (연계 이메일)</li>
+                            </ul>
                         </div>
-                       
+
                     </div>
-                    
+
                     <div class="modal_btns">
                         <button type="button" class="btn type2">닫기</button>
                     </div>

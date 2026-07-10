@@ -14,14 +14,14 @@ public interface TeamMemberService {
      * @throws Exception
      ******************************************************/
     public List<TeamMemberVO> listMyTeamStd(TeamMemberVO vo) throws Exception;
-    
+
     /*****************************************************
      * TODO 팀원 목록 조회
      * @param TeamMemberVO
      * @return List<TeamMemberVO>
      * @throws Exception
      ******************************************************/
-    public List<TeamMemberVO> list(TeamMemberVO vo) throws Exception;
+    public List<TeamMemberVO> list(TeamMemberVO vo);
 
     // 팀원 조회
     public List<TeamMemberVO> selectTeamMemberList(TeamVO vo) throws Exception;
@@ -34,5 +34,5 @@ public interface TeamMemberService {
 
 	// 팀원 리스트
 	public String[] getTeamMemberList(TeamMemberVO vo) throws Exception;
-    
+
 }

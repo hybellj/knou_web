@@ -5,6 +5,65 @@
 <script type="text/javascript" src="/webdoc/js/Chart.PieceLabel.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
 <script type="text/javascript">
+    var dialog;
+    var EPARAM = '<c:out value="${encParams}" />';
+
+    /**
+     * (교수) 시험 화면 이동
+     * @param {String}  examBscId           - 시험 기본 ID
+     * @param {String}  tkexamMthdCd        - 시험 구분 [RLTM|QUIZ]
+     * @param {String}  byteamSubrexamUseyn - 팀 시험여부
+     * @param {Integer} tab                 - 탭 번호
+     */
+    function profExamViewMv(tab) {
+        var urlMap = {
+            "1" : "/exam/profExamInfoEvlView.do",   /* 시험 상세 [시험 정보 및 평가 탭] */
+            "2" : "/exam/profExamSbstView.do",      /* 시험 상세 [시험 대체 탭] */
+            "3" : "/exam/profExamAbsnceView.do",    /* 시험 상세 [결시 내용 및 현황 탭] */
+            "4" : "/exam/profExamDsblView.do",      /* 시험 상세 [장애인/고령자 지원 현황 탭] */
+            "5" : "/exam/profExamQuizMngView.do",   /* 시험 상세 [퀴즈 관리 탭] */
+            "8" : "/exam/profExamListView.do",      /* 시험 목록 */
+            "9" : "/exam/profExamWriteView.do"      /* 시험 [등록|수정] 화면 */
+        };
+
+        if (tab == "8") {
+            document.location.href = urlMap[tab] + "?encParams=" + EPARAM;
+        } else {
+            var extData = { tabType: tab, isModify: 'Y' };
+            document.location.href = urlMap[tab]
+                + "?encParams=" + EPARAM
+                + "&addParams=" + UiComm.makeEncParams(extData);
+        }
+    }
+
+    /**
+     * (학습자) 시험 상세 화면 이동
+     * @param {String}  examBscId           - 시험 기본 ID
+     * @param {String}  tkexamMthdCd        - 시험 구분 [RLTM|QUIZ]
+     * @param {String}  byteamSubrexamUseyn - 팀 시험여부
+     * @param {String}  absnceYn            - 결시자 여부
+     * @param {String}  dsblYn              - 장애인/고령자 여부
+     * @param {Integer} tab                 - 탭 번호
+     */
+    function stdntExamViewMv(tab) {
+        var urlMap = {
+            "1" : "/exam/stdntExamInfoTkexamView.do",       /* 시험 상세 [시험정보 및 응시 탭] */
+            "2" : "/exam/stdntExamInfoSbstView.do",         /* 시험 상세 [시험 대체 탭] */
+            "3" : "/exam/stdntExamInfoAbsnceRsltView.do",   /* 시험 상세 [결시신청 및 결과 탭] */
+            "4" : "/exam/stdntExamInfoDsblView.do",         /* 시험 상세 [장애인/고령자 지원 탭] */
+            "5" : "/exam/stdntExamInfoQuizView.do",         /* 시험 상세 [시험정보 및 응시(퀴즈) 탭] */
+            "8" : "/exam/stdntExamListView.do",             /* 시험 목록 */
+        };
+
+        var extData = {
+            tabType  : tab
+        };
+
+        document.location.href = urlMap[tab]
+            + "?encParams=" + EPARAM
+            + "&addParams=" + UiComm.makeEncParams(extData);
+    }
+
 	window.closeModal = function() {
 	    $('.modal').modal('hide');
 	};
@@ -86,13 +145,13 @@
 			var stareCnt = 0;
 			var labelsArray = new Array();
 			var dataArray   = new Array();
-			var colorArray  = new Array();
+			var ${uiex:getTheme()}rray  = new Array();
 			
 			list.forEach(function(v, i) {
 				stareCnt += v.cnt;
 				labelsArray.push(v.label);
 				dataArray.push(v.cnt);
-				colorArray.push('rgba(54, 162, 235, .6)');
+				${uiex:getTheme()}rray.push('rgba(54, 162, 235, .6)');
 			});
 			var ctx = document.getElementById(ctxMap[type]);
 	        var myChart = new Chart(ctx, {
@@ -100,7 +159,7 @@
 	            data: {
 	            labels: labelsArray,
 	            datasets: [{
-	                backgroundColor: colorArray,
+	                backgroundColor: ${uiex:getTheme()}rray,
 	                borderWidth:1,
 	                data: dataArray
 	            }]
@@ -482,6 +541,7 @@
 
     // html 태그 제거
     function escapeHtml(str) {
+        if (str == null) return '';
         var map = {
             '&': '&amp;',
             '<': '&lt;',
@@ -489,6 +549,6 @@
             '"': '&quot;',
             "'": '&#039;'
         };
-        return str.replace(/[&<>"']/g, function(m) { return map[m]; });
+        return String(str).replace(/[&<>"']/g, function(m) { return map[m]; });
     }
 </script>

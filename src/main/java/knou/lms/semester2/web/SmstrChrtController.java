@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -169,9 +170,9 @@ public class SmstrChrtController extends ControllerBase {
      */
     @RequestMapping(value="/smstrChrtList.do")
     @ResponseBody
-    public ProcessResultVO<TermVO> smstrChrtList(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+    public ProcessResultVO<EgovMap> smstrChrtList(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
         
-    	ProcessResultVO<TermVO> resultVO = new ProcessResultVO<>();
+    	ProcessResultVO<EgovMap> resultVO = new ProcessResultVO<>();
         // 사용자 세션정보
         String orgId = SessionInfo.getOrgId(request);
         String userId = SessionInfo.getUserId(request);
@@ -181,7 +182,7 @@ public class SmstrChrtController extends ControllerBase {
         TermVO termVO = new TermVO();
         termVO.setUserId(userId);
         termVO.setOrgId(orgId);
-        ProcessResultVO<TermVO> termResult = null;
+        ProcessResultVO<EgovMap> termResult = null;
 
         if(curCorHome.indexOf("crsHomeStd") > -1) {
             termResult = dashboardService.listStdTerm(termVO);

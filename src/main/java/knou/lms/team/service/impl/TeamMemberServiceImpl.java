@@ -23,7 +23,7 @@ public class TeamMemberServiceImpl extends ServiceBase implements TeamMemberServ
      * TODO 내 소속 팀 조회
      * </p>
      * 내 소속 팀 조회
-     * 
+     *
      * @param TeamMemberVO
      * @return List<TeamMemberVO>
      * @throws Exception
@@ -38,13 +38,13 @@ public class TeamMemberServiceImpl extends ServiceBase implements TeamMemberServ
      * TODO 팀원 목록 조회
      * </p>
      * 팀원 목록 조회
-     * 
+     *
      * @param TeamMemberVO
      * @return List<TeamMemberVO>
      * @throws Exception
      ******************************************************/
     @Override
-    public List<TeamMemberVO> list(TeamMemberVO vo) throws Exception {
+    public List<TeamMemberVO> list(TeamMemberVO vo) {
         return teamMemberDAO.list(vo);
     }
 
@@ -71,5 +71,5 @@ public class TeamMemberServiceImpl extends ServiceBase implements TeamMemberServ
 	public String[] getTeamMemberList(TeamMemberVO vo) throws Exception {
 		return teamMemberDAO.getTeamMemberList(vo);
 	}
-    
+
 }

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.common.dao.CommonDAO">
+    
+    <select id="yrSmstrSelect" parameterType="pageInfo" resultType="egovMap">
+    	/*	연도학기목록조회	*/
+    	SELECT	
+    			  SC.SMSTR_CHRT_ID
+    			, SC.DGRS_YR
+    			, SC.DGRS_SMSTR_CHRT
+    			, SC.SMSTR_CHRTNM
+                , SC.SMSTR_CHRT_GBNCD
+                , SC.NOW_SMSTRYN
+    			, SC.DGRS_YR || SC.DGRS_SMSTR_CHRT YR_SMSTR
+    			, CASE	WHEN 	NVL(SC.SMSTR_CHRT_GBNCD, 'SMSTR') = 'SMSTR'
+    					THEN  	SC.DGRS_YR || '년도 ' || SC.DGRS_SMSTR_CHRT || '학기'
+    					ELSE	SC.DGRS_YR || '년도 ' || SC.DGRS_SMSTR_CHRT || '기수'
+    					END		YR_SMSTRNM
+   		FROM	TB_LMS_SMSTR_CHRT	SC
+  		WHERE	1 = 1
+  		<if test="orgId != null and orgId != ''">
+			AND SC.ORG_ID = #{orgId}
+		</if>
+		<if test="dgrsYr != null and dgrsYr != ''">
+			AND SC.DGRS_YR = #{dgrsYr}
+		</if>
+		<if test="dgrsSmstrChrt != null and dgrsSmstrChrt != ''">
+			AND SC.DGRS_SMSTR_CHRT = #{dgrsSmstrChrt}
+		</if>
+    </select>
+    
+    <select id="yrSmstrOnlySelect" parameterType="pageInfo" resultType="egovMap">
+    	/*	연도학기만목록조회 */
+    	<!--
+    	SELECT
+    			DISTINCT SC.DGRS_YR
+    			, SC.DGRS_SMSTR_CHRT
+    			, CASE	WHEN 	NVL(SC.SMSTR_CHRT_GBNCD, 'SMSTR') = 'SMSTR'
+    					THEN  	SC.DGRS_YR || '년도 ' || SC.DGRS_SMSTR_CHRT || '학기'
+    					ELSE	SC.DGRS_YR || '년도 ' || SC.DGRS_SMSTR_CHRT || '기수'
+    					END		SMSTR_CHRT
+   		FROM	TB_LMS_SMSTR_CHRT	SC				
+  		WHERE	1 = 1
+  		<if test="orgId != null and orgId != ''">
+			AND ORG_ID = #{orgId}
+		</if>
+		<if test="dgrsYr != null and dgrsYr != ''">
+			AND SC.DGRS_YR = #{dgrsYr}
+		</if>
+		<if test="dgrsSmstrChrt != null and dgrsSmstrChrt != ''">
+			AND SC.DGRS_SMSTR_CHRT = #{dgrsSmstrChrt}
+		</if>
+		-->
+        SELECT	DISTINCT
+              SC.DGRS_YR
+            , SC.DGRS_SMSTR_CHRT
+            , SC.SMSTR_CHRT_GBNCD
+            , CASE WHEN NVL(SC.SMSTR_CHRT_GBNCD, 'SMSTR') = 'SMSTR'
+                THEN  	SC.DGRS_YR || '년도 ' || SC.DGRS_SMSTR_CHRT || '학기'
+                ELSE	SC.DGRS_YR || '년도 ' || SC.DGRS_SMSTR_CHRT || '기'
+              END	AS YR_SMSTRNM
+        FROM TB_LMS_SMSTR_CHRT SC
+        WHERE 1 = 1
+        ORDER BY DGRS_YR  DESC, DGRS_SMSTR_CHRT DESC, YR_SMSTRNM DESC
+    </select>
+    
+</mapper>

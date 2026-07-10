@@ -16,7 +16,7 @@ public interface AttachFileService {
      * @return AtflVO
      * @throws Exception
      ******************************************************/
-    public AtflVO selectAtfl(AtflVO vo) throws Exception;
+    public AtflVO selectAtfl(AtflVO vo);
 
     /*****************************************************
      * 첨부파일목록조회 (by RefId)
@@ -24,17 +24,18 @@ public interface AttachFileService {
      * @return List<AtflVO>
      * @throws Exception
      ******************************************************/
-    public List<AtflVO> selectAtflListByRefId(AtflVO vo) throws Exception;
+    public List<AtflVO> selectAtflListByRefId(AtflVO vo);
 
 	/*****************************************************
      * 첨부파일 목록 저장
      * @param List<AtflVO>
      *****************************************************/
-    public void insertAtflList(List<AtflVO> fileList) throws Exception;
+    public void insertAtflList(List<AtflVO> fileList);
 
 	/*****************************************************
      * 첨부파일 삭제 (by atflIds)
      * @param String[]
+	 * @throws Exception 
      *****************************************************/
     public void deleteAtflByAtflIds(String[] atflIds) throws Exception;
 
@@ -49,5 +50,5 @@ public interface AttachFileService {
      * @return List<AtflRepoVO>
      * @throws Exception
      ******************************************************/
-    public List<AtflRepoVO> selectAtflRepoList() throws Exception;
+    public List<AtflRepoVO> selectAtflRepoList();
 }

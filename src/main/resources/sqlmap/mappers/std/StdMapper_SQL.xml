@@ -187,7 +187,7 @@
             WHERE AA.stdNo = #{stdNo}
         </if>
         <if test='pagingYn == null or pagingYn == "".toString() or pagingYn == "Y".toString()'>
-          	<include refid="CommonSQL.pageSubfix" />
+          	<include refid="CommonSQL.pageSuffix" />
          </if>
     </select>
 
@@ -338,7 +338,7 @@
             ORDER BY A.STD_ID ASC
         </if>
         <if test='pagingYn == null or pagingYn == "".toString() or pagingYn == "Y".toString()'>
-            <include refid="CommonSQL.pageSubfix" />
+            <include refid="CommonSQL.pageSuffix" />
         </if>
     </select>
 
@@ -547,7 +547,7 @@
          */
         <include refid="CommonSQL.pagePrefix"/>
         <include refid="studentInfoQuery" />
-        <include refid="CommonSQL.pageSubfix"/>
+        <include refid="CommonSQL.pageSuffix"/>
     </select>
 
     <select id="countStudentInfo" parameterType="stdVO" resultType="Integer">
@@ -567,7 +567,7 @@
          */
         <include refid="CommonSQL.pagePrefix"/>
         <include refid="studentInfoQuery" />
-        <include refid="CommonSQL.pageSubfix"/>
+        <include refid="CommonSQL.pageSuffix"/>
     </select>
 
     <select id="countDisablilityStudentInfo" parameterType="stdVO" resultType="Integer">
@@ -2209,7 +2209,7 @@
              </if>
 			ORDER BY TLAH.USER_ID ASC
        
-        <include refid="CommonSQL.pageSubfix"/>
+        <include refid="CommonSQL.pageSuffix"/>
         <!-- <if test='stdId != null and stdId != ""'>
           AND A.STD_ID = #{stdId}
         </if> -->
@@ -3051,7 +3051,7 @@
 			</if>
 		</if>
 		<if test='pagingYn == null or pagingYn == "".toString() or pagingYn == "Y".toString()'>
-	        <include refid="CommonSQL.pageSubfix"/>
+	        <include refid="CommonSQL.pageSuffix"/>
 		</if>
     </select>
     

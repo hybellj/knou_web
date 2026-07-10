@@ -65,7 +65,7 @@ public class DextUploaderTag extends TagSupport {
                 oldFiles = fileObjArray.toString();
             }
 
-			String language = LocaleUtil.getLocale(req).toString();
+			String language = LocaleUtil.getLangCd(req);
 			if (!"".equals(StringUtil.nvl(lang))) {
 				language = lang;
 			}

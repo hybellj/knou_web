@@ -10,6 +10,11 @@ import knou.lms.common.vo.DefaultVO;
 public class BbsVO extends DefaultVO {
     private static final long serialVersionUID = -8061054982843918999L;
 
+
+    public String	toString() {
+    	return "bbsId=" + this.bbsId + ", bbsTycd=" + this.bbsTycd + ", sbjctId=" + this.sbjctId;
+    }
+
     private String bbsId;			// 게시판 아이디
     private String sbjctId;			// 과목 아이디
     private String crsCd;			// 과정 아이디
@@ -74,14 +79,30 @@ public class BbsVO extends DefaultVO {
     private String bbsNm;
     private String bbsOptnId;
     private String optnCd;
-    private String optnCdNtc;
-    private String optnCdRspns;
     private List<String> optnCdList;
     private String optnUseyn;
     private String bbsAddyn;
     private String bbsOptnNm;
     private String bbsWriteUseyn;
-    private String bbsUseyn;
+    private String rspnsUseyn;
+    private String optnCdNtc;
+    private String optnCdRspns;
+    private String teamGrpId;
+    private String teamGrpnm;
+    private String lrnTeamId;
+    private String lrnTeamnm;
+    private String lctrWknoSchdlId;
+    private String lctrWknonm;
+    private String lrnElemtId;
+    private String lrnElemtnm;
+
+    private String searchYr; // 검색년도
+    private String searchSmstrCd; // 검색 학기 코드
+    private String searchOrgId; // 검색 조직 ID
+    private String searchKeyword; // 검색어
+    private String smstrChrtnm;
+    private String dvclasNo;
+    private String crclmnNo;
 
 	public String getBbsId() {
 		return bbsId;
@@ -407,17 +428,23 @@ public class BbsVO extends DefaultVO {
 	public void setBbsOptnNm(String bbsOptnNm) {
 		this.bbsOptnNm = bbsOptnNm;
 	}
+	public String getBbsWriteUseyn() {
+		return bbsWriteUseyn;
+	}
+	public void setBbsWriteUseyn(String bbsWriteUseyn) {
+		this.bbsWriteUseyn = bbsWriteUseyn;
+	}
+	public String getRspnsUseyn() {
+		return rspnsUseyn;
+	}
+	public void setRspnsUseyn(String rspnsUseyn) {
+		this.rspnsUseyn = rspnsUseyn;
+	}
 	public String getOptnCdNtc() {
 		return optnCdNtc;
 	}
 	public String getOptnCdRspns() {
 		return optnCdRspns;
-	}
-	public String getBbsWriteUseyn() {
-		return bbsWriteUseyn;
-	}
-	public String getBbsUseyn() {
-		return bbsUseyn;
 	}
 	public void setOptnCdNtc(String optnCdNtc) {
 		this.optnCdNtc = optnCdNtc;
@@ -425,10 +452,94 @@ public class BbsVO extends DefaultVO {
 	public void setOptnCdRspns(String optnCdRspns) {
 		this.optnCdRspns = optnCdRspns;
 	}
-	public void setBbsWriteUseyn(String bbsWriteUseyn) {
-		this.bbsWriteUseyn = bbsWriteUseyn;
+	public String getTeamGrpId() {
+		return teamGrpId;
 	}
-	public void setBbsUseyn(String bbsUseyn) {
-		this.bbsUseyn = bbsUseyn;
+	public String getTeamGrpnm() {
+		return teamGrpnm;
+	}
+	public void setTeamGrpId(String lrnGrpId) {
+		this.teamGrpId = lrnGrpId;
+	}
+	public void setTeamGrpnm(String lrnGrpnm) {
+		this.teamGrpnm = lrnGrpnm;
+	}
+	public String getLrnTeamId() {
+		return lrnTeamId;
+	}
+	public String getLrnTeamnm() {
+		return lrnTeamnm;
+	}
+	public void setLrnTeamId(String lrnTeamId) {
+		this.lrnTeamId = lrnTeamId;
+	}
+	public void setLrnTeamnm(String lrnTeamnm) {
+		this.lrnTeamnm = lrnTeamnm;
+	}
+	public String getLctrWknoSchdlId() {
+		return lctrWknoSchdlId;
+	}
+	public String getLctrWknonm() {
+		return lctrWknonm;
+	}
+	public void setLctrWknoSchdlId(String lctrWknoSchdlId) {
+		this.lctrWknoSchdlId = lctrWknoSchdlId;
+	}
+	public void setLctrWknonm(String lctrWknonm) {
+		this.lctrWknonm = lctrWknonm;
+	}
+	public String getLrnElemtId() {
+		return lrnElemtId;
+	}
+	public String getLrnElemtnm() {
+		return lrnElemtnm;
+	}
+	public void setLrnElemtId(String lrnElemtId) {
+		this.lrnElemtId = lrnElemtId;
+	}
+	public void setLrnElemtnm(String lrnElemtnm) {
+		this.lrnElemtnm = lrnElemtnm;
+	}
+	public String getSearchYr() {
+		return searchYr;
+	}
+	public String getSearchSmstrCd() {
+		return searchSmstrCd;
+	}
+	public String getSearchOrgId() {
+		return searchOrgId;
+	}
+	public String getSearchKeyword() {
+		return searchKeyword;
+	}
+	public String getSmstrChrtnm() {
+		return smstrChrtnm;
+	}
+	public String getDvclasNo() {
+		return dvclasNo;
+	}
+	public String getCrclmnNo() {
+		return crclmnNo;
+	}
+	public void setSearchYr(String searchYr) {
+		this.searchYr = searchYr;
+	}
+	public void setSearchSmstrCd(String searchSmstrCd) {
+		this.searchSmstrCd = searchSmstrCd;
+	}
+	public void setSearchOrgId(String searchOrgId) {
+		this.searchOrgId = searchOrgId;
+	}
+	public void setSearchKeyword(String searchKeyword) {
+		this.searchKeyword = searchKeyword;
+	}
+	public void setSmstrChrtnm(String smstrChrtnm) {
+		this.smstrChrtnm = smstrChrtnm;
+	}
+	public void setDvclasNo(String dvclasNo) {
+		this.dvclasNo = dvclasNo;
+	}
+	public void setCrclmnNo(String crclmnNo) {
+		this.crclmnNo = crclmnNo;
 	}
 }

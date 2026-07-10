@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="72px" height="57.6px" viewBox="0 0 17.01 19.84" fill="none">
+  <title>Vue.js Icon</title>
+  <!-- outer V -->
+  <path
+    d="M1.25 4.8H4.45L8.5 11.65L12.56 4.8H15.76L8.5 17.2L1.25 4.8Z"
+    fill="#41B883"
+  />
+  <!-- inner V -->
+  <path
+    d="M4.45 4.8H6.95L8.5 7.45L10.06 4.8H12.56L8.5 11.65L4.45 4.8Z"
+    fill="#35495E"
+  />
+</svg>

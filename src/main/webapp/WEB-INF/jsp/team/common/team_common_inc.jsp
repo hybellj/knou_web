@@ -5,6 +5,31 @@
 <script type="text/javascript" src="/webdoc/js/Chart.PieceLabel.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
 <script type="text/javascript">
+    var dialog;
+    var EPARAM = '<c:out value="${encParams}" />';
+
+    /**
+     * 팀 그룹 화면 이동
+     * @param {String} tab       - "list"|"dtl"|"write"
+     * @param {String} teamGrpId - 팀 그룹 ID (dtl/write 시 필요)
+     * @param {String} usingyn   - 팀 그룹 사용여부 (dtl/write 시 필요)
+     */
+    function teamGrpMgrViewMv(tab, teamGrpId, usingyn, sbjctId) {
+        var urlMap = {
+            "list"  : "/team/teamGrpMngListView.do",
+            "dtl"   : "/team/teamGrpMngDtlView.do",
+            "write" : "/team/teamGrpMngWriteView.do"
+        };
+        if (tab === "list") {
+            document.location.href = urlMap[tab] + "?encParams=" + EPARAM;
+        } else {
+            var extData = { teamGrpId: teamGrpId || '', usingyn: usingyn || '', sbjctId: sbjctId };
+            document.location.href = urlMap[tab]
+                + "?encParams=" + EPARAM
+                + "&addParams=" + UiComm.makeEncParams(extData);
+        }
+    }
+
 	window.closeModal = function() {
 	    $('.modal').modal('hide');
 	};
@@ -86,13 +111,13 @@
 			var stareCnt = 0;
 			var labelsArray = new Array();
 			var dataArray   = new Array();
-			var colorArray  = new Array();
+			var ${uiex:getTheme()}rray  = new Array();
 			
 			list.forEach(function(v, i) {
 				stareCnt += v.cnt;
 				labelsArray.push(v.label);
 				dataArray.push(v.cnt);
-				colorArray.push('rgba(54, 162, 235, .6)');
+				${uiex:getTheme()}rray.push('rgba(54, 162, 235, .6)');
 			});
 			var ctx = document.getElementById(ctxMap[type]);
 	        var myChart = new Chart(ctx, {
@@ -100,7 +125,7 @@
 	            data: {
 	            labels: labelsArray,
 	            datasets: [{
-	                backgroundColor: colorArray,
+	                backgroundColor: ${uiex:getTheme()}rray,
 	                borderWidth:1,
 	                data: dataArray
 	            }]
@@ -482,6 +507,7 @@
 
     // html 태그 제거
     function escapeHtml(str) {
+        if (str == null) return '';
         var map = {
             '&': '&amp;',
             '<': '&lt;',
@@ -489,6 +515,6 @@
             '"': '&quot;',
             "'": '&#039;'
         };
-        return str.replace(/[&<>"']/g, function(m) { return map[m]; });
+        return String(str).replace(/[&<>"']/g, function(m) { return map[m]; });
     }
 </script>

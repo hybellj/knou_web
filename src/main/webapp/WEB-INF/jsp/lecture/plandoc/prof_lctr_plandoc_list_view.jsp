@@ -9,7 +9,7 @@
     </jsp:include>
 </head>
 
-<body class="home colorA ${bodyClass}"><!-- 컬러선택시 클래스변경 -->
+<body class="home ${uiex:getTheme()} ${bodyClass}"><!-- 컬러선택시 클래스변경 -->
 <div id="wrap" class="main">
     <!-- common header -->
     <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
@@ -28,13 +28,7 @@
                 <div class="sub-content">
                     <div class="page-info">
                         <h2 class="page-title">강의계획서</h2>
-                        <div class="navi_bar">
-                            <ul>
-                                <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                                <li>공지사항</li>
-                                <li><span class="current">과목공지</span></li>
-                            </ul>
-                        </div>
+                        <uiex:navibar type="main"/>
                     </div>
 
 
@@ -43,37 +37,48 @@
                         <div class="item">
                             <span class="item_tit"><label for="selectDate">학사년도/학기</label></span>
                             <div class="itemList">
-                                <select class="form-select chosen" id="selectDate1">
-                                    <option value="2025년">2025년</option>
-                                    <option value="2024년">2024년</option>
+                                <select class="form-select chosen" id="sbjctYr" onchange="changeSmstrChrt()">
+                                    <c:forEach var="item" items="${filterOptions.yearList}">
+                                        <option value="${item}" ${item eq defaultYear ? 'selected' : ''}>
+                                                ${item}
+                                        </option>
+                                    </c:forEach>
                                 </select>
-                                <select class="form-select chosen" id="selectDate2">
-                                    <option value="2학기">2학기</option>
-                                    <option value="1학기">1학기</option>
+                                <select class="form-select chosen" id="sbjctSmstr">
+                                    <option value="">개설학기</option>
+                                    <c:forEach var="item" items="${filterOptions.smstrChrtList}">
+                                        <option value="${item.smstrChrtId}" <%--${item.dgrsSmstrChrt eq defaultTerm ? 'selected' : ''}--%>>
+                                                ${item.smstrChrtnm}
+                                        </option>
+                                    </c:forEach>
                                 </select>
                             </div>
                         </div>
                         <div class="item">
                             <span class="item_tit"><label for="selectCourse">운영과목</label></span>
                             <div class="itemList">
-                                <select class="form-select chosen" id="selectCourse">
-                                    <option value="대학원">대학원</option>
-                                    <option value="평생교육">평생교육</option>
+                                <select class="form-select chosen" id="orgId" onchange="changeOrg()">
+                                    <option value="">기관</option>
+                                    <c:forEach var="item" items="${filterOptions.orgList}">
+                                        <option value="${item.orgId}">${item.orgnm}</option>
+                                    </c:forEach>
                                 </select>
-                                <select class="form-select wide" id="selectSubject">
+                                <select class="form-select wide" id="sbjctId">
                                     <option value="">운영과목 선택</option>
-                                    <option value="운영과목1">운영과목1</option>
-                                    <option value="운영과목2">운영과목2</option>
+                                    <c:forEach var="item" items="${filterOptions.sbjctList}">
+                                        <option value="${item.sbjctId}">${item.sbjctnm}</option>
+                                    </c:forEach>
                                 </select>
                             </div>
                         </div>
 
                         <div class="button-area">
-                            <button type="button" class="btn search">검색</button>
+                            <button type="button" class="btn search" onclick="listPaging(1)">검색</button>
                         </div>
                     </div>
 
-                    <div id="plandocListArea">
+                    <div id=" plandocListArea
+                            ">
                         <div class="board_top">
                             <h3 class="board-title">운영과목</h3>
                             <div class="right-area">
@@ -81,7 +86,7 @@
                                 <span class="list-card-button"></span>
 
                                 <%-- 목록 스케일 선택 --%>
-                                <uiex:listScale func="changeListScale" value="${lctrPlandocVO.listScale}"/>
+                                <uiex:listScale func="changeListScale" value="${plandocVO.listScale}"/>
                             </div>
                         </div>
                         <%-- 강의계획서 리스트 --%>
@@ -100,7 +105,6 @@
                                     <p><label>년도</label><strong>#[sbjctYr]</strong></p>
                                     <p><label>학기</label><strong>#[sbjctSmstr]</strong></p>
                                     <p><label>기관</label><strong>#[orgnm]</strong></p>
-                                    <p><label>학과</label><strong>#[deptnm]</strong></p>
                                     <p><label>과목코드</label><strong>#[sbjctCd]</strong></p>
                                     <p><label>과목명</label><strong>#[sbjctnm]</strong></p>
                                     <p><label>분반</label><strong>#[dvclasNo]</strong></p>
@@ -135,9 +139,9 @@
 
 </div>
 <script type="text/javascript">
-    var CTX = "<%=request.getContextPath()%>";
     let PAGE_INDEX = '<c:out value="${plandocVO.pageIndex}" />';
     let LIST_SCALE = '<c:out value="${plandocVO.listScale}" />';
+    let EPARAM = '<c:out value="${encParams}" />';
     let plandocListTable;
 
     $(function () {
@@ -155,16 +159,13 @@
                     title: "학기", field: "sbjctSmstr", headerHozAlign: "center", hozAlign: "center", width: 80
                 },  // 학기
                 {
-                    title: "기관", field: "orgnm", headerHozAlign: "center", hozAlign: "center", width: 120
+                    title: "기관", field: "orgnm", headerHozAlign: "center", hozAlign: "center", width: 170
                 },  // 기관
                 {
-                    title: "학과", field: "deptnm", headerHozAlign: "center", hozAlign: "center", width: 120
-                },  // 학과
-                {
-                    title: "과목코드", field: "sbjctCd", headerHozAlign: "center", hozAlign: "center", width: 120
+                    title: "과목코드", field: "crclmnNo", headerHozAlign: "center", hozAlign: "center", width: 120
                 },  // 과목코드
                 {
-                    title: "과목명", field: "sbjctnm", headerHozAlign: "center", hozAlign: "left", width: 200
+                    title: "과목명", field: "sbjctnm", headerHozAlign: "center", hozAlign: "left", width: 0, minWidth: 220
                 },  // 과목명
                 {
                     title: "분반", field: "dvclasNo", headerHozAlign: "center", hozAlign: "center", width: 80
@@ -214,13 +215,25 @@
         PAGE_INDEX = pageIndex;
         const url = "/lctr/plandoc/profLctrPlandocListAjax.do";
 
+        const extData = {
+                sbjctYr: $("#sbjctYr").val()
+                , smstrChrtId: $("#sbjctSmstr").val()
+                , orgId: $("#orgId").val()
+                , sbjctId: $("#sbjctId").val()
+                , pageIndex: PAGE_INDEX
+                , listScale: LIST_SCALE
+            }
+        ;
+
         const param = {
-            sbjctYr: "2026"
-            , sbjctSmstr: "1"
-            , pageIndex: PAGE_INDEX
-            , listScale: LIST_SCALE
+            encParams: EPARAM
+            , addParams: UiComm.makeEncParams(extData)
         };
+
         ajaxCall(url, param, function (data) {
+            if (data.encParams != null && data.encParams != '') {
+                EPARAM = data.encParams;
+            }
             if (data.result > 0) {
                 let returnList = data.returnList || [];
 
@@ -263,8 +276,7 @@
                 sbjctYr: v.sbjctYr,
                 sbjctSmstr: v.sbjctSmstr,
                 orgnm: v.orgnm,
-                deptnm: v.deptnm,
-                sbjctCd: v.sbjctCd,          // 과목코드
+                crclmnNo: v.crclmnNo,          // 과목코드
                 sbjctnm: linkSbjctnm,        // 과목명 (링크)
                 dvclasNo: v.dvclasNo,        // 분반
                 crdts: v.crdts,              // 학점
@@ -294,10 +306,94 @@
      * @param sbjctId
      */
     function viewPlandoc(sbjctId) {
+
+        const extData = {
+            sbjctId: sbjctId
+        };
+
         // 상세 페이지로 이동
-        location.href = "/lctr/plandoc/profLctrPlandocView.do?sbjctId=" + encodeURIComponent(sbjctId);
+        location.href = "/lctr/plandoc/profLctrPlandocView.do?encParams=" + EPARAM + "&addParams=" + UiComm.makeEncParams(extData);
     }
 
+    // 학기기수 세팅 변경
+    function changeSmstrChrt() {
+
+        const $sbjctSmstr = $("#sbjctSmstr");
+
+        // 초기화
+        $sbjctSmstr.off("change");
+        $sbjctSmstr.empty();
+
+        const url = "/crs/termMgr/admSmstrListByDgrsYrAjax.do";
+        const param = {
+            dgrsYr: $("#sbjctYr").val()
+        }
+
+        ajaxCall(url, param, function (data) {
+            if (data.result > 0) {
+                let resultList = data.returnList || [];
+                // 전체
+                $sbjctSmstr.append(`<option value=""><spring:message code="crs.label.open.term" /></option>`);
+
+                // 학기 목록
+                $.each(resultList, function (i, item) {
+                    $sbjctSmstr.append(`<option value="${item.smstrChrtId}">${item.smstrChrtnm}</option>`);
+                });
+
+                $sbjctSmstr.trigger("chosen:updated");
+
+            } else {
+                UiComm.showMessage(data.message, "error");
+            }
+        }, function () {
+            UiComm.showMessage("<spring:message code='fail.common.msg' />", "error");
+        }, true);
+    }
+
+    /**
+     * 기관 변경
+     */
+    function changeOrg() {
+        $("#sbjctId").val("");
+
+        loadSbjctList();
+    }
+
+    /**
+     * 과목 목록 불러오기
+     */
+    function loadSbjctList() {
+        const url = "/lctr/plandoc/sbjctListAjax.do";
+        const param = {
+            sbjctYr: $("#sbjctYr").val()
+            , smstrChrtId: $("#smstrChrtId").val()
+            , orgId: $("#orgId").val()
+        }
+
+        ajaxCall(url, param, function (data) {
+            if (data.result > 0) {
+                let html = "";
+                html += "<option value=''>운영과목 선택</option>";
+
+                if (data.result > 0) {
+                    $.each(data.returnList, function (i, item) {
+                        html += "<option value='" + item.sbjctId + "'>";
+                        html += item.sbjctnm;
+                        html += "</option>";
+                    });
+                }
+
+                $("#sbjctId").html(html);
+                $("#sbjctId").trigger("chosen:updated");
+
+            } else {
+                UiComm.showMessage(data.message, "error");
+            }
+        }, function () {
+            UiComm.showMessage("<spring:message code='fail.common.msg' />", "error");
+        }, true);
+
+    }
 </script>
 </body>
 </html>

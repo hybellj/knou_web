@@ -11,7 +11,298 @@ import knou.lms.org.vo.OrgCodeVO;
 public class CreCrsVO extends DefaultVO {
 
     private static final long serialVersionUID = 4082505823708268628L;
+    /*****************************************************
+     * 신규 작성 VO 영역
+     *****************************************************/
+    // 여기에 vo 작성.
 
+    // end
+
+    // 로직상 사용하는 Parameter
+    private Integer importType;          // 가져오기 타입
+    private String  isCurr;              // 현재학기 여부
+
+    // 공통적으로 사용
+    private String  prevSmstrImportyn;
+    private String  orgId;
+    private String  prevSbjctId;
+
+    // BBS, BBS_ATCL 에서 사용
+    private String  bbsId;               // BBS_ID
+    private String  bbsnm;               // BBSNM
+    private String  bbsEnnm;             // BBS_ENNM
+    private String  bbsExpln;            // BBS_EXPLN
+    private String  bbsTycd;             // BBS_TYCD
+    private String  bbsLangCd;           // BBS_LANG_CD
+    private int     listCnt;             // LIST_CNT
+    private int     atflMaxCnt;          // ATFL_MAX_CNT
+    private int     atflMaxsz;           // ATFL_MAXSZ
+    private String  atflUseyn;           // ATFL_USEYN
+
+    private String  atclId;              // ATCL_ID
+    private String  atclTtl;             // ATCL_TTL
+    private String  atclCts;             // ATCL_CTS
+    private int     atclLv;              // ATCL_LV
+    private int     fvrtCnt;             // FVRT_CNT
+    private int     inqCnt;              // INQ_CNT
+    private String  thmbFileId;          // THMB_FILE_ID
+    private String  procStscd;           // PROC_STSCD
+    private String  deptId;              // DEPT_ID
+
+    // ASMT 에서 사용
+    private String  asmtId;
+    private String  asmtTtl;
+    private String  asmtCts;
+    private String  asmtGbncd;
+    private String  sbasmtTycd;
+    private String  evlScrTycd;
+    private String  sbmsnFileMimeTycd;
+    private int     mrkRfltrt;
+    private String  mrkOyn;
+    private String  byteamAsmtUseyn;
+
+    // EXAM_BSC, EXAM_DTL 에서 사용
+    private String  examBscId;          // EXAM_BSC_ID
+    private String  examTycd;           // EXAM_TYCD
+    private String  examGbncd;          // EXAM_GBNCD
+    private String  examTtl;            // EXAM_TTL
+    private String  examCts;            // EXAM_CTS
+    private String  tkexamMthdCd;       // TKEXAM_MTHD_CD
+    private String  qstnDsplyGbncd;     // QSTN_DSPLY_GBNCD
+    private String  exampprOyn;         // EXAMPPR_OYN
+    private String  avgMrkOyn;          // AVG_MRK_OYN
+    private int     maxTkexamCnt;       // MAX_TKEXAM_CNT
+    private String  qstnsDlgtnyn;       // QSTNS_DLGTNYN
+    private String  dvclasRegyn;        // DVCLAS_REGYN
+    private String  qstnRndmyn;         // QSTN_RNDMYN
+    private String  qstnVwitmRndmyn;    // QSTN_VWITM_RNDMYN
+    private String  qstnCnddtUseyn;     // QSTN_CNDDT_USEYN
+    private String  mrkRfltyn;          // MRK_RFLTYN
+    private String  examtmAllocGbncd;   //
+    private String  examtmExpsrTycd;    // EXAMTM_EXPSR_TYCD
+    private String  examDtlId;          // EXAM_DTL_ID
+    private int     examMnts;           // EXAM_MNTS
+    private String  examtmLmtyn;        // EXAMTM_LMTYN
+    private int     cnsdrAddMnts;       // CNSDR_ADD_MNTS
+
+    // SRVY 에서 사용
+    private String  srvyId;             // SRVY_ID (채번 후 세팅)
+    private String  srvyWrtTycd;        // SRVY_WRT_TYCD
+    private String  srvyGbncd;          // SRVY_GBNCD
+    private String  srvyTycd;           // SRVY_TYCD
+    private String  srvyTrgtGbncd;      // SRVY_TRGT_GBNCD
+    private String  srvyTtl;            // SRVY_TTL
+    private String  srvyCts;            // SRVY_CTS
+    private String  rsltOpenTycd;       // RSLT_OPEN_TYCD
+
+    // DSCS (토론) 에서 사용
+    private String  dscsId;             // DSCS_ID
+    private String  dscsTycd;           // DSCS_TYCD
+    private String  dscsGbncd;          // DSCS_GBNCD
+    private String  dscsTtl;            // DSCS_TTL
+    private String  dscsCts;            // DSCS_CTS
+    private String  oatclInqyn;         // OATCL_INQYN
+    private String  oknokrtOyn;         // OKNOKRT_OYN
+    private String  oknokModyn;         // OKNOK_MODYN
+    private String  mltOpnnRegyn;       // MLT_OPNN_REGYN
+    private String  cmntRspnsReqyn;     // CMNT_RSPNS_REQYN
+    private String  sbjctId;            // SBJCT_ID
+    private String  oknokRgtrOyn;       // OKNOK_RGTR_OYN
+    private String  oknokStngyn;        // OKNOK_STNGYN
+
+    // EXRCS_SDDN_QSTN (연습문제/돌발퀴즈) 에서 사용
+    private String  exrcsSddnQstnBscId; // EXRCS_SDDN_QSTN_BSC_ID
+    private String  qstnTtl;            // QSTN_TTL
+    private String  qstnCts;            // QSTN_CTS
+    private String  qstnGbncd;          // QSTN_GBNCD
+
+    // List 형태
+    private List<CreCrsVO> atclList;
+
+    public Integer getImportType() { return importType; }
+    public void setImportType(Integer importType) { this.importType = importType; }
+    public String getIsCurr() { return isCurr; }
+    public void setIsCurr(String isCurr) { this.isCurr = isCurr; }
+
+    public String getPrevSmstrImportyn() { return prevSmstrImportyn; }
+    public void setPrevSmstrImportyn(String prevSmstrImportyn) { this.prevSmstrImportyn = prevSmstrImportyn; }
+    public String getOrgId() {
+        return orgId;
+    }
+    public void setOrgId(String orgId) {
+        this.orgId = orgId;
+    }
+    public String getPrevSbjctId() {
+        return prevSbjctId;
+    }
+    public void setPrevSbjctId(String prevSbjctId) {
+        this.prevSbjctId = prevSbjctId;
+    }
+
+    public String getBbsId() { return bbsId; }
+    public void setBbsId(String bbsId) { this.bbsId = bbsId; }
+    public String getBbsnm() { return bbsnm; }
+    public void setBbsnm(String bbsnm) { this.bbsnm = bbsnm; }
+    public String getBbsEnnm() { return bbsEnnm; }
+    public void setBbsEnnm(String bbsEnnm) { this.bbsEnnm = bbsEnnm; }
+    public String getBbsExpln() { return bbsExpln; }
+    public void setBbsExpln(String bbsExpln) { this.bbsExpln = bbsExpln; }
+    public String getBbsTycd() { return bbsTycd; }
+    public void setBbsTycd(String bbsTycd) { this.bbsTycd = bbsTycd; }
+    public String getBbsLangCd() { return bbsLangCd; }
+    public void setBbsLangCd(String bbsLangCd) { this.bbsLangCd = bbsLangCd; }
+    public int getListCnt() { return listCnt; }
+    public void setListCnt(int listCnt) { this.listCnt = listCnt; }
+    public int getAtflMaxCnt() { return atflMaxCnt; }
+    public void setAtflMaxCnt(int atflMaxCnt) { this.atflMaxCnt = atflMaxCnt; }
+    public int getAtflMaxsz() { return atflMaxsz; }
+    public void setAtflMaxsz(int atflMaxsz) { this.atflMaxsz = atflMaxsz; }
+    public String getAtflUseyn() { return atflUseyn; }
+    public void setAtflUseyn(String atflUseyn) { this.atflUseyn = atflUseyn; }
+    public String getAtclId() { return atclId; }
+    public void setAtclId(String atclId) { this.atclId = atclId; }
+    public String getAtclTtl() { return atclTtl; }
+    public void setAtclTtl(String atclTtl) { this.atclTtl = atclTtl; }
+    public String getAtclCts() { return atclCts; }
+    public void setAtclCts(String atclCts) { this.atclCts = atclCts; }
+    public int getAtclLv() { return atclLv; }
+    public void setAtclLv(int atclLv) { this.atclLv = atclLv; }
+    public int getFvrtCnt() { return fvrtCnt; }
+    public void setFvrtCnt(int fvrtCnt) { this.fvrtCnt = fvrtCnt; }
+    public int getInqCnt() { return inqCnt; }
+    public void setInqCnt(int inqCnt) { this.inqCnt = inqCnt; }
+    public String getThmbFileId() { return thmbFileId; }
+    public void setThmbFileId(String thmbFileId) { this.thmbFileId = thmbFileId; }
+    public String getProcStscd() { return procStscd; }
+    public void setProcStscd(String procStscd) { this.procStscd = procStscd; }
+    public String getDeptId() { return deptId; }
+    public void setDeptId(String deptId) { this.deptId = deptId; }
+
+    public String getAsmtId() { return asmtId; }
+    public void setAsmtId(String asmtId) { this.asmtId = asmtId; }
+    public String getAsmtTtl() { return asmtTtl; }
+    public void setAsmtTtl(String asmtTtl) { this.asmtTtl = asmtTtl; }
+    public String getAsmtCts() { return asmtCts; }
+    public void setAsmtCts(String asmtCts) { this.asmtCts = asmtCts; }
+    public String getAsmtGbncd() { return asmtGbncd; }
+    public void setAsmtGbncd(String asmtGbncd) { this.asmtGbncd = asmtGbncd; }
+    public String getSbasmtTycd() { return sbasmtTycd; }
+    public void setSbasmtTycd(String sbasmtTycd) { this.sbasmtTycd = sbasmtTycd; }
+    public String getEvlScrTycd() { return evlScrTycd; }
+    public void setEvlScrTycd(String evlScrTycd) { this.evlScrTycd = evlScrTycd; }
+    public String getSbmsnFileMimeTycd() { return sbmsnFileMimeTycd; }
+    public void setSbmsnFileMimeTycd(String sbmsnFileMimeTycd) { this.sbmsnFileMimeTycd = sbmsnFileMimeTycd; }
+    public int getMrkRfltrt() { return mrkRfltrt; }
+    public void setMrkRfltrt(int mrkRfltrt) { this.mrkRfltrt = mrkRfltrt; }
+    public String getMrkOyn() { return mrkOyn; }
+    public void setMrkOyn(String mrkOyn) { this.mrkOyn = mrkOyn; }
+    public String getByteamAsmtUseyn() { return byteamAsmtUseyn; }
+    public void setByteamAsmtUseyn(String byteamAsmtUseyn) { this.byteamAsmtUseyn = byteamAsmtUseyn; }
+
+    public String getExamBscId() { return examBscId; }
+    public void setExamBscId(String examBscId) { this.examBscId = examBscId; }
+    public String getExamTycd() { return examTycd; }
+    public void setExamTycd(String examTycd) { this.examTycd = examTycd; }
+    public String getExamGbncd() { return examGbncd; }
+    public void setExamGbncd(String examGbncd) { this.examGbncd = examGbncd; }
+    public String getExamTtl() { return examTtl; }
+    public void setExamTtl(String examTtl) { this.examTtl = examTtl; }
+    public String getExamCts() { return examCts; }
+    public void setExamCts(String examCts) { this.examCts = examCts; }
+    public String getTkexamMthdCd() { return tkexamMthdCd; }
+    public void setTkexamMthdCd(String tkexamMthdCd) { this.tkexamMthdCd = tkexamMthdCd; }
+    public String getQstnDsplyGbncd() { return qstnDsplyGbncd; }
+    public void setQstnDsplyGbncd(String qstnDsplyGbncd) { this.qstnDsplyGbncd = qstnDsplyGbncd; }
+    public String getExampprOyn() { return exampprOyn; }
+    public void setExampprOyn(String exampprOyn) { this.exampprOyn = exampprOyn; }
+    public String getAvgMrkOyn() { return avgMrkOyn; }
+    public void setAvgMrkOyn(String avgMrkOyn) { this.avgMrkOyn = avgMrkOyn; }
+    public int getMaxTkexamCnt() { return maxTkexamCnt; }
+    public void setMaxTkexamCnt(int maxTkexamCnt) { this.maxTkexamCnt = maxTkexamCnt; }
+    public String getQstnsDlgtnyn() { return qstnsDlgtnyn; }
+    public void setQstnsDlgtnyn(String qstnsDlgtnyn) { this.qstnsDlgtnyn = qstnsDlgtnyn; }
+    public String getDvclasRegyn() { return dvclasRegyn; }
+    public void setDvclasRegyn(String dvclasRegyn) { this.dvclasRegyn = dvclasRegyn; }
+    public String getQstnRndmyn() { return qstnRndmyn; }
+    public void setQstnRndmyn(String qstnRndmyn) { this.qstnRndmyn = qstnRndmyn; }
+    public String getQstnVwitmRndmyn() { return qstnVwitmRndmyn; }
+    public void setQstnVwitmRndmyn(String qstnVwitmRndmyn) { this.qstnVwitmRndmyn = qstnVwitmRndmyn; }
+    public String getQstnCnddtUseyn() { return qstnCnddtUseyn; }
+    public void setQstnCnddtUseyn(String qstnCnddtUseyn) { this.qstnCnddtUseyn = qstnCnddtUseyn; }
+    public String getMrkRfltyn() { return mrkRfltyn; }
+    public void setMrkRfltyn(String mrkRfltyn) { this.mrkRfltyn = mrkRfltyn; }
+    public String getExamtmAllocGbncd() { return examtmAllocGbncd; }
+    public void setExamtmAllocGbncd(String examtmAllocGbncd) { this.examtmAllocGbncd = examtmAllocGbncd; }
+    public String getExamtmExpsrTycd() { return examtmExpsrTycd; }
+    public void setExamtmExpsrTycd(String examtmExpsrTycd) { this.examtmExpsrTycd = examtmExpsrTycd; }
+    public String getExamDtlId() { return examDtlId; }
+    public void setExamDtlId(String examDtlId) { this.examDtlId = examDtlId; }
+    public int getExamMnts() { return examMnts; }
+    public void setExamMnts(int examMnts) { this.examMnts = examMnts; }
+    public String getExamtmLmtyn() { return examtmLmtyn; }
+    public void setExamtmLmtyn(String examtmLmtyn) { this.examtmLmtyn = examtmLmtyn; }
+    public int getCnsdrAddMnts() { return cnsdrAddMnts; }
+    public void setCnsdrAddMnts(int cnsdrAddMnts) { this.cnsdrAddMnts = cnsdrAddMnts; }
+
+    public String getSrvyId() { return srvyId; }
+    public void setSrvyId(String srvyId) { this.srvyId = srvyId; }
+    public String getSrvyWrtTycd() { return srvyWrtTycd; }
+    public void setSrvyWrtTycd(String srvyWrtTycd) { this.srvyWrtTycd = srvyWrtTycd; }
+    public String getSrvyGbncd() { return srvyGbncd; }
+    public void setSrvyGbncd(String srvyGbncd) { this.srvyGbncd = srvyGbncd; }
+    public String getSrvyTycd() { return srvyTycd; }
+    public void setSrvyTycd(String srvyTycd) { this.srvyTycd = srvyTycd; }
+    public String getSrvyTrgtGbncd() { return srvyTrgtGbncd; }
+    public void setSrvyTrgtGbncd(String srvyTrgtGbncd) { this.srvyTrgtGbncd = srvyTrgtGbncd; }
+    public String getSrvyTtl() { return srvyTtl; }
+    public void setSrvyTtl(String srvyTtl) { this.srvyTtl = srvyTtl; }
+    public String getSrvyCts() { return srvyCts; }
+    public void setSrvyCts(String srvyCts) { this.srvyCts = srvyCts; }
+    public String getRsltOpenTycd() { return rsltOpenTycd; }
+    public void setRsltOpenTycd(String rsltOpenTycd) { this.rsltOpenTycd = rsltOpenTycd; }
+
+    public String getDscsId() { return dscsId; }
+    public void setDscsId(String dscsId) { this.dscsId = dscsId; }
+    public String getDscsTycd() { return dscsTycd; }
+    public void setDscsTycd(String dscsTycd) { this.dscsTycd = dscsTycd; }
+    public String getDscsGbncd() { return dscsGbncd; }
+    public void setDscsGbncd(String dscsGbncd) { this.dscsGbncd = dscsGbncd; }
+    public String getDscsTtl() { return dscsTtl; }
+    public void setDscsTtl(String dscsTtl) { this.dscsTtl = dscsTtl; }
+    public String getDscsCts() { return dscsCts; }
+    public void setDscsCts(String dscsCts) { this.dscsCts = dscsCts; }
+    public String getOatclInqyn() { return oatclInqyn; }
+    public void setOatclInqyn(String oatclInqyn) { this.oatclInqyn = oatclInqyn; }
+    public String getOknokrtOyn() { return oknokrtOyn; }
+    public void setOknokrtOyn(String oknokrtOyn) { this.oknokrtOyn = oknokrtOyn; }
+    public String getOknokModyn() { return oknokModyn; }
+    public void setOknokModyn(String oknokModyn) { this.oknokModyn = oknokModyn; }
+    public String getMltOpnnRegyn() { return mltOpnnRegyn; }
+    public void setMltOpnnRegyn(String mltOpnnRegyn) { this.mltOpnnRegyn = mltOpnnRegyn; }
+    public String getCmntRspnsReqyn() { return cmntRspnsReqyn; }
+    public void setCmntRspnsReqyn(String cmntRspnsReqyn) { this.cmntRspnsReqyn = cmntRspnsReqyn; }
+    public String getSbjctId() { return sbjctId; }
+    public void setSbjctId(String sbjctId) { this.sbjctId = sbjctId; }
+    public String getOknokRgtrOyn() { return oknokRgtrOyn; }
+    public void setOknokRgtrOyn(String oknokRgtrOyn) { this.oknokRgtrOyn = oknokRgtrOyn; }
+    public String getOknokStngyn() { return oknokStngyn; }
+    public void setOknokStngyn(String oknokStngyn) { this.oknokStngyn = oknokStngyn; }
+
+    public String getExrcsSddnQstnBscId() { return exrcsSddnQstnBscId; }
+    public void setExrcsSddnQstnBscId(String exrcsSddnQstnBscId) { this.exrcsSddnQstnBscId = exrcsSddnQstnBscId; }
+    public String getQstnTtl() { return qstnTtl; }
+    public void setQstnTtl(String qstnTtl) { this.qstnTtl = qstnTtl; }
+    public String getQstnCts() { return qstnCts; }
+    public void setQstnCts(String qstnCts) { this.qstnCts = qstnCts; }
+    public String getQstnGbncd() { return qstnGbncd; }
+    public void setQstnGbncd(String qstnGbncd) { this.qstnGbncd = qstnGbncd; }
+
+    public List<CreCrsVO> getAtclList() { return atclList; }
+    public void setAtclList(List<CreCrsVO> atclList) { this.atclList = atclList; }
+
+    /*****************************************************
+     * 기존에 있던 VO 영역
+     *****************************************************/
     private int fileSn;
     private String  curCrsCreCd;
     private String  crsCreCd;                  // 과정 개설 코드
@@ -176,7 +467,6 @@ public class CreCrsVO extends DefaultVO {
 
     /** 수강생 */
     private String stdId;                       // 수강생 :  수강생 번호
-    private String orgId;
     private String enrlSts;
     private String enrlAplcDttm;
     private String enrlCancelDttm;
@@ -259,8 +549,6 @@ public class CreCrsVO extends DefaultVO {
     private String suppScYn;
 
     // TB_HOME_BBS_INFO
-    private String bbsId;
-    // private String orgId;
     private String bbsCd;
     private String bbsNm;
     private String bbsDesc;
@@ -290,7 +578,6 @@ public class CreCrsVO extends DefaultVO {
     // private String useYn;
     // private String delYn;
     private String lockUseYn;
-    private String atclId;
     private String rgtrId;
     private String regDttm;
     private String mdfrId;
@@ -1190,13 +1477,6 @@ public class CreCrsVO extends DefaultVO {
         this.stdId = stdId;
     }
 
-    public String getOrgId() {
-        return orgId;
-    }
-    public void setOrgId(String orgId) {
-        this.orgId = orgId;
-    }
-
     public String getEnrlSts() {
         return enrlSts;
     }
@@ -1700,13 +1980,6 @@ public class CreCrsVO extends DefaultVO {
         this.tutorNo = tutorNo;
     }
 
-    public String getBbsId() {
-        return bbsId;
-    }
-    public void setBbsId(String bbsId) {
-        this.bbsId = bbsId;
-    }
-
     public String getBbsCd() {
         return bbsCd;
     }
@@ -1894,13 +2167,6 @@ public class CreCrsVO extends DefaultVO {
     }
     public void setLockUseYn(String lockUseYn) {
         this.lockUseYn = lockUseYn;
-    }
-
-    public String getAtclId() {
-        return atclId;
-    }
-    public void setAtclId(String atclId) {
-        this.atclId = atclId;
     }
 
     public String getRgtrId() {

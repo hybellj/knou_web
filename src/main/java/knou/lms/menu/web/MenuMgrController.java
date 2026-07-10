@@ -68,9 +68,9 @@ import knou.lms.org.service.OrgCodeMemService;
 import knou.lms.org.service.OrgCodeService;
 import knou.lms.org.vo.OrgCodeLangVO;
 import knou.lms.org.vo.OrgCodeVO;
-import knou.lms.system.config.vo.SysCfgVO;
 import knou.lms.user.service.UsrDeptCdService;
 import knou.lms.user.vo.UsrDeptCdVO;
+import knou.lms.xasis.vo.SysCfgVO;
 
 @Controller
 @RequestMapping(value = "/menu/menuMgr")

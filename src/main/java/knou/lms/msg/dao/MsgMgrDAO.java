@@ -1,67 +1,33 @@
 package knou.lms.msg.dao;
 
-import java.util.List;
-
+import knou.lms.msg.vo.MsgMgrVO;
+import knou.lms.org.vo.OrgInfoVO;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
-import knou.lms.cmmn.vo.CmmnCdVO;
+import java.util.List;
 
 @Mapper("msgMgrDAO")
 public interface MsgMgrDAO {
 
-	public List<CmmnCdVO> selectCmmnCdList(CmmnCdVO cmmnCdVO) throws Exception;
+    List<OrgInfoVO> selectProfSbjctOrgList(String userId);
 
-	public CmmnCdVO select(CmmnCdVO vo) throws Exception;
+    List<EgovMap> selectSmstrList(MsgMgrVO vo);
 
-    /**
-     * 코드 분류 하위의 코드 정보 전체를 상세 정보를 삭제한다.  
-     * @param  MsgMgrVO
-     * @return int
-     * @throws Exception
-     */
-    public int deleteAll(CmmnCdVO vo) throws Exception;
-    
-    /**
-     * 코드 정보의 검색된 수를 카운트 한다. 
-     * @param  MsgMgrVO 
-     * @return int
-     * @throws Exception
-     */
-    public int count(CmmnCdVO vo) throws Exception;
-    
-    /**
-     * 코드 정보의 전체 목록을 조회한다. 
-     * @param  MsgMgrVO 
-     * @return List
-     * @throws Exception
-     */
-    public List<CmmnCdVO> listPageing(CmmnCdVO vo) throws Exception;
-    
-    public String selectKey(CmmnCdVO vo) throws Exception;
+    List<MsgMgrVO> selectSbjctList(MsgMgrVO vo);
 
-    /**
-     * 코드 정보의 상세 정보를 등록한다.  
-     * @param  MsgMgrVO
-     * @return int
-     * @throws Exception
-     */
-    public int insert(CmmnCdVO vo) throws Exception;
-    
-    /**
-     * 코드 정보의 상세 정보를 수정한다. 
-     * @param  MsgMgrVO
-     * @return int
-     * @throws Exception
-     */
-    public int update(CmmnCdVO vo) throws Exception;
+    List<MsgMgrVO> selectStdntYrList(MsgMgrVO vo);
 
-    /**
-     * 코드 정보의 상세 정보를 삭제한다.  
-     * @param  MsgMgrVO
-     * @return int
-     * @throws Exception
-     */
-    public int delete(CmmnCdVO vo) throws Exception;
-    
-    public List<CmmnCdVO> list(CmmnCdVO cmmnCdVO) throws Exception;
+    List<EgovMap> selectStdntSmstrList(MsgMgrVO vo);
+
+    List<MsgMgrVO> selectStdntSbjctList(MsgMgrVO vo);
+
+    List<MsgMgrVO> selectRcvrSearchList(MsgMgrVO vo);
+
+    List<MsgMgrVO> selectRcvrSearchAllList(MsgMgrVO vo);
+
+    List<MsgMgrVO> selectRcvrByUserIds(MsgMgrVO vo);
+
+    List<EgovMap> selectUserTycdList();
+
 }

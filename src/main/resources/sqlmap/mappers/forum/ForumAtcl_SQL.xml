@@ -285,7 +285,7 @@
 			LIMIT #{firstIndex}, #{listScale}
 		]]>
 		</if> -->
-		<include refid="CommonSQL.pageSubfix" />
+		<include refid="CommonSQL.pageSuffix" />
 	</select>
 
 	<insert id="insertAtcl" parameterType="forumAtclVO">

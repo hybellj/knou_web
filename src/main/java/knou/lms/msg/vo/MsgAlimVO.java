@@ -5,6 +5,7 @@ import knou.lms.common.vo.DefaultVO;
 public class MsgAlimVO extends DefaultVO {
     private static final long serialVersionUID = 1L;
 
+    private String chnlCd;
     private String mblSndngTycd;
     private int listCnt = 5;
 
@@ -18,6 +19,14 @@ public class MsgAlimVO extends DefaultVO {
     private String readDttm;
     private String readYn;
     private String isRead;
+
+    public String getChnlCd() {
+        return chnlCd;
+    }
+
+    public void setChnlCd(String chnlCd) {
+        this.chnlCd = chnlCd;
+    }
 
     public String getMblSndngTycd() {
         return mblSndngTycd;

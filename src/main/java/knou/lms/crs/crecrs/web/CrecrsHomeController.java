@@ -1,5 +1,6 @@
 package knou.lms.crs.crecrs.web;
 
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -489,16 +490,20 @@ public class CrecrsHomeController extends ControllerBase {
     public ProcessResultVO<CreCrsVO> listAuthCrsCreByTerm(CreCrsVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         ProcessResultVO<CreCrsVO> resultVO = new ProcessResultVO<>();
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
-        String menuType  = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String userAuthrtGrpcd  = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String userAuthrtCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
         
         try {
-            vo.setSearchKey(authGrpCd.contains("TUT") ? "ASSISTANT" : "PROF");
-            if(menuType.contains("ADM") && !menuType.contains("PROF")) vo.setSearchKey(null);
+            vo.setSearchKey( CommConst.AUTHRT_CD_TUT.equals(userAuthrtCd) ? "ASSISTANT" : CommConst.AUTHRT_CD_PROF );
+            
+            if( CommConst.AUTHRT_GRPCD_PROF.equals( userAuthrtGrpcd ) ) 
+            	vo.setSearchKey(null);
+            
             vo.setUserId(userId);
             List<CreCrsVO> list = crecrsService.listAuthCrsCreByTerm(vo);
             resultVO.setReturnList(list);
             resultVO.setResult(1);
+            
         } catch (Exception e) {
             resultVO.setResult(-1);
             resultVO.setMessage(getCommonFailMessage());

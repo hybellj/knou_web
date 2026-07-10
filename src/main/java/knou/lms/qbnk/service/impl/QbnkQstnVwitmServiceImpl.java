@@ -23,10 +23,9 @@ public class QbnkQstnVwitmServiceImpl extends ServiceBase implements QbnkQstnVwi
 	 *
 	 * @param qbnkQstnId 문제은행문항아이디
 	 * return 문제은행문항보기항목 목록
-	 * @throws Exception
 	 */
 	@Override
-	public List<QbnkQstnVwitmVO> qbnkQstnVwitmList(QbnkQstnVO vo) throws Exception {
+	public List<QbnkQstnVwitmVO> qbnkQstnVwitmList(QbnkQstnVO vo) {
 		return qbnkQstnVwitmDAO.qbnkQstnVwitmList(vo);
 	}
 

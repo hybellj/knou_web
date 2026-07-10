@@ -6,12 +6,20 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
+import knou.framework.context2.UserContext;
+import knou.framework.util.SessionUtil;
 import knou.lms.org.service.OrgInfoService;
 import knou.lms.org.vo.OrgInfoVO;
+import knou.lms.subject.service.SubjectService;
+import knou.lms.subject.vo.SubjectOrgDTO;
 
 /**
  * 메인 기관정보
@@ -19,10 +27,10 @@ import knou.lms.org.vo.OrgInfoVO;
  *
  */
 public class MainOrgInfo {
-
+	private static Log log = LogFactory.getLog(SubjectInfo.class);
 	private static List<OrgInfoVO> ORG_LIST = null;
 	private static Map<String, OrgInfoVO> ORG_MAP = null;
-	
+
 	/**
 	 * 기관 목록
 	 * @param request
@@ -41,17 +49,17 @@ public class MainOrgInfo {
 				for (OrgInfoVO orgInfoVO : orgList) {
 					ORG_MAP.put(orgInfoVO.getOrgId(), orgInfoVO);
 				}
-				
+
 			}
 		}
 		else {
 			orgList = ORG_LIST;
 		}
-		
+
 		if (orgList == null) {
 			orgList = new ArrayList<OrgInfoVO>();
 		}
-		
+
 		return orgList;
 	}
 
@@ -62,7 +70,7 @@ public class MainOrgInfo {
 	 */
 	public static String getOrgDomain(HttpServletRequest request) {
 		String orgDomain = "";
-		
+
 		try {
 			String uri = request.getRequestURI();
 			if (uri.indexOf("/", uri.length()-1) > -1) {
@@ -77,13 +85,13 @@ public class MainOrgInfo {
 					continue;
 				}
 			}
-			
+
 		} catch (Exception e) {
 		}
-		
+
 		return orgDomain;
 	}
-	
+
 	/**
 	 * orgId값으로 도메인명 반환
 	 * @param request
@@ -92,22 +100,22 @@ public class MainOrgInfo {
 	 */
 	public static String getOrgDomain(HttpServletRequest request, String orgId) {
 		String orgDomain = "";
-		
+
 		try {
 			if (ORG_MAP == null) {
 				getMainOrgList(request);
 			}
-			
+
 			if (ORG_MAP != null && ORG_MAP.containsKey(orgId)) {
 				orgDomain = ((OrgInfoVO)ORG_MAP.get(orgId)).getDmnnm();
 			}
-			
+
 		} catch (Exception e) {
 		}
-		
+
 		return orgDomain;
 	}
-	
+
 	/**
 	 * 기관 언어 반환
 	 * @param request
@@ -116,22 +124,22 @@ public class MainOrgInfo {
 	 */
 	public static String getOrgLang(HttpServletRequest request, String orgId) {
 		String lang = "ko";
-		
+
 		try {
 			if (ORG_MAP == null) {
 				getMainOrgList(request);
 			}
-			
+
 			if (ORG_MAP != null && ORG_MAP.containsKey(orgId)) {
 				lang = ((OrgInfoVO)ORG_MAP.get(orgId)).getBscLangCd();
 			}
-			
+
 		} catch (Exception e) {
 		}
-		
+
 		return lang;
 	}
-	
+
 	/**
 	 * 기관 언어 반환
 	 * @param request
@@ -140,15 +148,82 @@ public class MainOrgInfo {
 	 */
 	public static String getOrgLang(String orgId) {
 		String lang = "ko";
-		
+
 		try {
 			if (ORG_MAP != null && ORG_MAP.containsKey(orgId)) {
 				lang = ((OrgInfoVO)ORG_MAP.get(orgId)).getBscLangCd();
 			}
-			
+
 		} catch (Exception e) {
 		}
-		
+
 		return lang;
 	}
+
+
+	/** 삭제함.....
+	 * 교수/학생 운영과목,수강과목의 기관 목록 가져오기
+	 */
+	/*
+	public static List<SubjectOrgDTO> getSubjectOrgList(HttpServletRequest request) {
+		List<SubjectOrgDTO> orgList = new ArrayList<>();
+
+		try {
+			UserContext userContext = SessionInfo.getUserContext(request);
+			List<EgovMap> userOrgList = userContext.getUserOrgIdsFromSubject();
+			boolean optionAll = true;
+
+			if (userOrgList != null && !userOrgList.isEmpty()) {
+				String prvTycd = null;
+
+				for (EgovMap map : userOrgList) {
+					String orgId = (String)map.get("orgId");
+					String userTycd = (String)map.get("userTycd");
+					String sbjctAdmTycd = (String)map.get("sbjctAdmTycd");
+					if ("COPROF".equals(sbjctAdmTycd)) {
+						sbjctAdmTycd = "PROF";
+					}
+
+					if (prvTycd != null && !prvTycd.equals(userTycd)) {
+						optionAll = false;
+					}
+
+					prvTycd = sbjctAdmTycd;
+
+					SubjectOrgDTO dto = null;
+					boolean isDuplicate = orgList.stream().anyMatch(odto -> odto.getOrgId().equals(orgId));
+
+					if (isDuplicate) {
+						dto = orgList.stream().filter(odto -> orgId.equals(odto.getOrgId())).findFirst().orElse(null);
+						dto.getOrgUserTycdList().add(sbjctAdmTycd);
+					}
+					else {
+						dto = new SubjectOrgDTO();
+						dto.setOrgId(orgId);
+						dto.setOrgnm((String)map.get("orgnm"));
+						dto.setUserTycd(userTycd);
+						dto.setUserId((String)map.get("userId"));
+
+						List<String> orgUserTycdList = new ArrayList<>();
+						orgUserTycdList.add(sbjctAdmTycd);
+						dto.setOrgUserTycdList(orgUserTycdList);
+						orgList.add(dto);
+					}
+
+				}
+			}
+
+			if (optionAll) {
+				SubjectOrgDTO dto = new SubjectOrgDTO();
+				dto.setOrgId("ALL");
+				orgList.add(0, dto);
+			}
+
+        } catch(Exception e) {
+            log.error(e.getMessage());
+        }
+
+		return orgList;
+	}
+	*/
 }

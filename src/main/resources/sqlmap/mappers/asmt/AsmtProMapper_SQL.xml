@@ -262,7 +262,7 @@
 		, COUNT(RT.ASMT_ID) OVER() AS TOTAL_CNT
 		FROM ( <include refid="refQuery" /> ) RT
 		ORDER BY RT.ASMT_SBMSN_SDTTM DESC
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<insert id="insertAsmtGrp">

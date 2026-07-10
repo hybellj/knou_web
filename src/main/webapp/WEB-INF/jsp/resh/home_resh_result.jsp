@@ -75,12 +75,12 @@
 												            <canvas id="pieChart${pageList.reschPageOdr }_${qstnList.reschQstnOdr }" height="200" style="max-width:250px;margin:auto;"></canvas>
 												            <script>
 												            	var labelArray = [];
-												            	var colorArray = [];
+												            	var ${uiex:getTheme()}rray = [];
 												            	var dataArray  = [];
 												            	<c:forEach var="itemList" items="${qstnList.reschAnswerList}" varStatus="itemStatus">
 												            		<c:set var="etc"><spring:message code="resh.label.etc" /></c:set>
 												            		labelArray.push("${itemList.reschQstnItemTitle eq 'SINGLE_ETC_ITEM' ? etc : fn:escapeXml(itemList.reschQstnItemTitle)}");
-												            		colorArray.push("${colorList[itemStatus.index].code}");
+												            		${uiex:getTheme()}rray.push("${colorList[itemStatus.index].code}");
 												            		dataArray.push("${itemList.joinCnt}");
 										                    	</c:forEach>
 												                var ctx = document.getElementById("pieChart${pageList.reschPageOdr }_${qstnList.reschQstnOdr}");
@@ -89,7 +89,7 @@
 												                    data: {
 												                    labels: labelArray,
 												                    datasets: [{
-												                        backgroundColor: colorArray,
+												                        backgroundColor: ${uiex:getTheme()}rray,
 												                        borderWidth:1,
 												                        data: dataArray
 												                    }]

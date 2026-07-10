@@ -11,50 +11,59 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.i18n.LocaleContextHolder;
 
-import knou.framework.common.IdPrefixType;
 import knou.lms.user.param.UserMetaParam;
 
 /**
  * 공통 유틸리티
  */
 public class CommonUtil {
-	
+
 	// MIME type map
 	private static MimetypesFileTypeMap MIME_TYPES_MAP = null;
-	
+
+	public static final int SUCCESS = 1;
+	public static final int FAIL = -1;
+
 	/**
 	 * Get IP Address
 	 * @param request
 	 * @return IP Address
 	 */
 	public static String getIpAddress(HttpServletRequest request) {
-		String ip = request.getHeader("X-FORWARDED-FOR");
-        	
-        // proxy
-        if (ip == null || ip.length() == 0) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
+		String[] headers = {
+		        "X-Forwarded-For",
+		        "Proxy-Client-IP",
+		        "WL-Proxy-Client-IP",
+		        "HTTP_CLIENT_IP",
+		        "HTTP_X_FORWARDED_FOR",
+		        "X-Real-IP"
+		    };
 
-        // weblogic
-        if (ip == null || ip.length() == 0) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
+		    String ip = null;
+		    for (String header : headers) {
+		        ip = request.getHeader(header);
+		        if (ip != null && ip.length() != 0 && !"unknown".equalsIgnoreCase(ip)) {
+		            break;
+		        }
+		    }
 
-        if (ip == null || ip.length() == 0) {
-            ip = request.getRemoteAddr() ;
-        }
-		
-        String[] ips = ip.split(",");
-        if (ips.length > 1) {
-            ip = ips[0];
-        }
-        
-        //Inet4Address.getLocalHost().getHostAddress()
-        
-		return ip;
+		    if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+		        ip = request.getRemoteAddr();
+		    }
+
+		    if ("0:0:0:0:0:0:0:1".equals(ip)) {
+		        ip = "127.0.0.1";
+		    }
+
+		    // 여러 개의 IP가 넘어올 경우 첫 번째 것을 취함
+		    if (ip != null && ip.contains(",")) {
+		        ip = ip.split(",")[0].trim();
+		    }
+
+		    return ip;
 	}
-	
-	
+
+
 	/**
 	 * 객체 프로퍼티 복사
 	 * @param source
@@ -63,8 +72,8 @@ public class CommonUtil {
 	public static void copyProperties(Object source, Object target) {
 		BeanUtils.copyProperties(source, target);
 	}
-	
-	
+
+
 	/**
 	 * 브라우져 타입 가져오기
 	 * @param request
@@ -73,25 +82,25 @@ public class CommonUtil {
 	public static String getBrowser(HttpServletRequest request) {
 		String header = request.getHeader("User-Agent").toLowerCase();
 		String browser = "etc";
-		
+
 		if (header.indexOf("hycuapp") > -1) {
             browser = "hycuapp";
         }
 		if (header.indexOf("msie") > -1) {
 			browser = "msie";
-		} 
+		}
 		else if (header.indexOf("edg") > -1) {
 			browser = "edge";
 		}
 		else if (header.indexOf("trident") > -1) {
 			browser = "trident";
-		} 
+		}
 		else if (header.indexOf("chrome") > -1) {
 			browser = "chrome";
-		} 
+		}
 		else if (header.indexOf("opera") > -1) {
 			browser = "opera";
-		} 
+		}
 		else if (header.indexOf("safari") > -1) {
 			browser = "safari";
 		}
@@ -101,8 +110,8 @@ public class CommonUtil {
 
 		return browser;
 	}
-	
-	
+
+
 	/**
 	 * MIME type 가져오기
 	 * @param fileName
@@ -110,22 +119,22 @@ public class CommonUtil {
 	 */
 	public static String getMimeType(String fileName) {
 		String mimeType = "";
-		
+
 		if (MIME_TYPES_MAP == null) {
 			try {
 				String currDir = CommonUtil.class.getResource(".").getPath();
 				currDir = currDir.substring(0, currDir.indexOf("WEB-INF"));
-			
+
 				InputStream imageStream = new FileInputStream(currDir+"/META-INF/mime.types");
 				MIME_TYPES_MAP = new MimetypesFileTypeMap(imageStream);
-			} 
+			}
 			catch (Exception e) {
 				MIME_TYPES_MAP = new MimetypesFileTypeMap();
 			}
 		}
-		
+
 		mimeType = MIME_TYPES_MAP.getContentType(fileName);
-		
+
 		String ext = FileUtil.getFileExtention(fileName);
 		if ("hwp".equals(ext)) mimeType = "application/x-hwp";
 		else if ("pdf".equals(ext)) mimeType = "application/pdf";
@@ -135,21 +144,21 @@ public class CommonUtil {
 		else if ("zip".equals(ext)) mimeType = "application/zip";
 		else if ("jpg".equals(ext) || "jpeg".equals(ext)) mimeType = "image/jpg";
 		else if ("txt".equals(ext)) mimeType = "textplain";
-		
+
 		return mimeType;
 	}
-	
-	
+
+
 	/**
-	 * 클래스에서 지정한 변수의 Get/Set 메쏘드 가져오기 
+	 * 클래스에서 지정한 변수의 Get/Set 메쏘드 가져오기
 	 * @param clazz
 	 * @param name
 	 * @return HashMap<String, Method>
 	 */
-	public static HashMap<String, Method> getMethod(Class<?> clazz, String name) {
+	public static HashMap<String, Method> getMethod(Class<?> clazz, String name) throws Exception {
 		HashMap<String, Method> methodMap = new HashMap<>();
 		String mthName = name.substring(0,1).toUpperCase()+name.substring(1);
-		
+
 		Method[] methods = clazz.getMethods();
 		for (Method method : methods) {
 			String methodName = method.getName();
@@ -159,23 +168,23 @@ public class CommonUtil {
 			else if (methodName.equals("set"+mthName)) {
 				methodMap.put("set", method);
 			}
-			
+
 			if (methodMap.size() == 2) {
 				break;
 			}
 		}
-		
+
 		return methodMap;
 	}
-	
-	
+
+
 	/**
 	 * 언어 가져오기
 	 * @return language
 	 */
 	public static String getLanguage() {
 		String language = LocaleContextHolder.getLocale().toString();
-		
+
 		if (language.equals("ko_KR")) {
 			language = "ko";
 		}
@@ -185,11 +194,11 @@ public class CommonUtil {
 		else if (language.equals("ja_JP")) {
 			language = "ja";
 		}
-		
+
 		return language;
 	}
-	
-	
+
+
 	/**
      * 사용자 OS 가져오기
      * @param request
@@ -197,9 +206,9 @@ public class CommonUtil {
      */
 	public static String getClientOS(HttpServletRequest request) {
 	    String userAgent = request.getHeader("User-Agent");
-	    String os = "";            
+	    String os = "";
 	    userAgent = userAgent.toLowerCase();
-	    
+
 	    if (userAgent.indexOf("windows nt 10.0") > -1) {
 	        os = "Windows10";
 	    }else if (userAgent.indexOf("windows nt 6.1") > -1) {
@@ -233,7 +242,7 @@ public class CommonUtil {
 	    }
 	    return os;
 	}
-	
+
 	/**
 	 * 디바이스 구분 가져오기
 	 * @param request
@@ -242,49 +251,49 @@ public class CommonUtil {
 	public static String getDeviceType(HttpServletRequest request) {
 	    String userAgent = request.getHeader("User-Agent").toLowerCase();
 	    String deviceType = "PC";
-	    
-	    if(userAgent.indexOf("hycuapp") > -1 || userAgent.indexOf("android") > -1 
-	            || userAgent.indexOf("iphone") > -1 || userAgent.indexOf("ipad") > -1 || userAgent.indexOf("ipod") > -1) {
+
+	    if( userAgent.indexOf("android") > -1 || userAgent.indexOf("iphone") > -1 || userAgent.indexOf("ipad") > -1 || userAgent.indexOf("ipod") > -1) {
 	        deviceType = "mobile";
 	    }
-	    
+
 	    return deviceType;
     }
-	
-	
+
+
 	public static String getUUID() {
         return CommonUtil.longToBase64(System.currentTimeMillis());
     }
-    
+
     public static String longToBase64(long v) {
         final char[] digits = {
-            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 
-            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 
-            'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+            'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
             'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D',
-            'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 
-            'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 
+            'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+            'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
             'Y', 'Z', '#', '$'
         };
-     
+
         int shift = 6;
         char[] buf = new char[64];
         int charPos = 64;
         int radix = 1 << shift;
         long mask = radix - 1;
         long number = v;
-     
+
         do {
             buf[--charPos] = digits[(int) (number & mask)];
             number >>>= shift;
         } while (number != 0);
-     
+
         return new String(buf, charPos, (64 - charPos));
     }
-    
+
+    @Deprecated
     public static UserMetaParam createUserMetaParam(HttpServletRequest request) {
-    	
-        UserMetaParam userMetaParam = new UserMetaParam();        
+
+        UserMetaParam userMetaParam = new UserMetaParam();
 
         // 1. IP 주소 (기존 getIpAddress 활용)
         userMetaParam.setIp(getIpAddress(request));
@@ -300,10 +309,32 @@ public class CommonUtil {
 
         // 5. 브라우저 정보 (기존 getBrowser 활용)
         userMetaParam.setBrowser(getBrowser(request));
-        
+
         // 6. OS 정보 (기존 getClientOS 활용)
         userMetaParam.setOs(getClientOS(request));
 
+        userMetaParam.setReqTycd(request.getMethod());
+
         return userMetaParam;
-    }    
+    }
+
+    /**
+     * Root Cause 메시지 추출
+     */
+	public static String getRootMessage(Exception ex) {
+        Throwable root = ex;
+
+        while (root.getCause() != null) {
+            root = root.getCause();
+        }
+
+        String className = root.getClass().getSimpleName();
+        String message = root.getMessage();
+
+        if (message == null) {
+            return className;
+        }
+
+        return className + " : " + message;
+	}
 }

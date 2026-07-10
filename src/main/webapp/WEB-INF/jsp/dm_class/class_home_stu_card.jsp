@@ -5,7 +5,7 @@
 <link rel="stylesheet" type="text/css" href="/webdoc/dm_assets/css/classroom.css" />
 <script src="/webdoc/dm_assets/js/d3.v4/d3.v4.js"></script><!-- chart d3.js -->
 
-<body class="class colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="class ${uiex:getTheme()} "><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
         <%@ include file="../dm_inc/class_header.jsp" %>

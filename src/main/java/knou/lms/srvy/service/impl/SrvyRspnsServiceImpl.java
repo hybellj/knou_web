@@ -1,6 +1,7 @@
 package knou.lms.srvy.service.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -23,10 +24,9 @@ public class SrvyRspnsServiceImpl extends ServiceBase implements SrvyRspnsServic
 	 * 설문문항목록답변삭제
 	 *
 	 * @param List<SrvyQstnVO>
-	 * @throws Exception
 	 */
 	@Override
-	public void srvyQstnListRspnsDelete(List<SrvyQstnVO> list) throws Exception {
+	public void srvyQstnListRspnsDelete(List<SrvyQstnVO> list) {
 		srvyRspnsDAO.srvyQstnListRspnsDelete(list);
 	}
 
@@ -37,10 +37,9 @@ public class SrvyRspnsServiceImpl extends ServiceBase implements SrvyRspnsServic
 	* @param srvyId 		설문아이디
 	* @param searchType 	조회유형
 	* @return 설문선택형문항답변현황목록
-	* @throws Exception
 	*/
 	@Override
-	public List<EgovMap> srvyChcQstnRspnsStatusList(String sbjctId, String srvyId, String searchType) throws Exception {
+	public List<EgovMap> srvyChcQstnRspnsStatusList(String sbjctId, String srvyId, String searchType) {
 		return srvyRspnsDAO.srvyChcQstnRspnsStatusList(sbjctId, srvyId, searchType);
 	}
 
@@ -51,10 +50,9 @@ public class SrvyRspnsServiceImpl extends ServiceBase implements SrvyRspnsServic
 	 * @param srvyId 		설문아이디
 	 * @param searchType 	조회유형
 	 * @return 설문서술형문항답변현황목록
-	 * @throws Exception
 	 */
 	@Override
-	public List<EgovMap> srvyTextQstnRspnsStatusList(String sbjctId, String srvyId, String searchType) throws Exception {
+	public List<EgovMap> srvyTextQstnRspnsStatusList(String sbjctId, String srvyId, String searchType) {
 		return srvyRspnsDAO.srvyTextQstnRspnsStatusList(sbjctId, srvyId, searchType);
 	}
 
@@ -65,10 +63,9 @@ public class SrvyRspnsServiceImpl extends ServiceBase implements SrvyRspnsServic
 	 * @param srvyId 		설문아이디
 	 * @param searchType 	조회유형
 	 * @return 설문레벨형문항답변현황목록
-	 * @throws Exception
 	 */
 	@Override
-	public List<EgovMap> srvyLevelQstnRspnsStatusList(String sbjctId, String srvyId, String searchType) throws Exception {
+	public List<EgovMap> srvyLevelQstnRspnsStatusList(String sbjctId, String srvyId, String searchType) {
 		return srvyRspnsDAO.srvyLevelQstnRspnsStatusList(sbjctId, srvyId, searchType);
 	}
 
@@ -77,10 +74,9 @@ public class SrvyRspnsServiceImpl extends ServiceBase implements SrvyRspnsServic
 	 *
 	 * @param srvyId 		설문아이디
 	 * @return 설문엑셀다운문항목록
-	 * @throws Exception
 	 */
 	@Override
-	public List<EgovMap> srvyExcelDownQstnList(String srvyId) throws Exception {
+	public List<EgovMap> srvyExcelDownQstnList(String srvyId) {
 		return srvyRspnsDAO.srvyExcelDownQstnList(srvyId);
 	}
 
@@ -89,11 +85,21 @@ public class SrvyRspnsServiceImpl extends ServiceBase implements SrvyRspnsServic
 	 *
 	 * @param srvyId 		설문아이디
 	 * @return 설문엑셀다운문항답변목록
-	 * @throws Exception
 	 */
 	@Override
-	public List<EgovMap> srvyExcelDownQstnRspnsList(String srvyId) throws Exception {
+	public List<EgovMap> srvyExcelDownQstnRspnsList(String srvyId) {
 		return srvyRspnsDAO.srvyExcelDownQstnRspnsList(srvyId);
+	}
+
+	/**
+	 * 설문강의평가엑셀다운문항답변목록
+	 *
+	 * @param srvyId 		설문아이디
+	 * @return 설문강의평가엑셀다운문항답변목록
+	 */
+	@Override
+	public List<EgovMap> srvylctrEvlExcelDownQstnRspnsList(String srvyId) {
+		return srvyRspnsDAO.srvylctrEvlExcelDownQstnRspnsList(srvyId);
 	}
 
 	/**
@@ -103,10 +109,9 @@ public class SrvyRspnsServiceImpl extends ServiceBase implements SrvyRspnsServic
 	 * @param srvyId 		설문아이디
 	 * @param userId 		사용자아이디
 	 * @return 설문답변목록
-	 * @throws Exception
 	 */
 	@Override
-	public List<SrvyRspnsVO> srvyRspnsList(String srvyPtcpId, String srvyId, String userId) throws Exception {
+	public List<SrvyRspnsVO> srvyRspnsList(String srvyPtcpId, String srvyId, String userId) {
 		return srvyRspnsDAO.srvyRspnsList(srvyPtcpId, srvyId, userId);
 	}
 
@@ -118,11 +123,106 @@ public class SrvyRspnsServiceImpl extends ServiceBase implements SrvyRspnsServic
 	 * @param srvypprId 	설문지아이디
 	 * @param srvyQstnId 	설문문항아이디
 	 * @return 설문문항답변분포목록
-	 * @throws Exception
 	 */
 	@Override
-	public List<EgovMap> srvyQstnRspnsDistributionList(String sbjctId, String srvyId, String srvypprId, String srvyQstnId) throws Exception {
+	public List<EgovMap> srvyQstnRspnsDistributionList(String sbjctId, String srvyId, String srvypprId, String srvyQstnId) {
 		return srvyRspnsDAO.srvyQstnRspnsDistributionList(sbjctId, srvyId, srvypprId, srvyQstnId);
+	}
+
+	/**
+	* 강의평가선택형문항답변현황목록
+	*
+    * @param srvyId			설문아이디
+    * @param orgId  		기관아이디
+    * @param smstrChrtId	학기기수아이디
+    * @param sbjctId		과목아이디
+    * @param srvyPtcp		참여여부
+    * @param searchValue	검색어 ( 이름, 학번 )
+	* @return 강의평가선택형문항답변현황목록
+	*/
+	@Override
+	public List<EgovMap> lctrEvlChcQstnRspnsStatusList(Map<String, Object> params) {
+		return srvyRspnsDAO.lctrEvlChcQstnRspnsStatusList(params);
+	}
+
+	/**
+	* 강의평가서술형문항답변현황목록
+	*
+    * @param srvyId			설문아이디
+    * @param orgId  		기관아이디
+    * @param smstrChrtId	학기기수아이디
+    * @param sbjctId		과목아이디
+    * @param srvyPtcp		참여여부
+    * @param searchValue	검색어 ( 이름, 학번 )
+	* @return 강의평가서술형문항답변현황목록
+	*/
+	@Override
+	public List<EgovMap> lctrEvlTextQstnRspnsStatusList(Map<String, Object> params) {
+		return srvyRspnsDAO.lctrEvlTextQstnRspnsStatusList(params);
+	}
+
+	/**
+	* 강의평가레벨형문항답변현황목록
+	*
+    * @param srvyId			설문아이디
+    * @param orgId  		기관아이디
+    * @param smstrChrtId	학기기수아이디
+    * @param sbjctId		과목아이디
+    * @param srvyPtcp		참여여부
+    * @param searchValue	검색어 ( 이름, 학번 )
+	* @return 강의평가레벨형문항답변현황목록
+	*/
+	@Override
+	public List<EgovMap> lctrEvlLevelQstnRspnsStatusList(Map<String, Object> params) {
+		return srvyRspnsDAO.lctrEvlLevelQstnRspnsStatusList(params);
+	}
+
+	/**
+	* 전체설문선택형문항답변현황목록
+	*
+    * @param srvyId			설문아이디
+    * @param orgId  		기관아이디
+    * @param smstrChrtId	학기기수아이디
+    * @param srvyTrgtTycd	설문대상유형코드
+    * @param srvyPtcp		참여여부
+    * @param searchValue	검색어 ( 이름, 학번 )
+	* @return 전체설문선택형문항답변현황목록
+	*/
+	@Override
+	public List<EgovMap> wholSrvyChcQstnRspnsStatusList(Map<String, Object> params) {
+		return srvyRspnsDAO.wholSrvyChcQstnRspnsStatusList(params);
+	}
+
+	/**
+	* 전체설문서술형문항답변현황목록
+	*
+    * @param srvyId			설문아이디
+    * @param orgId  		기관아이디
+    * @param smstrChrtId	학기기수아이디
+    * @param srvyTrgtTycd	설문대상유형코드
+    * @param srvyPtcp		참여여부
+    * @param searchValue	검색어 ( 이름, 학번 )
+	* @return 전체설문서술형문항답변현황목록
+	*/
+	@Override
+	public List<EgovMap> wholSrvyTextQstnRspnsStatusList(Map<String, Object> params) {
+		return srvyRspnsDAO.wholSrvyTextQstnRspnsStatusList(params);
+	}
+
+	/**
+	* 전체설문레벨형문항답변현황목록
+	*
+    * @param srvyId			설문아이디
+    * @param orgId  		기관아이디
+    * @param smstrChrtId	학기기수아이디
+    * @param srvyTrgtTycd	설문대상유형코드
+    * @param srvyPtcp		참여여부
+    * @param searchValue	검색어 ( 이름, 학번 )
+	* @return 전체설문레벨형문항답변현황목록
+	*/
+	@Override
+	public List<EgovMap> wholSrvyLevelQstnRspnsStatusList(Map<String, Object> params) {
+		return srvyRspnsDAO.wholSrvyLevelQstnRspnsStatusList(params);
 	}
 
 }

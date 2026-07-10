@@ -1,0 +1,388 @@
+@charset "utf-8";
+
+/* 공통 */
+body.home {
+    background: var(--theme-bg, url(../img/main_bg01.jpg)) left top no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+aside.common {
+    background-color: var(--aside-bg, #373F57) !important;
+}
+
+
+/* Theme A: 블루 */
+body.colorA {
+    --theme-bg: url(../img/main_bg_colorA.jpg);
+    --aside-bg: #2B6D9B;
+    --primary-c02: #1D90FD;
+    --class-main-bg: #2B6D9B;
+    --btn-border: #2B6D9B;
+    --table-top-line: #2B6D9B;
+    --sub-title-bullet: #1D90FD;
+}
+
+/* Theme B: 그린 */
+body.colorB {
+    --theme-bg: url(../img/main_bg_colorB.jpg);
+    --aside-bg: #008289;
+    --primary-c02: #20BAC4;
+    --class-main-bg: #008289;
+    --btn-border: #008289;
+    --table-top-line: #008289;
+    --sub-title-bullet: #20BAC4;
+}
+
+/* Theme C: 옐로우 */
+body.colorC {
+    --theme-bg: url(../img/main_bg_colorC.jpg);
+    --aside-bg: #ea8400;
+    --primary-c02: #F1A81F;
+    --class-main-bg: #ea8400;
+    --table-top-line: #333;
+    --btn-border: #ea8400;
+    --sub-title-bullet: #F1A81F;
+}
+
+/* Theme D: 레드 */
+body.colorD {
+    --theme-bg: url(../img/main_bg_colorD.jpg);
+    --aside-bg: #a62627;
+    --primary-c02: #D05E5C;
+    --class-main-bg: #a62627;
+    --table-top-line: #333;
+    --btn-border: #a62627;
+    --sub-title-bullet: #D05E5C;
+}
+
+/* Theme E: 퍼플 */
+body.colorE {
+    --theme-bg: url(../img/main_bg_colorE.jpg);
+    --aside-bg: #694bb3 ;
+    --primary-c02: #9170EF;
+    --class-main-bg: #7f5bd7;
+    --btn-border: #7f5bd7;
+    --table-top-line: #333;
+    --sub-title-bullet: #9170EF;
+}
+
+/* 다크모드 (Dark Mode) */
+body.darkmode {
+    --theme-bg: url(../img/main_bg_darkmode.jpg);
+    --aside-bg: #333333;
+    --primary-c02:#4D555D;
+    --surface-bg:#1B1C1F;
+    --surface-card-bg:#31363D;
+    --surface-text: #fff;
+    --surface-border:#e7e7e740;
+    --surface-overlay-10: var(--white-10);
+    --surface-overlay-20: var(--white-20);
+    --surface-overlay-50: var(--white-50);
+    --surface-overlay-80: var(--white-80);
+    --opacity-5: 0.5;
+    --opacity-7: 0.7;
+    --chart-text: #fff;
+    --chart-line: var(--surface-border);
+
+    /* .btn.basic 다크모드 토큰 */
+    --btn-basic-text: var(--surface-text);
+    --btn-basic-bg: var(--surface-card-bg);
+    --btn-basic-border: var(--surface-border);
+    --btn-basic-bg-hover: #3a4048;
+    --btn-basic-border-hover: var(--surface-text);
+}
+
+/* 공통 */
+body.darkmode header.common {
+    border-bottom:1px solid var(--surface-border);
+}
+body.darkmode .option-univ .go_home {
+    background-color:rgba(255,255,255,.2);
+    border-color: #D9D9D926;
+}
+/* body.darkmode header ul.util > li > a,
+body.darkmode header ul.util > li > span,
+body.darkmode header ul.util > li i,
+body.darkmode .alrim_item_area .item_box .item_txt .tit {
+    color: var(--surface-overlay-80);
+} */
+body.darkmode .today_line .item .item_info .small::before {
+    background-color:var(--white-80)
+}
+body.darkmode header ul.util > li.alrim,
+body.darkmode header ul.util > li.lang_change,
+body.darkmode header ul.util > li.mode,
+body.darkmode header ul.util > li.log {
+    background-color:#2C2F33;
+}
+body.darkmode .today_line .item {
+    background-color:#454950
+}
+body.darkmode .lecture_list>li .card_item,
+body.darkmode .lecture_list2 >li .card_item,
+body.darkmode .search-typeA,
+body.darkmode .ing_list li{
+    background:#454950;
+    border-color:#292C31;
+}
+body.darkmode .sche_list {
+    background-color:#36414E
+}
+body.darkmode .alrim_item_area .item_box .state label.check_ok,
+body.darkmode .dash_item_listA li .state label.check_ok {
+    background-color:#858585
+}
+
+body.darkmode .box.subject .tab-type1 .btn.current span::before {
+    display:none
+}
+
+body.darkmode .dash_item_listA li .user_img {
+    background : #2C2F33 url(../img/darkmode_user_no_img.png) center center no-repeat
+}
+
+/* 테이블 */
+body.darkmode .table-type1 thead th,
+body.darkmode .table-type2 thead th,
+body.darkmode .table-type3 thead th,
+body.darkmode .table-type3 tbody tr th,
+body.darkmode .table-type5 thead th,
+body.darkmode .table-type5 tbody th,
+body.darkmode .options_wrap li > .cont .table-type5 tbody tr th,
+body.darkmode .table_list ul.list > li:nth-child(odd) {
+    background-color:var(--primary-c02);
+    /* background-color: #2C2F33; */
+    color: var(--surface-text);
+    border-color: var(--surface-border);
+}
+
+body.darkmode .table-type1 tbody tr,
+body.darkmode .table-type1 tbody tr th,
+body.darkmode .table-type1 tbody tr td,
+body.darkmode .table-type2 tbody tr td,
+body.darkmode .table-type3 tbody tr td,
+body.darkmode .table-type5 tbody tr td,
+body.darkmode .table_list ul.list > li,
+body.darkmode .label_list li.addedLabel span {
+    background-color: var(--surface-bg);
+    color: var(--surface-text);
+    border-color: var(--surface-border)
+}
+
+body.darkmode .table-type1 tbody tr:nth-child(odd) {
+    background: #31363D;
+}
+
+body.darkmode .table-type1 tbody tr:nth-child(odd):has( .tb_content) {
+    background: var(--surface-bg);
+}
+
+body.darkmode .table-type1 tr > *:not(.check)[data-th]:before {
+    /* background:var(--surface-bg); */
+    color: var(--surface-text);
+}
+
+body.darkmode .table-type1:after,
+body.darkmode .table-type2:after,
+body.darkmode .table-type3:after,
+body.darkmode .table-type5 {
+    border-color: var(--surface-border);
+}
+
+body.darkmode .table-type1 thead th:before,
+body.darkmode .table-type1 tbody th:before,
+body.darkmode .table-type1 tbody td:before,
+body.darkmode .table-type2 thead th:before, 
+body.darkmode .table-type2 tbody tr td:before,
+body.darkmode .table-type2 tbody td:before,
+body.darkmode .table-type3 thead th:before,
+body.darkmode .table-type3 tbody th:before,
+body.darkmode .table-type3 tbody td:before,
+body.darkmode .table-type5 tbody tr td:before {
+    border-color: var(--surface-border);
+}
+
+body.darkmode .table_list ul.list > li label {
+    color:var(--surface-text)
+}
+
+body.darkmode .table-type5.in_table tbody tr th.group-header {
+    border-right: 1px solid var(--surface-border);
+    color: var(--surface-text);
+}
+body.darkmode .today_subject,
+body.darkmode .schedule-calendar .cal-day.other-month {
+    background-color:#1E232A
+}
+body.darkmode .slick-next:before,
+body.darkmode .slick-prev:before,
+body.darkmode .today_line .item.user::before,
+body.darkmode .today_line .item.today::before{
+    filter: invert(100%);
+}
+body.darkmode .btn_list_type.on .icon-svg-list,
+body.darkmode .btn_list_type.on .icon-svg-grid{
+    filter: invert(0);
+    opacity: 1
+}
+body.darkmode footer {
+    background-color:#2D3034;
+    color:#2D303499
+}
+body.darkmode .no_content,
+body.darkmode .table-type2 tbody tr.check_yet td {
+    background:#454950
+}
+/* body.darkmode .search-typeA .item .item_tit {
+    color:var(--primary);
+} */
+
+/* 알림창 */
+body.darkmode .msg-box.info {
+    background-color:var(--primary-700);
+    border-top-color: var(--surface-bg);
+    border-right-color: var(--surface-bg);
+    border-bottom-color: var(--surface-bg);
+    color:var(--surface-text);
+}
+body.darkmode .msg-box.success {
+    background-color:var(--secondary-800);
+    border-top-color: var(--surface-bg);
+    border-right-color: var(--surface-bg);
+    border-bottom-color: var(--surface-bg);
+    color:var(--surface-text);
+}
+body.darkmode .msg-box.warning {
+    background-color:#9F3A38;
+    border-left-color:var(--red-700);
+    border-top-color: var(--surface-bg);
+    border-right-color: var(--surface-bg);
+    border-bottom-color: var(--surface-bg);
+    color:var(--surface-text);
+}
+body.darkmode .note2,
+body.darkmode .msg-box strong.fcRed {
+    color:#ED474C !important
+}
+
+/* 버튼 */
+body.darkmode .btn.basic.icon.search {
+    background:#2b6d9b;
+    border-color:#2b6d9b
+}
+body.darkmode .board_top.class {
+    background-color: #1c2435;
+    border-color:transparent;
+}
+body.darkmode .course_history .h_top .h_left .tit,
+body.darkmode .course_list .course_week .btn_right .desc_info strong.navy {
+    color:#2b6d9b;
+}
+body.darkmode .table-type3 .total th,
+body.darkmode .table-type3 .total td {
+    background:var(--surface-overlay-10)
+}
+body.darkmode #upload ul li {
+    border-color:var(--surface-border)
+}
+body.darkmode .seminar_detail .row.message.red {
+    background-color:#9F3A38;
+    border-color:var(--red-700);
+    color:var(--surface-text) !important
+}
+body.darkmode .question_area .question_con .q_cont .q_cont_ans textarea {
+    background:transparent;
+    border:1px solid var(--surface-border)
+}
+body.darkmode .xi-comment-o.icon,
+body.darkmode .xi-file-o.icon {
+    color:var(--surface-text)
+}
+body.darkmode .elements_wrap .accordion > li .title-wrap {
+    border-left-color:#66B8F0 ;
+    background-color:#1E293B;
+}
+body.darkmode.class .class_sub_top .btn-wrap .btn.type1 {
+    background-color: var(--btn-border, #4c5263)
+}
+body.darkmode .Comment .comment_list ul li.course_history.bcLgrey3 {
+    background:var(--surface-border) !important
+}
+body.darkmode .prof-box .table_list ul.list > li.head {
+    background-color:var(--surface-bg)
+}
+body.darkmode .alrim .tab-type1 .btn {
+    background-color:transparent
+}
+body.darkmode .course_week_card>li .bottom_button .go {
+    background:#2b6d9b;
+    color:var(--surface-text)
+}
+body.darkmode .msg-box.warning {
+    background-color:#5b2120;
+    border-color:var(--red-700);
+    color:var(--surface-text) !important
+}
+body.darkmode .class-area .info-right .item .item_icon {
+    background-color:#1270b4
+}
+body.darkmode .info-left .info_iconSet .info{
+    background-color:#4c5c8a
+}
+body.darkmode .week_attend_list .state .percent,
+body.darkmode .msg-box .fcBlue {
+    color:#1270b4 !important
+}
+body.darkmode .week_attend_list .state.current .percent,
+body.darkmode .elements_wrap .accordion > li .title-wrap .desc strong.fcBlack {
+    color:var(--surface-text) !important
+}
+body.darkmode .info-left .info-set {
+    background-color:#0a8992
+}
+body.darkmode .msg-box .blue {
+    --fcColor:hsl(222deg 100% 77.48%);
+}
+/* 강의실 > 학습자 > 일정 */
+body.darkmode .schedule-calendar .cal-event-bar.bar-red {
+    background-color:#ff998d
+}
+body.darkmode .schedule-calendar .cal-event-bar.bar-orange {
+    background-color:#ffd592
+}
+
+body.darkmode .btn_list_type.on,
+body.darkmode .btn_list_type:hover {
+	color: var(--surface-overlay-80); 
+	border-color: var(--surface-overlay-80)
+}
+
+/* header util menu - mode (컬러/테마 선택) */
+body.darkmode header ul.util>li.widget_setting .menu,
+body.darkmode header ul.util>li.mode .menu,
+body.darkmode .util .lang_change .option-wrap,
+body.darkmode header.common ul.util > li.alrim .menu,
+body.darkmode .user-option-wrap {
+    background-color:#54565b;
+    box-shadow: 0px 4px 30px 5px rgba(0, 0, 0, 0.9);
+
+    /* background-color: #4e4d4d;
+    box-shadow : 0px 2px 10px 0px rgba(0, 0, 0, 0.9) */
+}
+body.darkmode header.common ul.util > li.alrim.on [data-medi-ui] {
+    background-color: #4e4d4d;
+}
+body.darkmode .alrim .tab-type1 .btn.current span::before {
+    display:none
+}
+
+/* UiFileUploader 색상 반전 */
+/* body.darkmode .dext5-container {
+    filter: invert(0.9) hue-rotate(180deg) brightness(1.5);
+} */
+
+/* UI공통 모음 */
+body.darkmode .ui-button .ui-icon {
+    filter: invert(1) hue-rotate(180deg)    
+}

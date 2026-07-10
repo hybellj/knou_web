@@ -1,6 +1,7 @@
 package knou.lms.forum2.service.impl;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,8 +15,11 @@ import knou.framework.vo.FileVO;
 import knou.lms.common.paging.PagingInfo;
 import knou.lms.file.service.AttachFileService;
 import knou.lms.file.vo.AtflVO;
+import knou.lms.forum2.policy.DscsPeriodPolicy;
 import knou.lms.forum2.vo.*;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import knou.framework.common.PageInfo;
@@ -28,6 +32,7 @@ import knou.lms.forum2.service.DscsService;
 
 @Service("dscsService")
 public class DscsServiceImpl extends ServiceBase implements DscsService {
+    private static final String TEAM_CHILD_PLACEHOLDER = "-";
 
     @Resource(name = "dscsDAO")
     private DscsDAO dscsDAO;
@@ -35,23 +40,53 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
     @Resource(name = "attachFileService")
     private AttachFileService attachFileService;
 
-    @Override
-    public List<DscsVO> selectDscsDvclasList(DscsVO vo) throws Exception {
-        return dscsDAO.selectDscsDvclasList(vo);
-    }
+    @Resource(name = "messageSource")
+    private MessageSource messageSource;
 
     /**
-     * 토론목록조회
+     * 토론 분반 목록을 조회한다.
      * @param vo
      * @return
      * @throws Exception
      */
     @Override
-    public ProcessResultVO<DscsListVO> selectDscsList(DscsListVO vo) throws Exception {
+    public List<DscsVO> selectDscsDvclasList(DscsVO vo) {
+        return dscsDAO.selectDscsDvclasList(vo);
+    }
+
+    /**
+     * 학습자 토론 목록 조회
+     * @param vo
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public ProcessResultVO<DscsListVO> selectStdntDscsList(DscsListVO vo) throws Exception {
         ProcessResultVO<DscsListVO> resultVO = new ProcessResultVO<>();
 
         PageInfo pageInfo = new PageInfo(vo);
-        List<DscsListVO> list = dscsDAO.selectDscsList(vo);
+        List<DscsListVO> list = dscsDAO.selectStdntDscsList(vo);
+        pageInfo.setTotalRecord(list);
+
+        resultVO.setReturnList(list);
+        resultVO.setPageInfo(pageInfo);
+        resultVO.setResultSuccess();
+
+        return resultVO;
+    }
+
+    /**
+     * 교수자 토론 목록 조회
+     * @param vo
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public ProcessResultVO<DscsListVO> selectProfDscsList(DscsListVO vo) throws Exception {
+        ProcessResultVO<DscsListVO> resultVO = new ProcessResultVO<>();
+
+        PageInfo pageInfo = new PageInfo(vo);
+        List<DscsListVO> list = dscsDAO.selectProfDscsList(vo);
         pageInfo.setTotalRecord(list);
 
         resultVO.setReturnList(list);
@@ -68,17 +103,28 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
      * @throws Exception
      */
     @Override
-    public DscsVO selectDscs(DscsVO vo) throws Exception {
+    public DscsVO selectDscs(DscsVO vo) {
         DscsVO resultVo = dscsDAO.selectDscs(vo);
-        // 부토론 존재여부 체크
-        if (resultVo.getByteamDscsUseyn().equalsIgnoreCase("Y")) {
-            List<DscsTeamDscsVO> teamList = dscsDAO.selectTeamDscsList(vo.getDscsId());
-            for (DscsTeamDscsVO teamDscs : teamList) {
-                AtflVO teamAtflParam = new AtflVO();
-                teamAtflParam.setAtflRepoId(CommConst.REPO_DSCS);
-                teamAtflParam.setRefId(teamDscs.getDscsId());
-                teamDscs.setFileList(attachFileService.selectAtflListByRefId(teamAtflParam));
+        if ("TEAM".equalsIgnoreCase(resultVo.getDscsUnitTycd()) && StringUtil.isNotNull(resultVo.getTeamGrpId())) {
+            String byteamDscsUseyn = normalizeYn(resultVo.getByteamDscsUseyn());
+            List<DscsTeamDscsVO> teamList = dscsDAO.selectTeamDscsList(resultVo.getDscsId());
+            if (teamList == null || teamList.isEmpty()) {
+                DscsTeamDscsVO teamParam = new DscsTeamDscsVO();
+                teamParam.setUpDscsId(resultVo.getDscsId());
+                teamParam.setTeamGrpId(resultVo.getTeamGrpId());
+                teamParam.setByteamDscsUseyn(byteamDscsUseyn);
+                teamList = dscsDAO.selectDscsTeamGrpTeamList(teamParam);
             }
+            for (DscsTeamDscsVO teamDscs : teamList) {
+                teamDscs.setByteamDscsUseyn(byteamDscsUseyn);
+                if ("Y".equalsIgnoreCase(byteamDscsUseyn) && StringUtil.isNotNull(teamDscs.getDscsId())) {
+                    AtflVO teamAtflParam = new AtflVO();
+                    teamAtflParam.setAtflRepoId(CommConst.REPO_DSCS);
+                    teamAtflParam.setRefId(teamDscs.getDscsId());
+                    teamDscs.setFileList(attachFileService.selectAtflListByRefId(teamAtflParam));
+                }
+            }
+            normalizeTeamChildDisplay(teamList, byteamDscsUseyn);
             resultVo.setTeamDscsList(teamList);
         }
         // 첨부파일 목록 조회
@@ -90,13 +136,306 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
     }
 
     /**
-     * 토론성적공개여부 수정
-     * @param vo
+     * 팀토론 상세 입력 목록을 팀 ID 기준 맵으로 변환한다.
+     * @param teamDscsDtlList
+     * @param dvclasNo
      * @return
+     */
+    private Map<String, DscsTeamDscsVO> buildTeamDtlMap(List<DscsTeamDscsVO> teamDscsDtlList, String dvclasNo) {
+        Map<String, DscsTeamDscsVO> detailMap = new LinkedHashMap<>();
+        if (teamDscsDtlList == null) {
+            return detailMap;
+        }
+        for (DscsTeamDscsVO teamDtl : teamDscsDtlList) {
+            if (teamDtl == null || StringUtil.isNull(teamDtl.getTeamId())) {
+                continue;
+            }
+            if (StringUtil.isNotNull(dvclasNo) && !dvclasNo.equals(teamDtl.getDvclasNo())) {
+                continue;
+            }
+            detailMap.put(teamDtl.getTeamId(), teamDtl);
+        }
+        return detailMap;
+    }
+
+    /**
+     * 부모 토론과 팀그룹 기준으로 생성 대상 팀 목록을 조회한다.
+     * @param parentDscsId
+     * @param teamGrpId
+     * @return
+     */
+    private List<DscsTeamDscsVO> loadExpectedTeams(String parentDscsId, String teamGrpId) {
+        DscsTeamDscsVO teamParam = new DscsTeamDscsVO();
+        teamParam.setUpDscsId(parentDscsId);
+        teamParam.setTeamGrpId(teamGrpId);
+        return dscsDAO.selectDscsTeamGrpTeamList(teamParam);
+    }
+
+    /**
+     * 지정한 팀 자식토론의 첨부파일을 삭제한다.
+     * @param dscsId
      * @throws Exception
      */
+    private void removeTeamChildAttachments(String dscsId) throws Exception {
+        if (StringUtil.isNull(dscsId)) {
+            return;
+        }
+        AtflVO atflParam = new AtflVO();
+        atflParam.setAtflRepoId(CommConst.REPO_DSCS);
+        atflParam.setRefId(dscsId);
+        List<AtflVO> fileList = attachFileService.selectAtflListByRefId(atflParam);
+        if (fileList == null || fileList.isEmpty()) {
+            return;
+        }
+        String[] atflIds = new String[fileList.size()];
+        for (int i = 0; i < fileList.size(); i++) {
+            atflIds[i] = fileList.get(i).getAtflId();
+        }
+        attachFileService.deleteAtflByAtflIds(atflIds);
+    }
+
+    /**
+     * 팀 자식토론 목록의 첨부파일을 일괄 삭제한다.
+     * @param childList
+     * @throws Exception
+     */
+    private void removeTeamChildAttachments(List<DscsTeamDscsVO> childList) throws Exception {
+        if (childList == null) {
+            return;
+        }
+        for (DscsTeamDscsVO child : childList) {
+            if (child == null || StringUtil.isNull(child.getDscsId())) {
+                continue;
+            }
+            removeTeamChildAttachments(child.getDscsId());
+        }
+    }
+
+    /**
+     * Y/N 값을 정규화한다.
+     * @param value
+     * @return
+     */
+    private String normalizeYn(String value) {
+        return "Y".equalsIgnoreCase(StringUtil.nvl(value)) ? "Y" : "N";
+    }
+
+    /**
+     * 팀별 부주제 미사용 시 화면 표시용 제목과 내용을 초기화한다.
+     * 팀별 부주제 사용 여부는 부모 토론의 BYTEAM_DSCS_USEYN 값만 기준으로 한다.
+     * @param teamList 팀 자식토론 목록
+     * @param byteamDscsUseyn 부모 토론의 팀별 부주제 사용 여부
+     */
+    private void normalizeTeamChildDisplay(List<DscsTeamDscsVO> teamList, String byteamDscsUseyn) {
+        if (teamList == null) {
+            return;
+        }
+        boolean useTeamSubject = "Y".equalsIgnoreCase(byteamDscsUseyn);
+        for (DscsTeamDscsVO item : teamList) {
+            if (item == null) {
+                continue;
+            }
+            item.setByteamDscsUseyn(useTeamSubject ? "Y" : "N");
+            if (useTeamSubject) {
+                continue;
+            }
+            item.setDscsTtl("");
+            item.setDscsCts("");
+        }
+    }
+
+    /**
+     * 요청값과 현재 토론 정보를 기준으로 적용할 팀그룹 정보를 찾는다.
+     * @param vo
+     * @param currentVO
+     * @return
+     */
+    private DscsTeamGrpVO findMatchedTeamGrpInfo(DscsVO vo, DscsVO currentVO) {
+        List<DscsTeamGrpVO> teamGrpInfoList = vo.getTeamGrpInfoList();
+        if (teamGrpInfoList == null || teamGrpInfoList.isEmpty()) {
+            return null;
+        }
+
+        String targetDvclasNo = StringUtil.isNotNull(vo.getDvclasNo()) ? vo.getDvclasNo() : currentVO.getDvclasNo();
+        if (StringUtil.isNotNull(targetDvclasNo)) {
+            for (DscsTeamGrpVO info : teamGrpInfoList) {
+                if (info != null && targetDvclasNo.equals(info.getDvclasNo())) {
+                    return info;
+                }
+            }
+        }
+
+        String targetTeamGrpId = StringUtil.isNotNull(vo.getTeamGrpId()) ? vo.getTeamGrpId() : currentVO.getTeamGrpId();
+        if (StringUtil.isNotNull(targetTeamGrpId)) {
+            for (DscsTeamGrpVO info : teamGrpInfoList) {
+                if (info != null && targetTeamGrpId.equals(info.getTeamGrpId())) {
+                    return info;
+                }
+            }
+        }
+
+        return teamGrpInfoList.get(0);
+    }
+
+    /**
+     * 요청값과 현재 토론 정보를 기준으로 팀별 토론 사용 여부를 결정한다.
+     * @param vo
+     * @param currentVO
+     * @return
+     */
+    private String resolveByteamDscsUseyn(DscsVO vo, DscsVO currentVO) {
+        DscsTeamGrpVO matchedInfo = findMatchedTeamGrpInfo(vo, currentVO);
+        if (matchedInfo != null && StringUtil.isNotNull(matchedInfo.getByteamDscsUseyn())) {
+            return "Y".equalsIgnoreCase(matchedInfo.getByteamDscsUseyn()) ? "Y" : "N";
+        }
+        return "N";
+    }
+
+    /**
+     * 부모 토론에 연결된 팀 자식토론과 첨부파일을 삭제한다.
+     * @param vo
+     * @param parentDscsId
+     * @throws Exception
+     */
+    private void deleteTeamChildDscs(DscsVO vo, String parentDscsId) throws Exception {
+        if (StringUtil.isNull(parentDscsId)) {
+            return;
+        }
+        List<DscsTeamDscsVO> existingChildren = dscsDAO.selectTeamDscsList(parentDscsId);
+        removeTeamChildAttachments(existingChildren);
+        DscsVO deleteVO = new DscsVO();
+        deleteVO.setDscsId(parentDscsId);
+        deleteVO.setRgtrId(vo.getRgtrId());
+        deleteVO.setMdfrId(vo.getMdfrId());
+        dscsDAO.deleteChildDscs(deleteVO);
+    }
+
+    /**
+     * 팀 정보 기준으로 자식토론을 신규 생성한다.
+     * @param vo
+     * @param parentDscsId
+     * @param teamRow
+     * @param teamDtl
+     * @param byteamDscsUseyn
+     * @throws Exception
+     */
+    private void insertTeamChildDscs(DscsVO vo, String parentDscsId, DscsTeamDscsVO teamRow, DscsTeamDscsVO teamDtl, String byteamDscsUseyn) {
+        String childDscsId = IdGenerator.getNewId(IdPrefixType.DSCS.getCode());
+        vo.setDscsId(childDscsId);
+        vo.setUpDscsId(parentDscsId);
+        vo.setTeamId(teamRow.getTeamId());
+        vo.setByteamDscsUseyn("N");
+        if ("Y".equalsIgnoreCase(byteamDscsUseyn) && teamDtl != null) {
+            vo.setDscsTtl(StringUtil.nvl(teamDtl.getDscsTtl()));
+            vo.setDscsCts(StringUtil.nvl(teamDtl.getDscsCts()));
+        } else {
+            vo.setDscsTtl(TEAM_CHILD_PLACEHOLDER);
+            vo.setDscsCts(TEAM_CHILD_PLACEHOLDER);
+        }
+        dscsDAO.insertDscs(vo);
+
+        if ("Y".equalsIgnoreCase(byteamDscsUseyn) && teamDtl != null && StringUtil.isNotNull(teamDtl.getTeamUploadFiles())) {
+            List<AtflVO> teamFiles = FileUtil.getUploadAtflList(teamDtl.getTeamUploadFiles(), teamDtl.getTeamUploadPath());
+            for (AtflVO atflVO : teamFiles) {
+                atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
+                atflVO.setRefId(childDscsId);
+                atflVO.setRgtrId(vo.getRgtrId());
+                atflVO.setMdfrId(vo.getMdfrId());
+                atflVO.setAtflRepoId(CommConst.REPO_DSCS);
+            }
+            if (!teamFiles.isEmpty()) {
+                attachFileService.insertAtflList(teamFiles);
+            }
+        }
+    }
+
+    /**
+     * 팀토론의 자식토론을 현재 팀 구성과 입력값에 맞게 생성 또는 수정한다.
+     * @param vo
+     * @param currentVO
+     * @param parentDscsId
+     * @param teamGrpId
+     * @param dvclasNo
+     * @param byteamDscsUseyn
+     * @throws Exception
+     */
+    private void upsertTeamChildDscs(DscsVO vo, DscsVO currentVO, String parentDscsId, String teamGrpId, String dvclasNo, String byteamDscsUseyn) throws Exception {
+        List<DscsTeamDscsVO> expectedTeams = loadExpectedTeams(parentDscsId, teamGrpId);
+        Map<String, DscsTeamDscsVO> detailMap = buildTeamDtlMap(vo.getTeamDscsDtlList(), dvclasNo);
+        Map<String, DscsTeamDscsVO> existingMap = new LinkedHashMap<>();
+        List<DscsTeamDscsVO> existingChildren = dscsDAO.selectTeamDscsList(parentDscsId);
+        if (existingChildren != null) {
+            for (DscsTeamDscsVO item : existingChildren) {
+                existingMap.put(item.getTeamId(), item);
+            }
+        }
+
+        String originalDscsId = vo.getDscsId();
+        String originalUpDscsId = vo.getUpDscsId();
+        String originalTeamId = vo.getTeamId();
+        String originalDscsTtl = vo.getDscsTtl();
+        String originalDscsCts = vo.getDscsCts();
+        String originalByteam = vo.getByteamDscsUseyn();
+
+        for (DscsTeamDscsVO teamRow : expectedTeams) {
+            DscsTeamDscsVO teamDtl = detailMap.get(teamRow.getTeamId());
+            DscsTeamDscsVO existing = existingMap.get(teamRow.getTeamId());
+            String childTitle = ("Y".equalsIgnoreCase(byteamDscsUseyn) && teamDtl != null)
+                    ? StringUtil.nvl(teamDtl.getDscsTtl())
+                    : TEAM_CHILD_PLACEHOLDER;
+            String childContents = ("Y".equalsIgnoreCase(byteamDscsUseyn) && teamDtl != null)
+                    ? StringUtil.nvl(teamDtl.getDscsCts())
+                    : TEAM_CHILD_PLACEHOLDER;
+
+            if (existing == null || StringUtil.isNull(existing.getDscsId())) {
+                insertTeamChildDscs(vo, parentDscsId, teamRow, teamDtl, byteamDscsUseyn);
+            } else {
+                DscsTeamDscsVO updateVO = new DscsTeamDscsVO();
+                updateVO.setUpDscsId(parentDscsId);
+                updateVO.setTeamId(teamRow.getTeamId());
+                updateVO.setDscsId(existing.getDscsId());
+                updateVO.setDscsTtl(childTitle);
+                updateVO.setDscsCts(childContents);
+                updateVO.setByteamDscsUseyn("N");
+                updateVO.setRgtrId(vo.getRgtrId());
+                updateVO.setMdfrId(vo.getMdfrId());
+                dscsDAO.updateChildDscsDtls(updateVO);
+                if (!"Y".equalsIgnoreCase(byteamDscsUseyn)) {
+                    removeTeamChildAttachments(existing.getDscsId());
+                } else if (teamDtl != null) {
+                    if (StringUtil.isNotNull(teamDtl.getDelFileIdStr())) {
+                        attachFileService.deleteAtflByAtflIds(teamDtl.getDelFileIdStr().split(","));
+                    }
+                    if (StringUtil.isNotNull(teamDtl.getTeamUploadFiles())) {
+                        List<AtflVO> teamFiles = FileUtil.getUploadAtflList(teamDtl.getTeamUploadFiles(), teamDtl.getTeamUploadPath());
+                        for (AtflVO atflVO : teamFiles) {
+                            atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
+                            atflVO.setRefId(existing.getDscsId());
+                            atflVO.setRgtrId(vo.getRgtrId());
+                            atflVO.setMdfrId(vo.getMdfrId());
+                            atflVO.setAtflRepoId(CommConst.REPO_DSCS);
+                        }
+                        if (!teamFiles.isEmpty()) {
+                            attachFileService.insertAtflList(teamFiles);
+                        }
+                    }
+                }
+            }
+        }
+
+        vo.setDscsId(originalDscsId);
+        vo.setUpDscsId(originalUpDscsId);
+        vo.setTeamId(originalTeamId);
+        vo.setDscsTtl(originalDscsTtl);
+        vo.setDscsCts(originalDscsCts);
+        vo.setByteamDscsUseyn(originalByteam);
+    }
+
+    /**
+     * 토론성적공개여부 수정
+     */
     @Override
-    public ProcessResultVO<DscsVO> modifyDscsMrkOyn(DscsVO vo) throws Exception {
+    public ProcessResultVO<DscsVO> modifyDscsMrkOyn(DscsVO vo) {
         ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<>();
 
         int affected = dscsDAO.updateDscsMrkOyn(vo);
@@ -116,7 +455,7 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
      * @throws Exception
      */
     @Override
-    public void updateDscsMrkRfltrt(List<DscsVO> list) throws Exception {
+    public void updateDscsMrkRfltrt(List<DscsVO> list) {
         dscsDAO.updateDscsMrkRfltrt(list);
     }
 
@@ -128,12 +467,15 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
      */
     @Override
     public ProcessResultVO<DscsVO> saveDscs(DscsVO vo) throws Exception {
+        // 찬반토론 설정값이 없는 경우 기본값을 보정한다.
         if (StringUtil.isNull(vo.getOknokStngyn())) {
             vo.setOknokStngyn("N");
         }
+        // 저장 로직에서 사용할 토론 구분값을 TEAM/GNRL로 정규화한다.
         boolean isTeamDiscussion = "TEAM".equalsIgnoreCase(vo.getDscsUnitTycd()) || "Y".equalsIgnoreCase(vo.getDscsUnitTycd());
         vo.setDscsUnitTycd(isTeamDiscussion ? "TEAM" : "GNRL");
 
+        // 토론 ID 존재 여부로 등록/수정 저장 절차를 분기한다.
         if (StringUtil.isNull(vo.getDscsId())) {
             return doInsertDscs(vo, isTeamDiscussion);
         } else {
@@ -147,72 +489,94 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
     private ProcessResultVO<DscsVO> doInsertDscs(DscsVO vo, boolean isTeamDiscussion) throws Exception {
         ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<>();
 
+        // 서비스 직접 호출에 대비해 등록 대상 분반 목록을 방어적으로 확인한다.
         List<DscsDvclasSelVO> dvclasSelList = vo.getDvclasSelList();
+        String baseSbjctId = vo.getSbjctId();
+        Map<String, DscsVO> validDvclasMap = new HashMap<>();
+        List<DscsVO> validDvclasList = dscsDAO.selectDscsDvclasList(vo);
+        if(validDvclasList != null) {
+            for(DscsVO validDvclas : validDvclasList) {
+                if(validDvclas == null || StringUtil.isNull(validDvclas.getSbjctId())) {
+                    continue;
+                }
+                validDvclasMap.put(validDvclas.getSbjctId(), validDvclas);
+            }
+        }
         if (dvclasSelList == null || dvclasSelList.isEmpty()) {
             resultVO.setResultFailed("등록 시 분반 정보가 필요합니다.");
             return resultVO;
         }
 
-        Map<String, String> lrnGrpMapByDvclasNo = new HashMap<>();
-        Map<String, String> lrnGrpNmMapByDvclasNo = new HashMap<>();
+        // 분반별 팀 분류와 학습그룹별 토론 사용 여부를 저장 처리용 map으로 구성한다.
+        Map<String, String> teamGrpMapByDvclasNo = new HashMap<>();
+        Map<String, String> teamGrpNmMapByDvclasNo = new HashMap<>();
         Map<String, String> byteamDscsUseynMapByDvclasNo = new HashMap<>();
-        List<DscsLrnGrpVO> lrnGrpInfoList = vo.getLrnGrpInfoList();
-        if (lrnGrpInfoList != null) {
-            for (DscsLrnGrpVO info : lrnGrpInfoList) {
+        List<DscsTeamGrpVO> teamGrpInfoList = vo.getTeamGrpInfoList();
+        if (teamGrpInfoList != null) {
+            for (DscsTeamGrpVO info : teamGrpInfoList) {
                 if (info == null) {
                     continue;
                 }
-                if (!StringUtil.isNull(info.getDvclasNo()) && !StringUtil.isNull(info.getLrnGrpId())) {
-                    lrnGrpMapByDvclasNo.put(info.getDvclasNo(), info.getLrnGrpId());
+                if (!StringUtil.isNull(info.getDvclasNo()) && !StringUtil.isNull(info.getTeamGrpId())) {
+                    teamGrpMapByDvclasNo.put(info.getDvclasNo(), info.getTeamGrpId());
                 }
-                if (!StringUtil.isNull(info.getDvclasNo()) && !StringUtil.isNull(info.getLrnGrpnm())) {
-                    lrnGrpNmMapByDvclasNo.put(info.getDvclasNo(), info.getLrnGrpnm());
+                if (!StringUtil.isNull(info.getDvclasNo()) && !StringUtil.isNull(info.getTeamGrpnm())) {
+                    teamGrpNmMapByDvclasNo.put(info.getDvclasNo(), info.getTeamGrpnm());
                 }
                 if (!StringUtil.isNull(info.getDvclasNo())) {
-                    byteamDscsUseynMapByDvclasNo.put(info.getDvclasNo(),
-                            StringUtil.isNull(info.getByteamDscsUseyn()) ? "N" : info.getByteamDscsUseyn());
+                    byteamDscsUseynMapByDvclasNo.put(
+                            info.getDvclasNo(),
+                            StringUtil.isNull(info.getByteamDscsUseyn()) ? "N" : info.getByteamDscsUseyn()
+                    );
                 }
             }
         }
 
-        if (isTeamDiscussion && lrnGrpMapByDvclasNo.isEmpty()) {
+        // 팀토론은 분반별 팀 분류 정보가 있어야 자식 토론을 생성할 수 있다.
+        if (isTeamDiscussion && teamGrpMapByDvclasNo.isEmpty()) {
             resultVO.setResultFailed("팀토론 등록 시 분반별 학습그룹 정보가 필요합니다.");
             return resultVO;
         }
 
         String firstDscsId = null;
         for (DscsDvclasSelVO dvclasSelVO : dvclasSelList) {
-            // 분반별 과목개설ID 를 등록한다.
-            vo.setSbjctId(dvclasSelVO.getSbjctId());
             if (dvclasSelVO == null) {
                 continue;
             }
             if (!"Y".equalsIgnoreCase(dvclasSelVO.getCheckedYn())) {
                 continue;
             }
+            DscsVO validDvclas = validDvclasMap.get(dvclasSelVO.getSbjctId());
+            if(validDvclas == null) {
+                resultVO.setResultFailed(getMessage("forum.alert.select.dvclas"));
+                return resultVO;
+            }
+            vo.setSbjctId(validDvclas.getSbjctId());
 
-            String dvclasNo = dvclasSelVO.getDvclasNo();
-            String dvclsNo = dvclasNo;
-            if (StringUtil.isNull(dvclsNo)) {
+            String dvclasNo = validDvclas.getDvclasNo();
+            // 선택된 분반의 분반 번호는 부모 토론 생성의 필수 기준값이다.
+            if (StringUtil.isNull(dvclasNo)) {
                 resultVO.setResultFailed("등록 시 분반 정보가 필요합니다.");
                 return resultVO;
             }
 
             if (isTeamDiscussion) {
-                String lrnGrpId = lrnGrpMapByDvclasNo.get(dvclasNo);
-                String lrnGrpnm = lrnGrpNmMapByDvclasNo.get(dvclasNo);
-                if (StringUtil.isNull(lrnGrpId) || StringUtil.isNull(lrnGrpnm)) {
+                String teamGrpId = teamGrpMapByDvclasNo.get(dvclasNo);
+                String teamGrpnm = teamGrpNmMapByDvclasNo.get(dvclasNo);
+                // 팀토론은 분반별 팀 분류 ID/명이 모두 있어야 그룹 정보를 생성할 수 있다.
+                if (StringUtil.isNull(teamGrpId) || StringUtil.isNull(teamGrpnm)) {
                     resultVO.setResultFailed("팀토론 등록 시 분반별 학습그룹 정보가 필요합니다.");
                     return resultVO;
                 }
+                // 분반별 부모 토론과 연결될 토론 그룹을 생성한다.
                 String dscsGrpId = IdGenerator.getNewId(IdPrefixType.DSGRP.getCode());
                 vo.setDscsGrpId(dscsGrpId);
-                vo.setLrnGrpId(lrnGrpId);
-                vo.setDscsGrpnm(lrnGrpnm);
+                vo.setTeamGrpId(teamGrpId);
+                vo.setDscsGrpnm(teamGrpnm);
                 dscsDAO.insertDscsGrp(vo);
             } else {
                 vo.setDscsGrpId(null);
-                vo.setLrnGrpId(null);
+                vo.setTeamGrpId(null);
                 vo.setDscsGrpnm(null);
             }
 
@@ -221,67 +585,32 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
             String origDscsCts = vo.getDscsCts();
             String newDscsId = IdGenerator.getNewId(IdPrefixType.DSCS.getCode());
             vo.setDscsId(newDscsId);
-            vo.setDvclsNo(dvclsNo);
-            vo.setByteamDscsUseyn(byteamDscsUseyn);
+            vo.setDvclasNo(dvclasNo);
+            vo.setByteamDscsUseyn(isTeamDiscussion ? byteamDscsUseyn : "N");
             vo.setUpDscsId(null);
             vo.setTeamId(null);
-            dscsDAO.insertDscs(vo); // 부모(또는 단일) 토론 INSERT
+            // 선택 분반별 부모 토론을 생성한다.
+            dscsDAO.insertDscs(vo);
 
-            // 팀별 부주제 설정 시: 팀수만큼 자식 토론 생성
-            if ("Y".equalsIgnoreCase(byteamDscsUseyn)) {
-                List<DscsTeamDscsVO> teamDscsDtlList = vo.getTeamDscsDtlList();
-                if (teamDscsDtlList != null) {
-                    for (DscsTeamDscsVO teamDtl : teamDscsDtlList) {
-                        if (teamDtl == null || !dvclasNo.equals(teamDtl.getDvclasNo())) {
-                            continue;
-                        }
-                        String childDscsId = IdGenerator.getNewId(IdPrefixType.DSCS.getCode());
-                        vo.setDscsId(childDscsId);
-                        vo.setUpDscsId(newDscsId);
-                        vo.setTeamId(teamDtl.getTeamId());
-                        vo.setDscsTtl(teamDtl.getDscsTtl());
-                        vo.setDscsCts(teamDtl.getDscsCts());
-                        vo.setByteamDscsUseyn("N");
-                        dscsDAO.insertDscs(vo);
-
-                        // 팀별 첨부파일 저장 (refId = 자식 토론 ID)
-                        if (!StringUtil.isNull(teamDtl.getTeamUploadFiles())) {
-                            List<AtflVO> teamFiles = FileUtil.getUploadAtflList(
-                                    teamDtl.getTeamUploadFiles(), teamDtl.getTeamUploadPath());
-                            for (AtflVO atflVO : teamFiles) {
-                                atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
-                                atflVO.setRefId(childDscsId);
-                                atflVO.setRgtrId(vo.getRgtrId());
-                                atflVO.setMdfrId(vo.getMdfrId());
-                                atflVO.setAtflRepoId(CommConst.REPO_DSCS);
-                            }
-                            if (!teamFiles.isEmpty()) {
-                                attachFileService.insertAtflList(teamFiles);
-                            }
-                        }
-                    }
-                }
-                // 다음 분반 루프를 위해 원복
-                vo.setUpDscsId(null);
-                vo.setTeamId(null);
-                vo.setDscsTtl(origDscsTtl);
-                vo.setDscsCts(origDscsCts);
-                vo.setByteamDscsUseyn(byteamDscsUseyn);
+            if (isTeamDiscussion) {
+                // 팀 목록 기준으로 자식 토론을 생성하고 학습그룹별 부주제를 반영한다.
+                upsertTeamChildDscs(vo, null, newDscsId, vo.getTeamGrpId(), dvclasNo, byteamDscsUseyn);
             }
 
             if (firstDscsId == null) {
-                // 입력된 분반 선택 순서 기준으로 첫 번째 DSCS를 대표 dscsId로 사용
                 firstDscsId = newDscsId;
             }
         }
 
+        // 선택된 분반이 하나도 저장되지 않은 경우 저장 실패로 반환한다.
+        vo.setSbjctId(baseSbjctId);
         if (StringUtil.isNull(firstDscsId)) {
             resultVO.setResultFailed("팀토론 등록 시 유효한 분반 정보가 없습니다.");
             return resultVO;
         }
         vo.setDscsId(firstDscsId);
 
-        // 첨부파일 저장 (대표 dscsId 기준)
+        // 부모 토론 첨부파일은 최초 생성된 토론 ID에 연결한다.
         List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
         for (AtflVO atflVO : uploadFileList) {
             atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
@@ -298,144 +627,87 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
         return resultVO;
     }
 
+
     /**
      * 토론 수정
      */
     private ProcessResultVO<DscsVO> doUpdateDscs(DscsVO vo, boolean isTeamDiscussion) throws Exception {
         ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<>();
 
-        // 현재 DB 상태 조회 (변경 전 유형 판별용)
+        // 기존 토론 상태를 기준으로 일반/팀토론 전환 및 팀 분류 변경 여부를 판단한다.
         DscsVO currentParam = new DscsVO();
         currentParam.setDscsId(vo.getDscsId());
         DscsVO currentVO = dscsDAO.selectDscs(currentParam);
-        boolean wasTeam   = "TEAM".equalsIgnoreCase(currentVO.getDscsUnitTycd());
-        boolean wasByteam = "Y".equalsIgnoreCase(currentVO.getByteamDscsUseyn());
-
-        // byteamDscsUseyn 은 lrnGrpInfoList 를 통해 전달됨 (direct form field 없음)
-        String newByteam = "N";
-        List<DscsLrnGrpVO> lrnGrpInfoForByteam = vo.getLrnGrpInfoList();
-        if (lrnGrpInfoForByteam != null && !lrnGrpInfoForByteam.isEmpty()) {
-            DscsLrnGrpVO firstGrp = lrnGrpInfoForByteam.get(0);
-            if (firstGrp != null && "Y".equalsIgnoreCase(firstGrp.getByteamDscsUseyn())) {
-                newByteam = "Y";
-            }
-        } else if (!StringUtil.isNull(vo.getByteamDscsUseyn())) {
-            newByteam = "Y".equalsIgnoreCase(vo.getByteamDscsUseyn()) ? "Y" : "N";
+        // 토론 수정은 참여기간 시작 전에만 허용한다.
+        if (currentVO == null) {
+            resultVO.setResultFailed("update target not found");
+            return resultVO;
         }
-        vo.setByteamDscsUseyn(newByteam); // updateForum() 에서 BYTEAM_DSCS_USEYN 업데이트용
+        if (!DscsPeriodPolicy.canProfEditDscs(currentVO)) {
+            resultVO.setResultFailed(getMessage(DscsPeriodPolicy.MSG_KEY_BEFORE_ONLY));
+            return resultVO;
+        }
+        String parentDscsId = currentVO.getDscsId();
+        boolean wasTeam = "TEAM".equalsIgnoreCase(currentVO.getDscsUnitTycd());
 
-        // 2-2: TEAM → GNRL 전환 시 자식 논리 삭제
+        DscsTeamGrpVO matchedGrpInfo = findMatchedTeamGrpInfo(vo, currentVO);
+        String newDvclasNo = StringUtil.isNotNull(vo.getDvclasNo()) ? vo.getDvclasNo() : currentVO.getDvclasNo();
+        String newSbjctId = StringUtil.isNotNull(vo.getSbjctId()) ? vo.getSbjctId() : currentVO.getSbjctId();
+        String currentTeamGrpId = StringUtil.nvl(currentVO.getTeamGrpId());
+        String nextTeamGrpId = matchedGrpInfo != null ? StringUtil.nvl(matchedGrpInfo.getTeamGrpId()) : StringUtil.nvl(vo.getTeamGrpId());
+        String nextTeamGrpnm = matchedGrpInfo != null ? StringUtil.nvl(matchedGrpInfo.getTeamGrpnm()) : StringUtil.nvl(vo.getDscsGrpnm());
+        boolean teamGrpChanged = wasTeam && isTeamDiscussion && StringUtil.isNotNull(nextTeamGrpId) && !nextTeamGrpId.equals(currentTeamGrpId);
+        String newByteam = resolveByteamDscsUseyn(vo, currentVO);
+
+        vo.setDvclasNo(newDvclasNo);
+        vo.setSbjctId(newSbjctId);
+        vo.setByteamDscsUseyn(isTeamDiscussion ? newByteam : "N");
+        vo.setDscsId(parentDscsId);
+
+        // 팀토론에서 일반토론으로 변경되는 경우 기존 자식 토론을 정리한다.
         if (wasTeam && !isTeamDiscussion) {
-            dscsDAO.updateChildDscsDelYn(vo);
-        }
-        // 2-1: TEAM 유지, byteamDscsUseyn Y → N 시 자식 논리 삭제
-        else if (wasTeam && isTeamDiscussion && wasByteam && "N".equals(newByteam)) {
-            dscsDAO.updateChildDscsDelYn(vo);
+            deleteTeamChildDscs(vo, parentDscsId);
         }
 
-        // 2-4: TEAM 유지 + byteamDscsUseyn Y → Y 시 자식 토론 제목/내용 UPDATE
-        if (wasTeam && isTeamDiscussion && "Y".equals(newByteam)) {
-            List<DscsTeamDscsVO> teamDscsDtlList = vo.getTeamDscsDtlList();
-            if (teamDscsDtlList != null) {
-                for (DscsTeamDscsVO teamDtl : teamDscsDtlList) {
-                    if (teamDtl == null || StringUtil.isNull(teamDtl.getTeamId())) continue;
-                    teamDtl.setUpDscsId(vo.getDscsId());
-                    teamDtl.setMdfrId(vo.getMdfrId());
-                    teamDtl.setRgtrId(vo.getRgtrId());
-                    dscsDAO.updateChildDscsDtls(teamDtl);
-                    // 팀별 첨부파일 저장 (refId = JS에서 전달된 자식 토론 ID)
-                    if (!StringUtil.isNull(teamDtl.getTeamUploadFiles()) && !StringUtil.isNull(teamDtl.getDscsId())) {
-                        List<AtflVO> teamFiles = FileUtil.getUploadAtflList(
-                                teamDtl.getTeamUploadFiles(), teamDtl.getTeamUploadPath());
-                        for (AtflVO atflVO : teamFiles) {
-                            atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
-                            atflVO.setRefId(teamDtl.getDscsId());
-                            atflVO.setRgtrId(vo.getRgtrId());
-                            atflVO.setMdfrId(vo.getMdfrId());
-                            atflVO.setAtflRepoId(CommConst.REPO_DSCS);
-                        }
-                        if (!teamFiles.isEmpty()) {
-                            attachFileService.insertAtflList(teamFiles);
-                        }
-                    }
-                }
+        if (isTeamDiscussion) {
+            // 팀토론은 저장 시점에 사용할 팀 분류 ID가 반드시 필요하다.
+            if (StringUtil.isNull(nextTeamGrpId)) {
+                resultVO.setResultFailed("팀토론은 팀그룹 정보가 필요합니다.");
+                return resultVO;
             }
-        }
-
-        // 2-3: GNRL → TEAM 전환 시 팀그룹 생성 + 자식 토론 생성
-        if (!wasTeam && isTeamDiscussion) {
-            // 수정 모드 기존 분반/과목 유지
-            vo.setDvclsNo(currentVO.getDvclsNo());
-            vo.setSbjctId(currentVO.getSbjctId());
-
-            // lrnGrpInfoList[0] 에서 현재 분반의 학습그룹 정보 취득
-            List<DscsLrnGrpVO> lrnGrpInfoList = vo.getLrnGrpInfoList();
-            if (lrnGrpInfoList != null && !lrnGrpInfoList.isEmpty()) {
-                DscsLrnGrpVO grpInfo = lrnGrpInfoList.get(0);
-                String lrnGrpId = grpInfo.getLrnGrpId();
-                String lrnGrpnm = grpInfo.getLrnGrpnm();
-                if (!StringUtil.isNull(lrnGrpId)) {
-                    String dscsGrpId = IdGenerator.getNewId(IdPrefixType.DSGRP.getCode());
-                    vo.setDscsGrpId(dscsGrpId);
-                    vo.setLrnGrpId(lrnGrpId);
-                    vo.setDscsGrpnm(lrnGrpnm);
-                    dscsDAO.insertDscsGrp(vo);
-                }
-            }
-
-            // byteamDscsUseyn='Y' 이면 팀별 자식 토론 생성
-            if ("Y".equals(newByteam)) {
-                List<DscsTeamDscsVO> teamDscsDtlList = vo.getTeamDscsDtlList();
-                if (teamDscsDtlList != null) {
-                    String parentDscsId = vo.getDscsId();
-                    String origDscsTtl  = vo.getDscsTtl();
-                    String origDscsCts  = vo.getDscsCts();
-                    for (DscsTeamDscsVO teamDtl : teamDscsDtlList) {
-                        if (teamDtl == null) continue;
-                        vo.setDscsId(IdGenerator.getNewId(IdPrefixType.DSCS.getCode()));
-                        vo.setUpDscsId(parentDscsId);
-                        vo.setTeamId(teamDtl.getTeamId());
-                        vo.setDscsTtl(teamDtl.getDscsTtl());
-                        vo.setDscsCts(teamDtl.getDscsCts());
-                        vo.setByteamDscsUseyn("N");
-                        dscsDAO.insertDscs(vo);
-                        // 팀별 첨부파일 저장 (refId = 신규 자식 토론 ID)
-                        String childDscsId = vo.getDscsId();
-                        if (!StringUtil.isNull(teamDtl.getTeamUploadFiles())) {
-                            List<AtflVO> teamFiles = FileUtil.getUploadAtflList(
-                                    teamDtl.getTeamUploadFiles(), teamDtl.getTeamUploadPath());
-                            for (AtflVO atflVO : teamFiles) {
-                                atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
-                                atflVO.setRefId(childDscsId);
-                                atflVO.setRgtrId(vo.getRgtrId());
-                                atflVO.setMdfrId(vo.getMdfrId());
-                                atflVO.setAtflRepoId(CommConst.REPO_DSCS);
-                            }
-                            if (!teamFiles.isEmpty()) {
-                                attachFileService.insertAtflList(teamFiles);
-                            }
-                        }
-                    }
-                    // 원복
-                    vo.setDscsId(parentDscsId);
-                    vo.setUpDscsId(null);
-                    vo.setTeamId(null);
-                    vo.setDscsTtl(origDscsTtl);
-                    vo.setDscsCts(origDscsCts);
-                    vo.setByteamDscsUseyn(newByteam);
-                }
+            vo.setTeamGrpId(nextTeamGrpId);
+            // 신규 팀토론 전환, 팀 분류 변경, 그룹 누락 시 새 토론 그룹을 생성한다.
+            if (!wasTeam || teamGrpChanged || StringUtil.isNull(currentVO.getDscsGrpId())) {
+                String dscsGrpId = IdGenerator.getNewId(IdPrefixType.DSGRP.getCode());
+                vo.setDscsGrpId(dscsGrpId);
+                vo.setDscsGrpnm(nextTeamGrpnm);
+                dscsDAO.insertDscsGrp(vo);
             }
         } else {
-            vo.setDvclsNo(null); // GNRL→TEAM 전환 외 수정 시 분반 변경 금지
+            vo.setTeamGrpId(null);
+            vo.setDscsGrpId(null);
         }
 
+        // 팀 분류가 변경되면 기존 자식 토론을 삭제하고 새 팀 목록 기준으로 재생성한다.
+        if (wasTeam && isTeamDiscussion && teamGrpChanged) {
+            deleteTeamChildDscs(vo, parentDscsId);
+        }
+
+        vo.setDscsId(parentDscsId);
+        // 부모 토론 정보를 수정한다.
         dscsDAO.updateDscs(vo);
 
-        // 첨부파일 저장
+        if (isTeamDiscussion) {
+            // 팀토론 자식 토론을 현재 팀 목록과 학습그룹별 부주제 설정에 맞게 동기화한다.
+            upsertTeamChildDscs(vo, currentVO, parentDscsId, vo.getTeamGrpId(), newDvclasNo, newByteam);
+        }
+
+        vo.setDscsId(parentDscsId);
+        // 부모 토론 첨부파일을 추가한다.
         List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
         for (AtflVO atflVO : uploadFileList) {
             atflVO.setAtflId(IdGenUtil.genNewId(IdPrefixType.ATFL));
-            atflVO.setRefId(vo.getDscsId());
+            atflVO.setRefId(parentDscsId);
             atflVO.setRgtrId(vo.getRgtrId());
             atflVO.setMdfrId(vo.getMdfrId());
             atflVO.setAtflRepoId(CommConst.REPO_DSCS);
@@ -453,9 +725,14 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
         return resultVO;
     }
 
-    // 내 강의에 등록된 토론 목록 조회
+    /**
+     * 교수자 과목 토론 목록을 페이징 조회한다.
+     * @param vo
+     * @return
+     * @throws Exception
+     */
     @Override
-    public ProcessResultVO<DscsVO> selectProfSbjctDscsList(DscsVO vo) throws Exception {
+    public ProcessResultVO<DscsVO> selectProfSbjctDscsList(DscsVO vo) {
 
         /** start of paging */
         PagingInfo paginationInfo = new PagingInfo();
@@ -489,8 +766,21 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
      * @throws Exception
      */
     @Override
-    public ProcessResultVO<DscsVO> deleteDscs(DscsVO vo) throws Exception {
+    public ProcessResultVO<DscsVO> deleteDscs(DscsVO vo) {
         ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<>();
+
+        // 토론 삭제는 참여기간 시작 전에만 허용한다.
+        DscsVO currentParam = new DscsVO();
+        currentParam.setDscsId(vo.getDscsId());
+        DscsVO currentVO = dscsDAO.selectDscs(currentParam);
+        if (currentVO == null) {
+            resultVO.setResultFailed("delete target not found");
+            return resultVO;
+        }
+        if (!DscsPeriodPolicy.canProfEditDscs(currentVO)) {
+            resultVO.setResultFailed(getMessage(DscsPeriodPolicy.MSG_KEY_BEFORE_ONLY));
+            return resultVO;
+        }
 
         int affected = dscsDAO.deleteDscs(vo);
         if (affected > 0) {
@@ -510,7 +800,7 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
      * @throws Exception
      */
     @Override
-    public ProcessResultVO<DscsTeamDscsVO> modifyTeamDscsOyn(DscsTeamDscsVO vo) throws Exception {
+    public ProcessResultVO<DscsTeamDscsVO> modifyTeamDscsOyn(DscsTeamDscsVO vo) {
         ProcessResultVO<DscsTeamDscsVO> resultVO = new ProcessResultVO<>();
 
         int affected = dscsDAO.updateTeamDscsOyn(vo);
@@ -525,60 +815,40 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
     }
 
     /**
-     * 학습그룹 팀 목록 조회 (팀 토론 부주제 설정용)
+     * 팀그룹 팀 목록 조회 (팀 토론 부주제 설정용)
      */
     @Override
-    public ProcessResultVO<DscsTeamDscsVO> selectDscsLrnGrpTeamList(DscsTeamDscsVO vo) throws Exception {
+    public ProcessResultVO<DscsTeamDscsVO> selectDscsTeamGrpTeamList(DscsTeamDscsVO vo) {
         ProcessResultVO<DscsTeamDscsVO> resultVO = new ProcessResultVO<>();
-        List<DscsTeamDscsVO> list = dscsDAO.selectDscsLrnGrpTeamList(vo);
+        List<DscsTeamDscsVO> list = dscsDAO.selectDscsTeamGrpTeamList(vo);
+        String byteamDscsUseyn = normalizeYn(vo.getByteamDscsUseyn());
+        if (list != null) {
+            for (DscsTeamDscsVO item : list) {
+                if (item == null) {
+                    continue;
+                }
+                item.setByteamDscsUseyn(byteamDscsUseyn);
+                if (!"Y".equalsIgnoreCase(byteamDscsUseyn) || StringUtil.isNull(item.getDscsId())) {
+                    continue;
+                }
+                AtflVO atflParam = new AtflVO();
+                atflParam.setAtflRepoId(CommConst.REPO_DSCS);
+                atflParam.setRefId(item.getDscsId());
+                item.setFileList(attachFileService.selectAtflListByRefId(atflParam));
+            }
+        }
+        normalizeTeamChildDisplay(list, byteamDscsUseyn);
         resultVO.setReturnList(list);
         return resultVO;
     }
 
     /**
-     * 토론복사
-     * @param vo
-     * @return
+     * 성적 반영 비율을 반영 대상 토론 수 기준으로 초기화한다.
+     * @param dscsVO
      * @throws Exception
      */
     @Override
-    public ProcessResultVO<DscsVO> copyDscs(DscsVO vo) throws Exception {
-        ProcessResultVO<DscsVO> resultVO = new ProcessResultVO<>();
-
-        String newDscsId = IdGenerator.getNewId(IdPrefixType.DSCS.getCode());
-        vo.setDscsId(newDscsId);
-
-        /*TODO : 26.3.26
-        파라미터매핑프로젝트표준확정필요
-        */
-        dscsDAO.copyDscs(vo);
-
-        DscsVO detailParam = new DscsVO();
-        detailParam.setDscsId(newDscsId);
-        DscsVO detailVO = dscsDAO.selectDscs(detailParam);
-
-        // TODO : 26.3.26 파일정보 복사(물리 파일 처리 확인 필요)
-        /*
-        FileVO copyFileVO;
-        copyFileVO = new FileVO();
-        copyFileVO.setOrgId(orgId);
-        copyFileVO.setRepoCd("FORUM");
-        copyFileVO.setFileBindDataSn(dscsId);
-        copyFileVO.setCopyFileBindDataSn(copyDscsId);
-        copyFileVO.setRgtrId(rgtrId);
-
-        sysFileService.copyFileInfoFromOrigin(copyFileVO);
-        */
-
-        resultVO.setReturnVO(detailVO);
-        resultVO.setResultSuccess();
-
-        return resultVO;
-    }
-
-    // 성적반영비율 초기화
-    @Override
-    public void setScoreRatio(DscsVO dscsVO) throws Exception {
+    public void setScoreRatio(DscsVO dscsVO) {
         List<DscsVO> scoreAplyList = dscsDAO.getScoreRatio(dscsVO);
 
         if( scoreAplyList != null && !scoreAplyList.isEmpty() && scoreAplyList.size() > 0) {
@@ -601,22 +871,52 @@ public class DscsServiceImpl extends ServiceBase implements DscsService {
         }
     }
 
-    // 성적분포현황 BarChart
+    /**
+     * 토론 성적 분포 차트 데이터를 조회한다.
+     * @param vo
+     * @return
+     * @throws Exception
+     */
     @Override
-    public EgovMap viewScoreChart(DscsVO vo) throws Exception {
+    public EgovMap viewScoreChart(DscsVO vo) {
         EgovMap scoreMap = dscsDAO.selectScoreChart(vo);
         return scoreMap;
     }
 
-    // 교수 학기기수 목록 조회 (토론 복사 팝업용)
+    /**
+     * 토론 복사용 교수 학기기수 목록을 조회한다.
+     * @param vo
+     * @return
+     * @throws Exception
+     */
     @Override
-    public List<EgovMap> selectProfSmstrChrtList(DscsVO vo) throws Exception {
+    public List<EgovMap> selectProfSmstrChrtList(DscsVO vo) {
         return dscsDAO.selectProfSmstrChrtList(vo);
     }
 
-    // 학기기수별 과목 목록 조회 (토론 복사 팝업용)
+    /**
+     * 토론 복사용 학기기수별 과목 목록을 조회한다.
+     * @param vo
+     * @return
+     * @throws Exception
+     */
     @Override
-    public List<EgovMap> selectProfSmstrChrtSbjctList(DscsVO vo) throws Exception {
+    public List<EgovMap> selectProfSmstrChrtSbjctList(DscsVO vo) {
         return dscsDAO.selectProfSmstrChrtSbjctList(vo);
     }
+
+    /**
+     * 과목별토론목록조회
+     * @param	DscsVO
+     * @return 	과목별토론목록s
+     */
+	@Override
+	public List<EgovMap> bySubjectDscsList(DscsVO vo) {
+		 return dscsDAO.bySubjectDscsList(vo);
+	}
+
+    private String getMessage(String messageKey) {
+        return messageSource.getMessage(messageKey, null, messageKey, LocaleContextHolder.getLocale());
+    }
+
 }

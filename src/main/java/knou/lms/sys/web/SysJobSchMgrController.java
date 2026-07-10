@@ -1,6 +1,5 @@
 package knou.lms.sys.web;
 
-import java.util.List;
 import java.util.Locale;
 
 import javax.annotation.Resource;

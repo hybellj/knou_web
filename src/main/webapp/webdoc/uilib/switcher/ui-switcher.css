@@ -18,11 +18,10 @@ UI Switcher
   box-shadow: inset 1px 1px 1px rgba(0, 0, 0, 0.15);
 }
 .ui-switcher:before {
-  font-family: sans-serif;
   font-size: 1.1rem;
   font-weight: 400;
   color: #ffffff;
-  line-height: 1.7em;
+  line-height: 2.4em;
   display: inline-block;
   position: absolute;
   text-align: center;
@@ -40,30 +39,28 @@ UI Switcher
 	width: 3.0em;
 }
 .ui-switcher[aria-checked=false]:before {
-  content: '';
+  content: attr(data-text);
+  left: 25px;
 }
 .ui-switcher[aria-checked=true]:before {
-  content: '';
+  content: attr(data-text);
+  left: 0.5em;
 }
 .ui-switcher.onoff[aria-checked=false]:before {
   content: 'OFF';
   right: 0.7em;
-  line-height: 2.2em;
 }
 .ui-switcher.onoff[aria-checked=true]:before {
   content: 'ON';
   left: 0.9em;
-  line-height: 2.2em;
 }
 .ui-switcher.yesno[aria-checked=false]:before {
   content: 'NO';
   right: 0.9em;
-  line-height: 2.2em;
 }
 .ui-switcher.yesno[aria-checked=true]:before {
   content: 'YES';
   left: 0.7em;
-  line-height: 2.2em;
 }
 .ui-switcher[aria-checked=true] {
   background-color: #4888dc;
@@ -102,6 +99,7 @@ UI Switcher
 .ui-switcher.small[aria-checked=false]:before {
   line-height:1.81em;
   font-size: 0.7em;
+  left: 20px;
 }
 .ui-switcher.small.yesno[aria-checked=false]:before {
   right:0.7em;
@@ -119,6 +117,15 @@ UI Switcher
 .ui-switcher.disabled {
 	opacity:.5;
 	filter:Alpha(Opacity=50);
+}
+.ui-switcher .tmpText {
+  font-size: 1.1rem;
+  white-space: nowrap;
+  display: inline-block;
+  visibility: hidden;
+}
+.ui-switcher.small .tmpText {
+  font-size: 0.7em;
 }
 
 /* tabulator cell에 적용할 경우 */

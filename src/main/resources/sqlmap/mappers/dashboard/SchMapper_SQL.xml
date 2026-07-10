@@ -267,7 +267,7 @@
 			 		)
 		 </if>
 		ORDER BY SYMD, EYMD
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="stuListSchedule" parameterType="schVO" resultType="schVO">
@@ -504,7 +504,7 @@
 			, (SELECT SBJCTNM || '  ' || DVCLAS_NO FROM TB_LMS_SBJCT WHERE SBJCT_ID = CALENDAR_ID) AS NAME
 		FROM M2
 		ORDER BY EYMD, SYMD
-		<!-- <include refid="CommonSQL.pageSubfix"/> -->
+		<!-- <include refid="CommonSQL.pageSuffix"/> -->
 	</select>
 
 	<select id="profListSchedule" parameterType="schVO" resultType="schVO">
@@ -723,7 +723,7 @@
 			 		)
 		 </if>
 		ORDER BY SYMD, EYMD
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 	
 	<select id="listAcadSch" parameterType="schVO" resultType="schVO">

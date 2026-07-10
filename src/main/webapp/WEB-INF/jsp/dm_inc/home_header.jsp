@@ -17,7 +17,7 @@
 
 	<h1 class="logo">
 		<a href="#0">
-			<img src="/webdoc/dm_assets/img/logo.png" aria-hidden="true" alt="한국방송통신대학교">
+			<img src="/webdoc/dm_assets/img/logo.svg" aria-hidden="true" alt="한국방송통신대학교">
 		</a>
 	</h1>
 	

@@ -2,197 +2,332 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="knou.lms.forum2.dao.DscsDAO">
 
-    <sql id="listQuery">
-        WITH EVAL_STATS AS (
+	<select	id="bySubjectDscsList" resultType="egovMap">
+		/* 설 명 : 과목별토론목록조회 */
+		SELECT	ROWNUM AS RNUM
+				, DSCS.*
+				, (
+			    SELECT CDNM
+			    FROM TB_LMS_CMMN_CD
+			    WHERE LANG_CD = NVL(#{langCd}, 'ko')
+			      AND UP_CD = 'EVL_SCR_TYCD'
+			      AND CD = DSCS.EVL_SCR_TYCD
+			) AS EVL_SCR_TYNM
+		FROM	TB_LMS_DSCS DSCS
+		WHERE	1 = 1 
+				AND SBJCT_ID = #{sbjctId}
+	</select>
+
+    <sql id="dscsListColumns">
+        /*
+            SQL ID : DscsDAO.dscsListColumns
+            설명 : 토론 목록 공통 반환 컬럼
+        */
+            ROW_NUMBER() OVER (ORDER BY A.REG_DTTM DESC, A.DSCS_ID DESC) LINE_NO
+          , COUNT(*) OVER() TOTAL_CNT
+          , A.DSCS_ID
+          , A.DSCS_UNIT_TYCD
+          , A.DSCS_TTL
+          , A.DSCS_SDTTM
+          , A.DSCS_EDTTM
+          , A.DVCLAS_NO
+          , A.MRK_RFLTYN
+          , A.MRK_RFLTRT
+          , A.MRK_OYN
+          , A.SBJCT_ID
+    </sql>
+
+    <sql id="baseDscsCtes">
+        /*
+            SQL ID : DscsDAO.baseDscsCtes
+            설명 : 토론 목록 공통 기본 CTE 및 토론명 검색
+        */
+        BASE_DSCS AS (
+            SELECT A.*
+            FROM TB_LMS_DSCS A
+            WHERE 1 = 1
+              AND A.DELYN = 'N'
+              AND A.UP_DSCS_ID IS NULL
+              AND A.SBJCT_ID = #{sbjctId}
+            <if test="searchValue != null and searchValue != ''">
+              AND A.DSCS_TTL LIKE FN_LIKE_VAL(#{searchValue})
+            </if>
+        ),
+        USER_TOTAL AS (
+            SELECT COUNT(*) AS dscsUserTotalCnt
+            FROM TB_LMS_ATNDLC ATNDLC
+            WHERE ATNDLC.SBJCT_ID = #{sbjctId}
+              AND ATNDLC.ATNDLC_STSCD = 'APPROVE'
+              AND ATNDLC.AUDITYN = 'N'
+        )
+    </sql>
+
+    <sql id="activityStatsCtes">
+        /*
+            SQL ID : DscsDAO.activityStatsCtes
+            설명 : 토론 목록 공통 참여 및 평가 집계 CTE
+        */
+        ACTIVITY_USER AS (
+            SELECT T.PARENT_DSCS_ID, B.USER_ID
+            FROM LIST_TARGET T
+            JOIN TB_LMS_DSCS_ATCL B
+              ON B.DSCS_ID = T.TARGET_DSCS_ID
+             AND B.DELYN = 'N'
+            UNION ALL
+            SELECT T.PARENT_DSCS_ID, B.USER_ID
+            FROM LIST_TARGET T
+            JOIN TB_LMS_DSCS_ATCL C
+              ON C.DSCS_ID = T.TARGET_DSCS_ID
+             AND C.DELYN = 'N'
+            JOIN TB_LMS_DSCS_CMNT B
+              ON B.DSCS_ATCL_ID = C.DSCS_ATCL_ID
+             AND B.DELYN = 'N'
+        ),
+        JOIN_STATS AS (
             SELECT
-                PT.DSCS_ID,
-                COUNT(DISTINCT AT.USER_ID) AS dscsEvalCnt
-            FROM TB_LMS_DSCS_PTCP PT
+                AU.PARENT_DSCS_ID,
+                COUNT(DISTINCT AU.USER_ID) AS dscsJoinUserCnt
+            FROM ACTIVITY_USER AU
+            JOIN TB_LMS_ATNDLC AA
+              ON AA.SBJCT_ID = #{sbjctId}
+             AND AA.ATNDLC_STSCD = 'APPROVE'
+             AND AA.AUDITYN = 'N'
+             AND AA.USER_ID = AU.USER_ID
+            GROUP BY AU.PARENT_DSCS_ID
+        ),
+        EVAL_STATS AS (
+            SELECT
+                T.PARENT_DSCS_ID,
+                COUNT(DISTINCT PT.USER_ID) AS dscsEvalCnt
+            FROM LIST_TARGET T
+            JOIN TB_LMS_DSCS_PTCP PT
+              ON PT.DSCS_ID = T.TARGET_DSCS_ID
+             AND PT.DELYN = 'N'
+             AND PT.EVLYN = 'Y'
+             AND PT.SCR IS NOT NULL
             JOIN TB_LMS_ATNDLC AT
               ON AT.USER_ID = PT.USER_ID
-             AND AT.ATNDLC_STSCD = 'ATNDLC'
+             AND AT.SBJCT_ID = #{sbjctId}
+             AND AT.ATNDLC_STSCD = 'APPROVE'
              AND AT.AUDITYN = 'N'
-            JOIN TB_LMS_DSCS D
-              ON D.DSCS_ID = PT.DSCS_ID
-             AND D.SBJCT_ID = AT.SBJCT_ID
-            WHERE PT.DELYN = 'N'
-              AND PT.EVLYN = 'Y'
-              AND PT.SCR IS NOT NULL
-              AND D.DELYN = 'N'
-              AND D.SBJCT_ID = #{sbjctId}
-              AND EXISTS (
-                  SELECT 1
-                  FROM (
-                      SELECT DSCS_ID, USER_ID
-                      FROM TB_LMS_DSCS_ATCL
-                      WHERE DELYN = 'N'
-                      UNION ALL
-                      SELECT ATC2.DSCS_ID, CMT.USER_ID
-                      FROM TB_LMS_DSCS_CMNT CMT
-                      JOIN TB_LMS_DSCS_ATCL ATC2
-                        ON ATC2.DSCS_ATCL_ID = CMT.DSCS_ATCL_ID
-                      WHERE CMT.DELYN = 'N'
-                        AND ATC2.DELYN = 'N'
-                  ) ACT
-                  WHERE ACT.DSCS_ID = PT.DSCS_ID
-                    AND ACT.USER_ID = PT.USER_ID
-              )
-            GROUP BY PT.DSCS_ID
+            JOIN ACTIVITY_USER AU
+              ON AU.PARENT_DSCS_ID = T.PARENT_DSCS_ID
+             AND AU.USER_ID = PT.USER_ID
+            GROUP BY T.PARENT_DSCS_ID
+        )
+    </sql>
+
+    <sql id="stdntListQuery">
+        /*
+            SQL ID : DscsDAO.selectStdntDscsList
+            설명 : 학습자 토론목록조회 본문
+        */
+        WITH <include refid="baseDscsCtes" />,
+        LEARNER_TEAM AS (
+            SELECT TEAM_GRP_ID, TEAM_ID
+            FROM (
+                SELECT
+                    T.TEAM_GRP_ID,
+                    T.TEAM_ID,
+                    ROW_NUMBER() OVER(PARTITION BY T.TEAM_GRP_ID ORDER BY T.TEAM_ID) AS RN
+                FROM TB_LMS_TEAM T
+                JOIN TB_LMS_TEAM_MBR M
+                  ON M.TEAM_ID = T.TEAM_ID
+                WHERE M.USER_ID = #{userId}
+            )
+            WHERE RN = 1
+        ),
+        LIST_TARGET AS (
+            SELECT
+                A.DSCS_ID AS PARENT_DSCS_ID,
+                CASE WHEN A.DSCS_UNIT_TYCD = 'TEAM' THEN C.DSCS_ID ELSE A.DSCS_ID END AS TARGET_DSCS_ID,
+                LT.TEAM_ID AS LEARNER_TEAM_ID
+            FROM BASE_DSCS A
+            LEFT JOIN LEARNER_TEAM LT
+              ON LT.TEAM_GRP_ID = A.TEAM_GRP_ID
+            LEFT JOIN TB_LMS_DSCS C
+              ON C.UP_DSCS_ID = A.DSCS_ID
+             AND C.TEAM_ID = LT.TEAM_ID
+             AND C.DELYN = 'N'
+        ),
+        ATCL_STATS AS (
+            SELECT
+                T.PARENT_DSCS_ID,
+                COUNT(CASE WHEN B.DSCS_ATCL_ID IS NOT NULL AND (NVL(A.OKNOK_STNGYN, 'N') != 'Y' OR U.USER_ID IS NOT NULL) THEN 1 END) AS dscsAtclCnt,
+                COUNT(CASE WHEN B.USER_ID = #{userId} THEN 1 END) AS dscsMyAtclCnt
+            FROM LIST_TARGET T
+            JOIN BASE_DSCS A
+              ON A.DSCS_ID = T.PARENT_DSCS_ID
+            LEFT JOIN TB_LMS_DSCS_ATCL B
+              ON B.DSCS_ID = T.TARGET_DSCS_ID
+             AND B.DELYN = 'N'
+            LEFT JOIN TB_LMS_USER U
+              ON U.USER_ID = B.USER_ID
+             AND U.USER_TYCD = 'STDNT'
+            GROUP BY T.PARENT_DSCS_ID
+        ),
+        CMNT_STATS AS (
+            SELECT
+                T.PARENT_DSCS_ID,
+                COUNT(B.DSCS_CMNT_ID) AS dscsCmntCnt,
+                COUNT(CASE WHEN B.USER_ID = #{userId} THEN 1 END) AS dscsMyCmntCnt
+            FROM LIST_TARGET T
+            LEFT JOIN TB_LMS_DSCS_ATCL C
+              ON C.DSCS_ID = T.TARGET_DSCS_ID
+            LEFT JOIN TB_LMS_DSCS_CMNT B
+              ON B.DSCS_ATCL_ID = C.DSCS_ATCL_ID
+             AND B.DELYN = 'N'
+            GROUP BY T.PARENT_DSCS_ID
+        ),
+        <include refid="activityStatsCtes" />,
+        SCORE_STATS AS (
+            SELECT
+                T.PARENT_DSCS_ID,
+                MAX(PT.SCR) AS scr
+            FROM LIST_TARGET T
+            JOIN TB_LMS_DSCS_PTCP PT
+              ON PT.DSCS_ID = T.TARGET_DSCS_ID
+             AND PT.DELYN = 'N'
+             AND PT.USER_ID = #{userId}
+            GROUP BY T.PARENT_DSCS_ID
+        ),
+        FDBK_STATS AS (
+            SELECT
+                T.PARENT_DSCS_ID,
+                COUNT(F.DSCS_FDBK_ID) AS dscsFdbkCnt
+            FROM LIST_TARGET T
+            LEFT JOIN TB_LMS_DSCS_FDBK F
+              ON F.DSCS_ID = T.TARGET_DSCS_ID
+             AND F.USER_ID = #{userId}
+             AND F.DELYN = 'N'
+            GROUP BY T.PARENT_DSCS_ID
         )
         SELECT
-            ROW_NUMBER() OVER (ORDER BY A.REG_DTTM DESC, A.DSCS_ID DESC) LINE_NO
-            , COUNT(*) OVER() TOTAL_CNT
-            , A.DSCS_ID
-            , A.DSCS_GRP_ID
-            , A.DSCS_GBNCD
-            , A.DSCS_TYCD
-            , A.DSCS_UNIT_TYCD
-            , A.EVL_SCR_TYCD
-            , A.DSCS_TTL
-            , A.DSCS_CTS
-            , A.DSCS_SDTTM
-            , A.DSCS_EDTTM
-            , A.DVCLS_NO
-            , A.LRN_GRP_ID
-            , A.DELYN
-            , A.OATCL_INQYN
-            , A.OKNOK_STNGYN
-            , A.OKNOKRT_OYN
-            , A.OKNOK_MODYN
-            , A.MLT_OPNN_REGYN
-            , A.OKNOK_RGTR_OYN
-            , A.CMNT_RSPNS_REQYN
-            , A.MRK_RFLTYN
-            , A.MRK_RFLTRT
-            , A.MRK_OYN
-            , A.RGTR_ID
-            , A.REG_DTTM
-            , A.MDFR_ID
-            , A.MOD_DTTM
-            , A.SBJCT_ID
-            , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B
-               WHERE B.DSCS_ID = A.DSCS_ID
-               <if test="!viewAll">AND B.DELYN = 'N'</if>
-               AND (NVL(A.OKNOK_STNGYN, 'N') != 'Y' OR EXISTS (SELECT 1 FROM TB_LMS_USER U WHERE U.USER_ID = B.USER_ID AND U.USER_TYCD = 'STDNT'))) AS dscsAtclCnt
-            , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B
-               WHERE 1=1
-               <if test="!viewAll">AND B.DELYN = 'N'</if>
-                 AND B.DSCS_ATCL_ID IN (
-                     SELECT C.DSCS_ATCL_ID
-                     FROM TB_LMS_DSCS_ATCL C
-                     WHERE C.DSCS_ID = A.DSCS_ID
-                     <if test="!viewAll">AND C.DELYN = 'N'</if>
-                 )) AS dscsCmntCnt
-        , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_GBNCD = 'OK' AND B.ATCL_LV = 0 AND (NVL(A.OKNOK_STNGYN, 'N') != 'Y' OR EXISTS (SELECT 1 FROM TB_LMS_USER U WHERE U.USER_ID = B.USER_ID AND U.USER_TYCD = 'STDNT'))) AS dscsAtclPorsCnt
-        , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B WHERE B.DSCS_ID = A.DSCS_ID AND B.DELYN = 'N' AND B.OKNOK_GBNCD = 'NOTOK' AND B.ATCL_LV = 0 AND (NVL(A.OKNOK_STNGYN, 'N') != 'Y' OR EXISTS (SELECT 1 FROM TB_LMS_USER U WHERE U.USER_ID = B.USER_ID AND U.USER_TYCD = 'STDNT'))) AS dscsAtclConsCnt
-        , (
-                SELECT COUNT(*)
-                    FROM TB_LMS_ATNDLC ATNDLC
-                    JOIN TB_LMS_SBJCT SBJCT
-                    ON ATNDLC.SBJCT_ID = SBJCT.SBJCT_ID
-                    WHERE ATNDLC.AUDITYN = 'N'
-                    AND SBJCT.SBJCT_ID = #{sbjctId}
-                ) AS dscsUserTotalCnt
-            , (
-                SELECT COUNT(1)
-                FROM TB_LMS_ATNDLC AA
-                WHERE AA.SBJCT_ID = #{sbjctId}
-                    AND AA.ATNDLC_STSCD = 'ATNDLC'
-                    AND AA.AUDITYN = 'N'
-                    AND (
-                        EXISTS (
-                            SELECT 1
-                            FROM TB_LMS_DSCS_ATCL
-                            WHERE DSCS_ID = A.DSCS_ID
-                                AND USER_ID = AA.USER_ID
-                                AND DELYN = 'N'
-                        )
-                        OR EXISTS (
-                            SELECT 1
-                            FROM TB_LMS_DSCS_CMNT
-                            WHERE USER_ID = AA.USER_ID
-                                AND DELYN = 'N'
-                                AND DSCS_ATCL_ID IN (
-                                    SELECT DSCS_ATCL_ID
-                                    FROM TB_LMS_DSCS_ATCL
-                                    WHERE DSCS_ID = A.DSCS_ID
-                                        AND DELYN = 'N'
-                                )
-                            )
-                    )
-              ) AS dscsJoinUserCnt
-        , NVL(S.dscsEvalCnt, 0) AS dscsEvalCnt
-        , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B
-           WHERE B.DSCS_ID = A.DSCS_ID
-             AND B.DELYN = 'N'
-             AND RGTR_ID = #{userId}) AS dscsMyAtclCnt
-        , (SELECT COUNT(*) FROM TB_LMS_DSCS_CMNT B
-           WHERE B.DELYN = 'N'
-             AND B.RGTR_ID = #{userId}
-             AND B.DSCS_ATCL_ID IN (
-                 SELECT C.DSCS_ATCL_ID
-                 FROM TB_LMS_DSCS_ATCL C
-                 WHERE C.DSCS_ID = A.DSCS_ID
-                   AND C.DELYN = 'N'
-             )) AS dscsMyCmntCnt
-
-	    , (SELECT SCR
-	       FROM TB_LMS_DSCS_PTCP B
-	       WHERE B.DSCS_ID = A.DSCS_ID
-	         AND B.DELYN = 'N'
-	         AND B.USER_ID = (
-	             SELECT USER_ID
-	             FROM TB_LMS_ATNDLC
-	             WHERE SBJCT_ID = #{sbjctId}
-	               AND USER_ID = #{userId}
-	               AND ATNDLC_STSCD = 'ATNDLC'
-	       )
-	    ) AS dscsMyScore
-
-	    , CASE
-	        WHEN EXISTS (
-	            SELECT 1
-	            FROM TB_LMS_DSCS_FDBK B
-	            WHERE B.DSCS_ID = A.DSCS_ID
-	              AND B.USER_ID = (
-	                  SELECT USER_ID
-	                  FROM TB_LMS_ATNDLC
-	                  WHERE SBJCT_ID = #{sbjctId}
-	                    AND USER_ID = #{userId}
-	                    AND ATNDLC_STSCD = 'ATNDLC'                )
-	        ) THEN 1
-	        ELSE 0
-	    END AS dscsMyFdbk
-        FROM TB_LMS_DSCS A
-        LEFT JOIN EVAL_STATS S
-          ON S.DSCS_ID = A.DSCS_ID
-        WHERE 1 = 1
-          AND A.DELYN = 'N'
-          AND A.UP_DSCS_ID IS NULL
-        <if test="sbjctId != null and sbjctId != ''">
-          AND A.SBJCT_ID = #{sbjctId}
-        </if>
-        <if test="dscsGbncd != null and dscsGbncd != ''">
-          AND A.DSCS_GBNCD = #{dscsGbncd}
-        </if>
-        <if test="dscsUnitTycd != null and dscsUnitTycd != ''">
-          AND A.DSCS_UNIT_TYCD = #{dscsUnitTycd}
-        </if>
-        <if test="evlScrTycd != null and evlScrTycd != ''">
-            AND A.EVL_SCR_TYCD = #{evlScrTycd}
-        </if>
-        <if test="dscsTtl != null and dscsTtl != ''">
-          AND A.DSCS_TTL LIKE FN_LIKE_VAL(#{dscsTtl})
-        </if>
-        <if test="dscsSdttm != null and dscsSdttm != '' and dscsEdttm != null and dscsEdttm != ''">
-          <![CDATA[
-          AND TO_DATE(A.DSCS_SDTTM, 'YYYYMMDDHH24MISS')
-              BETWEEN TO_DATE(#{dscsSdttm}, 'YYYYMMDDHH24MISS')
-                  AND TO_DATE(#{dscsEdttm}, 'YYYYMMDDHH24MISS')
-          ]]>
-        </if>
+            <include refid="dscsListColumns" />
+          , T.TARGET_DSCS_ID AS learnerDscsId
+          , T.LEARNER_TEAM_ID AS learnerTeamId
+          , NVL(ATS.dscsAtclCnt, 0) AS dscsAtclCnt
+          , NVL(CS.dscsCmntCnt, 0) AS dscsCmntCnt
+          , NVL(UT.dscsUserTotalCnt, 0) AS dscsUserTotalCnt
+          , NVL(JS.dscsJoinUserCnt, 0) AS dscsJoinUserCnt
+          , NVL(ES.dscsEvalCnt, 0) AS dscsEvalCnt
+          , NVL(ATS.dscsMyAtclCnt, 0) AS dscsMyAtclCnt
+          , NVL(CS.dscsMyCmntCnt, 0) AS dscsMyCmntCnt
+          , SS.scr AS scr
+          , NVL(FS.dscsFdbkCnt, 0) AS dscsFdbkCnt
+        FROM BASE_DSCS A
+        LEFT JOIN LIST_TARGET T
+          ON T.PARENT_DSCS_ID = A.DSCS_ID
+        CROSS JOIN USER_TOTAL UT
+        LEFT JOIN ATCL_STATS ATS
+          ON ATS.PARENT_DSCS_ID = A.DSCS_ID
+        LEFT JOIN CMNT_STATS CS
+          ON CS.PARENT_DSCS_ID = A.DSCS_ID
+        LEFT JOIN JOIN_STATS JS
+          ON JS.PARENT_DSCS_ID = A.DSCS_ID
+        LEFT JOIN EVAL_STATS ES
+          ON ES.PARENT_DSCS_ID = A.DSCS_ID
+        LEFT JOIN SCORE_STATS SS
+          ON SS.PARENT_DSCS_ID = A.DSCS_ID
+        LEFT JOIN FDBK_STATS FS
+          ON FS.PARENT_DSCS_ID = A.DSCS_ID
         ORDER BY A.REG_DTTM DESC, A.DSCS_ID DESC
     </sql>
+
+    <sql id="profListQuery">
+        /*
+            SQL ID : DscsDAO.selectProfDscsList
+            설명 : 교수자 토론목록조회 본문
+        */
+        WITH <include refid="baseDscsCtes" />,
+        LIST_TARGET AS (
+            SELECT
+                A.DSCS_ID AS PARENT_DSCS_ID,
+                A.DSCS_ID AS TARGET_DSCS_ID
+            FROM BASE_DSCS A
+            WHERE NVL(A.DSCS_UNIT_TYCD, 'GNRL') != 'TEAM'
+            UNION ALL
+            SELECT
+                A.DSCS_ID AS PARENT_DSCS_ID,
+                C.DSCS_ID AS TARGET_DSCS_ID
+            FROM BASE_DSCS A
+            JOIN TB_LMS_DSCS C
+              ON C.UP_DSCS_ID = A.DSCS_ID
+             AND C.DELYN = 'N'
+            WHERE A.DSCS_UNIT_TYCD = 'TEAM'
+        ),
+        ATCL_STATS AS (
+            SELECT
+                T.PARENT_DSCS_ID,
+                COUNT(CASE WHEN B.DSCS_ATCL_ID IS NOT NULL AND (NVL(A.OKNOK_STNGYN, 'N') != 'Y' OR U.USER_ID IS NOT NULL) THEN 1 END) AS dscsAtclCnt
+            FROM LIST_TARGET T
+            JOIN BASE_DSCS A
+              ON A.DSCS_ID = T.PARENT_DSCS_ID
+            LEFT JOIN TB_LMS_DSCS_ATCL B
+              ON B.DSCS_ID = T.TARGET_DSCS_ID
+             AND B.DELYN = 'N'
+            LEFT JOIN TB_LMS_USER U
+              ON U.USER_ID = B.USER_ID
+             AND U.USER_TYCD = 'STDNT'
+            GROUP BY T.PARENT_DSCS_ID
+        ),
+        CMNT_STATS AS (
+            SELECT
+                T.PARENT_DSCS_ID,
+                COUNT(B.DSCS_CMNT_ID) AS dscsCmntCnt
+            FROM LIST_TARGET T
+            LEFT JOIN TB_LMS_DSCS_ATCL C
+              ON C.DSCS_ID = T.TARGET_DSCS_ID
+            LEFT JOIN TB_LMS_DSCS_CMNT B
+              ON B.DSCS_ATCL_ID = C.DSCS_ATCL_ID
+             AND B.DELYN = 'N'
+            GROUP BY T.PARENT_DSCS_ID
+        ),
+        <include refid="activityStatsCtes" />
+        SELECT
+            <include refid="dscsListColumns" />
+          , A.DSCS_ID AS learnerDscsId
+          , NULL AS learnerTeamId
+          , NVL(ATS.dscsAtclCnt, 0) AS dscsAtclCnt
+          , NVL(CS.dscsCmntCnt, 0) AS dscsCmntCnt
+          , NVL(UT.dscsUserTotalCnt, 0) AS dscsUserTotalCnt
+          , NVL(JS.dscsJoinUserCnt, 0) AS dscsJoinUserCnt
+          , NVL(ES.dscsEvalCnt, 0) AS dscsEvalCnt
+          , 0 AS dscsMyAtclCnt
+          , 0 AS dscsMyCmntCnt
+          , 0 AS dscsFdbkCnt
+        FROM BASE_DSCS A
+        CROSS JOIN USER_TOTAL UT
+        LEFT JOIN ATCL_STATS ATS
+          ON ATS.PARENT_DSCS_ID = A.DSCS_ID
+        LEFT JOIN CMNT_STATS CS
+          ON CS.PARENT_DSCS_ID = A.DSCS_ID
+        LEFT JOIN JOIN_STATS JS
+          ON JS.PARENT_DSCS_ID = A.DSCS_ID
+        LEFT JOIN EVAL_STATS ES
+          ON ES.PARENT_DSCS_ID = A.DSCS_ID
+        ORDER BY A.REG_DTTM DESC, A.DSCS_ID DESC
+    </sql>
+
+    <select id="selectStdntDscsList" parameterType="DscsListVO" resultType="DscsListVO">
+        /*
+            SQL ID : DscsDAO.selectStdntDscsList
+            설명 : 학습자 토론목록조회 페이징
+        */
+        <include refid="CommonSQL.pagePrefix" />
+        <include refid="stdntListQuery" />
+        <include refid="CommonSQL.pageSuffix" />
+    </select>
+
+    <select id="selectProfDscsList" parameterType="DscsListVO" resultType="DscsListVO">
+        /*
+            SQL ID : DscsDAO.selectProfDscsList
+            설명 : 교수자 토론목록조회 페이징
+        */
+        <include refid="CommonSQL.pagePrefix" />
+        <include refid="profListQuery" />
+        <include refid="CommonSQL.pageSuffix" />
+    </select>
 
     <select id="selectDscsDvclasList" parameterType="dscsVO" resultType="dscsVO">
         /*
@@ -201,35 +336,29 @@
         */
         WITH BASE AS (
             SELECT
-                  PROF_ID
-                , SMSTR_CHRT_ID
-            FROM TB_LMS_SBJCT
-            WHERE SBJCT_ID = #{sbjctId}
-              AND DELYN = 'N'
-              AND USEYN = 'Y'
+                  S.SMSTR_CHRT_ID
+                , CRCLMN_NO
+                , SC.ORG_ID
+            FROM TB_LMS_SBJCT S
+            JOIN TB_LMS_SMSTR_CHRT SC
+              ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID
+            WHERE S.SBJCT_ID = #{sbjctId}
+              AND S.DELYN = 'N'
+              AND S.USEYN = 'Y'
         )
         SELECT
               SBJCT.SBJCT_ID
             , SBJCT.DVCLAS_NO
         FROM TB_LMS_SBJCT SBJCT
-        JOIN TB_LMS_SBJCT_ADM SBJCT_ADM
-          ON SBJCT.SBJCT_ID = SBJCT_ADM.SBJCT_ID
-         AND SBJCT_ADM.SBJCT_ADM_TYCD = 'PROF'
-         AND SBJCT_ADM.USER_ID = (SELECT PROF_ID FROM BASE)
+        JOIN TB_LMS_SMSTR_CHRT SC
+          ON SC.SMSTR_CHRT_ID = SBJCT.SMSTR_CHRT_ID
+        JOIN BASE B
+          ON B.ORG_ID = SC.ORG_ID
+         AND B.SMSTR_CHRT_ID = SBJCT.SMSTR_CHRT_ID
+         AND B.CRCLMN_NO = SBJCT.CRCLMN_NO
         WHERE SBJCT.DELYN = 'N'
           AND SBJCT.USEYN = 'Y'
-          AND SBJCT.SMSTR_CHRT_ID = (SELECT SMSTR_CHRT_ID FROM BASE)
         ORDER BY SBJCT.DVCLAS_NO
-    </select>
-
-    <select id="selectDscsList" parameterType="DscsListVO" resultType="DscsListVO">
-        /*
-        SQL ID : DscsDAO.selectDscsList
-        설명 : 토론목록조회(페이징)
-        */
-        <include refid="CommonSQL.pagePrefix" />
-        <include refid="listQuery" />
-        <include refid="CommonSQL.pageSubfix" />
     </select>
 
     <select id="selectDscs" parameterType="dscsVO" resultType="dscsVO">
@@ -248,8 +377,8 @@
           , A.DSCS_CTS
           , A.DSCS_SDTTM
           , A.DSCS_EDTTM
-          , A.DVCLS_NO
-          , A.LRN_GRP_ID
+          , A.DVCLAS_NO
+          , A.TEAM_GRP_ID
           , A.DELYN
           , A.OATCL_INQYN
           , A.OKNOK_STNGYN
@@ -267,6 +396,8 @@
           , A.MOD_DTTM
           , A.SBJCT_ID
           , A.BYTEAM_DSCS_USEYN
+          , A.UP_DSCS_ID
+          , A.TEAM_ID
           /* 게시글 수 조회 */
           , (SELECT COUNT(*) FROM TB_LMS_DSCS_ATCL B
                              WHERE B.DSCS_ID = A.DSCS_ID
@@ -301,7 +432,7 @@
             SELECT COUNT(1)
             FROM TB_LMS_ATNDLC AA
             WHERE AA.SBJCT_ID = #{sbjctId}
-              AND AA.ATNDLC_STSCD = 'ATNDLC'
+              AND AA.ATNDLC_STSCD = 'APPROVE'
               AND AA.AUDITYN = 'N'
               AND (
                 EXISTS (
@@ -364,8 +495,8 @@
           , DSCS_CTS
           , DSCS_SDTTM
           , DSCS_EDTTM
-          , DVCLS_NO
-          , LRN_GRP_ID
+          , DVCLAS_NO
+          , TEAM_GRP_ID
           , DELYN
           , OATCL_INQYN
           , OKNOK_STNGYN
@@ -395,8 +526,8 @@
           , #{dscsCts}
           , #{dscsSdttm}
           , #{dscsEdttm}
-          , #{dvclsNo}
-          , #{lrnGrpId}
+          , #{dvclasNo}
+          , #{teamGrpId}
           , NVL(#{delyn}, 'N')
           , NVL(#{oatclInqyn}, 'N')
           , NVL(#{oknokStngyn}, 'N')
@@ -413,7 +544,7 @@
           , NVL(#{mdfrId}, #{rgtrId})
           , FN_DTTM()
           , #{sbjctId}
-          , NVL(#{byteamDscsUseyn}, 'N')
+          , #{byteamDscsUseyn}
           , #{upDscsId}
           , #{teamId}
         )
@@ -427,9 +558,14 @@
         UPDATE TB_LMS_DSCS
         SET MDFR_ID = NVL(#{mdfrId}, #{rgtrId})
           , MOD_DTTM = FN_DTTM()
-        <if test="dscsGrpId != null and dscsGrpId != ''">
+        <choose>
+          <when test="dscsUnitTycd != null and dscsUnitTycd != '' and dscsUnitTycd != 'TEAM'">
+          , DSCS_GRP_ID = NULL
+          </when>
+          <when test="dscsGrpId != null and dscsGrpId != ''">
           , DSCS_GRP_ID = #{dscsGrpId}
-        </if>
+          </when>
+        </choose>
         <if test="dscsGbncd != null and dscsGbncd != ''">
           , DSCS_GBNCD = #{dscsGbncd}
         </if>
@@ -451,12 +587,17 @@
         <if test="dscsEdttm != null and dscsEdttm != ''">
           , DSCS_EDTTM = #{dscsEdttm}
         </if>
-        <if test="dvclsNo != null and dvclsNo != ''">
-          , DVCLS_NO = #{dvclsNo}
+        <if test="dvclasNo != null and dvclasNo != ''">
+          , DVCLAS_NO = #{dvclasNo}
         </if>
-        <if test="lrnGrpId != null and lrnGrpId != ''">
-          , LRN_GRP_ID = #{lrnGrpId}
-        </if>
+        <choose>
+          <when test="dscsUnitTycd != null and dscsUnitTycd != '' and dscsUnitTycd != 'TEAM'">
+          , TEAM_GRP_ID = NULL
+          </when>
+          <when test="teamGrpId != null and teamGrpId != ''">
+          , TEAM_GRP_ID = #{teamGrpId}
+          </when>
+        </choose>
         <if test="delyn != null and delyn != ''">
           , DELYN = #{delyn}
         </if>
@@ -490,78 +631,9 @@
         <if test="sbjctId != null and sbjctId != ''">
           , SBJCT_ID = #{sbjctId}
         </if>
-        <if test="byteamDscsUseyn != null and byteamDscsUseyn != ''">
-          , BYTEAM_DSCS_USEYN = #{byteamDscsUseyn}
-        </if>
+        , BYTEAM_DSCS_USEYN = NVL(#{byteamDscsUseyn}, 'N')
         WHERE DSCS_ID = #{dscsId}
     </update>
-
-    <!-- 토론복사(Insert-Select) -->
-    <insert id="copyDscs" parameterType="dscsVO">
-        /*
-            SQL ID : DscsDAO.copyDscs
-            설명 : 기존토론을 신규 토론으로 복사
-        */
-        INSERT INTO TB_LMS_DSCS (
-            DSCS_ID
-          , DSCS_GRP_ID
-          , DSCS_GBNCD
-          , DSCS_UNIT_TYCD
-          , EVL_SCR_TYCD
-          , DSCS_TTL
-          , DSCS_CTS
-          , DSCS_SDTTM
-          , DSCS_EDTTM
-          , DVCLS_NO
-          , LRN_GRP_ID
-          , DELYN
-          , OATCL_INQYN
-          , OKNOKRT_OYN
-          , OKNOK_MODYN
-          , MLT_OPNN_REGYN
-          , OKNOK_RGTR_OYN
-          , CMNT_RSPNS_REQYN
-          , MRK_RFLTYN
-          , MRK_RFLTRT
-          , MRK_OYN
-          , RGTR_ID
-          , REG_DTTM
-          , MDFR_ID
-          , MOD_DTTM
-          , SBJCT_ID
-          , BYTEAM_DSCS_USEYN
-        )
-        SELECT
-            #{dscsId}
-          , DSCS_GRP_ID
-          , DSCS_GBNCD
-          , DSCS_UNIT_TYCD
-          , EVL_SCR_TYCD
-          , DSCS_TTL
-          , DSCS_CTS
-          , DSCS_SDTTM
-          , DSCS_EDTTM
-          , DVCLS_NO
-          , LRN_GRP_ID
-          , 'N'
-          , OATCL_INQYN
-          , OKNOKRT_OYN
-          , OKNOK_MODYN
-          , MLT_OPNN_REGYN
-          , OKNOK_RGTR_OYN
-          , CMNT_RSPNS_REQYN
-          , MRK_RFLTYN
-          , NVL(MRK_RFLTRT, 0)
-          , MRK_OYN
-          , #{rgtrId}
-          , FN_DTTM()
-          , NVL(#{mdfrId}, #{rgtrId})
-          , FN_DTTM()
-          , #{sbjctId}
-          , NVL(#{byteamDscsUseyn}, 'N')
-        FROM TB_LMS_DSCS
-        WHERE DSCS_ID = #{copydscsId}
-    </insert>
 
     <update id="updateDscsMrkOyn" parameterType="dscsVO">
         /*
@@ -637,18 +709,14 @@
         WHERE DSCS_ID = #{dscsId}
     </update>
 
-    <update id="updateChildDscsDelYn" parameterType="dscsVO">
+    <delete id="deleteChildDscs" parameterType="dscsVO">
         /*
-            SQL ID : DscsDAO.updateChildDscsDelYn
-            설명 : 팀토론 자식 토론 논리 삭제 (UP_DSCS_ID 기준)
+            SQL ID : DscsDAO.deleteChildDscs
+            설명 : 팀토론 자식 토론 삭제
         */
-        UPDATE TB_LMS_DSCS
-        SET    DELYN    = 'Y'
-             , MDFR_ID  = NVL(#{mdfrId}, #{rgtrId})
-             , MOD_DTTM = FN_DTTM()
-        WHERE  UP_DSCS_ID = #{dscsId}
-          AND  DELYN = 'N'
-    </update>
+        DELETE FROM TB_LMS_DSCS
+        WHERE UP_DSCS_ID = #{dscsId}
+    </delete>
 
     <update id="updateChildDscsDtls" parameterType="DscsTeamDscsVO">
         /*
@@ -658,6 +726,7 @@
         UPDATE TB_LMS_DSCS
         SET    DSCS_TTL  = #{dscsTtl}
              , DSCS_CTS  = #{dscsCts}
+             , BYTEAM_DSCS_USEYN = 'N'
              , MDFR_ID   = NVL(#{mdfrId}, #{rgtrId})
              , MOD_DTTM  = FN_DTTM()
         WHERE  UP_DSCS_ID = #{upDscsId}
@@ -708,11 +777,11 @@
         ORDER BY T.REG_DTTM ASC
     </select>
 
-    <select id="selectDscsLrnGrpTeamList" parameterType="DscsTeamDscsVO" resultType="DscsTeamDscsVO">
+    <select id="selectDscsTeamGrpTeamList" parameterType="DscsTeamDscsVO" resultType="DscsTeamDscsVO">
         /*
-            SQL ID : DscsDAO.selectDscsLrnGrpTeamList
-            설명 : 학습그룹 팀 목록 조회 (팀 토론 부주제 설정용)
-                   - 학습그룹의 전체 팀 조회 (미저장 팀 포함)
+            SQL ID : DscsDAO.selectDscsTeamGrpTeamList
+            설명 : 팀그룹 팀 목록 조회 (팀 토론 부주제 설정용)
+                   - 팀그룹의 전체 팀 조회 (미저장 팀 포함)
                    - upDscsId 존재 시 기존 부주제값 LEFT JOIN
         */
         SELECT
@@ -734,7 +803,7 @@
                ON  D.TEAM_ID    = T.TEAM_ID
               AND  D.UP_DSCS_ID = #{upDscsId}
               AND  D.DELYN      = 'N'
-        WHERE T.LRN_GRP_ID = #{lrnGrpId}
+        WHERE T.TEAM_GRP_ID = #{teamGrpId}
         ORDER BY T.REG_DTTM ASC
     </select>
 
@@ -753,22 +822,26 @@
 
     <select id="selectScoreChart" parameterType="dscsVO" resultType="egovMap">
         /*
-            토론 성적 분포 현황
-            ForumDAO.selectScoreChart
+            SQL ID : ForumDAO.selectScoreChart
+            설명 : 토론 성적 분포 현황
         */
         SELECT
-            MIN(SCR) AS minScore
-             , MAX(SCR) AS maxScore
-             , ROUND(AVG(SCR)) AS avgScore
+            NVL(MIN(SCR), 0) AS minScore
+             , NVL(MAX(SCR), 0) AS maxScore
+             , NVL(ROUND(AVG(SCR)), 0) AS avgScore
         FROM TB_LMS_DSCS_PTCP
-        WHERE DSCS_ID = #{dscsId}
-        GROUP BY DSCS_ID
+        WHERE DSCS_ID IN (
+            SELECT DSCS_ID
+            FROM TB_LMS_DSCS
+            WHERE DELYN = 'N'
+              AND (DSCS_ID = #{dscsId} OR UP_DSCS_ID = #{dscsId})
+        )
     </select>
 
     <select id="getScoreRatio" parameterType="dscsVO" resultType="knou.lms.forum2.vo.DscsVO">
         /*
-            성적반영비율 토론 리스트
-            ForumDAO.getScoreRatio
+            SQL ID : ForumDAO.getScoreRatio
+            설명 : 성적반영비율 토론 리스트
         */
         SELECT
             DSCS_ID AS dscsId
@@ -781,8 +854,8 @@
 
     <update id="setScoreRatio" parameterType="dscsVO">
         /*
-            성적반영비율 초기화
-            ForumDAO.setScoreRatio
+            SQL ID : ForumDAO.setScoreRatio
+            설명 : 성적반영비율 초기화
         */
         UPDATE TB_LMS_DSCS
         SET MRK_RFLTRT = #{mrkRfltrt}

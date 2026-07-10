@@ -16,7 +16,23 @@ import knou.lms.subject.vo.SubjectVO;
 import knou.lms.user.vo.UsrUserInfoVO;
 
 public interface CrecrsService {
-    
+
+    /*****************************************************
+     * 신규 작성 Service 영역
+     *****************************************************/
+
+    // 이전학기 데이터 등록
+    public CreCrsVO prevSemesterDataRegist(CreCrsVO vo);
+
+    // 이전학기 과목코드 조회
+    public String selectBeforeSbjctId(CreCrsVO vo);
+
+    // 이전학기, 현재학기 데이터 목록 카운트
+    public int countPrevCurrDataList(CreCrsVO vo);
+
+    /*****************************************************
+     * 기존에 있던 Service 영역
+     *****************************************************/
     /**
      * 강의실 교수 세션설정
      * @param request
@@ -422,7 +438,6 @@ public interface CrecrsService {
      * 개설 과목 조회 (학위연도, 기관, 학기기수, 학과 기준)
      * @param SubjectVO
      * @return List<SubjectVO>
-     * @throws Exception
      */
-    public List<EgovMap> listSbjctOfrng (SubjectVO sbjctOfrngVO)throws Exception;
+    public ProcessResultVO<EgovMap> listSbjctPaging(SubjectVO sbjctOfrngVO) throws Exception;
 }

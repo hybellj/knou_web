@@ -10,7 +10,6 @@
             , ATNDLC.SCYR
             , ATNDLC.CMCRS_GBNCD
             , ATNDLC.AUDITYN
-            , USR.USER_RPRS_ID
             , USR.STDNT_NO
             , USR.USERNM
             , USR.DSBLYN
@@ -52,7 +51,7 @@
                 OR LOWER(A.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
             )
         </if>
-        <include refid="CommonSQL.pageSubfix"/>
+        <include refid="CommonSQL.pageSuffix"/>
     </select>
 
     <select id="stdInfoExcelList" resultType="egovMap" parameterType="atndlcVO">
@@ -80,7 +79,7 @@
         </if>
         <if test="searchValue != null and searchValue != ''">
             AND (
-                LOWER(A.USER_RPRS_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                LOWER(A.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
                 OR LOWER(A.STDNT_NO) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
                 OR LOWER(A.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
             )

@@ -1,32 +1,51 @@
-<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
 <%@ page trimDirectiveWhitespaces="true" %>
+<%@ page import="knou.framework.common.SessionInfo" %>
+<%@ page import="knou.framework.common.ParamInfo" %>
 <%@ page import="knou.framework.util.SessionUtil" %>
+<%@ page import="knou.framework.context2.UserContext" %>
+<%@ page import="knou.framework.util.LocaleUtil" %>
+<%@ page import="org.apache.commons.lang3.StringUtils" %>
+
 <%
-	String title = request.getParameter("title");
-	if (title == null || "".equals(title)) {
-		title = "한국방송통신대학교 미래형 통합학습관리시스템";
-	}
+    String title = request.getParameter("title");
+    if(title == null || "".equals(title)) {
+        title = "한국방송통신대학교 미래형 통합학습관리시스템";
+    }
 
-	String style = request.getParameter("style");
-	String module = request.getParameter("module");
+    String style = request.getParameter("style");
+    String module = request.getParameter("module");
 
-	String contextPath = request.getContextPath();
+    String contextPath = request.getContextPath();
 
-	String webdoc = contextPath + "/webdoc";
-	String assets = webdoc + "/assets";
-	String uilib = webdoc + "/uilib";
+    String webdoc = contextPath + "/webdoc";
+    String assets = webdoc + "/assets";
+    String uilib = webdoc + "/uilib";
 
-	String pageType = (String)SessionUtil.getSessionValue(request, "PAGE_TYPE");
-	String bodyClass = (String)SessionUtil.getSessionValue(request, "BODY_CLASS");
+    String pageType = (String) SessionUtil.getSessionValue(request, "PAGE_TYPE");
+    String bodyClass = (String) SessionUtil.getSessionValue(request, "BODY_CLASS");
 
-	request.setAttribute("pageType", pageType);
-	request.setAttribute("bodyClass", bodyClass);
+    request.setAttribute("pageType", pageType);
+    request.setAttribute("bodyClass", bodyClass);
+
+    String langCd = LocaleUtil.getLangCd(request);
+    String themeMode = "";
+    UserContext userCtx = SessionInfo.getUserContext(request);
+    if(userCtx != null) {
+        String userLangCd = userCtx.getUserEnvStngVal("langCd");
+        themeMode = userCtx.getUserEnvStngVal("theme");
+
+        if(StringUtils.isNotBlank(userLangCd)) {
+            langCd = userLangCd;
+        }
+
+    }
 %>
 
 
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="format-detection" content="telephone=no" />
+<meta name="format-detection" content="telephone=no"/>
 <meta name="format-detection" content="date=no">
 <meta name="format-detection" content="address=no">
 <meta name="format-detection" content="email=no">
@@ -34,9 +53,10 @@
 <meta http-equiv="Content-Script-Type" content="text/javascript">
 <meta http-equiv="Content-Style-Type" content="text/css">
 
-<meta name="author" content="한국방송통신대학교 미래형 통합학습관리시스템" />
-<meta name="description" content="한국방송통신대학교 미래형 통합학습관리시스템입니다." />
-<title><%=title%></title>
+<meta name="author" content="한국방송통신대학교 미래형 통합학습관리시스템"/>
+<meta name="description" content="한국방송통신대학교 미래형 통합학습관리시스템입니다."/>
+<title><%=title%>
+</title>
 
 <!--favicon-->
 <link rel="shortcut icon" href="<%=assets%>/img/favicon/favicon.ico">
@@ -44,8 +64,15 @@
 <link rel="icon" type="image/png" sizes="32x32" href="<%=assets%>/img/favicon/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="<%=assets%>/img/favicon/favicon-16x16.png">
 
+<%-- 전역 javascript 언어, 테마 변수 설정 --%>
+<script>
+    const LANGUAGE = "<%=langCd%>";
+    const THEME_MODE = "<%=themeMode%>";
+    const CUR_MENU_ID = "<%=ParamInfo.getParamValue(request, "menuId")%>";
+</script>
+
 <%-- Stylesheets --%>
-<link rel="stylesheet" href="<%=assets%>/css/common.css" />
+<link rel="stylesheet" href="<%=assets%>/css/common.css"/>
 <link rel="stylesheet" href="<%=assets%>/jquery/jquery-ui.min.css">
 
 <%-- scripts --%>
@@ -90,87 +117,91 @@
 <script src="<%=uilib%>/filedownloader/ui-filedownloader.js"></script>
 
 <%
-// 모듈 로드
-if (module != null && !"".equals(module)) {
-	String[] modules = module.split(",");
+    // 모듈 로드
+    if(module != null && !"".equals(module)) {
+        String[] modules = module.split(",");
 
-	for (String name : modules) {
-		name = name.trim().toLowerCase();
+        for(String name : modules) {
+            name = name.trim().toLowerCase();
 
-		// 테이블 (Tabulator)
-		if ("table".equals(name)) {
-			%>
-			<link rel="stylesheet" href="<%=uilib%>/tabulator/tabulator.css">
-			<script src="<%=uilib%>/tabulator/jquery_wrapper.js"></script>
-			<script src="<%=uilib%>/tabulator/tabulator.min.js"></script>
-			<script src="<%=uilib%>/tabulator/ui-table.js?v=1"></script>
-			<%
-		}
-		// 에디터 (SynapEditor)
-		else if ("editor".equals(name)) {
-			%>
-			<link rel="stylesheet" href="<%=uilib%>/editor/synapeditor.min.css">
-			<link rel="stylesheet" href="<%=uilib%>/editor/plugins/characterPicker/characterPicker.min.css">
-			<link rel="stylesheet" href="<%=uilib%>/editor/plugins/shapeEditor/shapeEditor.min.css">
-			<script src="<%=uilib%>/editor/synapeditor.min.js"></script>
-			<script src="<%=uilib%>/editor/plugins/characterPicker/characterPicker.min.js"></script>
-			<script src="<%=uilib%>/editor/plugins/shapeEditor/shapeEditor.min.js"></script>
-			<script src="<%=uilib%>/editor/plugins/math/math.js?v=1"></script>
-			<script src="<%=uilib%>/editor/externals/SEShapeManager/SEShapeManager.min.js"></script>
-			<script src="<%=uilib%>/editor/synapeditor.config.js?v=1"></script>
-			<script src="<%=uilib%>/editor/ui-editor.js?v=1"></script>
-			<%
-		}
-		// 파일 업로더 (Dextuploader)
-		else if ("fileuploader".equals(name)) {
-			%>
-			<link rel="stylesheet" href="<%=uilib%>/fileuploader/ui-fileuploader.css">
-			<script src="<%=uilib%>/fileuploader/dextuploadx5-configuration.js"></script>
-			<script src="<%=uilib%>/fileuploader/dextuploadx5.js"></script>
-			<script src="<%=uilib%>/fileuploader/ui-fileuploader.js?v=1"></script>
-			<%
-		}
-		// 플레이어
-		else if ("file-player".equals(name)) {
-			%>
-
-			<%
-		}
-		// 차트
-		else if ("chart".equals(name)) {
-			%>
-			<script src="<%=uilib%>/chart/d3.v4.js"></script><!-- chart d3.js -->
-			<script src="<%=uilib%>/chart/chart4.min.js"></script><!-- chart4 -->
-			<script src="<%=uilib%>/chart/chart-utils.min.js"></script><!-- chart util -->
-			<script src="<%=uilib%>/chart/chartjs-plugin-datalabels.min.js"></script>
-			<%
-		}
-		// 위젯
-		else if ("widget".equals(name)) {
-			%>
-			<link rel="stylesheet" href="<%=uilib%>/gridstack/gridstack.min.css">
-			<script src="<%=uilib%>/gridstack/gridstack-all.js"></script>
-			<script src="<%=uilib%>/gridstack/ui-widget.js"></script>
-			<%
-		}
-		// 탭메뉴
-		else if ("tabmenu".equals(name)) {
-			%>
-			<script src="<%=uilib%>/tabmenu/ui-tabmenu.js"></script>
-			<%
-		}
-	}
+            // 테이블 (Tabulator)
+            if("table".equals(name)) {
+%>
+<link rel="stylesheet" href="<%=uilib%>/tabulator/tabulator.css">
+<script src="<%=uilib%>/tabulator/jquery_wrapper.js"></script>
+<script src="<%=uilib%>/tabulator/tabulator.min.js"></script>
+<script src="<%=uilib%>/tabulator/ui-table.js?v=1"></script>
+<%
 }
+// 에디터 (SynapEditor)
+else if("editor".equals(name)) {
+%>
+<link rel="stylesheet" href="<%=uilib%>/editor/synapeditor.min.css">
+<link rel="stylesheet" href="<%=uilib%>/editor/themes/dark-gray.css">
+<link rel="stylesheet" href="<%=uilib%>/editor/plugins/characterPicker/characterPicker.min.css">
+<link rel="stylesheet" href="<%=uilib%>/editor/plugins/shapeEditor/shapeEditor.min.css">
+<script src="<%=uilib%>/editor/synapeditor.min.js"></script>
+<script src="<%=uilib%>/editor/plugins/characterPicker/characterPicker.min.js"></script>
+<script src="<%=uilib%>/editor/plugins/shapeEditor/shapeEditor.min.js"></script>
+<script src="<%=uilib%>/editor/plugins/math/math.js?v=1"></script>
+<script src="<%=uilib%>/editor/externals/SEShapeManager/SEShapeManager.min.js"></script>
+<script src="<%=uilib%>/editor/synapeditor.config.js?v=1"></script>
+<script src="<%=uilib%>/editor/ui-editor.js?v=1"></script>
+<%
+}
+// 파일 업로더 (Dextuploader)
+else if("fileuploader".equals(name)) {
+%>
+<link rel="stylesheet" href="<%=uilib%>/fileuploader/ui-fileuploader.css">
+<script src="<%=uilib%>/fileuploader/dextuploadx5-configuration.js"></script>
+<script src="<%=uilib%>/fileuploader/dextuploadx5.js"></script>
+<script src="<%=uilib%>/fileuploader/ui-fileuploader.js?v=1"></script>
+<%
+}
+// 플레이어
+else if("file-player".equals(name)) {
+%>
+
+<%
+}
+// 차트
+else if("chart".equals(name)) {
+%>
+<script src="<%=uilib%>/chart/d3.v4.js"></script>
+<!-- chart d3.js -->
+<script src="<%=uilib%>/chart/chart4.min.js"></script>
+<!-- chart4 -->
+<script src="<%=uilib%>/chart/chart-utils.min.js"></script>
+<!-- chart util -->
+<script src="<%=uilib%>/chart/chartjs-plugin-datalabels.min.js"></script>
+<%
+}
+// 위젯
+else if("widget".equals(name)) {
+%>
+<link rel="stylesheet" href="<%=uilib%>/gridstack/gridstack.min.css">
+<script src="<%=uilib%>/gridstack/gridstack-all.js"></script>
+<script src="<%=uilib%>/gridstack/ui-widget.js"></script>
+<%
+}
+// 탭메뉴
+else if("tabmenu".equals(name)) {
+%>
+<script src="<%=uilib%>/tabmenu/ui-tabmenu.js"></script>
+<%
+            }
+        }
+    }
 
 // assets style 로드
-if (style != null && !"".equals(style)) {
-	String[] styles = style.split(",");
+    if(style != null && !"".equals(style)) {
+        String[] styles = style.split(",");
 
-	for (String name : styles) {
-		name = name.trim().toLowerCase();
-		%>
-		<link rel="stylesheet" href="<%=assets%>/css/<%=name%>.css">
-		<%
-	}
-}
+        for(String name : styles) {
+            name = name.trim().toLowerCase();
+%>
+<link rel="stylesheet" href="<%=assets%>/css/<%=name%>.css">
+<%
+        }
+    }
 %>

@@ -695,9 +695,9 @@ public class TermMgrController extends ControllerBase {
      * @return
      * @throws Exception
      */
-    @GetMapping("/smstrListByDgrsYr.do")
+    @GetMapping("/admSmstrListByDgrsYrAjax.do")
     @ResponseBody
-    public ProcessResultVO<SmstrChrtVO> smstrListByDgrsYr(SmstrChrtVO vo, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<SmstrChrtVO> admSmstrListByDgrsYrAjax(SmstrChrtVO vo, HttpServletRequest request) throws Exception {
     	
     	ProcessResultVO<SmstrChrtVO> resultVO = new ProcessResultVO<>();
         

@@ -82,6 +82,9 @@
 .grid-stack-item .box .box-content {
 	overflow: auto;
 	height: calc(100% - 40px);
+	/* 스크롤바 구조는 reset.css 의 전역 *::-webkit-scrollbar 가 담당. 여기선 색상만 지정 */
+	--sb-thumb: var(--surface-overlay-80, hsla(0, 0%, 24%, 0.4));
+	--sb-track: var(--surface-overlay-50, hsla(0, 0%, 24%, 0.1));
 }
 
 .grid-stack-item .box .loading-layer {
@@ -95,4 +98,10 @@
 	justify-content: center;
 	align-items: center;
 	font-size: 2.5rem;
+}
+
+/* darkmode */
+body.darkmode .grid-stack-item .box {
+	background-color: var(--surface-card-bg, #fff);
+	color: var(--surface-text);
 }

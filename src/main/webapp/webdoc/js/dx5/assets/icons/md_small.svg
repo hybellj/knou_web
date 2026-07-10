@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="17.01px" height="19.84px" viewBox="0 0 17.01 19.84" fill="none">
+  <title>Markdown MD Icon</title>
+  <g fill="#326699">
+    <!-- M -->
+    <path d="M1.15 5.05H3.1L5.15 8.15L7.2 5.05H9.15V14.85H7.15V8.5L5.15 11.35L3.15 8.5V14.85H1.15V5.05Z"/>
+    <!-- D / down-arrow inspired Markdown mark -->
+    <path d="M10.15 5.05H12.95C14.75 5.05 15.86 6.31 15.86 8.16V11.74C15.86 13.59 14.75 14.85 12.95 14.85H10.15V5.05ZM12.1 6.92V12.98H12.85C13.52 12.98 13.88 12.54 13.88 11.68V8.22C13.88 7.36 13.52 6.92 12.85 6.92H12.1Z"/>
+  </g>
+</svg>

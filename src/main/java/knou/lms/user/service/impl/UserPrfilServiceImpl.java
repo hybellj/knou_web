@@ -3,29 +3,22 @@ package knou.lms.user.service.impl;
 import knou.framework.common.CommConst;
 import knou.framework.common.IdPrefixType;
 import knou.framework.common.ServiceBase;
+import knou.framework.util.FileUtil;
 import knou.framework.util.IdGenUtil;
-import knou.framework.util.StringUtil;
 import knou.framework.util.ValidationUtils;
 import knou.lms.crs.semester.service.SemesterService;
 import knou.lms.crs.semester.vo.SmstrChrtVO;
+import knou.lms.file.dao.AttachFileDAO;
+import knou.lms.file.service.AttachFileService;
+import knou.lms.file.vo.AtflVO;
 import knou.lms.user.dao.UserPrfilDAO;
 import knou.lms.user.dao.UsrUserAuthGrpDAO;
 import knou.lms.user.service.UserPrfilService;
 import knou.lms.user.vo.UserPrfilVO;
 import knou.lms.user.vo.UserTelnoChgHstryVO;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import org.imgscalr.Scalr;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -39,6 +32,10 @@ public class UserPrfilServiceImpl extends ServiceBase implements UserPrfilServic
     private UsrUserAuthGrpDAO usrUserAuthGrpDAO;
     @Resource(name="semesterService")
     private SemesterService semesterService;
+    @Resource(name="attachFileDAO")
+    private AttachFileDAO attachFileDAO;
+    @Resource(name="attachFileService")
+    private AttachFileService attachFileService;
 
     /**
      * 사용자프로필정보를 조회한다.
@@ -48,10 +45,18 @@ public class UserPrfilServiceImpl extends ServiceBase implements UserPrfilServic
      * @throws Exception
      */
     @Override
-    public UserPrfilVO userPrfilSelect(UserPrfilVO vo) throws Exception {
+    public UserPrfilVO userPrfilSelect(UserPrfilVO vo) {
         UserPrfilVO userPrfilVO = userPrfilDAO.userPrfilSelect(vo);
         if(userPrfilVO == null) {
-            throw new DataRetrievalFailureException("Database Error!, There is no returned data.");
+            throw new IllegalStateException("Database Error!, There is no returned data.");
+        }
+
+        // 첨부파일
+        if(userPrfilVO.getFileCnt() > 0) {
+            AtflVO atflVO = new AtflVO();
+            atflVO.setRefId(userPrfilVO.getUserId());
+            List<AtflVO> fileList = attachFileService.selectAtflListByRefId(atflVO);
+            userPrfilVO.setFileList(fileList);
         }
 
         // 사진파일이 있으면 변환
@@ -109,7 +114,7 @@ public class UserPrfilServiceImpl extends ServiceBase implements UserPrfilServic
     }
 
     /**
-     * 현재학기 강의 기관 목록 조회
+     * 현재학기 강의/수강 기관 목록 조회
      *
      * @param vo
      * @return
@@ -117,7 +122,23 @@ public class UserPrfilServiceImpl extends ServiceBase implements UserPrfilServic
      */
     @Override
     public List<UserPrfilVO> nowSmstrLectOrgList(UserPrfilVO vo) throws Exception {
-        return userPrfilDAO.nowSmstrLectOrgList(vo);
+        if(CommConst.AUTHRT_GRPCD_PROF.equals(vo.getAuthrtGrpcd())) {
+            return userPrfilDAO.nowSmstrLectOrgList(vo);
+        } else {
+            return userPrfilDAO.nowSmstrAtndlcOrgList(vo);
+        }
+    }
+
+    /**
+     * 현재학기 수강 기관 목록 조회
+     *
+     * @param vo
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public List<UserPrfilVO> nowSmstrAtndlcOrgList(UserPrfilVO vo) throws Exception {
+        return userPrfilDAO.nowSmstrAtndlcOrgList(vo);
     }
 
     /**
@@ -143,8 +164,6 @@ public class UserPrfilServiceImpl extends ServiceBase implements UserPrfilServic
 
         // 사용자 기본정보 수정
         userPrfilDAO.modifyUserBasic(vo);
-
-
     }
 
     /**
@@ -264,7 +283,25 @@ public class UserPrfilServiceImpl extends ServiceBase implements UserPrfilServic
      */
     @Override
     public void uploadUserPhoto(UserPrfilVO vo) throws Exception {
-        // 삭제 요청이면 우선 처리
+        List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
+        // 첨부파일
+        if(uploadFileList.size() > 0) {
+            for(AtflVO atflVO : uploadFileList) {
+                atflVO.setRefId(vo.getUserId());
+                atflVO.setRgtrId(vo.getRgtrId());
+                atflVO.setMdfrId(vo.getMdfrId());
+                atflVO.setAtflRepoId(CommConst.REPO_USER); // 첨부파일 저장소 아이디
+            }
+            // 첨부파일 저장
+            attachFileDAO.insertAtflList(uploadFileList);
+        }
+
+        // 첨부파일 삭제
+        attachFileService.deleteAtflByAtflIds(vo.getDelFileIds());
+
+
+
+        /*// 삭제 요청이면 우선 처리
         if("Y".equals(vo.getPhotoFileDelyn())) {
             vo.setPhotoFileId(null);
             return;
@@ -337,7 +374,7 @@ public class UserPrfilServiceImpl extends ServiceBase implements UserPrfilServic
             if(read > 0) {
                 //vo.setPhtFileByte(bytes);
             }
-        }
+        }*/
     }
 
     /**

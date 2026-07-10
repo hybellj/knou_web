@@ -1,8 +1,8 @@
 package knou.lms.lecture2.vo;
 
 import knou.lms.cmmn.vo.CmmnCdVO;
+import knou.lms.file.vo.AtflVO;
 import knou.lms.subject.vo.SubjectVO;
-
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
 import java.util.List;
@@ -19,7 +19,12 @@ public class LctrPlandocView {
     private CmmnCdVO mrkEvlInfo;
     private List<EgovMap> lectureScheduleList;
     private List<EgovMap> mrkItmStngList;
+    private List<RltmExamVO> rltmExamList;
+    private List<EgovMap> examQstnsTrgtrList;
     private Map<String, List<CmmnCdVO>> cmmnCdList;
+    private List<AtflVO> noteFileList;
+    private List<AtflVO> voiceFileList;
+    private List<AtflVO> trainingFileList;
 
     public SubjectVO getSubjectInfo() {
         return SubjectInfo;
@@ -101,11 +106,51 @@ public class LctrPlandocView {
         this.mrkItmStngList = mrkItmStngList;
     }
 
+    public List<RltmExamVO> getRltmExamList() {
+        return rltmExamList;
+    }
+
+    public void setRltmExamList(List<RltmExamVO> rltmExamList) {
+        this.rltmExamList = rltmExamList;
+    }
+
+    public List<EgovMap> getExamQstnsTrgtrList() {
+        return examQstnsTrgtrList;
+    }
+
+    public void setExamQstnsTrgtrList(List<EgovMap> examQstnsTrgtrList) {
+        this.examQstnsTrgtrList = examQstnsTrgtrList;
+    }
+
     public Map<String, List<CmmnCdVO>> getCmmnCdList() {
         return cmmnCdList;
     }
 
     public void setCmmnCdList(Map<String, List<CmmnCdVO>> cmmnCdList) {
         this.cmmnCdList = cmmnCdList;
+    }
+
+    public List<AtflVO> getNoteFileList() {
+        return noteFileList;
+    }
+
+    public void setNoteFileList(List<AtflVO> noteFileList) {
+        this.noteFileList = noteFileList;
+    }
+
+    public List<AtflVO> getVoiceFileList() {
+        return voiceFileList;
+    }
+
+    public void setVoiceFileList(List<AtflVO> voiceFileList) {
+        this.voiceFileList = voiceFileList;
+    }
+
+    public List<AtflVO> getTrainingFileList() {
+        return trainingFileList;
+    }
+
+    public void setTrainingFileList(List<AtflVO> trainingFileList) {
+        this.trainingFileList = trainingFileList;
     }
 }

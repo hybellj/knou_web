@@ -2,6 +2,7 @@ package knou.lms.crs.semester.service;
 
 import java.util.List;
 
+import knou.lms.crs.semester.vo.SmstrChrtSchdlVO;
 import knou.lms.crs.semester.vo.SmstrChrtVO;
 
 public interface SemesterService {
@@ -29,5 +30,13 @@ public interface SemesterService {
 	 * @return
 	 * @throws Exception
 	 */
-	public List<SmstrChrtVO> listSmstrChrtByDgrsYr(SmstrChrtVO smstrChrtVO) throws Exception;
+	public List<SmstrChrtVO> listSmstrChrtByDgrsYr(SmstrChrtVO smstrChrtVO) ;
+
+	/**
+	 * 학기기수 일정 주차 목록 조회
+	 * @param smstrChrtSchdlVO
+	 * @return
+	 * @throws Exception
+	 */
+	public List<SmstrChrtSchdlVO> listSmstrChrtSchdlWkno(SmstrChrtSchdlVO smstrChrtSchdlVO) ;
 }

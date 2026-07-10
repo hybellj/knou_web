@@ -1151,6 +1151,7 @@ gfn_renderPaging = function (params) {
 let AJAX_CALL_NO = 0;
 
 function ajaxCall(url, param, succCallback, errCallback, disploading) {
+	console.log('ajaxCall 본체 common_admin.js');
     $.ajax({
         url: url,
         data: param,

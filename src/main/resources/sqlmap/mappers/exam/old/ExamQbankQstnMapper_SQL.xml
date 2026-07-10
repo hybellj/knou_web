@@ -172,7 +172,7 @@
 	<select id="listPaging" parameterType="examQbankQstnVO" resultType="examQbankQstnVO">
 		<include refid="CommonSQL.pagePrefix"/>
 		<include refid="selectQuery" />
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 	
 	<select id="selectQbankQstnNos" parameterType="examQbankQstnVO" resultType="examQbankQstnVO">

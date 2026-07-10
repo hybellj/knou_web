@@ -1,0 +1,7 @@
+interface:
+  display_name: "KNOU Sbjct Refactor"
+  short_description: "과목 도메인 컨트롤러 경량화와 권한/Facade/Excel 리팩터링 가이드"
+  default_prompt: "Use $knou-sbjct-refactor to refactor KNOU LMS subject-domain controllers consistently."
+
+policy:
+  allow_implicit_invocation: true

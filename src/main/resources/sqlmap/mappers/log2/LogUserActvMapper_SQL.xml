@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="knou.lms.log2.user.dao.LogUserActvDAO">
+
 	<sql id="logUserActvQuery">
 		SELECT
-			  COUNT(1) OVER()                                                          AS TOTAL_CNT
-			, ROW_NUMBER() OVER (ORDER BY A.ACTV_DTTM DESC, A.USER_ACTV_ID DESC) LINE_NO
+			  COUNT(1) OVER()                                                          	AS 	TOTAL_CNT
+			, ROW_NUMBER() OVER (ORDER BY A.ACTV_DTTM DESC, A.USER_ACTV_ID DESC) 		AS 	LINE_NO
 			, A.USER_ACTV_ID
 			, A.ACTV_DTTM
 			, A.CNTN_IP
 			, A.USER_TYCD
-			, A.USER_REQ_MENU
-			, A.USER_REQ_CTS
+		    , A.NAVI_POSNM
 			, U.USER_ID
 			, U.USER_RPRS_ID
 			, U.USERNM
@@ -58,8 +58,109 @@
 		*/
 		<include refid="CommonSQL.pagePrefix" />
 		<include refid="logUserActvQuery" />
-		<include refid="CommonSQL.pageSubfix" />
+		<include refid="CommonSQL.pageSuffix" />
 	</select>
+
+    <select id="userCntnStsList" parameterType="knou.lms.log2.user.vo.LogUserActvVO" resultType="egovMap">
+        /*
+             SQL ID : LogUserActvDAO.userCntnStsList
+             설  명 : 사용자 접속 현황 목록 (현재시간보다 120분 전까지의 접속기록조회)
+        */
+        SELECT
+              ROW_NUMBER() OVER(ORDER BY LOG.ACTV_DTTM DESC) AS LINE_NO
+            , ORG.ORGNM
+            , DEPT.DEPTNM
+            , LOG.SBJCT_ID
+            , SBJ.SBJCTNM || (CASE WHEN SBJ.DVCLAS_NO IS NOT NULL THEN ' (' || SBJ.DVCLAS_NO || '반)' ELSE '' END ) AS SBJCTNM
+            , LOG.USER_ID
+            , USR.STDNT_NO
+            , STD.SCYR
+            , USR.USERNM
+            , CNTCT.CNTCT
+            , LOG.ACTV_DTTM
+        FROM (
+            SELECT ROW_NUMBER() OVER(PARTITION BY SBJCT_ID, USER_ID ORDER BY ACTV_DTTM DESC) AS RN
+                , SBJCT_ID, USER_ID, ACTV_DTTM, ACTV_DATETIME
+            FROM TB_LMS_LOG_USER_ACTV
+            WHERE USER_TYCD = #{userTycd}
+              AND SBJCT_ID IS NOT NULL
+        ) LOG
+        JOIN TB_LMS_SBJCT SBJ ON SBJ.SBJCT_ID = LOG.SBJCT_ID
+        JOIN TB_LMS_USER USR ON USR.USER_ID = LOG.USER_ID
+        JOIN TB_LMS_USER_CNTCT CNTCT ON USR.USER_ID = CNTCT.USER_ID AND CNTCT_TYCD = 'MBL_PHN'
+        LEFT JOIN TB_LMS_ATNDLC STD ON SBJ.SBJCT_ID = STD.SBJCT_ID AND USR.USER_ID = STD.USER_ID
+        JOIN TB_LMS_SMSTR_CHRT SMSTR ON SBJ.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+        JOIN TB_LMS_DEPT DEPT ON SBJ.DEPT_ID = DEPT.DEPT_ID
+        JOIN TB_LMS_ORG ORG ON DEPT.ORG_ID = ORG.ORG_ID
+        WHERE LOG.RN = 1
+            AND LOG.ACTV_DATETIME >= (SYSDATE - NUMTODSINTERVAL(120, 'MINUTE')) /* 혙ㄴ*/
+        <if test="dgrsYr != null and dgrsYr != ''">
+            AND SMSTR.DGRS_YR = #{dgrsYr}
+        </if>
+        <if test="dgrsSmstr != null and dgrsSmstr != ''">
+            AND SMSTR.DGRS_SMSTR_CHRT = #{dgrsSmstr}
+        </if>
+        <if test="orgId != null and orgId != ''">
+            AND ORG.ORG_ID = #{orgId}
+        </if>
+        <if test="searchValue != null and searchValue != ''">
+            AND (
+                   LOWER(SBJ.SBJCTNM) LIKE '%' || LOWER(#{searchValue}) || '%'
+                OR LOWER(USR.USERNM) LIKE '%' || LOWER(#{searchValue}) || '%'
+            )
+        </if>
+        ORDER BY LOG.ACTV_DTTM DESC
+    </select>
+
+    <select id="userCntnCntByOrgId" parameterType="knou.lms.log2.user.vo.LogUserActvVO" resultType="egovMap">
+        /*
+             SQL ID : LogUserActvDAO.userCntnCntByOrgId
+             설  명 : 기관별 사용자 접속 인원수
+        */
+        WITH CNTN_LIST AS (
+            SELECT
+                  ROW_NUMBER() OVER(PARTITION BY LOG.SBJCT_ID, LOG.USER_ID, LOG.USER_TYCD ORDER BY LOG.ACTV_DTTM DESC) AS RN
+		        , SMSTR.ORG_ID
+                , LOG.SBJCT_ID
+                , LOG.USER_ID
+                , LOG.USER_TYCD
+                , LOG.USER_REQ_URL
+                , LOG.ACTV_DTTM
+                , LOG.ACTV_DATETIME
+            FROM TB_LMS_LOG_USER_ACTV LOG
+            JOIN TB_LMS_USER USR ON LOG.USER_ID = USR.USER_ID
+            JOIN TB_LMS_SBJCT SBJ ON LOG.SBJCT_ID = SBJ.SBJCT_ID
+            JOIN TB_LMS_SMSTR_CHRT SMSTR ON SBJ.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+            WHERE 1=1
+              AND LOG.USER_TYCD = #{userTycd}
+              AND LOG.SBJCT_ID IS NOT NULL
+              AND LOG.ACTV_DATETIME >= (SYSDATE - NUMTODSINTERVAL(120, 'MINUTE'))
+        ),
+        FILTERED_CNTN_LIST AS (
+            SELECT ORG_ID, SBJCT_ID, USER_ID
+            FROM CNTN_LIST
+            WHERE RN = 1
+        ), STD_CNT_INFO AS (
+            SELECT ORG.ORG_ID, COUNT(DISTINCT STD.USER_ID ) AS STD_CNT
+            FROM TB_LMS_SBJCT SBJ
+                     JOIN TB_LMS_SMSTR_CHRT SMSTR ON SMSTR.SMSTR_CHRT_ID = SBJ.SMSTR_CHRT_ID
+                     JOIN TB_LMS_ORG ORG ON SMSTR.ORG_ID = ORG.ORG_ID
+                     JOIN TB_LMS_ATNDLC STD ON SBJ.SBJCT_ID = STD.SBJCT_ID
+            GROUP BY ORG.ORG_ID
+        )
+        SELECT
+              ORG.ORG_ID
+            , ORG.ORG_SHRTNM
+            , COUNT(CNTN.USER_ID) AS CNTN_CNT
+            , NVL(STD.STD_CNT, 0) AS TOT_CNT
+        FROM TB_LMS_ORG ORG
+                 LEFT JOIN FILTERED_CNTN_LIST CNTN ON ORG.ORG_ID = CNTN.ORG_ID
+                 LEFT JOIN STD_CNT_INFO STD ON ORG.ORG_ID = STD.ORG_ID
+        WHERE 1=1
+          AND ORG.USEYN = 'Y'
+        GROUP BY ORG.ORG_ID, ORG.ORG_SHRTNM, STD.STD_CNT
+        ORDER BY ORG.ORG_ID
+    </select>
 
 	<select id="stdntSubjectConnectList" parameterType="map" resultType="eGovMap">
 		/*	설명 : 사용자과목접속목록조회 - 현재시간보다 120분이전 접속기록조회*/
@@ -84,5 +185,275 @@
 		WHERE RN = 1
 		ORDER BY USERNM
 	</select>
+	
+	<insert id="userActvLogInsert" parameterType="knou.lms.log2.user.vo.LogUserActvVO">
+		INSERT INTO TB_LMS_LOG_USER_ACTV (
+		    USER_ACTV_ID, USER_ID, SBJCT_ID, REQ_TYCD, 
+		    SMSTR_CHRT_ID, ORG_ID, DEPT_ID, USER_RPRS_ID,
+		    USER_REQ_URL, USER_TYCD, NAVI_POSNM,
+		    CNTN_IP, CNTN_DVC_TYCD, CNTN_BRWSR, ACTV_DTTM, 
+		    SESS_ID, SESS_SDTTM, RGTR_ID, 
+		    REG_DTTM, ACTV_DATETIME, DAYOFWEEK, HOUROFDAY, TRACE_ID
+		) VALUES (
+		    #{userActvId},    #{userId},      #{sbjctId},     #{reqTycd},
+		    #{smstrChrtId},   #{orgId},       #{deptId},      #{userRprsId},
+		    #{userReqUrl},  #{userTycd},      #{naviPosnm},
+		    #{cntnIp},        #{cntnDvcTycd}, #{cntnBrwsr},   TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'),
+		    #{sessId},        #{sessSdttm},   #{rgtrId},
+		    TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'), SYSDATE, #{dayOfWeek}, #{hourOfDay}, #{traceId}
+		)
+	</insert>	
 
+	<insert id="tutorActvLogInsert" parameterType="knou.lms.log2.user.vo.LogTutActvVO">
+	    INSERT INTO DEV_LMS.TB_LMS_LOG_TUT_ACTV (
+	        TUT_ACTV_ID, 
+	        USER_ID, 
+	        SESS_ID, 
+	        SESS_SDTTM, 
+	        SESS_EDTTM, 
+	        TUT_ACTV_TYCD, 
+	        TUT_ACTV_DTTM, 
+	        TUT_REQ_MENU, 
+	        TUT_REQ_URL, 
+	        TUT_REQ_CTS, 
+	        TUT_REQ_TYCD, 
+	        TUT_CNTN_IP, 
+	        TUT_CNTN_DVC_TYCD, 
+	        TUT_CNTN_BRWSR, 
+	        RGTR_ID, 
+	        REG_DTTM, 
+	        MDFR_ID, 
+	        MOD_DTTM, 
+	        SBJCT_ID, ACTV_DATETIME, DAYOFWEEK, HOUROFDAY, TRACE_ID
+	    ) VALUES (
+	        #{tutActvId},
+	        #{userId},
+	        #{sessId},
+	        #{sessSdttm},
+	        #{sessEdttm},
+	        #{tutActvTycd},
+	        TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'), -- 활동일시
+	        #{tutReqMenu},
+	        #{tutReqUrl},
+	        #{tutReqCts},
+	        #{tutReqTycd},
+	        #{tutCntnIp},
+	        #{tutCntnDvcTycd},
+	        #{tutCntnBrwsr},
+	        #{rgtrId},
+	        TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'), -- 등록일시
+	        #{mdfrId},
+	        TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'), -- 수정일시
+	        #{sbjctId}, SYSDATE, #{dayOfWeek}, #{hourOfDay} , #{traceId}
+	    )
+	</insert>
+	
+	
+	<select id="admCntnLogListCnt" 			parameterType="pageInfo" resultType="int">
+		SELECT	COUNT(LUA.USER_ACTV_ID)	TOTAL_CNT
+		FROM 	TB_LMS_LOG_USER_ACTV	LUA
+			INNER 	JOIN TB_LMS_USER  	U 	ON LUA.USER_ID 	= U.USER_ID	AND U.USER_TYCD = 'ADM'
+			LEFT	JOIN TB_LMS_SBJCT 	S 	ON LUA.SBJCT_ID = S.SBJCT_ID
+			LEFT  	JOIN TB_LMS_DEPT  	D 	ON U.DEPT_ID	= U.DEPT_ID
+			LEFT 	JOIN TB_LMS_ORG   	O 	ON U.ORG_ID    	= O.ORG_ID		
+		WHERE 	1 = 1
+		<if test='searchText != null and searchText != ""'>
+				AND		( 		U.STDNT_NO LIKE  '%' || #{searchText} || '%'
+							OR 	U.USERNM LIKE 	 '%' || #{searchText} || '%'
+							OR	LUA.CNTN_IP LIKE '%' || #{searchText} || '%' 	)				
+		</if>
+	</select>
+	
+	<select id="admCntnLogListPaging" 	parameterType="pageInfo" resultType="egovMap">
+		<include refid="CommonSQL.pagePrefix2" />			
+		SELECT	ROW_NUMBER() OVER (ORDER BY LUA.REG_DTTM DESC)	AS 	LINE_NO,
+				O.ORGNM,
+				D.DEPT_ID,
+				U.STDNT_NO,
+				U.USERNM,
+				U.USER_ID,
+				LUA.CNTN_IP,
+				LUA.SESS_SDTTM,
+				LUA.SESS_EDTTM,
+				CASE
+				    WHEN LUA.SESS_SDTTM IS NOT NULL	AND LUA.SESS_EDTTM IS NOT NULL
+				    THEN (LUA.SESS_EDTTM - LUA.SESS_SDTTM) * 24 * 60
+				END AS SESS_MIN	  
+		FROM 	TB_LMS_LOG_USER_ACTV	LUA
+			INNER 	JOIN TB_LMS_USER  	U 	ON LUA.USER_ID 	= U.USER_ID	AND U.USER_TYCD = 'ADM'
+			LEFT	JOIN TB_LMS_SBJCT 	S 	ON LUA.SBJCT_ID = S.SBJCT_ID
+			LEFT  	JOIN TB_LMS_DEPT  	D 	ON U.DEPT_ID	= U.DEPT_ID
+			LEFT 	JOIN TB_LMS_ORG   	O 	ON U.ORG_ID    	= O.ORG_ID		
+		WHERE 	1 = 1
+		<if test='searchText != null and searchText != ""'>
+				AND		( 		U.STDNT_NO LIKE  '%' || #{searchText} || '%'
+							OR 	U.USERNM LIKE 	 '%' || #{searchText} || '%'
+							OR	LUA.CNTN_IP LIKE '%' || #{searchText} || '%' )
+		</if>
+		<include refid="CommonSQL.pageSuffix2" />
+	</select>
+
+    <sql id="userActvHstryBaseQuery">
+        WITH BASE AS (
+            SELECT
+                  ROW_NUMBER() OVER(ORDER BY LUA.ACTV_DTTM DESC, LUA.USER_ACTV_ID DESC) AS LINE_NO
+                , LUA.USER_ACTV_ID
+                , LUA.ORG_ID
+                , ORG.ORGNM
+                , SMSTR.DGRS_YR
+                , SMSTR.DGRS_SMSTR_CHRT
+                , LUA.DEPT_ID
+                , DEPT.DEPTNM
+                , LUA.SBJCT_ID
+                , SBJ.SBJCTNM
+                , SBJ.CRCLMN_NO
+                , SBJ.DVCLAS_NO
+                , USR.STDNT_NO
+                , USR.USER_ID
+                , USR.USERNM
+                , LUA.USER_TYCD
+                , ACTN.SRVC_ACTN_GBNCD
+                , CD.CDNM AS SRVC_ACTN_GBNNM
+                , ACTN.SRVC_ACTN_EXPLN
+                , ACTN.SRVC_ACTN_TYCD
+                , LUA.USER_REQ_URL
+                , LUA.CNTN_IP
+                , LUA.ACTV_DTTM
+            FROM TB_LMS_LOG_USER_ACTV LUA
+            JOIN TB_LMS_USER USR ON USR.USER_ID = LUA.USER_ID
+            LEFT JOIN TB_LMS_SBJCT SBJ ON SBJ.SBJCT_ID = LUA.SBJCT_ID
+            LEFT JOIN TB_LMS_SMSTR_CHRT SMSTR ON SMSTR.SMSTR_CHRT_ID = LUA.SMSTR_CHRT_ID
+            LEFT JOIN TB_LMS_ORG ORG ON ORG.ORG_ID = LUA.ORG_ID
+            LEFT JOIN TB_LMS_DEPT DEPT
+              ON DEPT.ORG_ID = LUA.ORG_ID
+             AND DEPT.DEPT_ID = LUA.DEPT_ID
+            LEFT JOIN TB_LMS_SRVC_ACTN ACTN
+              ON ACTN.USER_REQ_URL = LUA.USER_REQ_URL
+             AND ACTN.REQ_TYCD = LUA.REQ_TYCD
+            LEFT JOIN TB_LMS_CMMN_CD CD
+              ON CD.ORG_ID = LUA.ORG_ID
+             AND CD.UP_CD = 'SRVC_ACTN_GBNCD'
+             AND CD.CD = ACTN.SRVC_ACTN_GBNCD
+             AND CD.LANG_CD = NVL(#{langCd}, 'ko')
+             AND CD.USEYN = 'Y'
+            WHERE 1 = 1
+            <if test="orgId != null and orgId != ''">
+                AND LUA.ORG_ID = #{orgId}
+            </if>
+            <if test="smstrChrtId != null and smstrChrtId != ''">
+                AND LUA.SMSTR_CHRT_ID = #{smstrChrtId}
+            </if>
+            <if test="deptId != null and deptId != ''">
+                AND LUA.DEPT_ID = #{deptId}
+            </if>
+            <if test="sbjctId != null and sbjctId != ''">
+                AND LUA.SBJCT_ID = #{sbjctId}
+            </if>
+            <if test="searchSdttm != null and searchSdttm != ''">
+                AND LUA.ACTV_DTTM &gt;= #{searchSdttm}
+            </if>
+            <if test="searchEdttm != null and searchEdttm != ''">
+                AND LUA.ACTV_DTTM &lt;= #{searchEdttm}
+            </if>
+            <if test="userTycds != null and userTycds != ''">
+                AND INSTR(',' || #{userTycds} || ',', ',' || LUA.USER_TYCD || ',') &gt; 0
+            </if>
+            <if test="srvcActnGbncd != null and srvcActnGbncd != ''">
+                AND ACTN.SRVC_ACTN_GBNCD = #{srvcActnGbncd}
+            </if>
+            <if test="searchValue != null and searchValue != ''">
+                AND (
+                    LOWER(USR.STDNT_NO) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                    OR LOWER(USR.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                    OR LOWER(USR.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+                )
+            </if>
+        )
+        SELECT
+              BASE.LINE_NO
+            , BASE.USER_ACTV_ID
+            , BASE.ORG_ID
+            , BASE.ORGNM
+            , BASE.DGRS_YR
+            , BASE.DGRS_SMSTR_CHRT
+            , BASE.DEPT_ID
+            , BASE.DEPTNM
+            , BASE.SBJCT_ID
+            , BASE.SBJCTNM
+            , BASE.CRCLMN_NO
+            , BASE.DVCLAS_NO
+            , BASE.STDNT_NO
+            , BASE.USER_ID
+            , BASE.USERNM
+            , BASE.USER_TYCD
+            , BASE.SRVC_ACTN_GBNCD
+            , BASE.SRVC_ACTN_GBNNM
+            , BASE.SRVC_ACTN_EXPLN
+            , BASE.SRVC_ACTN_TYCD
+            , BASE.USER_REQ_URL
+            , BASE.CNTN_IP
+            , BASE.ACTV_DTTM
+        FROM BASE
+    </sql>
+
+    <select id="countUserActvHstry" parameterType="userActvHstryVO" resultType="Integer">
+        /*
+            SQL ID : LogUserActvDAO.countUserActvHstry
+            내용 : 사용자접속이력 목록 건수 조회
+        */
+        SELECT COUNT(1)
+        FROM (
+            <include refid="userActvHstryBaseQuery"/>
+        ) A
+    </select>
+
+    <select id="listUserActvHstryPaging" parameterType="userActvHstryVO" resultType="egovMap">
+        /*
+            SQL ID : LogUserActvDAO.listUserActvHstryPaging
+            내용 : 사용자접속이력 목록 페이지 조회
+        */
+        <include refid="CommonSQL.pagePrefix2"/>
+        <include refid="userActvHstryBaseQuery"/>
+        <include refid="CommonSQL.pageSuffix2"/>
+        ORDER BY A.LINE_NO
+    </select>
+
+    <select id="listUserActvHstry" parameterType="userActvHstryVO" resultType="egovMap">
+        /*
+            SQL ID : LogUserActvDAO.listUserActvHstry
+            내용 : 사용자접속이력 목록 전체 조회
+        */
+        SELECT A.*
+        FROM (
+            <include refid="userActvHstryBaseQuery"/>
+        ) A
+        ORDER BY A.LINE_NO
+    </select>
+
+    <select id="listUserActvHstrySbjct" parameterType="userActvHstryVO" resultType="egovMap">
+        /*
+            SQL ID : LogUserActvDAO.listUserActvHstrySbjct
+            내용 : 사용자접속이력 검색조건 과목 목록 조회
+        */
+        SELECT
+              SBJ.SBJCT_ID
+            , SBJ.SBJCTNM
+            , SBJ.CRCLMN_NO
+            , SBJ.DVCLAS_NO
+        FROM TB_LMS_SBJCT SBJ
+        JOIN TB_LMS_SMSTR_CHRT SMSTR
+          ON SMSTR.SMSTR_CHRT_ID = SBJ.SMSTR_CHRT_ID
+        WHERE NVL(SBJ.DELYN, 'N') = 'N'
+          AND NVL(SBJ.USEYN, 'Y') = 'Y'
+        <if test="orgId != null and orgId != ''">
+          AND SMSTR.ORG_ID = #{orgId}
+        </if>
+        <if test="deptId != null and deptId != ''">
+          AND SBJ.DEPT_ID = #{deptId}
+        </if>
+        <if test="smstrChrtId != null and smstrChrtId != ''">
+          AND SBJ.SMSTR_CHRT_ID = #{smstrChrtId}
+        </if>
+        ORDER BY SBJ.SBJCTNM, SBJ.DVCLAS_NO
+    </select>
 </mapper>

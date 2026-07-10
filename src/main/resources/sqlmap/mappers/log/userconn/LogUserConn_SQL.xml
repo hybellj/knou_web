@@ -100,8 +100,8 @@
 		  FROM TB_LOG_USER_CONN_STAT A, TB_LMS_USR B 
 		 WHERE A.USER_ID = B.USER_ID 
 		   AND A.ACSR_GBNCD = #{connGbn}
-		   AND A.CNTN_DTTM >= TO_CHAR(SYSTIMESTAMP - NUMTODSINTERVAL(#{searchTm}, 'MINUTE'), 'YYYYMMDDHH24MISS')
-		   AND A.SBJCT_ID IN 
+           AND TO_DATE(A.LGN_DTTM, 'YYYYMMDDHH24MISS') >= (TO_DATE(FN_DTTM(), 'YYYYMMDDHH24MISS') - NUMTODSINTERVAL(#{searchTm}, 'MINUTE'))
+		   AND A.SBJCT_ID IN
 			<foreach collection="corsList" item="item" index="index" separator="," open="(" close=")">
 				#{item}
 			</foreach>

@@ -9,7 +9,7 @@
 
 <script src="/webdoc/js/gridstack-all.js"></script>
 
-<body class="home colorA ">
+<body class="home ${uiex:getTheme()} ">
 	<!-- 컬러선택시 클래스변경 -->
 	<div id="wrap" class="main">
 		<!-- common header -->

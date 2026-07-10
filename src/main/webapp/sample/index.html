@@ -201,7 +201,7 @@
                 <ul>
                     <ol><a href="#0" class="ui basic black fluid button">프로필</a>
                         <ul>
-                            <li><a href="./html_dashboard/profile_info.jsp" class="ui basic  button">프로필 정보</a></li>
+                            <li><a href="./html_dashboard/profile_info.jsp" class="ui basic blue button">프로필 정보</a></li>
                             <li><a href="./html_dashboard/profile_modify.jsp" class="ui basic blue button">프로필 수정</a></li>
                         </ul>
                     </ol>
@@ -228,7 +228,8 @@
                             <li><a href="./html_dashboard/class_week_status.jsp" class="ui basic blue button">전체수업현황 > 주차별 학습현황</a></li>   
                             <li class="mb5"><span class="ui teal mini button mr5">M</span>학습자 학습현황</li>     
                             <li class="mb5"><span class="ui teal mini button mr5">M</span>학습자 주차 학습현황</li>     
-                            <li class="mb10"><span class="ui teal mini button mr5">M</span>학습자 학습요소 참여현황</li>               
+                            <li class="mb5"><span class="ui teal mini button mr5">M</span>학습자 학습요소 참여현황</li>               
+                            <li class="mb10"><span class="ui teal mini button mr5">M</span>출석 관리 사유</li>               
                         </ul>
                     </ol>
                     <ol><a href="#0" class="ui basic black fluid button">학습진도관리</a>
@@ -249,7 +250,8 @@
                             <li class="mb5"><span class="ui teal mini button mr5">M</span>상대평가비중</li>     
                             <li class="mb5"><span class="ui teal mini button mr5">M</span>절대평가비중</li>     
                             <li class="mb5"><span class="ui teal mini button mr5">M</span>P/F평가비중</li>         
-                            <li class="mb10"><span class="ui teal mini button mr5">M</span>분반 성적 비교</li>
+                            <li class="mb5"><span class="ui teal mini button mr5">M</span>분반 성적 비교</li>
+                            <li><span class="ui teal mini button mr5">M</span>성적 상세정보</li>
                         </ul>
                     </ol>
 
@@ -270,6 +272,7 @@
                 </ul>
                  <div class="ui divider"></div>
             </dd>
+
             <dt>강의실 > 교수자</dt>
             <dd>
                 <ul>
@@ -283,24 +286,58 @@
                             <li class="mb5"><span class="ui teal mini button mr5">M</span>학습자료 수정</li>                            
                             <li class="mb5"><span class="ui teal mini button mr5">M</span>결시신청 현황</li>
                             <li class="mb5"><span class="ui teal mini button mr5">M</span>출결관리</li>
+                            <li class="mb5"><span class="ui teal mini button mr5">M</span>출석관리</li>
+                            <li class="mb5"><span class="ui teal mini button mr5">M</span>강의보기</li>
                         </ul>
                     </ol>
+
                     <ol><a href="#0" class="ui basic black fluid button">강의실 sub UI 기본요소</a>
                         <ul>
                             <li><a href="./html_class/0_class_prof_sub_layout.jsp" class="ui basic blue button">강의실 교수 > 서브 레이아웃</a></li>
                         </ul>
                     </ol>
+
                     <ol><a href="#0" class="ui basic black fluid button">공지사항</a>
                         <ul>
                             <li><a href="./html_class/class_notice_view.jsp" class="ui basic blue button">공지사항 > 보기</a></li>
                         </ul>
                     </ol>
+
                     <ol><a href="#0" class="ui basic black fluid button">과제</a>
                         <ul>
                             <li><a href="./html_class/class_assignment_card.jsp" class="ui basic blue button">과제 > 목록 카드형</a></li>
                             <li><a href="./html_class/class_assignment_register.jsp" class="ui basic blue button">과제 > 등록</a></li>
+                            <li><a href="./html_class/class_assignment_register2.jsp" class="ui basic blue button">과제 > 등록 : 실기과제, 팀과제, 개별과제</a></li>
+                            <li><a href="./html_class/class_assignment_info.jsp" class="ui basic blue button">과제 > 과제정보 및 과제평가</a></li>
+                            <li><span class="ui teal mini button mr5">M</span>피드백</li> 
+                            <li><span class="ui teal mini button mr5">M</span>이전 제출</li> 
+                            <li><span class="ui teal mini button mr5">M</span>재제출 관리</li> 
+                            <li><a href="./html_class/class_assignment_EZ-Grader.jsp" class="ui basic blue button">EZ-Grader</a></li>
                         </ul>
                     </ol>
+                    
+                    <ol><a href="#0" class="ui basic black fluid button">퀴즈</a>
+                        <ul>
+                            <li><a href="./html_class/class_quiz_register.jsp" class="ui basic blue button">퀴즈 > 등록</a></li>
+                            <li><span class="ui teal mini button mr5">M</span>학습그룹지정</li>
+                            <li><span class="ui teal mini button mr5">M</span>이전퀴즈 가져오기</li>
+                            <li><a href="./html_class/class_quiz_info.jsp" class="ui basic blue button">퀴즈 > 퀴즈정보 및 퀴즈평가 : 일반 퀴즈</a></li>
+                            <li class="mb5"><span class="ui teal mini button mr5">M</span>시험지 보기</li>
+                            <li><a href="./html_class/class_quiz_question.jsp" class="ui basic blue button">퀴즈 > 문항관리</a></li>
+                            <li class="mb5"><span class="ui teal mini button mr5">M</span>문제 수정 옵션</li>
+                        </ul>
+                    </ol>
+
+                    <ol><a href="#0" class="ui basic black fluid button">설문</a>
+                        <ul>
+                            <li><a href="./html_class/class_survey_info.jsp" class="ui basic blue button">설문 > 목록</a></li>
+                            <li><span class="ui teal mini button mr5">M</span>설문지 미리보기</li>
+                            <li><a href="./html_class/class_survey_eval.jsp" class="ui basic blue button">설문 > 설문정보및평가 : 일반 설문</a></li>
+                            <li><span class="ui teal mini button mr5">M</span>참여현황 그래프</li>
+                            <li><a href="./html_class/class_survey_question.jsp" class="ui basic blue button">설문 > 문항관리</a></li>
+                        </ul>
+                    </ol>                    
+
                     <ol><a href="#0" class="ui basic black fluid button">토론</a>
                         <ul>
                             <li><a href="./html_class/class_debate_card.jsp" class="ui basic blue button">토론 > 목록 카드형</a></li>
@@ -308,10 +345,22 @@
                             <li><a href="./html_class/class_debate_register2.jsp" class="ui basic blue button">등록 : 팀토론</a></li>
                             <li class="mb10"><span class="ui teal mini button mr5">M</span>학습그룹지정</li> 
                             <li><a href="./html_class/class_debate_register3.jsp" class="ui basic blue button">등록 : 팀토론 > 그룹별설정</a></li>
+                            <li><span class="ui teal mini button mr5">M</span>학습그룹지정</li> 
+                            <li class="mb10"><span class="ui teal mini button mr5">M</span>이전토론 가져오기</li> 
                             <li><a href="./html_class/class_debate_info.jsp" class="ui basic blue button">토론정보 및 평가 : 일반토론</a></li>
                             <li class="mb5"><span class="ui teal mini button mr5">M</span>일반토론 : 피드백</li> 
                             <li class="mb5"><span class="ui teal mini button mr5">M</span>토론현황 그래프</li>
-                            <li class="mb10"><span class="ui teal mini button mr5">M</span>엑셀로 성적등록</li>
+                            <li class="mb5"><span class="ui teal mini button mr5">M</span>엑셀로 성적등록</li>
+                            <li class="mb10"><span class="ui teal mini button mr5">M</span>메모</li>
+                            <li><a href="./html_class/class_debate_room.jsp" class="ui basic blue button">토론방</a></li>
+                            <li><a href="./html_class/class_debate_pro-con.jsp" class="ui basic blue button">토론 > 토론방 : 찬반토론</a></li>
+                            <li><a href="./html_class/class_debate_EZ-Grader.jsp" class="ui basic blue button">EZ-Grader</a></li>
+                        </ul>
+                    </ol>
+                    <ol><a href="#0" class="ui basic black fluid button">세미나</a>
+                        <ul>
+                            <li><a href="./html_class/class_seminar_info.jsp" class="ui basic blue button">세미나 정보 및 참여 관리</a></li>
+                            <li class="mb10"><span class="ui teal mini button mr5">M</span>참여관리/관리이력</li> 
                         </ul>
                     </ol>
                     <ol><a href="#0" class="ui basic black fluid button">교수/튜터/조교정보</a>
@@ -320,10 +369,20 @@
                             <li class="mb10"><span class="ui teal mini button mr5">M</span>교수/튜터/조교 정보수정</li> 
                         </ul>
                     </ol>
+                    <ol><a href="#0" class="ui basic black fluid button">과목설정</a>
+                        <ul>
+                            <li><a href="./html_class/class_import_previous.jsp" class="ui basic blue button">이전학기 불러오기</a></li>
+                            <li><a href="./html_class/class_learning_group_assign.jsp" class="ui basic blue button">학습그룹지정</a></li>
+                            <li><a href="./html_class/class_subject_info.jsp" class="ui basic blue button">과목정보</a></li>
+                            <li class="mb10"><span class="ui teal mini button mr5">M</span>돌발 퀴즈</li> 
+                        </ul>
+                    </ol>
 
                 </ul>
                  <div class="ui divider"></div>
             </dd>
+
+
             <dt>강의실 > 학습자</dt>
             <dd>
                 <ul>
@@ -336,6 +395,47 @@
                     <ol><a href="#0" class="ui basic black fluid button">강의실 sub UI 기본요소</a>
                         <ul>
                             <li><a href="./html_class/0_class_sub_layout.jsp" class="ui basic blue button">강의실 학생 > 서브 레이아웃</a></li>
+                        </ul>
+                    </ol>
+                    <ol><a href="#0" class="ui basic black fluid button">퀴즈</a>
+                        <ul>
+                            <li><a href="./html_class/class_quiz_card_stu.jsp" class="ui basic blue button">퀴즈 > 목록 : 카드형</a></li>
+                        </ul>
+                    </ol>
+                    <ol><a href="#0" class="ui basic black fluid button">토론</a>
+                        <ul>
+                            <li><a href="./html_class/class_debate_team_info_stu.jsp" class="ui basic blue button">토론 > 토론정보 및 참여 : 팀토론</a></li>
+                        </ul>
+                    </ol>
+                    <ol><a href="#0" class="ui basic black fluid button">시험</a>
+                        <ul>
+                            <li><a href="./html_class/class_quiz_status_stu.jsp" class="ui basic blue button">시험대체 퀴즈 (응시 안내 / 채점 대기)</a></li>
+                            <li class="mb5"><span class="ui teal mini button mr5">M</span>시험 대체 퀴즈 응시</li>
+                            <li class="mb5"><span class="ui teal mini button mr5">M</span>퀴즈 응시 주의사항</li>                            
+                            <li><a href="./html_class/class_quiz_absence_stu.jsp" class="ui basic blue button">결시신청 및 결과</a></li>
+                            <li class="mb5"><span class="ui teal mini button mr5">M</span>결시 신청</li>
+                            <li class="mb5"><span class="ui teal mini button mr5">M</span>처리 내역</li>
+                        </ul>
+                    </ol>
+                    <ol>
+                        <a href="#0" class="ui basic black fluid button">세미나</a>
+                        <ul>
+                            <li><a href="./html_class/class_seminar_status_stu.jsp" class="ui basic blue button">세미나정보 및 평가</a></li>
+                            <li class="mb10"><span class="ui teal mini button mr5">M</span>이메일 주소 직접 등록하여 참가</li> 
+                        </ul>
+                    </ol>
+                    <ol><a href="#0" class="ui basic black fluid button">수업일정</a>
+                        <ul>
+                            <li><a href="./html_class/class_weeks_schedule.jsp" class="ui basic blue button">주별 - 수업일정</a></li>
+                            <li><a href="./html_class/class_month_schedule.jsp" class="ui basic blue button">월별 - 수업일정</a></li>
+                            <li class="mb5"><span class="ui teal mini button mr5">M</span>수업일정 보기</li> 
+                            <li><span class="ui teal mini button mr5">M</span>개별일정 수정</li> 
+                        </ul>
+                    </ol>
+                    <ol><a href="#0" class="ui basic black fluid button">성적확인</a>
+                        <ul>
+                            <li><a href="./html_class/class_grade_appeal_stu.jsp" class="ui basic blue button">성적 이의 신청</a></li>
+                            <li><span class="ui teal mini button mr5">M</span>성적 이의 신청 처리 결과</li>
                         </ul>
                     </ol>
                 </ul>
@@ -382,6 +482,50 @@
                     <ol><a href="#0" class="ui basic black fluid button">메시지 관리</a>
                         <ul>
                             <li><a href="./html_admin/admin_message_template01.jsp" class="ui basic blue button">메시지발송 > 메시지 템플릿 > 개인</a></li>
+                        </ul>
+                    </ol>
+                    <ol><a href="#0" class="ui basic black fluid button">수업 운영 도구</a>
+                        <ul>
+                            <li><a href="./html_admin/admin_course_open_list.jsp" class="ui basic blue button">과정관리 > 과목개설관리 > 과목개설</a></li>
+                            <li><a href="./html_admin/admin_dept_manage_list.jsp" class="ui basic blue button">과정관리 > 학과/부서 관리</a></li>
+                            <li class="mb10"><span class="ui teal mini button mr5">M</span>학사연동 가져오기</li>
+                            <li><a href="./html_admin/admin_user_manage_list.jsp" class="ui basic blue button">과정관리 > 사용자 관리</a></li>
+                            <li class="mb5"><span class="ui teal mini button mr5">M</span>사용자 정보</li>
+                            <li class="mb5"><span class="ui teal mini button mr5">M</span>연락처 변경이력</li>
+                            <li class="mb5"><span class="ui teal mini button mr5">M</span>권한 변경</li>
+                            <li class="mb10"><span class="ui teal mini button mr5">M</span>알림 바로 보내기</li>
+                            <li><a href="./html_admin/admin_user_manage_write.jsp" class="ui basic blue button">과정관리 > 사용자 관리 > 등록</a></li>
+                            <li><a href="./html_admin/admin_course_open_manage_list.jsp" class="ui basic blue button">과정관리 > 과목개설관리 > 과목개설</a></li>
+                            <li><a href="./html_admin/admin_term_week_manage.jsp" class="ui basic blue button">과정관리 > 학기/주차 관리 > 등록(2/2)</a></li>
+                            <li><a href="./html_admin/admin_evaluation_ratio_manage.jsp" class="ui basic blue button">과정관리 > 수업운영 > 평가비중관리</a></li>
+                            <li><a href="./html_admin/admin_attendance_criteria_reg.jsp" class="ui basic blue button">과정관리 > 수업운영 > 출석점수 기준관리 > 등록</a></li>
+                            <li><a href="./html_admin/admin_lecture_evaluation_manage.jsp" class="ui basic blue button">과정관리 > 강의평가 > 강의평가관리</a></li>
+                            <li class="mb5"><span class="ui teal mini button mr5">M</span>이전 강의평가 가져오기</li> 
+                            <li><span class="ui teal mini button mr5">M</span>강의평가 팝업관리</li> 
+                            <li><a href="./html_admin/admin_lecture_evaluation_question_manage.jsp" class="ui basic blue button">과정관리 > 강의평가 > 강의평가관리 > 문항관리</a></li>
+                            <li><span class="ui teal mini button mr5">M</span>문항 가져오기</li>
+                            <li><span class="ui teal mini button mr5">M</span>파일로 등록</li> 
+                            <li><span class="ui teal mini button mr5">M</span>페이지 추가</li> 
+                            <li><a href="./html_admin/admin_tutor_performance_list.jsp" class="ui basic blue button">과정관리 > 튜터실적관리</a></li>
+                            <li><span class="ui teal mini button mr5">M</span>튜터 실적인정 상세보기</li>
+                            <li><a href="./html_admin/admin_contents_manage_list.jsp" class="ui basic blue button">콘텐츠관리 > 콘텐츠/학습목차 관리</a></li>
+                            <li><span class="ui teal mini button mr5">M</span>콘텐츠 연동 가져오기</li>
+                            <li><span class="ui teal mini button mr5">M</span>미리보기</li>
+                            <li><span class="ui teal mini button mr5">M</span>주차 관리</li>
+                            <li><span class="ui teal mini button mr5">M</span>학습자료 수정</li>
+                            <li><span class="ui teal mini button mr5">M</span>연습문제 추가</li>
+                            <li><span class="ui teal mini button mr5">M</span>연습문제 시험지</li>
+                            <li><a href="./html_admin/admin_element_status_list.jsp" class="ui basic blue button">과목관리 > 수업운영 > 학습요소별 운영현황</a></li>
+                            <li><span class="ui teal mini button mr5">M</span>학습요소별 운영현황 상세</li>                            
+                            <li><a href="./html_admin/admin_grade_status_list.jsp" class="ui basic blue button">과목관리 > 성적관리 > 성적처리현황</a></li>
+                            <li><span class="ui teal mini button mr5">M</span>성적처리 로그조회</li>
+                            <li><a href="./html_admin/admin_grade_appeal_list.jsp" class="ui basic blue button">과목관리 > 성적관리 > 성적이의신청관리</a></li>
+                            <li><span class="ui teal mini button mr5">M</span>성적이의 신청자 등록</li>
+                            <li><span class="ui teal mini button mr5">M</span>성적이의 신청처리</li>
+                            <li><span class="ui teal mini button mr5">M</span>학습요소별 성적</li>
+                            <li><a href="./html_admin/admin_learner_analysis_data.jsp" class="ui basic blue button">과목관리 > 학습통계분석 > 학습자분석자료</a></li>
+                            <li><span class="ui teal mini button mr5">M</span>분석자료</li>
+                            <li><a href="./html_admin/admin_subjectStatus.jsp" class="ui basic blue button">과목관리 > 학습통계분석 > 개설과목통계</a></li>
                         </ul>
                     </ol>
                 </ul>

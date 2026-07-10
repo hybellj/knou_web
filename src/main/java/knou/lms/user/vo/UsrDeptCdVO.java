@@ -1,5 +1,6 @@
 package knou.lms.user.vo;
 
+import knou.framework.common.PageInfo;
 import knou.lms.common.vo.DefaultVO;
 
 /**
@@ -15,6 +16,12 @@ public class UsrDeptCdVO extends DefaultVO {
     private String  deptEnnm;       // 부서(학과) 명(영문)
     private String  upDeptId;      // 상위 부서 코드
     
+    public UsrDeptCdVO() {}
+    
+    public UsrDeptCdVO(PageInfo pageInfo) {
+    	this.setOrgId(pageInfo.getOrgId());
+    	this.setDeptId(pageInfo.getDeptId());
+    }
     
     public String getDeptId() {
         return deptId;

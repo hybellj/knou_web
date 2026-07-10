@@ -3,6 +3,10 @@
 <mapper namespace="knou.lms.forum2.dao.DscsCmntDAO">
 
     <insert id="insertCmnt" parameterType="knou.lms.forum2.vo.DscsCmntVO">
+        /*
+            SQL ID : DscsCmntDAO.insertCmnt
+            설명 : 댓글 등록
+        */
         INSERT INTO TB_LMS_DSCS_CMNT (
               DSCS_CMNT_ID
             , DSCS_ATCL_ID
@@ -35,6 +39,10 @@
     </insert>
 
     <update id="updateCmnt" parameterType="knou.lms.forum2.vo.DscsCmntVO">
+        /*
+            SQL ID : DscsCmntDAO.updateCmnt
+            설명 : 댓글 수정
+        */
         UPDATE TB_LMS_DSCS_CMNT
         SET CMNT_CTS = #{cmntCts}
           , CMNT_CTS_LEN = #{cmntCtsLen}
@@ -45,6 +53,10 @@
     </update>
 
     <update id="deleteCmnt" parameterType="knou.lms.forum2.vo.DscsCmntVO">
+        /*
+            SQL ID : DscsCmntDAO.deleteCmnt
+            설명 : 댓글 삭제 처리
+        */
         UPDATE TB_LMS_DSCS_CMNT
         SET DELYN = 'Y'
           , MOD_DTTM = FN_DTTM()
@@ -53,6 +65,10 @@
     </update>
 
     <update id="hideCmnt" parameterType="knou.lms.forum2.vo.DscsCmntVO">
+        /*
+            SQL ID : DscsCmntDAO.hideCmnt
+            설명 : 댓글 숨김 처리
+        */
         UPDATE TB_LMS_DSCS_CMNT
         SET DELYN = 'H'
           , MOD_DTTM = FN_DTTM()
@@ -61,6 +77,10 @@
     </update>
 
     <select id="cmntList" parameterType="knou.lms.forum2.vo.DscsAtclVO" resultType="knou.lms.forum2.vo.DscsCmntVO">
+        /*
+            SQL ID : DscsCmntDAO.cmntList
+            설명 : 댓글 목록 조회
+        */
         WITH OPNN (
             RN, DSCS_CMNT_ID, DSCS_ATCL_ID, UP_CMNT_ID, CMNT_CTS, CMNT_CTS_LEN,
             EMT_TYCD, RGTR_ID, REG_DTTM, MDFR_ID, MOD_DTTM, DELYN,
@@ -127,7 +147,7 @@
             , A.DSCS_ATCL_ID
             , A.UP_CMNT_ID
             , PU.USERNM AS upUsernm
-            , TO_CHAR(A.CMNT_CTS) AS CMNT_CTS
+            , A.CMNT_CTS
             , A.CMNT_CTS_LEN
             , A.EMT_TYCD
             , U.USERNM
@@ -152,6 +172,10 @@
     </select>
 
     <select id="selectCmnt" parameterType="knou.lms.forum2.vo.DscsCmntVO" resultType="knou.lms.forum2.vo.DscsCmntVO">
+        /*
+            SQL ID : DscsCmntDAO.selectCmnt
+            설명 : 댓글 단건 조회
+        */
         SELECT
             DSCS_CMNT_ID
           , DSCS_ATCL_ID
@@ -161,8 +185,45 @@
           , DELYN
           , RSPNS_REQYN
           , CMNT_CTS_LEN
+          , RGTR_ID
+          , USER_ID AS STD_ID
         FROM TB_LMS_DSCS_CMNT
         WHERE DSCS_CMNT_ID = #{dscsCmntId}
+    </select>
+
+    <select id="listEzgActivityCmnt" parameterType="knou.lms.forum2.vo.DscsAtclVO" resultType="knou.lms.forum2.vo.DscsCmntVO">
+        /*
+            SQL ID : DscsCmntDAO.listEzgActivityCmnt
+            설명 : EZ-Grader 토론 활동 댓글 목록 조회
+        */
+        SELECT
+              C.DSCS_CMNT_ID
+            , A.DSCS_ID
+            , C.DSCS_ATCL_ID
+            , C.UP_CMNT_ID
+            , C.CMNT_CTS
+            , C.CMNT_CTS_LEN
+            , C.EMT_TYCD
+            , U.USERNM
+            , U.STDNT_NO
+            , C.RGTR_ID
+            , C.REG_DTTM
+            , C.MDFR_ID
+            , C.MOD_DTTM
+            , C.DELYN
+            , C.RSPNS_REQYN
+            , C.USER_ID AS STD_ID
+            , 0 AS LVL
+            , '' AS phtFileByte
+        FROM TB_LMS_DSCS_CMNT C
+        JOIN TB_LMS_DSCS_ATCL A ON A.DSCS_ATCL_ID = C.DSCS_ATCL_ID
+        LEFT JOIN TB_LMS_USER U ON U.USER_ID = C.RGTR_ID
+        WHERE A.DSCS_ID = #{dscsId}
+          AND C.USER_ID IN
+          <foreach collection="sqlForeach" item="item" index="index" separator="," open="(" close=")">
+              #{item}
+          </foreach>
+        ORDER BY C.USER_ID ASC, A.ATCL_SEQNO ASC, C.REG_DTTM ASC, C.DSCS_CMNT_ID ASC
     </select>
 
 </mapper>

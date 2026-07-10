@@ -1,155 +1,176 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
 <%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
+					<!-- noticeListBox -->
+                            <div id="noticeListBox">
+                                <!-- noticeCat1 모든공지목록-->
+                               	<div id="noticeCat1" class="tab-content" style="display: block;">
+                                       <ul class="dash_item_listA">
+			                            <c:choose>
+										    <c:when test="${empty dashVM.profDashAllNoticeList}">
+										        <li>최신공지사항이 없습니다</li>
+										    </c:when>
+										    <c:otherwise>
+			                                	<c:forEach var="item" items="${dashVM.profDashAllNoticeList}">
+												    <!-- 3건만 출력 -->
+												    <c:set var="cnt" value="0"/>
+												    <c:if test="${item.topic eq 'PROF_DASH_ALL_NOTICE' and cnt lt 3}">
+												        <li>
+												            <!-- 공지 유형 라벨 -->
+												            <div class="noti_label">
+													            <c:choose>
+													            	<c:when test="${item.badge eq 'ALL'}">
+														                <label class="labelA">전체</label>
+														            </c:when>
+														            <c:otherwise>
+														            	<label class="labelB">과목</label>
+														            </c:otherwise>
+														    	</c:choose>
+												            </div>
+												            <!-- 공지 링크 및 내용 -->												            
+												            	<c:choose>
+												            		<c:when test="${item.badge eq 'ALL'}">												            
+														                <a href="javascript:void(0);" 
+							                                    		onclick='moveMenu(this, "/bbs/bbsHome/bbsAtclListView.do?bbsTycd=NTC&bbsRefTycd=ORG", "PROMAIN000014", "PROMAIN000016", "전체공지", "tab"); return false;'
+							                                    		 class="item_txt">
+														            </c:when>
+														            <c:otherwise>
+														            	<a class="item_txt" href="javascript:void(0)" onclick="viewAtclLect('${item.atclId}', '${item.rgtrId}', '${item.oyn}', '${item.bbsId}', '${item.bbsTycd}', 'ROOT','PROLECT000002', '${item.sbjctId}')" style="color: currentColor;">
+														            </c:otherwise>
+														   		</c:choose>												            
+														                <p class="tit">${item.atclTtl}</p>
+														                <p class="desc">
+														                    <c:choose>
+														                        <c:when test="${item.badge eq 'ALL'}">
+															                            <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
+														                        </c:when>
+														                        <c:otherwise>
+														                            <span class="name">[${item.orgnm}] ${item.sbjctnm}</span>
+														                            <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
+														                        </c:otherwise>
+														                    </c:choose>
+														                </p>
+												            			</a>
+												            <!-- 읽음/읽지않음 표시 -->
+												            <div class="state">
+												            	<c:choose>
+													            	<c:when test="${item.readYn eq 'N'}">
+													                	<label class="label check_no">읽지않음</label>
+													                </c:when>
+														            <c:otherwise>
+														            	<label class="label check_no">읽음</label>
+														            </c:otherwise>
+														    	</c:choose>
+												            </div>
+												        </li>
+												        <c:set var="cnt" value="${cnt + 1}"/>
+												    </c:if>
+												</c:forEach>
+										    </c:otherwise>
+										</c:choose>
+									</ul>
+                                </div>
+                                <!-- //noticeCat1 -->
+                                <!-- noticeCat2 전체-->
+                                <div id="noticeCat2" class="tab-content" style="display: none;">
+                                    <ul class="dash_item_listA">
+			                            <c:choose>
+										    <c:when test="${empty dashVM.dashCrsNoticeList}">
+										        <li>전체공지사항이 없습니다</li>
+										    </c:when>
+										    <c:otherwise>
+			                                	<!-- 3건만 출력 -->
+												<c:set var="cnt" value="0"/>
+												<c:forEach var="item" items="${dashVM.dashCrsNoticeList}">
+												    <!-- 전체공지만출력 -->
+												    <c:if test="${item.topic eq 'CRS_NOTICE' and cnt lt 3}">
+												        <li>
+												            <!-- 공지 유형 라벨 -->
+												            <div class="noti_label">
+												                <label class="labelA">전체</label>
+												            </div>
+			
+												            <!-- 공지 링크 및 내용 -->
+												            <a href="javascript:void(0);" 
+							                                    		onclick='moveMenu(this, "/bbs/bbsHome/bbsAtclListView.do?bbsTycd=NTC&bbsRefTycd=ORG", "PROMAIN000014", "PROMAIN000016", "전체공지", "tab"); return false;' class="item_txt">
+												                <p class="tit">${item.atclTtl}</p>
+												                <p class="desc">
+												                    <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
+												                </p>
+												            </a>
+			
+												            <!-- 읽음/읽지않음 표시 -->
+												           	<div class="state">
+													           		<c:choose>
+													            	<c:when test="${item.readYn eq 'N'}">
+													                	<label class="label check_no">읽지않음</label>
+													                </c:when>
+														            <c:otherwise>
+														            	<label class="label check_no">읽음</label>
+														            </c:otherwise>
+														    	</c:choose>
+														    </div>
+												        </li>
+												        <!-- 카운터 증가 -->
+												        <c:set var="cnt" value="${cnt + 1}" />
+												    </c:if>
+												</c:forEach>
+										    </c:otherwise>
+										</c:choose>
+									</ul>
+                                </div>
+                                <!-- //noticeCat2 전체-->
+                                <!-- noticeCat3 과목-->
+                                <div id="noticeCat3" class="tab-content" style="display: none;">
+                                    <ul class="dash_item_listA">
+			                            <c:choose>
+										    <c:when test="${empty dashVM.profDashSubjectNoticeList}">
+										        <li>과목공지사항이 없습니다</li>
+										    </c:when>
+										    <c:otherwise>
+			                             				<c:set var="cnt" value="0" />
+												<c:forEach var="item" items="${dashVM.profDashSubjectNoticeList}">
+												    <!-- 과목공지만 출력 -->
+												    <c:if test="${item.topic eq 'PROF_DASH_SUBJECT_NOTICE' and cnt lt 3}">
+												        <li>
+												            <!-- 공지 유형 라벨 -->
+												            <div class="noti_label">
+												                <label class="labelB">과목</label>
+												            </div>
+			
+												            <!-- 공지 링크/내용 -->
+												            <a class="item_txt" href="javascript:void(0)" onclick="viewAtclLect('${item.atclId}', '${item.rgtrId}', '${item.oyn}', '${item.bbsId}', '${item.bbsTycd}', 'ROOT','PROLECT000002', '${item.sbjctId}')" style="color: currentColor;">
+												            	<p class="tit">${item.atclTtl}</p>
+												                <p class="desc">
+												                    <span class="name">[${item.orgnm}] ${item.sbjctnm}</span>
+			                                                <span class="date" style="display:inline-block; width:90px;"><uiex:formatDate value="${item.regDttm}" type="date"/></span>
+												                </p>
+												            </a>
+			
+												            <!-- 읽음/읽지않음 -->
+												            <div class="state">
+													            <c:choose>
+													            	<c:when test="${item.readYn eq 'N'}">
+													                	<label class="label check_no">읽지않음</label>
+													                </c:when>
+														            <c:otherwise>
+														            	<label class="label check_no">읽음</label>
+														            </c:otherwise>
+														    	</c:choose>
+														    </div>
+												        </li>
+			
+												        <!-- 카운터 증가 -->
+												        <c:set var="cnt" value="${cnt + 1}" />
+												    </c:if>
+												</c:forEach>
+										    </c:otherwise>
+										</c:choose>
+									</ul>
+                                </div>
+                                <!-- //noticeCat3 -->
 
-<div id="noticeListBox">
-
-	<div id="noticeCat1" class="tab-content" style="display: block;">
-	    <ul class="dash_item_listA">
-	        <li>
-	            <div class="noti_label">
-	                <label class="labelA">전체</label>
-	            </div>
-	            <a href="#0" class="item_txt">
-	                <p class="tit">1학기 성적처리 기준 안내입니다.</p>
-	                <p class="desc">
-	                    <span class="date">2026.05.17</span>
-	                </p>
-	            </a>
-	            <div class="state">
-	                <label class="label check_no">읽지않음</label>
-	            </div>
-	        </li>
-	        <li>
-	            <div class="noti_label">
-	                <label class="labelB">과목</label>
-	            </div>
-	            <a href="#0" class="item_txt">
-	                <p class="tit">성적 처리 기준에 대해 질문이 있습니다.</p>
-	                <p class="desc">
-	                    <span class="name">[대학원] 경영수리와 통계1반</span>
-	                    <span class="date">2026.05.17</span>
-	                </p>
-	            </a>
-	            <div class="state">
-	                <label class="label check_ok">읽음</label>
-	            </div>
-	        </li>
-	        <li>
-	            <div class="noti_label">
-	                <label class="labelB">과목</label>
-	            </div>
-	            <a href="#0" class="item_txt">
-	                <p class="tit">이번 수업 정말 잘 들었습니다. 많은 도움이 되었어요</p>
-	                <p class="desc">
-	                    <span class="name">[평생교육] New TEPS 실전 연습-기본편</span>
-	                    <span class="date">2026.05.17</span>
-	                </p>
-	            </a>
-	            <div class="state">
-	                <label class="label check_ok">읽음</label>
-	            </div>
-	        </li>
-	    </ul>
-	</div>
-
-	<div id="noticeCat2" class="tab-content" style="display: none;">
-	    <ul class="dash_item_listA">
-	        <li>
-	            <div class="noti_label">
-	                <label class="labelA">전체</label>
-	            </div>
-	            <a href="#0" class="item_txt">
-	                <p class="tit">1학기 성적처리 기준 안내입니다.</p>
-	                <p class="desc">
-	                    <span class="date">2026.05.17</span>
-	                </p>
-	            </a>
-	            <div class="state">
-	                <label class="label check_no">읽지않음</label>
-	            </div>
-	        </li>
-	        <li>
-	            <div class="noti_label">
-	                <label class="labelA">전체</label>
-	            </div>
-	            <a href="#0" class="item_txt">
-	                <p class="tit">1학기 성적처리 기준 안내입니다.</p>
-	                <p class="desc">
-	                    <span class="date">2026.05.17</span>
-	                </p>
-	            </a>
-	            <div class="state">
-	                <label class="label check_ok">읽음</label>
-	            </div>
-	        </li>
-	        <li>
-	            <div class="noti_label">
-	                <label class="labelA">전체</label>
-	            </div>
-	            <a href="#0" class="item_txt">
-	                <p class="tit">1학기 성적처리 기준 안내입니다.</p>
-	                <p class="desc">
-	                    <span class="date">2026.05.17</span>
-	                </p>
-	            </a>
-	            <div class="state">
-	                <label class="label check_ok">읽음</label>
-	            </div>
-	        </li>
-	    </ul>
-	</div>
-
-	<div id="noticeCat3" class="tab-content" style="display: none;">
-	    <ul class="dash_item_listA">
-	        <li>
-	            <div class="noti_label">
-	                <label class="labelB">과목</label>
-	            </div>
-	            <a href="#0" class="item_txt">
-	                <p class="tit">이번 수업 정말 잘 들었습니다. 많은 도움이 되었어요</p>
-	                <p class="desc">
-	                    <span class="name">[평생교육] New TEPS 실전 연습-기본편</span>
-	                    <span class="date">2026.05.17</span>
-	                </p>
-	            </a>
-	            <div class="state">
-	                <label class="label check_ok">읽음</label>
-	            </div>
-	        </li>
-	        <li>
-	            <div class="noti_label">
-	                <label class="labelB">과목</label>
-	            </div>
-	            <a href="#0" class="item_txt">
-	                <p class="tit">성적 처리 기준에 대해 질문이 있습니다.</p>
-	                <p class="desc">
-	                    <span class="name">[대학원] 경영수리와 통계1반</span>
-	                    <span class="date">2026.05.17</span>
-	                </p>
-	            </a>
-	            <div class="state">
-	                <label class="label check_ok">읽음</label>
-	            </div>
-	        </li>
-	        <li>
-	            <div class="noti_label">
-	                <label class="labelB">과목</label>
-	            </div>
-	            <a href="#0" class="item_txt">
-	                <p class="tit">이번 수업 정말 잘 들었습니다. 많은 도움이 되었어요</p>
-	                <p class="desc">
-	                    <span class="name">[평생교육] New TEPS 실전 연습-기본편</span>
-	                    <span class="date">2026.05.17</span>
-	                </p>
-	            </a>
-	            <div class="state">
-	                <label class="label check_ok">읽음</label>
-	            </div>
-	        </li>
-	    </ul>
-	</div>
-
-</div>
+                            </div>
+                            <!-- //noticeListBox -->
 
 <script>
 let noticeWidgetCat = "noticeCat1";
@@ -203,14 +224,14 @@ function setNoticeWidget() {
 }
 
 // 더보기 이동
-function moveNoticeWidgetMore() {
+function moveNoticeWidgetMore(subjectId) {
 	// 전체공지
 	if (noticeWidgetCat === "noticeCat2") {
-		moveMenu(null, "/bbs/bbsHome/bbsAtclListView.do?bbsId=LMSBASIC_NOTICE", "PROMAIN000014", "PROMAIN000016", "전체공지", "tab");
+		moveMenu(this, "/bbs/bbsHome/bbsAtclListView.do?bbsTycd=NTC&bbsRefTycd=ORG", "PROMAIN000014", "PROMAIN000016", "전체공지", "tab");
 	}
 	// 과목 공지
 	else if (noticeWidgetCat === "noticeCat3") {
-		moveMenu(null, "/bbs/bbsHome/bbsSbjctListView.do?bbsId=LMSBASIC_NTC", "PROMAIN000014", "PROMAIN000015", "과목공지", "tab");
+		moveMenu(this, "/bbs/bbsHome/bbsAtclListView.do?bbsTycd=NTC&bbsRefTycd=SBJCT", "PROMAIN000014", "PROMAIN000015", "과목공지", "tab", { sbjctId: subjectId } );
 	}
 }
 

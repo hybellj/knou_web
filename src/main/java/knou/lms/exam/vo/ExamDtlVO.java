@@ -28,7 +28,7 @@ public class ExamDtlVO extends DefaultVO {
     private String 	reexamPsblEdttm;		// 재시험가능종료일시
     private Integer	reexamMrkRfltrt;		// 재시험성적반영비율
 
-    private String  lrnGrpId;				// 학습그룹아이디
+    private String  teamGrpId;				// 팀그룹아이디
     private String  teamId;					// 팀아이디
     private String  teamnm;					// 팀명
     private String  leadernm;				// 리더명
@@ -102,10 +102,6 @@ public class ExamDtlVO extends DefaultVO {
 
 	public Integer getReexamMrkRfltrt() {
 		return reexamMrkRfltrt;
-	}
-
-	public String getLrnGrpId() {
-		return lrnGrpId;
 	}
 
 	public String getTeamId() {
@@ -196,10 +192,6 @@ public class ExamDtlVO extends DefaultVO {
 		this.reexamMrkRfltrt = reexamMrkRfltrt;
 	}
 
-	public void setLrnGrpId(String lrnGrpId) {
-		this.lrnGrpId = lrnGrpId;
-	}
-
 	public void setTeamId(String teamId) {
 		this.teamId = teamId;
 	}
@@ -218,6 +210,14 @@ public class ExamDtlVO extends DefaultVO {
 
 	public void setDtlInfos(List<Map<String, Object>> dtlInfos) {
 		this.dtlInfos = dtlInfos;
+	}
+
+	public String getTeamGrpId() {
+		return teamGrpId;
+	}
+
+	public void setTeamGrpId(String teamGrpId) {
+		this.teamGrpId = teamGrpId;
 	}
 
 }

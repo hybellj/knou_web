@@ -10,20 +10,22 @@
 	</jsp:include>
 
 	<script type="text/javascript">
-		var dialog;
-		const editors = {};	// 에디터 목록 저장용
+		const editors = {};					// 에디터 목록 저장용
+		let subSmnrUploaderIds = [];        // 팀별 업로더 ID 목록 (순서 보장)
+        let subSmnrUploadResults = {};      // { uploaderId : { uploadFiles, uploadPath, delFileIdStr, copyFiles } }
 
 		$(window).on('load', function() {
 			if(${not empty vo.smnrId}) {
 				$("input[name=smnrGbncd]:checked").trigger("change");
 
+				// 팀세미나수정시
 				if(${vo.smnrGbn eq 'SMNR_TEAM' }) {
-					// 부과제 조회
-					var lrnGrpId = $("input[name=lrnGrpIds]").val().split(":")[0];	// 학습그룹아이디
-					var lrnGrpnm = $("input[name=lrnGrpnm]").val();					// 학습그룹명
-					var sbjctId = $("input[name=lrnGrpIds]").val().split(":")[1];	// 과목아이디
+					let teamGrpId	= $("input[name=teamGrpIds]").val().split(":")[0];	// 팀그룹아이디
+					let teamGrpnm 	= $("input[name=teamGrpnm]").val();					// 팀그룹명
+					let sbjctId 	= $("input[name=teamGrpIds]").val().split(":")[1];	// 과목아이디
 
-					selectTeam(lrnGrpId, lrnGrpnm, "${subjectVO.dvclasNo}:"+sbjctId);
+					// 팀선택
+					selectTeam(teamGrpId, teamGrpnm, "${subjectVO.dvclasNo}:"+sbjctId);
 				}
 			}
 
@@ -32,21 +34,20 @@
 		// 대기중온라인플랫폼사용자수조회
 		function pendingUserCntCheck() {
 			if($("input[name=smnrGbncd]:checked").val() == "ONLN_SMNR") {
-				let url = "/smnr/pltfrm/pendingOnlnPltfrmUserCntSelectAjax.do";
 				const subSmnrs = [];
 				// 세미나 종료일시
 				let sdttmStr = UiComm.getDateTimeVal("dateSt", "timeSt");
 				let addMin = parseInt($("#smnrMntsHour").val())*60 + parseInt($("#smnrMntsMin").val());
-				var d = new Date(sdttmStr.slice(0,4), sdttmStr.slice(4,6)-1, sdttmStr.slice(6,8), sdttmStr.slice(8,10), sdttmStr.slice(10,12));
+				let d = new Date(sdttmStr.slice(0,4), sdttmStr.slice(4,6)-1, sdttmStr.slice(6,8), sdttmStr.slice(8,10), sdttmStr.slice(10,12));
 				d.setMinutes(d.getMinutes() + addMin);
-				var edttm = d.getFullYear() + ('0'+(d.getMonth()+1)).slice(-2) + ('0'+d.getDate()).slice(-2) + ('0'+d.getHours()).slice(-2) + ('0'+d.getMinutes()).slice(-2) + "59";
+				let edttm = d.getFullYear() + ('0'+(d.getMonth()+1)).slice(-2) + ('0'+d.getDate()).slice(-2) + ('0'+d.getHours()).slice(-2) + ('0'+d.getMinutes()).slice(-2) + "59";
 
-				const map = {
+				subSmnrs.push({
 					gbn		: "ZOOM",
 					sdttm 	: UiComm.getDateTimeVal("dateSt", "timeSt") + "00",
 					edttm	: edttm
-				};
-				subSmnrs.push(map);
+				});
+				const url = "/smnr/pltfrm/pendingOnlnPltfrmUserCntSelectAjax.do";
 
 				$.ajax({
 				    url 	 	: url,
@@ -54,14 +55,16 @@
 				    type 	 	: "POST",
 				    dataType 	: "json",
 				    data 	 	: {subSmnrs : JSON.stringify(subSmnrs)},
-				}).done(function(data) {
-					if(data.result == 0) {
-						saveConfirm();
-					} else {
-						UiComm.showMessage("해당 일자에 사용가능한 라이센스가 없습니다.", "info");
-					}
-				}).fail(function() {
-					UiComm.showMessage("조회 중 에러가 발생했습니다.", "error");
+				    beforeSend	: () => UiComm.showLoading(true),
+	                success		: function (data) {
+	                    if (data.result == 0) {
+	                    	saveConfirm();
+	                    } else {
+	                    	UiComm.showMessage("해당 일자에 사용가능한 라이센스가 없습니다.", "info");
+	                    }
+	                },
+	                error		: () => UiComm.showMessage("조회 중 에러가 발생했습니다.", "error"),
+	                complete	: () => UiComm.showLoading(false)
 				});
 			} else {
 				saveConfirm();
@@ -78,13 +81,10 @@
 					}
 
 					let dx = dx5.get("fileUploader");
-					// 첨부파일 있으면 업로드
 		    		if (dx.availUpload()) {
 		    			dx.startUpload();
-		    		}
-					// 첨부파일 없으면 저장 호출
-		    		else {
-		    			save();
+		    		} else {
+		    			continueSubSmnrUploadChain(0);
 		    		}
 				}
 			});
@@ -95,8 +95,8 @@
 	    	let url = "/common/uploadFileCheck.do"; // 업로드된 파일 검증 URL
         	let dx = dx5.get("fileUploader");
         	let data = {
-        		"uploadFiles" : dx.getUploadFiles(),
-        		"uploadPath"  : dx.getUploadPath()
+        		uploadFiles : dx.getUploadFiles(),
+        		uploadPath  : dx.getUploadPath()
         	};
 
         	// 업로드된 파일 체크
@@ -104,7 +104,7 @@
         		if(data.result > 0) {
         			$("#uploadFiles").val(dx.getUploadFiles());
 
-        	    	save();
+        			continueSubSmnrUploadChain(0);
         		} else {
 					UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error"); // 업로드를 실패하였습니다.
         		}
@@ -114,39 +114,92 @@
         	});
 	    }
 
+	 	// 팀그룹부과제업로드처리
+	    function continueSubSmnrUploadChain(uploadIdx) {
+            if (uploadIdx >= subSmnrUploaderIds.length) {
+                save();
+                return;
+            }
+
+            const uploaderId = subSmnrUploaderIds[uploadIdx];
+            const dx = dx5.get(uploaderId);
+
+            if (!dx) {
+                subSmnrUploadResults[uploaderId] = {
+                    uploadFiles: "",
+                    uploadPath: "",
+                    delFileIdStr: ""
+                };
+                continueSubSmnrUploadChain(uploadIdx + 1);
+                return;
+            }
+
+            if (dx.availUpload()) {
+                dx.startUpload();
+            } else {
+                subSmnrUploadResults[uploaderId] = {
+                    uploadFiles: "",
+                    uploadPath: dx.getUploadPath(),
+                    delFileIdStr: dx.getDelFileIdStr ? dx.getDelFileIdStr() : ""
+                };
+                continueSubSmnrUploadChain(uploadIdx + 1);
+            }
+        }
+
+	 	// 팀그룹부과제업로드완료
+	    function onSubSmnrUploadComplete(uploaderId) {
+
+            const uploadIdx = subSmnrUploaderIds.indexOf(uploaderId);
+            const dx = dx5.get(uploaderId);
+
+            const url = "/common/uploadFileCheck.do";
+            const data = {
+                uploadFiles: dx.getUploadFiles(),
+                uploadPath: dx.getUploadPath()
+            };
+
+            ajaxCall(url, data, function (resp) {
+                if (resp.result > 0) {
+                    subSmnrUploadResults[uploaderId] = {
+                        uploadFiles: dx.getUploadFiles(),
+                        uploadPath: dx.getUploadPath(),
+                        delFileIdStr: dx.getDelFileIdStr ? dx.getDelFileIdStr() : ""
+                    };
+
+                    continueSubSmnrUploadChain(uploadIdx + 1);
+                } else {
+                    UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error");
+                }
+            }, function () {
+                UiComm.showMessage("<spring:message code='success.common.file.transfer.fail'/>", "error");
+            }, true);
+        }
+
 	    // 세미나 등록, 수정
 	    function save() {
 	    	setValue();
-			UiComm.showLoading(true);
 
 			let dx = dx5.get("fileUploader");
     		$("#delFileIdStr").val(dx.getDelFileIdStr()); // 삭제파일 ID 설정
 
-			var url = "/smnr/smnrRegistAjax.do";
+			let url = "/smnr/smnrRegistAjax.do";
 			if(${not empty vo.smnrId}) {
 				url = "/smnr/smnrModifyAjax.do";
 			}
-			$.ajax({
-			    url 	 : url,
-			    async	 : false,
-			    type 	 : "POST",
-			    dataType : "json",
-			    data 	 : $("#writeSmnrForm").serialize(),
-			}).done(function(data) {
-				UiComm.showLoading(false);
-				if (data.result > 0) {
-					smnrViewMv();
-			    } else {
-			     	UiComm.showMessage(data.message, "error");
-			    }
-			}).fail(function() {
-				UiComm.showLoading(false);
-				if(${empty vo.smnrId}) {
+
+			ajaxCall(url, $("#writeSmnrForm").serialize(), function (data) {
+                if (data.result > 0) {
+                	smnrViewMv("", "LIST");
+                } else {
+                    UiComm.showMessage(data.message, "error");
+                }
+            }, function () {
+            	if(${empty vo.smnrId}) {
 					UiComm.showMessage("<spring:message code='exam.error.insert' />", "error");	/* 저장 중 에러가 발생하였습니다. */
 				} else {
 					UiComm.showMessage("<spring:message code='exam.error.update' />", "error");	/* 수정 중 에러가 발생하였습니다. */
 				}
-			});
+            }, true);
 	    }
 
 	    // 빈 값 체크
@@ -159,56 +212,12 @@
 				}
 			}
 
-			var smnrHour = parseInt($("#smnrMntsHour").val())*60;
-			var smnrMin  = parseInt($("#smnrMntsMin").val());
-			var addMin = parseInt(smnrHour) + parseInt(smnrMin);
+			let smnrHour = parseInt($("#smnrMntsHour").val())*60;
+			let smnrMin  = parseInt($("#smnrMntsMin").val());
+			let addMin = parseInt(smnrHour) + parseInt(smnrMin);
 			if(addMin == 0) {
 				UiComm.showMessage("진행시간은 최소 1분 이상이어야 합니다.", "info");
 				return;
-			}
-
-			// 팀 세미나 설정시
-			if($("#smnrTeamynY").is(":checked")) {
-				var isResult = true;
-				var alertMsg = "";
-				$("input[name=lrnGrpnm]:visible").each(function(i, e) {
-					if(e.value == "") {
-						isResult = false;
-						alertMsg = "학습그룹을 지정하세요.";
-						return false;
-					}
-				});
-
-				$("tr.subSmnrTr").each(function(index, element) {
-					var ttl = $(element).find("input[name='subSmnrnm']");
-					if($.trim($(ttl).val()) == "") {
-						isResult = false;
-						alertMsg = "<spring:message code='exam.alert.input.title' />"	/* 제목을 입력하세요. */
-						return false;
-					}
-
-					var teamId = ttl[0].id.split("_")[0];
-					if(editors[teamId+'_editor'+index].isEmpty() || editors[teamId+'_editor'+index].getTextContent().trim() === "") {
-						isResult = false;
-						alertMsg = "<spring:message code='exam.alert.input.contents' />";	/* 내용을 입력하세요. */
-						return false;
-					}
-				});
-
-				if(!isResult) {
-					UiComm.showMessage(alertMsg, "warning");
-					return false;
-				}
-			// 전체 세미나
-			} else {
-				if(UiComm.getDateTimeVal("dateSt", null) == "") {
-					UiComm.showMessage("세미나 일시를 선택해주세요.", "info");
-					return false;
-				}
-				if(UiComm.getDateTimeVal(null, "timeSt") == "") {
-					UiComm.showMessage("세미나 시간을 선택해주세요.", "info");
-					return false;
-				}
 			}
 
 			return true;
@@ -216,25 +225,28 @@
 
 	    // 값 채우기
 	    function setValue() {
-	    	// 팀 세미나
+	    	// 팀세미나시
 			if($("#smnrTeamynY").is(":checked")) {
 				const subSmnrs = [];
 		    	$("tr.subSmnrTr").each(function(index, element) {
-					var ttl = $(element).find("input[name='subSmnrnm']");
-					var teamId = ttl[0].id.split("_")[0];
+		    		let ttl = $(element).find("input[name='subSmnrnm']");				// 부주제
+		    		let teamId = ttl[0].id.split("_")[0];								// 팀아이디
+		    		let uploaderId = "subSmnrFileUploader_" + teamId + "_" + index;		// 업로더아이디
+		    		let uploadResult = subSmnrUploadResults[uploaderId] || {};			// 업로더상세값
 
-					const map = {
+		    		subSmnrs.push({
 						id		: teamId,
 						ttl		: $.trim($(ttl).val()),
-						cts		: editors[teamId+'_editor'+index].getPublishingHtml()
-					};
-					subSmnrs.push(map);
+						cts		: $("#"+teamId+'_subSmnrCts_'+index).val(),
+						uploadFiles: uploadResult.uploadFiles || "",
+						uploadPath: uploadResult.uploadPath || "${vo.uploadPath}",
+						delFileIdStr: uploadResult.delFileIdStr || ""
+					});
 		    	});
 	    		$("#subSmnrs").val(JSON.stringify(subSmnrs));
 			}
 
-			// 세미나 시작일시
-			$("#smnrSdttm").val(UiComm.getDateTimeVal("dateSt", "timeSt") + "00");
+			$("#smnrSdttm").val(UiComm.getDateTimeVal("dateSt", "timeSt") + "00");	// 세미나 시작일시
 
 			// 세미나 종료일시
 			let sdttmStr = UiComm.getDateTimeVal("dateSt", "timeSt");
@@ -244,171 +256,166 @@
 			var result = d.getFullYear() + ('0'+(d.getMonth()+1)).slice(-2) + ('0'+d.getDate()).slice(-2) + ('0'+d.getHours()).slice(-2) + ('0'+d.getMinutes()).slice(-2) + "59";
 			$("#smnrEdttm").val(result);
 
-			// 세미나시간
-			$("#smnrMnts").val(addMin);
+			$("#smnrMnts").val(addMin);	// 세미나시간
 	    }
 
 		/**
-		 * 세미나 화면 이동
-		 */
-		function smnrViewMv() {
-			var url = "/smnr/profSmnrListView.do";	// 세미나 목록 화면
-			var kvArr = [];
-			kvArr.push({'key' : 'sbjctId', 		'val' : "${vo.sbjctId}"});
-
-			submitForm(url, kvArr);
-		}
-
-		/**
 		 * 팀 세미나 여부 변경
-		 * @param {String}  value - 팀 세미나 여부
+		 * @param value - 팀 세미나 여부
 		 */
 		function smnrTeamChange(value) {
-			if(value == "Y") {
-				$("#teamSmnrDiv").show();
-			} else {
-				$("#teamSmnrDiv").hide();
-			}
+			$("#teamSmnrDiv").toggle(value == "Y");
+
+			// 팀그룹 필수변경
+			document.querySelectorAll('#teamSmnrDiv input[name=teamGrpnm]').forEach(input => {
+				if($("#smnrTeamynY").is(":checked")) {
+					input.setAttribute("required", $(input).is(':visible') ? "true" : "false");
+				} else {
+					input.setAttribute("required", "false");
+				}
+			});
+
+			// 부주제, 내용 필수변경
+	    	document.querySelectorAll('#teamSmnrDiv input[name=subSmnrnm], #teamSmnrDiv textarea').forEach(input => {
+				input.setAttribute("required", value == "Y" ? "true" : "false");
+			});
 		}
 
 		/**
-		 * 학습그룹지정 팝업
-		 * @param {Integer} i 		- 분반 순서
-		 * @param {String}  sbjctId - 과목아이디
+		 * 팀그룹지정 팝업
+		 * @param i 		- 분반 순서
+		 * @param sbjctId 	- 과목아이디
 		 */
 	    function teamGrpChcPopup(i, sbjctId) {
 			dialog = UiDialog("dialog1", {
-				title: "학습그룹지정",
-				width: 600,
-				height: 500,
-				url: "/team/teamHome/teamCtgrSelectPop.do?sbjctId="+sbjctId+"&searchFrom="+i + ":" + sbjctId
+				title	: "팀그룹지정",
+				width	: 600,
+				height	: 500,
+				url		: "/team/teamHome/teamCtgrSelectPop.do?sbjctId="+sbjctId+"&searchFrom="+i + ":" + sbjctId
 			});
 		}
 
 	    /**
-		 * 학습그룹 선택
-		 * @param {String}  lrnGrpId 	- 학습그룹아이디
-		 * @param {String}  lrnGrpnm 	- 학습그룹명
-		 * @param {String}  id 			- 분반 순서:과목개설아이디
-		 * @returns {list} 팀 목록
+		 * 팀선택
+		 * @param teamGrpId 	- 팀그룹아이디
+		 * @param teamGrpnm 	- 팀그룹명
+		 * @param id 			- 분반 순서:과목개설아이디
 		 */
-		 function selectTeam(lrnGrpId, lrnGrpnm, id) {
-			var idList = id.split(':');
-			$("input[name=lrnGrpIds]").val(lrnGrpId + ":" + idList[1]);
-			$("input[name=lrnGrpnm]").val(lrnGrpnm);
-			$("#setSmnrDiv" + idList[0]).show();
+		 function selectTeam(teamGrpId, teamGrpnm, id) {
+			let idList = id.split(':');
+			$("input[name=teamGrpIds]").val(teamGrpId + ":" + idList[1]);
+			$("input[name=teamGrpnm]").val(teamGrpnm);
 
-			var url  = "/smnr/smnrLrnGrpSubSmnrListAjax.do";
-			var data = {
-				lrnGrpId  	: lrnGrpId,
+			const url  = "/smnr/smnrTeamGrpSubSmnrListAjax.do";
+			const data = {
+				teamGrpId  	: teamGrpId,
 				smnrId 		: $("input[name=smnrId]").val()
 			};
-			UiComm.showLoading(true);
 
 			$.ajax({
-		        url 	  : url,
-		        async	  : false,
-		        type 	  : "POST",
-		        dataType  : "json",
-		        data 	  : JSON.stringify(data),
-		        contentType: "application/json; charset=UTF-8",
-		    }).done(function(data) {
-		    	UiComm.showLoading(false);
-				if (data.result > 0) {
-					var returnList = data.returnList || [];
-					var html = "";
+		        url 	  	: url,
+		        async	  	: false,
+		        type 	  	: "POST",
+		        dataType  	: "json",
+		        data 	  	: JSON.stringify(data),
+		        contentType	: "application/json; charset=UTF-8",
+		        beforeSend	: () => UiComm.showLoading(true),
+                success		: function (data) {
+                    if (data.result > 0) {
+                    	let returnList = data.returnList || [];
+    					let html = "";
 
-				   	if(returnList.length > 0) {
-						html += "<table class='table-type5'>";
-						html += "	<colgroup>";
-						html += "		<col class='width-10per' />";
-						html += "		<col class='' />";
-						html += "		<col class='width-10per' />";
-						html += "	</colgroup>";
-						html += "	<tbody>";
-						html += "		<tr>";
-						html += "			<th>팀</th>";
-						html += "			<th>부 과제</th>";
-						html += "			<th>학습그룹 구성원</th>";
-						html += "		</tr>";
-					   	returnList.forEach(function(v, i) {
-							html += "	<tr class='subSmnrTr'>";
-							html += "		<th><label>" + v.teamnm + "</label></th>";
-							html += "		<td>";
-							html += "			<table class='table-type5'>";
-							html += "				<colgroup>";
-							html += "					<col class='width-20per' />";
-							html += "					<col class='' />";
-							html += "				</colgroup>";
-							html += "				<tbody>";
-							html += "					<tr>";
-							html += "						<th><label for='" + v.teamId + "_Smnrnm_" + i + "'>주제</label></th>";
-							html += "						<td><input type='text' id='" + v.teamId + "_Smnrnm_" + i + "' name='subSmnrnm' value='" + (v.smnrnm == null ? '' : v.smnrnm) + "' inputmask='byte' maxLen='200' class='width-100per' /></td>";
-							html += "					</tr>";
-							html += "					<tr>";
-							html += "						<th><label for='" + v.teamId + "_contentTextArea_" + i + "'>내용</label></th>";
-							html += "						<td>";
-							html += "							<div class='editor-box'>";
-							html += "								<textarea name='" + v.teamId + "_contentTextArea_" + i + "' id='" + v.teamId + "_contentTextArea_" + i + "'>" + (v.smnrCts == null ? '' : v.smnrCts) + "</textarea>";
-							html += "							</div>";
-							html += "						</td>";
-							html += "					</tr>";
-							html += "					<tr>";
-							html += "						<th><label for='attchFile1'>첨부파일</label></th>";
-							html += "						<td></td>";
-			//				html += "							<div id='"+v.teamId+"_upload"+i+"-container' class='dext5-container' style='width:100%;height:180px'></div>";
-			//				html += "							<div id='"+v.teamId+"_upload"+i+"-btn-area' class='dext5-btn-area'><button type='button' id='"+v.teamId+"_upload"+i+"_btn-add'><spring:message code='button.select.file'/></button>";
-			//				html += "							<button type='button' id='"+v.teamId+"_upload"+i+"_btn-filebox'><spring:message code='button.from_filebox'/></button>";
-			//				html += "							<button type='button' id='"+v.teamId+"_upload"+i+"_btn-delete'><spring:message code='button.delete'/></button></div>";
-							html += "					</tr>";
-							html += "				</tbody>";
-							html += "			</table>";
-							html += "		</td>";
-							html += "		<th>" + v.leadernm + " 외 " + (v.teamMbrCnt - 1) + "</th>";
-							html += "	</tr>";
-				   		});
-						html += "	</tbody>";
-						html += "</table>";
-				   	}
+    				   	if(returnList.length > 0) {
+    				   		html += "<table class='table-type5 in_table'>";
+    						html += "	<colgroup>";
+    						html += "		<col class='width-5per' />";
+    						html += "		<col class='width-15per' />";
+    						html += "		<col class='' />";
+    						html += "	</colgroup>";
+    						html += "	<tbody>";
+    	        			returnList.forEach(function(v, i) {
+    							html += "	<tr class='subSmnrTr'>";
+    							html += "		<th rowspan='3' class='group-header'><label>" + v.teamnm + "</label></th>";
+    							html += "		<th><label for='" + v.teamId + "_Smnrnm_" + i + "' class='req'>부주제</label></th>";
+    							html += "		<td>";
+    							html += "			<div class='form-row'>";
+    							html += "				<input type='text' id='" + v.teamId + "_Smnrnm_" + i + "' name='subSmnrnm' value='" + (v.smnrnm == null ? '' : v.smnrnm) + "' inputmask='byte' maxLen='200' class='form-control width-100per' />";
+    							html += "			</div>";
+    							html += "		</td>"
+    							html += "	</tr>";
+    							html += "	<tr>";
+    							html += "		<th><label for='" + v.teamId + "_subSmnrCts_" + i + "' class='req'>내용</label></th>";
+    							html += "		<td>";
+    							html += "			<label class='width-100per'>";
+    							html += "				<textarea rows='4'";
+    							html += "						  class='form-control resize-none'";
+    							html += "						  name='" + v.teamId + "_subSmnrCts_" + i + "'";
+    							html += "						  id='" + v.teamId + "_subSmnrCts_" + i + "'>";
+    							html += 					(v.smnrCts == null ? '' : v.smnrCts);
+    							html += "				</textarea>";
+    							html += "			</label>";
+    							html += "		</td>";
+    							html += "	</tr>";
+    							html += "	<tr>";
+    							html += "		<th><label>첨부파일</label></th>";
+    							html += "		<td>";
+    							html += "			<div id='subSmnrUploaderWrap_" + v.teamId + "_" + i + "'></div>";
+    							html += "		</td>";
+    							html += "	</tr>";
+    	        			});
+    						html += "	</tbody>";
+    						html += "</table>";
+    				   	}
 
-				   	$("#subInfoDiv" + idList[0]).empty().html(html);
-				   	UiInputmask();
-				   	if(returnList.length > 0) {
-				   		returnList.forEach(function(v, i) {
-				   			// html 에디터 생성
-							editors[v.teamId+'_editor'+i] = UiEditor({
-																targetId: v.teamId+'_contentTextArea_'+i,
-																uploadPath: "/smnr",
-																height: "500px"
-															});
+    				   	$("#subInfoDiv" + idList[0]).empty().html(html);
+    				   	/*
+                         * 재조회 시 중복 방지
+                         */
+                        subQuizUploaderIds = [];
+                        subQuizUploadResults = {};
 
-					   			// 첨부파일
-							<%-- DextUploader({
-								id:v.teamId+"_upload"+i,
-								parentId:v.teamId+"_upload"+i+"-container",
-								btnFile:v.teamId+"_upload"+i+"_btn-add",
-								btnDelete:v.teamId+"_upload"+i+"_btn-delete",
-								lang:"<%=LocaleUtil.getLocale(request)%>",
-								uploadMode:"ORAF",
-								fileCount:5,
-								maxTotalSize:1024,
-								maxFileSize:1024,
-								extensionFilter:"*",
-								finishFunc:"finishUpload()",
-								uploadUrl:"<%=CommConst.PRODUCT_DOMAIN + CommConst.DEXT_FILE_UPLOAD%>",
-								path:"/quiz",
-								useFileBox:true
-							}); --%>
-				   		});
-				   	}
+    				   	if(returnList.length > 0) {
+    				   		returnList.forEach(function(v, i) {
+    				   			// html 에디터 생성
+    				   			const editorId = v.teamId + "_subSmnrCts_" + i;
+    							editors[editorId] = UiEditor({
+    													targetId: editorId,
+    													uploadPath: "${vo.uploadPath}",
+    													height: "250px"
+    												});
 
-					$("#subInfoDiv" + idList[0]).show();
-				} else {
-					UiComm.showMessage(data.message, "error");
-				}
-		    }).fail(function() {
-			   	UiComm.showLoading(false);
-			   	UiComm.showMessage("<spring:message code='exam.error.copy' />", "error");	/* 가져오기 중 에러가 발생하였습니다. */
+    					   		// 첨부파일
+    							const uploaderId 	= "subSmnrFileUploader_" + v.teamId + "_" + i;
+    				            const wrapId 		= "subSmnrUploaderWrap_" + v.teamId + "_" + i;
+
+    				            UiFileUploader({
+    				                id: uploaderId,
+    				                targetId: wrapId,
+    				                path: "${vo.uploadPath}",
+    				                limitCount: 5,
+    				                limitSize: 1024,
+    				                oneLimitSize: 1024,
+    				                listSize: 3,
+    				                fileList: "",
+    				                finishFunc: onSubSmnrUploadComplete,
+    				                allowedTypes: "*"
+    				            });
+
+    				            subSmnrUploaderIds.push(uploaderId);
+    				   		});
+    				   	}
+
+    					$("#subInfoDiv" + idList[0]).show();
+    					// 부주제, 내용 필수변경
+    			    	document.querySelectorAll('#teamSmnrDiv input[name=subSmnrnm], #teamSmnrDiv textarea').forEach(input => {
+    						input.setAttribute("required", "true");
+    					});
+                    } else {
+                    	UiComm.showMessage(data.message, "error");
+                    }
+                },
+                error		: () => UiComm.showMessage("<spring:message code='exam.error.copy' />", "error"),	/* 가져오기 중 에러가 발생하였습니다. */
+                complete	: () => UiComm.showLoading(false)
 		    });
 		}
 
@@ -425,7 +432,7 @@
 	</script>
 </head>
 
-<body class="class colorA">
+<body class="class ${uiex:getTheme()}">
     <div id="wrap" class="main">
         <!-- common header -->
         <jsp:include page="/WEB-INF/jsp/common_new/class_header.jsp"/>
@@ -440,34 +447,15 @@
 
             <!-- content -->
             <div id="content" class="content-wrap common">
-            	<div class="class_sub_top">
-					<div class="navi_bar">
-						<ul>
-							<li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-							<li>강의실</li>
-							<li><span class="current">내강의실</span></li>
-						</ul>
-					</div>
-					<div class="btn-wrap">
-						<div class="first">
-							<select class="form-select">
-								<option value="2025년 2학기">2025년 2학기</option>
-								<option value="2025년 1학기">2025년 1학기</option>
-							</select>
-							<select class="form-select wide">
-								<option value="">강의실 바로가기</option>
-								<option value="2025년 2학기">2025년 2학기</option>
-								<option value="2025년 1학기">2025년 1학기</option>
-							</select>
-						</div>
-						<div class="sec">
-							<button type="button" class="btn type1"><i class="xi-book-o"></i>교수 매뉴얼</button>
-							<button type="button" class="btn type1"><i class="xi-info-o"></i>학습안내정보</button>
-						</div>
-					</div>
-				</div>
+				<!-- class_sub_top -->
+				<jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+				<!-- //class_sub_top -->
 
 				<div class="class_sub">
+					<!-- class_info -->
+					<jsp:include page="/WEB-INF/jsp/common_new/class_info.jsp"/>
+					<!-- //class_info -->
+
 		        	<div class="sub-content">
 				        <div class="page-info">
 				        	<h2 class="page-title">
@@ -479,26 +467,26 @@
 				        <div class="board_top">
 					        <div class="right-area">
 					        	<a href="javascript:pendingUserCntCheck()" class="btn type2">${empty vo.smnrId ? save : modify }</a>
-					            <a href="javascript:smnrViewMv()" class="btn type2"><spring:message code="exam.button.list" /></a><!-- 목록 -->
+					            <a href="javascript:smnrViewMv('', 'LIST')" class="btn type2"><spring:message code="exam.button.list" /></a><!-- 목록 -->
 					        </div>
 				        </div>
 				        <!--table-type-->
 				        <div class="table-wrap">
 							<form name="writeSmnrForm" id="writeSmnrForm" method="POST" autocomplete="off" onsubmit="return false;">
+								<input type="hidden" name="encParams"    				value="<c:out value='${encParams}' />"	id="encParams" />
 						    	<input type="hidden" name="smnrId" 						value="${vo.smnrId }" />
-						        <input type="hidden" name="sbjctId" 					value="${vo.sbjctId }" />
 						        <input type="hidden" name="mrkRfltrt" 					value="${empty vo.smnrId ? 0 : vo.mrkRfltrt }" />
 						        <input type="hidden" name="smnrTycd"					value="EDU_SMNR" />
-						        <input type="hidden" name="smnrSdttm" 					value="${vo.smnrSdttm }" 		id="smnrSdttm" />
-						        <input type="hidden" name="smnrEdttm" 					value="${vo.smnrEdttm }"  		id="smnrEdttm" />
-						        <input type="hidden" name="smnrMnts" 					value="${vo.smnrMnts }"  		id="smnrMnts" />
-						        <input type="hidden" name="subSmnrs" 					value=""	   					id="subSmnrs" />
-						        <input type="hidden" name="uploadFiles"  				value=""						id="uploadFiles" />
-								<input type="hidden" name="uploadPath"   				value="${vo.uploadPath}"		id="uploadPath"   />
-								<input type="hidden" name="delFileIdStr" 				value=""						id="delFileIdStr" />
+						        <input type="hidden" name="smnrSdttm" 					value="${vo.smnrSdttm }" 				id="smnrSdttm" />
+						        <input type="hidden" name="smnrEdttm" 					value="${vo.smnrEdttm }"  				id="smnrEdttm" />
+						        <input type="hidden" name="smnrMnts" 					value="${vo.smnrMnts }"  				id="smnrMnts" />
+						        <input type="hidden" name="subSmnrs" 					value=""	   							id="subSmnrs" />
+						        <input type="hidden" name="uploadFiles"  				value=""								id="uploadFiles" />
+								<input type="hidden" name="uploadPath"   				value="${vo.uploadPath}"				id="uploadPath"   />
+								<input type="hidden" name="delFileIdStr" 				value=""								id="delFileIdStr" />
 						        <table class="table-type5">
 						        	<colgroup>
-						        		<col class="width-20per" />
+						        		<col class="width-15per" />
 						        		<col class="" />
 						        	</colgroup>
 						        	<tbody>
@@ -522,26 +510,38 @@
 						        			</td>
 						        		</tr>
 						        		<tr>
-						        			<th><label for="contentTextArea" class="req">세미나내용</label></th>
+						        			<th><label for="smnrCts" class="req">세미나내용</label></th>
 						        			<td>
 												<div class="editor-box">
 													<%-- HTML 에디터 --%>
-													<uiex:htmlEditor
-														id="smnrCts"
-														name="smnrCts"
-														uploadPath="${vo.uploadPath}"
-														value="${vo.smnrCts}"
-														height="500px"
-														required="true"
-													/>
+													<textarea id="smnrCts" name="smnrCts" required="true"><c:out value="${vo.smnrCts}"/></textarea>
+                                                    <script>
+                                                        // HTML 에디터
+                                                        editors['editor'] = UiEditor({
+                                                            targetId: "smnrCts",
+                                                            uploadPath: "${vo.uploadPath}",
+                                                            height: "300px"
+                                                        });
+                                                    </script>
 												</div>
+						        			</td>
+						        		</tr>
+						        		<tr>
+						        			<th><label for="contLabel" class="req">강의목록 주차 설정</label></th>
+						        			<td>
+						        				<select class="form-select" name="lctrWknoSchdlId" required="true">
+			                                		<option value="">주차</option>
+				                                    <c:forEach var="item" items="${lctrWknoList }">
+										            	<option value="${item.lctrWknoSchdlId }" ${item.lctrWknoSchdlId eq vo.lctrWknoSchdlId || item.curLctrWkno eq 'Y' ? 'selected' : '' }>${item.lctrWknonm }</option>
+										            </c:forEach>
+				                                </select>
 						        			</td>
 						        		</tr>
 						        		<tr>
 						        			<th><label for="dateSt" class="req">세미나 일시</label></th>
 						        			<td>
-						        				<input id="dateSt" type="text" name="dateSt" class="datepicker" timeId="timeSt" value="${fn:substring(vo.smnrSdttm,0,8)}">
-												<input id="timeSt" type="text" name="timeSt" class="timepicker" dateId="dateSt" value="${fn:substring(vo.smnrSdttm,8,12)}">
+						        				<input id="dateSt" type="text" name="dateSt" class="datepicker" timeId="timeSt" value="${fn:substring(vo.smnrSdttm,0,8)}" required="true">
+												<input id="timeSt" type="text" name="timeSt" class="timepicker" dateId="dateSt" value="${fn:substring(vo.smnrSdttm,8,12)}" required="true">
 						        			</td>
 						        		</tr>
 						        		<tr>
@@ -627,31 +627,26 @@
 										<tr class="onlineTr">
 						        			<th><label>팀 세미나</label></th>
 						        			<td>
-												<span class="custom-input ml5">
-													<input type="radio" name="byteamSubsmnrUseyn" id="smnrTeamynN" value="N" onchange="smnrTeamChange(this.value)" ${empty vo.smnrId || vo.byteamSubsmnrUseyn eq 'N' ? 'checked' : ''}>
-													<label for="smnrTeamynN">아니오</label>
-												</span>
-						        				<span class="custom-input">
-													<input type="radio" name="byteamSubsmnrUseyn" id="smnrTeamynY" value="Y" onchange="smnrTeamChange(this.value)" ${vo.byteamSubsmnrUseyn eq 'Y' ? 'checked' : ''}>
-													<label for="smnrTeamynY">예</label>
-												</span>
-												<div id="teamSmnrDiv" ${empty vo.smnrId || vo.smnrGbn ne 'SMNR_TEAM' ? 'style="display:none"' : '' }>
-													<div class="form-row" id='lrnGrpView${subjectVO.dvclasNo}'>
-														<div class="input_btn width-100per">
-															<label>${subjectVO.dvclasNo }반</label>
-															<input type='hidden' id='lrnGrpId${subjectVO.dvclasNo}' name='lrnGrpIds' value="${empty vo.smnrId ? '' : vo.lrnGrpId}:${subjectVO.sbjctId}">
-															<input class="form-control width-60per" type="text" name="lrnGrpnm" id="lrnGrpnm${subjectVO.dvclasNo}" placeholder="팀 분류를 선택해 주세요." value="${empty vo.smnrId ? '' : vo.lrnGrpnm}" readonly="" autocomplete="off">
-															<a class="btn type1 small" href="javascript:teamGrpChcPopup('${subjectVO.dvclasNo}','${subjectVO.sbjctId }')">학습그룹지정</a>
-														</div>
-													</div>
-													<c:if test="${i.count eq 1 }">
-														<div class="form-inline">
-															<small class="note2">! 구성된 팀이 없는 경우 메뉴 “과목설정 > 학습그룹지정”에서 팀을 생성해 주세요</small>
-														</div>
-													</c:if>
-													<div id="setSmnrDiv${subjectVO.dvclasNo }" style="display:none;">
-														<div id="subInfoDiv${subjectVO.dvclasNo }" ${not empty vo.smnrId && vo.byteamSubsmnrUseyn eq 'Y' ? '' : 'style="display: none;"' }></div>
-													</div>
+						        				<div class="form-inline">
+							        				<span class="custom-input">
+														<input type="radio" name="byteamSubsmnrUseyn" id="smnrTeamynY" value="Y" onchange="smnrTeamChange(this.value)" ${vo.byteamSubsmnrUseyn eq 'Y' ? 'checked' : ''}>
+														<label for="smnrTeamynY">예</label>
+													</span>
+													<span class="custom-input ml5">
+														<input type="radio" name="byteamSubsmnrUseyn" id="smnrTeamynN" value="N" onchange="smnrTeamChange(this.value)" ${empty vo.smnrId || vo.byteamSubsmnrUseyn eq 'N' ? 'checked' : ''}>
+														<label for="smnrTeamynN">아니오</label>
+													</span>
+						        				</div>
+
+						        				<div id="teamSmnrDiv" class="team_item" ${empty vo.smnrId || vo.smnrGbn ne 'SMNR_TEAM' ? 'style="display:none"' : '' }>
+										        	<div class="item" id="teamGrpView${subjectVO.dvclasNo}">
+		                                                <label class="label_num">${subjectVO.dvclasNo }반</label>
+		                                                <input type='hidden' id='teamGrpId${subjectVO.dvclasNo}' name='teamGrpIds' value="${empty vo.smnrId ? '' : vo.teamGrpId}:${subjectVO.sbjctId}">
+		                                                <input class="form-control wide" type="text" name="teamGrpnm" id="teamGrpnm${subjectVO.dvclasNo}" placeholder="팀그룹을 선택해 주세요." value="${empty vo.smnrId ? '' : vo.teamGrpnm}" readonly="true" autocomplete="off">
+														<button type="button" class="btn basic" onclick="teamGrpChcPopup('${subjectVO.dvclasNo}','${subjectVO.sbjctId }')">팀그룹지정</a>
+		                                            </div>
+													<small class="note2">! 구성된 팀이 없는 경우 메뉴 “과목설정 > 팀그룹지정”에서 팀을 생성해 주세요</small>
+		                                            <div id="subInfoDiv${subjectVO.dvclasNo }" class="table-wrap mb30" ${not empty vo.smnrId && vo.byteamSubsmnrUseyn eq 'Y' ? '' : 'style="display: none;"' }></div>
 										        </div>
 						        			</td>
 						        		</tr>

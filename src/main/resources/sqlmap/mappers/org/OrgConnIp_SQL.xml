@@ -50,7 +50,7 @@
 		   AND USEYN = #{useYn}
 		</if>
 		 ORDER BY BAND_CHKYN, CNTN_PRM_IP
-	 	<include refid="CommonSQL.pageSubfix"/>
+	 	<include refid="CommonSQL.pageSuffix"/>
 	</select>
 	
 	<select id="count" parameterType="orgConnIpVO" resultType="Integer">

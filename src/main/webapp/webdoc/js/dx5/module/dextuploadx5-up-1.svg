@@ -5,8 +5,15 @@
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	version="1.1"
 	id="UIC-DEXTUPLOADX5-PROGRESSIVE"
+	land="en"
+	xml:lang="en"
+	role="dialog"
+	aria-modal="true"
 	onload="onLoadHandler(evt)" width="100%" height="100%">
-    <script type="application/ecmascript" xlink:href="../module/dextuploadx5-common.js"/>
+    <script type="application/ecmascript" xlink:href="./dextuploadx5-svg-common.js"/>
+    <script type="application/ecmascript" xlink:href="./dextuploadx5-svg-dom-common.js"/>
+    <script type="application/ecmascript" xlink:href="./dextuploadx5-svg-format.js"/>
+    <script type="application/ecmascript" xlink:href="./dextuploadx5-progress-common.js"/>
     <script type="application/ecmascript" xlink:href="./dextuploadx5-up-1-app.js"/>
     <style type="text/css">
         * { box-sizing: border-box; }
@@ -30,9 +37,9 @@
         }
     </style>
     <svg id="UIC-MAIN-AREA" x="0" y="0" width="100%" height="100%">
+        <text id="UIC-A11Y-STATUS" x="-9999" y="-9999" role="status" aria-live="polite" aria-atomic="true"></text>
         <svg x="0" y="0" width="50%" height="100%">
             <rect x="0" y="0" width="100%" height="100%" fill="#f7f7f7"/>
-
             <!-- 중앙값 (125, 104) --> 
             <path fill="#ffffff" d="M125,166 a62,62 0 0,1 -0,-124 a62,62 0 0,1 0,124 v10"/>
             <!-- transform은 svg, g에서만 작동한다. -->
@@ -41,14 +48,12 @@
                 <circle id="UIC-PROGRESSIVE-CUR-SIZE" cx="125" cy="104" r="64" stroke="#ff9b2f" stroke-width="13" stroke-linecap="butt" fill="none"/>
                 <circle id="UIC-PROGRESSIVE-HAS-SIZE" cx="125" cy="104" r="58" stroke="#FFEA00" stroke-width="5" stroke-linecap="butt" fill="none" style="display:none"/>
             </g>
-            
             <text class="css-txt-speed" x="125" y="110" text-anchor="middle">
                 <tspan id="UIC-PROGRESSIVE-SPEED-VALUE">0.0</tspan>
             </text>
             <text class="css-txt-unit" x="125" y="130" text-anchor="middle">
                 <tspan id="UIC-PROGRESSIVE-SPEED-UNIT">MB/S</tspan>
             </text>
-            
             <rect x="42" y="208" width="10" height="4" fill="#ff9b2f "/>
             <text class="css-txt-range" x="59" y="214">Current File</text>
             <rect x="142" y="208" width="10" height="4" fill="#1fb3ff "/>
@@ -82,15 +87,15 @@
             <text class="css-txt-value" x="30" y="180">
                 <tspan id="UIC-TXT-COUNT-VALUE">0 / 0</tspan>
             </text>
-            <svg id="UIC-BTN-ABORT" viewBox="0 0 64 24" class="css-btn" y="189" width="64" height="24" layout-dx5="x:100%-158px" style="visibility:visible">
+            <svg id="UIC-BTN-ABORT" viewBox="0 0 64 24" class="css-btn" y="189" width="64" height="24" layout-dx5="x:100%-158px" style="visibility:visible" role="button" tabindex="0" focusable="true" aria-label="Abort">
                 <rect class="btn-back" x="0" y="0" rx="3" ry="3" width="100%" height="100%" fill="#f7f7f7"/>
                 <text class="btn-text" x="50%" y="17" text-anchor="middle" font-size="12px" style="user-select:none;">Abort</text>
             </svg>
-            <svg id="UIC-BTN-RETRY" viewBox="0 0 64 24" class="css-btn" y="189" width="64" height="24" layout-dx5="x:100%-158px">
+            <svg id="UIC-BTN-RETRY" viewBox="0 0 64 24" class="css-btn" y="189" width="64" height="24" layout-dx5="x:100%-158px"  role="button" tabindex="-1" focusable="true" aria-hidden="true" aria-disabled="true" aria-label="Retry">
                 <rect class="btn-back" x="0" y="0" rx="3" ry="3" width="100%" height="100%" fill="#f7f7f7"/>
-                <text class="btn-text" x="50%" y="17" text-anchor="middle" font-size="12px" style="user-select:none;">RETRY</text>
+                <text class="btn-text" x="50%" y="17" text-anchor="middle" font-size="12px" style="user-select:none;">Retry</text>
             </svg>
-            <svg id="UIC-BTN-CANCEL" viewBox="0 0 64 24" class="css-btn" y="189" width="64" height="24" layout-dx5="x:100%-84px">
+            <svg id="UIC-BTN-CANCEL" viewBox="0 0 64 24" class="css-btn" y="189" width="64" height="24" layout-dx5="x:100%-84px" role="button" tabindex="0" focusable="true" aria-label="Cancel">
                 <rect class="btn-back" x="0" y="0" rx="3" ry="3" width="100%" height="100%" fill="#f7f7f7"/>
                 <text class="btn-text" x="50%" y="17" text-anchor="middle" font-size="12px" style="user-select:none;">Cancel</text>
             </svg>

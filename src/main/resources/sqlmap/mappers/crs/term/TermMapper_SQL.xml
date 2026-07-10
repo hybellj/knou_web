@@ -342,7 +342,7 @@
 				  </if>
 			   ) A
 		 ORDER BY LINE_NO
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="selectListStatus" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">
@@ -558,7 +558,7 @@
 				<if test="searchValue != null">AND LOWER(TLT.SMSTRNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))</if>
 			   ) A
 		 ORDER BY LINE_NO
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="countPageing" parameterType="knou.lms.crs.term.vo.TermVO" resultType="Integer">
@@ -1253,7 +1253,7 @@
 			AND ORG_ID = #{orgId}
 		</if>
 		 ORDER BY LINE_NO
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="listCreYearByProf" parameterType="knou.lms.crs.term.vo.TermVO" resultType="knou.lms.crs.term.vo.TermVO">

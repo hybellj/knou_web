@@ -25,6 +25,19 @@ public class MarkObjectionApplyVO extends DefaultVO {
     private String stdntNo; // 학번
     private String scyr;    // 학년
 
+    public MarkObjectionApplyVO() {
+    }
+
+    public MarkObjectionApplyVO(String sbjctId) {
+        super();
+        super.setSbjctId(sbjctId);
+    }
+
+    public MarkObjectionApplyVO(String sbjctId, String userId) {
+        super();
+        super.setSbjctId(sbjctId);
+        super.setUserId(userId);
+    }
     public String getMrkObjctAplyId() {
         return mrkObjctAplyId;
     }

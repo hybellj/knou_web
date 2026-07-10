@@ -1,6 +1,6 @@
 package knou.framework.exception;
 
-public class BBSException extends Exception {
+public class BBSException extends MediopiaDefineException {
 
 	/**
 	 * 
@@ -11,4 +11,5 @@ public class BBSException extends Exception {
 		super(message);
 	}
 
+	
 }

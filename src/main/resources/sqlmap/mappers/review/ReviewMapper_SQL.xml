@@ -93,7 +93,7 @@
 			</if>
 			</where>
 			ORDER BY TLCC.SBJCT_ID
-			<include refid="CommonSQL.pageSubfix"/>
+			<include refid="CommonSQL.pageSuffix"/>
 	</select>
 
 	<select id="reviewListExcel" parameterType="reviewVO" resultType="egovMap">

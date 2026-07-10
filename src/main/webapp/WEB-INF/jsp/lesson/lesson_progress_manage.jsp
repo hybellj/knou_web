@@ -32,8 +32,8 @@
 			//var url = "/lesson/lessonMgr/selectLessonProgressTotalStatus.do";
 			let url = "/stats/LrnPrgrtStatusAjax.do";
 			let data = {
-				sbjctYr		: $("#sbjctYr").val(),
-				smstrChrtId	: $("#sbjctSmstr").val(),
+				dgrsYr		: $("#dgrsYr").val(),
+				smstrChrtId	: $("#dgrsSmstrChrt").val(),
 				orgId		: $("#orgId").val(),
 				deptId		: ($("#deptId").val() || "").replace("ALL", ""),
 				sbjctOfrngId: ($("#sbjctOfrngId").val() || "").replace("ALL", ""),
@@ -79,18 +79,18 @@
 
 		// 학기기수 세팅 변경
 		function changeSmstrChrt() {
-			let $sbjctSmstr = $('#sbjctSmstr');
+			let $dgrsSmstrChrt = $('#dgrsSmstrChrt');
 			
-			$sbjctSmstr.off("change");
-			$sbjctSmstr.dropdown("clear");
-			$sbjctSmstr.empty();
+			$dgrsSmstrChrt.off("change");
+			$dgrsSmstrChrt.dropdown("clear");
+			$dgrsSmstrChrt.empty();
 			
 			let basicOptn = `<option value='ALL'><spring:message code="crs.label.open.term" /></option>`;	// 학기
 			
 			$.ajax({
-				url  : "/crs/termMgr/smstrListByDgrsYr.do",
+				url  : "/crs/termMgr/admSmstrListByDgrsYrAjax.do",
 				data : {
-					dgrsYr 	: $("#sbjctYr").val()
+					dgrsYr 	: $("#dgrsYr").val()
 				<%--	,orgId	: $("#orgId").val() --%>
 				},
 				type : "GET",
@@ -98,10 +98,10 @@
 					if (data.result > 0) {
 						let resultList = data.returnList;
 						if (resultList.length > 0) {
-							$sbjctSmstr.append(basicOptn);
+							$dgrsSmstrChrt.append(basicOptn);
 							$.each(resultList, function(i, smstrChrtVO) {
-								$sbjctSmstr.append(`<option value="\${smstrChrtVO.smstrChrtId}">\${smstrChrtVO.smstrChrtnm}</option>`);
-								/* $sbjctSmstr.append('<option'+' value="'+smstrChrtVO.smstrChrtId+'" >' + smstrChrtVO.smstrChrtnm + '</option>'); */
+								$dgrsSmstrChrt.append(`<option value="\${smstrChrtVO.smstrChrtId}">\${smstrChrtVO.smstrChrtnm}</option>`);
+								/* $dgrsSmstrChrt.append('<option'+' value="'+smstrChrtVO.smstrChrtId+'" >' + smstrChrtVO.smstrChrtnm + '</option>'); */
 							})
 						}
 					}else {
@@ -122,11 +122,11 @@
 			$sbjctOfrngId.dropdown("clear");
 			$sbjctOfrngId.empty();
 			
-			let url = "/crs/creCrsMgr/sbjctOfrngList.do";
+			let url = "/crs/creCrsMgr/sbjctListAjax.do";
 			/* var url = "/crs/creCrsHome/creCrsList.do"; */
 			let data = {
-				sbjctYr		: $("#sbjctYr").val(),
-				sbjctSmstrId: $("#sbjctSmstr").val(),
+				dgrsYr		: $("#dgrsYr").val(),
+				dgrsSmstrChrtId: $("#dgrsSmstrChrt").val(),
 				orgId		: $("#orgId").val(),
 				deptId		: $("#deptId").val()
 			};
@@ -159,13 +159,13 @@
 		function listStd() {
 			let searchKey = $("#noStudyAll").is(":checked") ? "Y" : "";
 			
-			let url  = "/stats/lrnPrgrtStatusListAjax.do";
+			let url  = "/stats/lrnPrgrtStatsListAjax.do";
 			let data = {
-				sbjctYr		: $("#sbjctYr").val(),
-				sbjctSmstrId: $("#sbjctSmstrId").val(),
+				dgrsYr		: $("#dgrsYr").val(),
+				dgrsSmstrChrtId: $("#dgrsSmstrChrtId").val(),
 				orgId		: $("#orgId").val(),
 				deptId		: ($("#deptId").val() || "").replace("ALL", ""),
-				sbjctOfrngId: ($("#sbjctOfrngId").val() || "").replace("ALL", ""),
+				sbjctId     : ($("#sbjctId").val() || "").replace("ALL", ""),
 				searchKey	: searchKey,
 				searchFrom	: $("#searchFrom").val(),
 				searchTo	: $("#searchTo").val(),
@@ -282,8 +282,8 @@
 			var excelGrid = {
 			    colModel:[
 			        {label:"<spring:message code='common.no' />", name:'lineNo', align:'center', width:'3000'}, /* 번호 */
-			        {label:"<spring:message code='common.year' />", name:'sbjctYr', align:'center', width:'3000'}, /* 년도 */
-			        {label:"<spring:message code='common.term' />", name:'sbjctSmstr', align:'center', width:'3000'}, /* 학기 */
+			        {label:"<spring:message code='common.year' />", name:'dgrsYr', align:'center', width:'3000'}, /* 년도 */
+			        {label:"<spring:message code='common.term' />", name:'dgrsSmstrChrt', align:'center', width:'3000'}, /* 학기 */
 			        {label:"<spring:message code='common.label.org' />", name:'orgId', align:'center', width:'3000'}, /* 기관 */
 			        {label:"<spring:message code='common.dept_name'/>", name:'deptnm', align:'left', width:'8000'}, /* 학과 */
 			        {label:"<spring:message code='common.label.crsauth.crsnm'/>", name:'sbjctnm', align:'left', width:'8000'}, /* 개설과목명 */
@@ -302,11 +302,11 @@
 			form.attr("method", "POST");
 			form.attr("name", "excelForm");
 			form.attr("action", "/lesson/lessonHome/lessonProgressExcelDown.do");
-			form.append($('<input/>', {type: 'hidden', name: 'sbjctYr', 	value: $("#sbjctYr").val()}));
-			form.append($('<input/>', {type: 'hidden', name: 'smstrChrtId', value: $("#sbjctSmstr").val()}));
+			form.append($('<input/>', {type: 'hidden', name: 'dgrsYr', 	value: $("#dgrsYr").val()}));
+			form.append($('<input/>', {type: 'hidden', name: 'smstrChrtId', value: $("#dgrsSmstrChrt").val()}));
 			form.append($('<input/>', {type: 'hidden', name: 'orgId', 		value: $("#orgId").val()}));
 			form.append($('<input/>', {type: 'hidden', name: 'deptId', 		value: ($("#deptId").val() || "").replace("ALL", "")}));
-			form.append($('<input/>', {type: 'hidden', name: 'smstrChrtId', value: ($("#sbjctSmstr").val() || "").replace("ALL", "")}));
+			form.append($('<input/>', {type: 'hidden', name: 'smstrChrtId', value: ($("#dgrsSmstrChrt").val() || "").replace("ALL", "")}));
 			form.append($('<input/>', {type: 'hidden', name: 'searchKey', 	value: searchKey}));
 			form.append($('<input/>', {type: 'hidden', name: 'searchFrom', 	value: $("#searchFrom").val()}));
 			form.append($('<input/>', {type: 'hidden', name: 'searchTo', 	value: $("#searchTo").val()}));
@@ -360,13 +360,13 @@
 								</div>
 			            		
 								<div class="option-content ui segment">
-									<select class="ui dropdown" id="sbjctYr" onchange="changeSmstrChrt()">
+									<select class="ui dropdown" id="dgrsYr" onchange="changeSmstrChrt()">
 										<option value=""><spring:message code="crs.label.open.year" /></option><!-- 개설년도 -->
 										<c:forEach var="item" items="${filterOptions.yearList }">
 											<option value="${item }" ${item eq filterOptions.curYear ? 'selected' : '' }>${item }</option>
 										</c:forEach>
 									</select>
-									<select class="ui dropdown" id="sbjctSmstr"><!-- 개설학기 -->
+									<select class="ui dropdown" id="dgrsSmstrChrt"><!-- 개설학기 -->
 										<option value=""><spring:message code="crs.label.open.term" /></option>
 										<c:forEach var="list" items="${filterOptions.smstrChrtList }">
 											<%-- <option value="${list.smstrChrtId }" ${list.dgrsSmstrChrt eq curSmstrChrtVO.dgrsSmstrChrt ? 'selected' : '' }>${list.smstrChrtnm }</option> --%>

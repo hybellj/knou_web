@@ -196,4 +196,28 @@ public interface BbsAtclService {
      ******************************************************/
     public ProcessResultVO<BbsAtclVO> selectBbsAtclRspnsList(BbsAtclVO vo) throws Exception;
 
+    /*****************************************************
+     * 메뉴 > 글로벌메뉴 > 과목공지 저장
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void bbsGrpNtcRegist(BbsAtclVO vo) throws Exception;
+
+    public ProcessResultVO<EgovMap> stdInfoListPaging(BbsAtclVO bbsAtclVO) throws Exception;
+
+    public ProcessResultVO<BbsAtclVO> bbsTeamMbrListView(BbsAtclVO bbsAtclVO) throws Exception;
+
+    /*****************************************************
+     * 게시판 > 과목공지 > 그룹공지사항 수강생 목록
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    ProcessResultVO<EgovMap> bbsGrpNtcStdntList(BbsAtclVO bbsAtclVO) throws Exception;
+
+    /*****************************************************
+     * 그룹 공지사항 삭제
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void deleteBbsGrpNtcTrgtr(BbsAtclVO vo) throws Exception;
 }

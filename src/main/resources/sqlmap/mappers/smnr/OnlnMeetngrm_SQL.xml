@@ -57,4 +57,39 @@
            AND MEETNGRM_ID = #{meetngrmId}
 	</delete>
 
+	<select id="createZoomCntSelect" parameterType="String" resultType="int">
+		/*
+             SQL ID : OnlnMeetngrmDAO.createZoomCntSelect
+             설  명 : 생성ZOOM수조회
+         */
+        SELECT
+			COUNT(*)
+		  FROM (
+			SELECT
+				MEETNGRM.ONLN_MEETNGRM_ID
+			  FROM TB_LMS_ONLN_MEETNGRM MEETNGRM
+			  JOIN TB_LMS_ONLN_PLTFRM_USER USR
+			    ON MEETNGRM.ONLN_PLTFRM_USER_ID = USR.ONLN_PLTFRM_USER_ID
+			  JOIN TB_LMS_ONLN_PLTFRM_AUTHRT AUTHRT
+			    ON USR.ONLN_PLTFRM_AUTHRT_ID = AUTHRT.ONLN_PLTFRM_AUTHRT_ID
+			 WHERE (MEETNGRM.MEETNGRM_SDTTM <![CDATA[ > ]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') OR MEETNGRM.MEETNGRM_EDTTM <![CDATA[ > ]]> TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'))
+			   AND AUTHRT.ONLN_PLTFRM_STNG_ID = #{onlnPltfrmStngId}
+		  )
+	</select>
+
+	<delete id="onlnMeetngrmBulkDelete" parameterType="String">
+		/*
+             SQL ID : OnlnMeetngrmDAO.onlnMeetngrmBulkDelete
+             설  명 : 온라인회의실일괄삭제
+         */
+        DELETE FROM TB_LMS_ONLN_MEETNGRM
+		 WHERE ONLN_PLTFRM_USER_ID IN (
+		 	SELECT USR.ONLN_PLTFRM_USER_ID
+		 	  FROM TB_LMS_ONLN_PLTFRM_USER USR
+			  JOIN TB_LMS_ONLN_PLTFRM_AUTHRT AUTHRT
+			    ON USR.ONLN_PLTFRM_AUTHRT_ID = AUTHRT.ONLN_PLTFRM_AUTHRT_ID
+			 WHERE AUTHRT.ONLN_PLTFRM_STNG_ID = #{onlnPltfrmStngId}
+		 )
+	</delete>
+
 </mapper>

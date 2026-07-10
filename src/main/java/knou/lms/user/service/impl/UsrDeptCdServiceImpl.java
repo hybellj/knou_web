@@ -1,14 +1,14 @@
 package knou.lms.user.service.impl;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.Resource;
 
+import knou.framework.context2.UserContext;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.stereotype.Service;
 
+import knou.framework.common.PageInfo;
 import knou.framework.common.ServiceBase;
 import knou.framework.exception.ServiceProcessException;
 import knou.framework.util.StringUtil;
@@ -50,9 +50,14 @@ public class UsrDeptCdServiceImpl extends ServiceBase implements UsrDeptCdServic
      * @throws Exception
      ******************************************************/
     @Override
-    public List<UsrDeptCdVO> list(UsrDeptCdVO vo) throws Exception {
+    public List<UsrDeptCdVO> list(UsrDeptCdVO vo) {
         return usrDeptCdDAO.list(vo);
     }
+    
+//    @Override
+//    public List<EgovMap> admByOrgDeptList(PageInfo pageInfo) {
+//        return usrDeptCdDAO.admByOrgDeptList(pageInfo);
+//    }
 
     /*****************************************************
      * <p>
@@ -250,4 +255,35 @@ public class UsrDeptCdServiceImpl extends ServiceBase implements UsrDeptCdServic
     public List<UsrDeptCdVO> listDeptByStdHaksaTerm(UsrDeptCdVO vo) throws Exception {
         return usrDeptCdDAO.listDeptByStdHaksaTerm(vo);
     }
+
+//    /**
+//     * 권한그룹별 학과(부서) 목록 조회
+//     * - 관리자    : 전체관리자 -> 전체 / 그 외 -> 본인 기관 소속
+//     * - 교수     : 본인 계정들이 강의하는 학과(부서) - 대표아이디 기준
+//     * - 학생     : 본인 계정들이 수강하는 학과(부서) - 대표아이디 기준
+//     * @param userCtx
+//     * @return
+//     */
+//    @Override
+//    public List<EgovMap> deptListByAuthrt(UserContext userCtx) {
+//        List<EgovMap> deptList;
+//
+//        PageInfo pageInfo = new PageInfo();
+//        pageInfo.setRprsId(userCtx.getUserRprsId());
+//        pageInfo.setOrgId(userCtx.getOrgId());
+//
+//        if (userCtx.isAdmin()) {
+//            // 전체관리자인 경우 학과 전체 조회
+//            if ("ADM".equals(userCtx.getAuthrtCd())) {
+//                pageInfo.setOrgId("");
+//            }
+//            deptList = usrDeptCdDAO.admByOrgDeptList(pageInfo);
+//        } else if (userCtx.isProfessor()) {
+//            deptList = usrDeptCdDAO.profDeptList(pageInfo);
+//        } else {
+//            deptList = usrDeptCdDAO.stdntDeptList(pageInfo);
+//        }
+//
+//        return deptList;
+//    }
 }

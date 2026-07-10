@@ -4,7 +4,8 @@ import knou.lms.common.vo.DefaultVO;
 
 public class LoginVO extends DefaultVO {
 
-    private String userId;
+	private static final long serialVersionUID = 1L;
+
     private String loginId;
     private String userPass;
     private String userPassConfirm;
@@ -26,25 +27,56 @@ public class LoginVO extends DefaultVO {
     private String cfgLoginCnt;
     private String pswdChgReqDttm;
     private String pswdChgReqYn;
-    private String orgId;
-    private String orgNm;
     private String encryptData;
 
     /* 2016-12-21 arothy about SNS*/
     private String snsKey;
     private String snsDiv;
     private String snsCode;
-    
+
     private String ssoKey;
     private String ssoIdx;
-    
+
     private String  wwwAuthGrpCd;
     private String  adminAuthGrpCd;
     private String  mngAuthGrpCd;
     private String  wwwAuthGrpNm;
     private String  adminAuthGrpNm;
     private String  mngAuthGrpNm;
-    
+
+    /** 로그인 입력 아이디(대표 아이디). EP: LOGIN_ID */
+    private String userId;
+
+    /** 통합 번호(대표 아이디가 보유한 개별 아이디 키). EP: INTG_NO */
+    private String intgNo;
+
+    /** 대표 아이디. (userId 와 동일할 수 있으나 별도 보관) */
+    private String userRprsId;
+
+    /** 비밀번호(암호화 저장값). 평문비교 금지 - 해시/암호화 비교 권장 */
+    private String userIdEncpswd;
+
+    /** 기관/조직 ID. 화면 hidden orgId 와 매핑 */
+    private String orgId;
+
+    /** 기관/조직명 */
+    private String orgNm;
+
+    /** 사용자 유형 코드 (학생/직원/교수/일반 등). EP: TB_EPO_USER_TP.USER_TP_CD */
+    private String userTycd;
+
+    /** 권한 코드 */
+    private String authrtCd;
+
+    /** 권한 그룹 코드 */
+    private String authrtGrpcd;
+
+    /** 사용자명 */
+    private String userNm;
+
+    /** 출처 구분 : "EP" | "LMS" (서비스 분기 결과 표시용) */
+    private String userSrcDvcd;
+
     public String getUserId() {
         return userId;
     }
@@ -261,4 +293,52 @@ public class LoginVO extends DefaultVO {
     public void setEncryptData(String encryptData) {
         this.encryptData = encryptData;
     }
+	public String getIntgNo() {
+		return intgNo;
+	}
+	public String getUserRprsId() {
+		return userRprsId;
+	}
+	public String getUserIdEncpswd() {
+		return userIdEncpswd;
+	}
+	public String getUserTycd() {
+		return userTycd;
+	}
+	public String getAuthrtCd() {
+		return authrtCd;
+	}
+	public String getAuthrtGrpcd() {
+		return authrtGrpcd;
+	}
+	public String getUserNm() {
+		return userNm;
+	}
+	public String getUserSrcDvcd() {
+		return userSrcDvcd;
+	}
+	public void setIntgNo(String intgNo) {
+		this.intgNo = intgNo;
+	}
+	public void setUserRprsId(String userRprsId) {
+		this.userRprsId = userRprsId;
+	}
+	public void setUserIdEncpswd(String userIdEncpswd) {
+		this.userIdEncpswd = userIdEncpswd;
+	}
+	public void setUserTycd(String userTycd) {
+		this.userTycd = userTycd;
+	}
+	public void setAuthrtCd(String authrtCd) {
+		this.authrtCd = authrtCd;
+	}
+	public void setAuthrtGrpcd(String authrtGrpcd) {
+		this.authrtGrpcd = authrtGrpcd;
+	}
+	public void setUserNm(String userNm) {
+		this.userNm = userNm;
+	}
+	public void setUserSrcDvcd(String userSrcDvcd) {
+		this.userSrcDvcd = userSrcDvcd;
+	}
 }

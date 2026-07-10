@@ -7,7 +7,6 @@
 		<jsp:param name="module" value="tabmenu"/>
 		<jsp:param name="style" value="dashboard"/>
 	</jsp:include>
-
 	<script type="text/javascript">
 		let TAB_MENU = null;
 
@@ -48,7 +47,7 @@
 	</script>
 </head>
 
-<body class="home colorA "  style=""><!-- 컬러선택시 클래스변경 -->
+<body class="home ${uiex:getTheme()} "  style=""><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
         <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp?view=on"/>

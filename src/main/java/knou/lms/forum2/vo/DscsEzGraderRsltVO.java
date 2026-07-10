@@ -1,132 +1,61 @@
 package knou.lms.forum2.vo;
 
-import java.util.List;
-
 import knou.lms.common.vo.DefaultVO;
 
 public class DscsEzGraderRsltVO extends DefaultVO {
 
-    private String orgId;           // 기관 코드
+    private String dscsId; // 토론아이디
+    private String stdId; // 사용자아이디
+    private String stdIds; // EZ-Grader 점수 처리 대상 학습자 목록
+    private String teamId; // 팀아이디
+    private Double scr; // 점수
+    private String evlyn; // 평가여부
 
-    private String dscsId;
-    private String evalCd;
-    private String dscsSendCd;
-    private String mutEvalCd;
-    private String rltnTeamCd;
-    private String evalUserId;
-    private String evalTrgtUserId;
-    private String qstnNos;
-    private String evalScores;
-    private int    evalTotal;       // 각 믄항별 총점
-    private int    evalScore;       // 성적평가 점수
-    private String evalCts;
-    private String evalStatusCd;
-    private String evalYn;
-
-    private List<String> qstnCdList;
-    private List<String> evalScoreList;
-
-    public String getOrgId() {
-        return orgId;
-    }
-    public void setOrgId(String orgId) {
-        this.orgId = orgId;
-    }
     public String getDscsId() {
         return dscsId;
     }
+
     public void setDscsId(String dscsId) {
         this.dscsId = dscsId;
     }
-    public String getEvalCd() {
-        return evalCd;
-    }
-    public void setEvalCd(String evalCd) {
-        this.evalCd = evalCd;
-    }
-    public String getDscsSendCd() {
-        return dscsSendCd;
-    }
-    public void setDscsSendCd(String dscsSendCd) {
-        this.dscsSendCd = dscsSendCd;
-    }
-    public String getMutEvalCd() {
-        return mutEvalCd;
-    }
-    public void setMutEvalCd(String mutEvalCd) {
-        this.mutEvalCd = mutEvalCd;
-    }
-    public String getRltnTeamCd() {
-        return rltnTeamCd;
-    }
-    public void setRltnTeamCd(String rltnTeamCd) {
-        this.rltnTeamCd = rltnTeamCd;
-    }
-    public String getEvalUserId() {
-        return evalUserId;
-    }
-    public void setEvalUserId(String evalUserId) {
-        this.evalUserId = evalUserId;
-    }
-    public String getEvalTrgtUserId() {
-        return evalTrgtUserId;
-    }
-    public void setEvalTrgtUserId(String evalTrgtUserId) {
-        this.evalTrgtUserId = evalTrgtUserId;
-    }
-    public String getQstnNos() {
-        return qstnNos;
-    }
-    public void setQstnNos(String qstnNos) {
-        this.qstnNos = qstnNos;
-    }
-    public String getEvalScores() {
-        return evalScores;
-    }
-    public void setEvalScores(String evalScores) {
-        this.evalScores = evalScores;
-    }
-    public int getEvalTotal() {
-        return evalTotal;
-    }
-    public void setEvalTotal(int evalTotal) {
-        this.evalTotal = evalTotal;
-    }
-    public int getEvalScore() {
-        return evalScore;
-    }
-    public void setEvalScore(int evalScore) {
-        this.evalScore = evalScore;
-    }
-    public String getEvalCts() {
-        return evalCts;
-    }
-    public void setEvalCts(String evalCts) {
-        this.evalCts = evalCts;
-    }
-    public String getEvalStatusCd() {
-        return evalStatusCd;
-    }
-    public void setEvalStatusCd(String evalStatusCd) {
-        this.evalStatusCd = evalStatusCd;
-    }
-    public String getEvalYn() {
-        return evalYn;
-    }
-    public void setEvalYn(String evalYn) {
-        this.evalYn = evalYn;
-    }
-    public List<String> getQstnCdList() {
-        return qstnCdList;
-    }
-    public void setQstnCdList(List<String> qstnCdList) {
-        this.qstnCdList = qstnCdList;
-    }
-    public List<String> getEvalScoreList() {
-        return evalScoreList;
-    }
-    public void setEvalScoreList(List<String> evalScoreList) {
-        this.evalScoreList = evalScoreList;
+
+    public String getStdId() {
+        return stdId;
     }
 
+    public void setStdId(String stdId) {
+        this.stdId = stdId;
+    }
+
+    public String getStdIds() {
+        return stdIds;
+    }
+
+    public void setStdIds(String stdIds) {
+        this.stdIds = stdIds;
+    }
+
+    public String getTeamId() {
+        return teamId;
+    }
+
+    public void setTeamId(String teamId) {
+        this.teamId = teamId;
+    }
+
+    public Double getScr() {
+        return scr;
+    }
+
+    public void setScr(Double scr) {
+        this.scr = scr;
+    }
+
+    public String getEvlyn() {
+        return evlyn;
+    }
+
+    public void setEvlyn(String evlyn) {
+        this.evlyn = evlyn;
+    }
 }

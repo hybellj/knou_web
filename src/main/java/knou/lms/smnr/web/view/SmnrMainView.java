@@ -1,62 +1,126 @@
 package knou.lms.smnr.web.view;
 
 import java.util.List;
+import java.util.Map;
 
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
-import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.cmmn.vo.CmmnCdVO;
+import knou.lms.common.dto.ResultDTO;
+import knou.lms.smnr.pltfrm.zoom.api.meetings.vo.ZoomPastMeetingVO;
+import knou.lms.smnr.vo.SmnrAtndVO;
+import knou.lms.smnr.vo.SmnrFdbkVO;
 import knou.lms.subject.vo.SubjectVO;
 
 public class SmnrMainView {
 
-	ProcessResultVO<EgovMap> profSmnrList;
+	ResultDTO<EgovMap> resultDTO;
 
-	List<EgovMap> sbjctDcvlasList;
+	List<EgovMap> egovList;
 
-	EgovMap smnrEgovMap;
+	Map<String, List<EgovMap>> egovListMap;
+
+	EgovMap egovMap;
+
+	Map<String, EgovMap> eMap;
+
+	Map<String, List<CmmnCdVO>> cmmnCdList;
+
+	List<SmnrFdbkVO> smnrFdbkList;
 
 	SubjectVO subjectVO;
 
-	List<EgovMap> smnrLrnGrpSubSmnrList;
+	SmnrAtndVO smnrAtndVO;
 
-	public ProcessResultVO<EgovMap> getProfSmnrList() {
-		return profSmnrList;
+	SmnrFdbkVO smnrFdbkVO;
+
+	ZoomPastMeetingVO zoomPastMeetingVO;
+
+	public List<EgovMap> getEgovList() {
+		return egovList;
 	}
 
-	public void setProfSmnrList(ProcessResultVO<EgovMap> profSmnrList) {
-		this.profSmnrList = profSmnrList;
+	public Map<String, List<EgovMap>> getEgovListMap() {
+		return egovListMap;
 	}
 
-	public List<EgovMap> getSbjctDcvlasList() {
-		return sbjctDcvlasList;
+	public EgovMap getEgovMap() {
+		return egovMap;
 	}
 
-	public void setSbjctDcvlasList(List<EgovMap> sbjctDcvlasList) {
-		this.sbjctDcvlasList = sbjctDcvlasList;
+	public Map<String, EgovMap> geteMap() {
+		return eMap;
 	}
 
-	public EgovMap getSmnrEgovMap() {
-		return smnrEgovMap;
+	public Map<String, List<CmmnCdVO>> getCmmnCdList() {
+		return cmmnCdList;
 	}
 
-	public void setSmnrEgovMap(EgovMap smnrEgovMap) {
-		this.smnrEgovMap = smnrEgovMap;
+	public List<SmnrFdbkVO> getSmnrFdbkList() {
+		return smnrFdbkList;
 	}
 
 	public SubjectVO getSubjectVO() {
 		return subjectVO;
 	}
 
+	public SmnrAtndVO getSmnrAtndVO() {
+		return smnrAtndVO;
+	}
+
+	public SmnrFdbkVO getSmnrFdbkVO() {
+		return smnrFdbkVO;
+	}
+
+	public ZoomPastMeetingVO getZoomPastMeetingVO() {
+		return zoomPastMeetingVO;
+	}
+
+	public void setEgovList(List<EgovMap> egovList) {
+		this.egovList = egovList;
+	}
+
+	public void setEgovListMap(Map<String, List<EgovMap>> egovListMap) {
+		this.egovListMap = egovListMap;
+	}
+
+	public void setEgovMap(EgovMap egovMap) {
+		this.egovMap = egovMap;
+	}
+
+	public void seteMap(Map<String, EgovMap> eMap) {
+		this.eMap = eMap;
+	}
+
+	public void setCmmnCdList(Map<String, List<CmmnCdVO>> cmmnCdList) {
+		this.cmmnCdList = cmmnCdList;
+	}
+
+	public void setSmnrFdbkList(List<SmnrFdbkVO> smnrFdbkList) {
+		this.smnrFdbkList = smnrFdbkList;
+	}
+
 	public void setSubjectVO(SubjectVO subjectVO) {
 		this.subjectVO = subjectVO;
 	}
 
-	public List<EgovMap> getSmnrLrnGrpSubSmnrList() {
-		return smnrLrnGrpSubSmnrList;
+	public void setSmnrAtndVO(SmnrAtndVO smnrAtndVO) {
+		this.smnrAtndVO = smnrAtndVO;
 	}
 
-	public void setSmnrLrnGrpSubSmnrList(List<EgovMap> smnrLrnGrpSubSmnrList) {
-		this.smnrLrnGrpSubSmnrList = smnrLrnGrpSubSmnrList;
+	public void setSmnrFdbkVO(SmnrFdbkVO smnrFdbkVO) {
+		this.smnrFdbkVO = smnrFdbkVO;
 	}
 
+	public void setZoomPastMeetingVO(ZoomPastMeetingVO zoomPastMeetingVO) {
+		this.zoomPastMeetingVO = zoomPastMeetingVO;
+	}
+
+	public ResultDTO<EgovMap> getResultDTO() {
+		return resultDTO;
+	}
+
+	public void setResultDTO(ResultDTO<EgovMap> resultDTO) {
+		this.resultDTO = resultDTO;
+	}
 }

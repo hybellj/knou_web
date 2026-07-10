@@ -6,9 +6,9 @@ import knou.lms.msg.vo.MsgSndngCostVO;
 
 public interface MsgSndngCostService {
 
-    List<MsgSndngCostVO> selectSndngCostList() throws Exception;
+    List<MsgSndngCostVO> selectSndngCostList();
 
-    int insertSndngCost(MsgSndngCostVO vo) throws Exception;
+    int insertSndngCost(MsgSndngCostVO vo);
 
-    int updateSndngCost(MsgSndngCostVO vo) throws Exception;
+    int updateSndngCost(MsgSndngCostVO vo);
 }

@@ -13,7 +13,62 @@ import knou.lms.user.vo.UsrUserInfoVO;
 
 @Mapper("crecrsDAO")
 public interface CrecrsDAO {
-    
+
+    /*****************************************************
+     * 신규 작성 DAO 영역
+     *****************************************************/
+
+    // 이전학기 게시판 등록
+    public void prevBbsRegist(CreCrsVO vo);
+
+    // 이전학기 게시판 게시글 등록
+    public void prevBbsAtclRegist(CreCrsVO vo);
+
+    // 이전학기 과제 등록
+    public void prevAsmtRegist(CreCrsVO vo);
+
+    // 이전학기 퀴즈 기본정보 등록
+    public void prevQuizBscRegist(CreCrsVO vo);
+
+    // 이전학기 퀴즈 상세정보 등록
+    public void prevQuizDtlRegist(CreCrsVO vo);
+
+    // 이전학기 설문 등록
+    public void prevSrvyRegist(CreCrsVO vo);
+
+    // 이전학기 토론 등록
+    public void prevDscsRegist(CreCrsVO vo);
+
+    // 이전학기 연습문제, 돌발퀴즈 등록
+    public void prevQstnRegist(CreCrsVO vo);
+
+    // 이전학기 과목코드 조회
+    public String selectBeforeSbjctId(CreCrsVO vo);
+
+    // 이전학기, 현재학기 데이터 목록 카운트
+    public int countPrevCurrDataList(CreCrsVO vo);
+
+    // 이전학기 게시판 목록 조회
+    public List<EgovMap> selectPrevBbsDataList(CreCrsVO vo);
+
+    // 이전학기 게시판 목록 조회
+    public List<EgovMap> selectPrevAsmtDataList(CreCrsVO vo);
+
+    // 이전학기 퀴즈 목록 조회
+    public List<EgovMap> selectPrevQuizDataList(CreCrsVO vo);
+
+    // 이전학기 설문 목록 조회
+    public List<EgovMap> selectPrevSrvyDataList(CreCrsVO vo);
+
+    // 이전학기 설문 목록 조회
+    public List<EgovMap> selectPrevDscsDataList(CreCrsVO vo);
+
+    // 이전학기 연습문제, 돌발퀴즈 목록 조회
+    public List<EgovMap> selectPrevQstnDataList(CreCrsVO vo);
+
+    /*****************************************************
+     * 기존에 있던 DAO 영역
+     *****************************************************/
     /**
      * 강의실 정보
      * @param CreCrsVO
@@ -408,7 +463,6 @@ public interface CrecrsDAO {
     * 개설 과목 조회 (학위연도, 기관, 학기기수, 학과 기준)
     * @param SubjectVO
     * @return List<SubjectVO>
-    * @throws Exception
     */
-   public List<EgovMap> listSbjctOfring(SubjectVO sbjctOfrngVO) throws Exception;
+   public List<EgovMap> listSbjctPaging(SubjectVO sbjctOfrngVO);
 }

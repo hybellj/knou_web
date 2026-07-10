@@ -1,0 +1,558 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.msg.dao.MsgPushDAO">
+
+    <sql id="rcvnSearchCondition">
+        /*
+             SQL ID : MsgPushDAO.rcvnSearchCondition
+             설  명 : 푸시 수신 검색 조건
+         */
+        <if test="orgId != null and orgId != ''">
+            AND (SC.ORG_ID = #{orgId} OR MSG.SBJCT_ID IS NULL)
+        </if>
+        <if test="sbjctYr != null and sbjctYr != ''">
+            AND SBJCT.SBJCT_YR = #{sbjctYr}
+        </if>
+        <if test="sbjctSmstr != null and sbjctSmstr != ''">
+            AND SC.DGRS_SMSTR_CHRT = #{sbjctSmstr}
+        </if>
+        <if test="sbjctId != null and sbjctId != ''">
+            AND MSG.SBJCT_ID = #{sbjctId}
+        </if>
+        <if test="sndngSdttm != null and sndngSdttm != ''">
+            AND TO_DATE(S.SNDNG_DTTM, 'YYYYMMDDHH24MISS') <![CDATA[>=]]> TO_DATE(#{sndngSdttm}, 'YYYY-MM-DD')
+        </if>
+        <if test="sndngEdttm != null and sndngEdttm != ''">
+            AND TO_DATE(S.SNDNG_DTTM, 'YYYYMMDDHH24MISS') <![CDATA[<=]]> TO_DATE(#{sndngEdttm}, 'YYYY-MM-DD') + 1 - 1/86400
+        </if>
+        <if test="searchType == 'ttl'">
+            <if test="searchText != null and searchText != ''">
+                AND S.SNDNG_TTL LIKE FN_LIKE_VAL(#{searchText})
+            </if>
+        </if>
+        <if test="searchType == 'sndngnm'">
+            <if test="searchText != null and searchText != ''">
+                AND S.SNDNGNM LIKE FN_LIKE_VAL(#{searchText})
+            </if>
+        </if>
+        <if test="searchType == 'sndngrId'">
+            <if test="searchText != null and searchText != ''">
+                AND S.SNDNGR_ID LIKE FN_LIKE_VAL(#{searchText})
+            </if>
+        </if>
+        <if test="searchType == 'sndngrPhnno'">
+            <if test="searchText != null and searchText != ''">
+                AND EXISTS (SELECT 1 FROM TB_LMS_USER U2 WHERE U2.USER_ID = S.SNDNGR_ID AND U2.MBL_PHN LIKE FN_LIKE_VAL(#{searchText}))
+            </if>
+        </if>
+        <if test="searchType == 'cts'">
+            <if test="searchText != null and searchText != ''">
+                AND S.SNDNG_CTS LIKE FN_LIKE_VAL(#{searchText})
+            </if>
+        </if>
+    </sql>
+
+    <sql id="sndngSearchCondition">
+        /*
+             SQL ID : MsgPushDAO.sndngSearchCondition
+             설  명 : 푸시 발신 검색 조건
+         */
+        <if test="orgId != null and orgId != ''">
+            AND (ORG.ORG_ID = #{orgId} OR MSG.SBJCT_ID IS NULL)
+        </if>
+        <if test="sbjctYr != null and sbjctYr != ''">
+            AND SBJCT.SBJCT_YR = #{sbjctYr}
+        </if>
+        <if test="sbjctSmstr != null and sbjctSmstr != ''">
+            AND SC.DGRS_SMSTR_CHRT = #{sbjctSmstr}
+        </if>
+        <if test="sbjctId != null and sbjctId != ''">
+            AND MSG.SBJCT_ID = #{sbjctId}
+        </if>
+        <if test="sndngSdttm != null and sndngSdttm != ''">
+            AND TO_DATE(NVL(SS.SNDNG_DTTM, MSG.RSRV_SNDNG_SDTTM), 'YYYYMMDDHH24MISS') <![CDATA[>=]]> TO_DATE(#{sndngSdttm}, 'YYYY-MM-DD')
+        </if>
+        <if test="sndngEdttm != null and sndngEdttm != ''">
+            AND TO_DATE(NVL(SS.SNDNG_DTTM, MSG.RSRV_SNDNG_SDTTM), 'YYYYMMDDHH24MISS') <![CDATA[<=]]> TO_DATE(#{sndngEdttm}, 'YYYY-MM-DD') + 1 - 1/86400
+        </if>
+        <if test="searchType == 'ttl'">
+            <if test="searchText != null and searchText != ''">
+                AND MSG.TTL LIKE FN_LIKE_VAL(#{searchText})
+            </if>
+        </if>
+        <if test="searchType == 'sndngnm'">
+            <if test="searchText != null and searchText != ''">
+                AND EXISTS (SELECT 1 FROM TB_LMS_USER U2 WHERE U2.USER_ID = MSG.RGTR_ID AND U2.USERNM LIKE FN_LIKE_VAL(#{searchText}))
+            </if>
+        </if>
+        <if test="searchType == 'sndngrId'">
+            <if test="searchText != null and searchText != ''">
+                AND MSG.RGTR_ID LIKE FN_LIKE_VAL(#{searchText})
+            </if>
+        </if>
+        <if test="searchType == 'sndngrPhnno'">
+            <if test="searchText != null and searchText != ''">
+                AND EXISTS (SELECT 1 FROM TB_LMS_USER U2 WHERE U2.USER_ID = MSG.RGTR_ID AND U2.MBL_PHN LIKE FN_LIKE_VAL(#{searchText}))
+            </if>
+        </if>
+        <if test="searchType == 'cts'">
+            <if test="searchText != null and searchText != ''">
+                AND EXISTS (SELECT 1 FROM TB_LMS_MSG_MBL_SNDNG S2 WHERE S2.MSG_ID = MSG.MSG_ID AND S2.MBL_SNDNG_TYCD = #{mblSndngTycd} AND S2.SNDNG_CTS LIKE FN_LIKE_VAL(#{searchText}))
+            </if>
+        </if>
+        <if test="userId != null and userId != ''">
+            AND MSG.RGTR_ID = #{userId}
+        </if>
+    </sql>
+
+    <select id="selectPushRcvnList" parameterType="MsgPushVO" resultType="MsgPushVO">
+        /*
+             SQL ID : MsgPushDAO.selectPushRcvnList
+             설  명 : 푸시 수신 목록 조회
+         */
+        <include refid="CommonSQL.pagePrefix" />
+        SELECT S.MSG_MBL_SNDNG_ID
+        , S.MSG_ID
+        , S.SNDNG_TTL
+        , S.SNDNGNM
+        , S.SNDNG_DTTM
+        , T.READ_DTTM
+        , T.READ_YN
+        , SBJCT.SBJCT_YR
+        , SC.SMSTR_CHRTNM AS SBJCT_SMSTR
+        , SBJCT.SBJCTNM
+        , SBJCT.DVCLAS_NO
+        , ORG.ORGNM
+        , ROW_NUMBER() OVER (ORDER BY S.SNDNG_DTTM DESC) AS LINE_NO
+        , COUNT(*) OVER () AS TOTAL_CNT
+        FROM TB_LMS_MSG_MBL_SNDNG S
+        INNER JOIN TB_LMS_MSG MSG ON S.MSG_ID = MSG.MSG_ID
+        LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON S.MSG_ID = T.MSG_ID AND S.RCVR_ID = T.USER_ID
+        LEFT JOIN TB_LMS_SBJCT SBJCT ON MSG.SBJCT_ID = SBJCT.SBJCT_ID
+        LEFT JOIN TB_LMS_SMSTR_CHRT SC ON SBJCT.SMSTR_CHRT_ID = SC.SMSTR_CHRT_ID
+        LEFT JOIN TB_LMS_ORG ORG ON SC.ORG_ID = ORG.ORG_ID
+        WHERE S.RCVR_ID = #{rcvrId}
+        AND S.MBL_SNDNG_TYCD = #{mblSndngTycd}
+        AND S.RCVR_DELYN = 'N'
+        AND NVL(S.SNDNG_STSCD, CASE WHEN S.SNDNGYN = 'Y' THEN 'SCS' ELSE 'RSRV' END) = 'SCS'
+        <include refid="rcvnSearchCondition"/>
+        <include refid="CommonSQL.pageSuffix" />
+        ORDER BY LINE_NO
+    </select>
+
+    <select id="selectPushRcvnDtl" parameterType="MsgPushVO" resultType="MsgPushVO">
+        /*
+             SQL ID : MsgPushDAO.selectPushRcvnDtl
+             설  명 : 푸시 수신 상세 조회
+         */
+        SELECT S.MSG_MBL_SNDNG_ID
+             , S.MSG_ID
+             , S.SNDNG_TTL
+             , S.SNDNG_CTS
+             , S.SNDNGNM
+             , S.SNDNGR_ID
+             , S.SNDNG_DTTM
+             , T.READ_DTTM
+             , S.RCVR_ID
+             , T.RCVRNM
+             , MSG.TTL
+             , MSG.TXT_CTS
+             , MSG.SBJCT_ID
+             , SBJCT.SBJCT_YR
+             , SC.SMSTR_CHRTNM AS SBJCT_SMSTR
+             , SBJCT.SBJCTNM
+             , SC.ORG_ID
+             , ORG.ORGNM
+             , USR.STDNT_NO
+             , (SELECT S8.SNDNG_PHNNO FROM TB_LMS_MSG_MBL_SNDNG S8 WHERE S8.MSG_ID = MSG.MSG_ID AND S8.MBL_SNDNG_TYCD = #{mblSndngTycd} AND ROWNUM = 1) AS SNDNG_PHNNO
+        FROM TB_LMS_MSG_MBL_SNDNG S
+                 INNER JOIN TB_LMS_MSG MSG ON S.MSG_ID = MSG.MSG_ID
+                 LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON S.MSG_ID = T.MSG_ID AND S.RCVR_ID = T.USER_ID
+                 LEFT JOIN TB_LMS_SBJCT SBJCT ON MSG.SBJCT_ID = SBJCT.SBJCT_ID
+                 LEFT JOIN TB_LMS_SMSTR_CHRT SC ON SBJCT.SMSTR_CHRT_ID = SC.SMSTR_CHRT_ID
+                 LEFT JOIN TB_LMS_ORG ORG ON SC.ORG_ID = ORG.ORG_ID
+                 LEFT JOIN TB_LMS_USER USR ON S.SNDNGR_ID = USR.USER_ID
+        WHERE S.MSG_MBL_SNDNG_ID = #{msgMblSndngId}
+          AND S.RCVR_ID = #{rcvrId}
+          AND S.MBL_SNDNG_TYCD = #{mblSndngTycd}
+          AND S.RCVR_DELYN = 'N'
+          AND NVL(S.SNDNG_STSCD, CASE WHEN S.SNDNGYN = 'Y' THEN 'SCS' ELSE 'RSRV' END) = 'SCS'
+    </select>
+
+    <update id="updatePushReadDttm" parameterType="MsgPushVO">
+        /*
+             SQL ID : MsgPushDAO.updatePushReadDttm
+             설  명 : 푸시 읽음 처리
+         */
+        UPDATE TB_LMS_MSG_RCV_TRGTR
+        SET READ_YN = 'Y'
+          , READ_DTTM = FN_DTTM()
+        WHERE MSG_ID = (SELECT MSG_ID FROM TB_LMS_MSG_MBL_SNDNG WHERE MSG_MBL_SNDNG_ID = #{msgMblSndngId})
+          AND USER_ID = #{rcvrId}
+          AND READ_YN = 'N'
+    </update>
+
+    <update id="updatePushRcvrDelyn" parameterType="MsgPushVO">
+        /*
+             SQL ID : MsgPushDAO.updatePushRcvrDelyn
+             설  명 : 푸시 수신자 삭제
+         */
+        UPDATE TB_LMS_MSG_MBL_SNDNG
+        SET RCVR_DELYN = 'Y'
+        WHERE MSG_MBL_SNDNG_ID = #{msgMblSndngId}
+          AND RCVR_ID = #{rcvrId}
+    </update>
+
+    <select id="selectPushSndngList" parameterType="MsgPushVO" resultType="MsgPushVO">
+        /*
+             SQL ID : MsgPushDAO.selectPushSndngList
+             설  명 : 푸시 발신 목록 조회
+         */
+        <include refid="CommonSQL.pagePrefix" />
+        SELECT MSG.MSG_ID
+        , MSG.TTL
+        , NVL(SS.SNDNG_DTTM, MSG.RSRV_SNDNG_SDTTM) AS EFCTV_SNDNG_DTTM
+        , (SELECT COUNT(*) FROM TB_LMS_MSG_RCV_TRGTR T WHERE T.MSG_ID = MSG.MSG_ID) AS RCVR_CNT
+        , NVL(SS.SNDNG_YN, 'N') AS SNDNG_YN
+        , CASE WHEN MSG.RSRV_SNDNG_SDTTM IS NOT NULL AND MSG.RSRV_SNDNG_CNCL_DTTM IS NULL AND NVL(SS.RSRV_CNT, 0) > 0 THEN 'Y' ELSE 'N' END AS RSRV_YN
+        , NVL(SS.SNDNG_CNT, 0) AS SNDNG_SUCC_CNT
+        , MSG.RSRV_SNDNG_CNCL_DTTM
+        , MSG.DGRS_YR AS SBJCT_YR
+        , SC.SMSTR_CHRTNM AS SBJCT_SMSTR
+        , SBJCT.SBJCTNM
+        , SBJCT.DVCLAS_NO
+        , ORG.ORGNM
+        , (SELECT S2.SNDNGNM FROM TB_LMS_MSG_MBL_SNDNG S2 WHERE S2.MSG_ID = MSG.MSG_ID AND S2.MBL_SNDNG_TYCD = #{mblSndngTycd} AND ROWNUM = 1) AS SNDNGNM
+        , ROW_NUMBER() OVER (ORDER BY NVL(SS.SNDNG_DTTM, MSG.RSRV_SNDNG_SDTTM) DESC) AS LINE_NO
+        , COUNT(*) OVER () AS TOTAL_CNT
+        FROM TB_LMS_MSG MSG
+        LEFT JOIN (
+        SELECT MSG_ID
+        , MIN(CASE WHEN NVL(SNDNG_STSCD, CASE WHEN SNDNGYN = 'Y' THEN 'SCS' ELSE 'RSRV' END) <![CDATA[<>]]> 'RSRV' THEN SNDNG_DTTM END) AS SNDNG_DTTM
+        , COUNT(CASE WHEN NVL(SNDNG_STSCD, CASE WHEN SNDNGYN = 'Y' THEN 'SCS' ELSE 'RSRV' END) = 'SCS' THEN 1 END) AS SNDNG_CNT
+        , COUNT(CASE WHEN NVL(SNDNG_STSCD, CASE WHEN SNDNGYN = 'Y' THEN 'SCS' ELSE 'RSRV' END) = 'RSRV' THEN 1 END) AS RSRV_CNT
+        , MAX(SNDNGYN) AS SNDNG_YN
+        FROM TB_LMS_MSG_MBL_SNDNG
+        WHERE SNDNGR_DELYN = 'N'
+        AND MBL_SNDNG_TYCD = #{mblSndngTycd}
+        GROUP BY MSG_ID
+        ) SS ON MSG.MSG_ID = SS.MSG_ID
+        LEFT JOIN TB_LMS_SBJCT SBJCT ON MSG.SBJCT_ID = SBJCT.SBJCT_ID
+        LEFT JOIN TB_LMS_SMSTR_CHRT SC ON SBJCT.SMSTR_CHRT_ID = SC.SMSTR_CHRT_ID
+        LEFT JOIN TB_LMS_ORG ORG ON SC.ORG_ID = ORG.ORG_ID
+        WHERE MSG.RGTR_ID = #{sndngrId}
+        AND MSG.MSG_TYCD = #{mblSndngTycd}
+        AND (SS.MSG_ID IS NOT NULL OR MSG.RSRV_SNDNG_SDTTM IS NOT NULL)
+        <include refid="sndngSearchCondition"/>
+        <include refid="CommonSQL.pageSuffix" />
+        ORDER BY LINE_NO
+    </select>
+
+    <select id="selectPushSndngDtl" parameterType="MsgPushVO" resultType="MsgPushVO">
+        /*
+             SQL ID : MsgPushDAO.selectPushSndngDtl
+             설  명 : 푸시 발신 상세 조회
+         */
+        SELECT MSG.MSG_ID
+             , MSG.TTL
+             , MSG.TXT_CTS
+             , MSG.HTML_CTS
+             , MSG.RGTR_ID AS SNDNGR_ID
+             , MSG.RSRV_SNDNG_SDTTM
+             , MSG.RSRV_SNDNG_CNCL_DTTM
+             , (SELECT S2.SNDNGNM FROM TB_LMS_MSG_MBL_SNDNG S2 WHERE S2.MSG_ID = MSG.MSG_ID AND S2.MBL_SNDNG_TYCD = #{mblSndngTycd} AND ROWNUM = 1) AS SNDNGNM
+             , NVL(
+                 (SELECT MIN(S3.SNDNG_DTTM) FROM TB_LMS_MSG_MBL_SNDNG S3 WHERE S3.MSG_ID = MSG.MSG_ID AND S3.MBL_SNDNG_TYCD = #{mblSndngTycd} AND NVL(S3.SNDNG_STSCD, CASE WHEN S3.SNDNGYN = 'Y' THEN 'SCS' ELSE 'RSRV' END) <![CDATA[<>]]> 'RSRV')
+               , MSG.RSRV_SNDNG_SDTTM
+               ) AS EFCTV_SNDNG_DTTM
+             , CASE WHEN MSG.RSRV_SNDNG_SDTTM IS NOT NULL
+                        AND MSG.RSRV_SNDNG_CNCL_DTTM IS NULL
+                        AND EXISTS (SELECT 1 FROM TB_LMS_MSG_MBL_SNDNG S4 WHERE S4.MSG_ID = MSG.MSG_ID AND S4.MBL_SNDNG_TYCD = #{mblSndngTycd} AND NVL(S4.SNDNG_STSCD, CASE WHEN S4.SNDNGYN = 'Y' THEN 'SCS' ELSE 'RSRV' END) = 'RSRV')
+                        THEN 'Y' ELSE 'N' END AS RSRV_YN
+             , CASE WHEN MSG.RSRV_SNDNG_SDTTM IS NOT NULL
+                        AND MSG.RSRV_SNDNG_CNCL_DTTM IS NULL
+                        AND EXISTS (SELECT 1 FROM TB_LMS_MSG_MBL_SNDNG S6 WHERE S6.MSG_ID = MSG.MSG_ID AND S6.MBL_SNDNG_TYCD = #{mblSndngTycd} AND NVL(S6.SNDNG_STSCD, CASE WHEN S6.SNDNGYN = 'Y' THEN 'SCS' ELSE 'RSRV' END) = 'RSRV')
+                        AND NOT EXISTS (SELECT 1 FROM TB_LMS_MSG_MBL_SNDNG S7 WHERE S7.MSG_ID = MSG.MSG_ID AND S7.MBL_SNDNG_TYCD = #{mblSndngTycd} AND NVL(S7.SNDNG_STSCD, CASE WHEN S7.SNDNGYN = 'Y' THEN 'SCS' ELSE 'RSRV' END) <![CDATA[<>]]> 'RSRV')
+                        THEN 'Y' ELSE 'N' END AS FULLY_PENDING_YN
+             , SBJCT.SBJCT_YR
+             , SC.DGRS_SMSTR_CHRT AS SBJCT_SMSTR
+             , MSG.SBJCT_ID
+             , SBJCT.SBJCTNM
+             , SC.ORG_ID
+             , ORG.ORGNM
+             , (SELECT S8.SNDNG_PHNNO FROM TB_LMS_MSG_MBL_SNDNG S8 WHERE S8.MSG_ID = MSG.MSG_ID AND S8.MBL_SNDNG_TYCD = #{mblSndngTycd} AND ROWNUM = 1) AS SNDNG_PHNNO
+        FROM TB_LMS_MSG MSG
+                 LEFT JOIN TB_LMS_SBJCT SBJCT ON MSG.SBJCT_ID = SBJCT.SBJCT_ID
+                 LEFT JOIN TB_LMS_SMSTR_CHRT SC ON SBJCT.SMSTR_CHRT_ID = SC.SMSTR_CHRT_ID
+                 LEFT JOIN TB_LMS_ORG ORG ON SC.ORG_ID = ORG.ORG_ID
+        WHERE MSG.MSG_ID = #{msgId}
+        <if test="sndngrId != null and sndngrId != ''">
+            AND MSG.RGTR_ID = #{sndngrId}
+        </if>
+    </select>
+
+    <select id="selectPushSndngRcvrList" parameterType="MsgPushVO" resultType="MsgPushVO">
+        /*
+             SQL ID : MsgPushDAO.selectPushSndngRcvrList
+             설  명 : 푸시 발신 수신자 목록 조회
+         */
+        <include refid="CommonSQL.pagePrefix" />
+        SELECT S.MSG_MBL_SNDNG_ID
+             , S.RCVR_ID
+             , U.USERNM AS RCVRNM
+             , T.READ_DTTM
+             , T.READ_YN
+             , U.STDNT_NO
+             , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = S.RCVR_ID AND UC.CNTCT_TYCD = 'MBL_PHN') AS MBL_PHN
+             , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = S.RCVR_ID AND UC.CNTCT_TYCD = 'INDV_EML') AS EML
+             , S.SNDNGYN AS SNDNG_YN
+             , S.SNDNG_STSCD
+             , S.SNDNG_RSLT_CTS
+             , ROW_NUMBER() OVER (ORDER BY U.USERNM ASC) AS LINE_NO
+             , COUNT(*) OVER () AS TOTAL_CNT
+        FROM TB_LMS_MSG_MBL_SNDNG S
+                 LEFT JOIN TB_LMS_USER U ON S.RCVR_ID = U.USER_ID
+                 LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON S.MSG_ID = T.MSG_ID AND S.RCVR_ID = T.USER_ID
+        WHERE S.MSG_ID = #{msgId}
+          AND S.MBL_SNDNG_TYCD = #{mblSndngTycd}
+        <if test="sndngrId != null and sndngrId != ''">
+            AND EXISTS (SELECT 1 FROM TB_LMS_MSG M WHERE M.MSG_ID = S.MSG_ID AND M.RGTR_ID = #{sndngrId})
+        </if>
+        <include refid="CommonSQL.pageSuffix" />
+        ORDER BY LINE_NO
+    </select>
+
+    <update id="updatePushSndngrDelyn" parameterType="MsgPushVO">
+        /*
+             SQL ID : MsgPushDAO.updatePushSndngrDelyn
+             설  명 : 푸시 발신자 삭제
+         */
+        UPDATE TB_LMS_MSG_MBL_SNDNG
+        SET SNDNGR_DELYN = 'Y'
+        WHERE MSG_ID = #{msgId}
+          AND MBL_SNDNG_TYCD = #{mblSndngTycd}
+          AND SNDNGR_ID = #{sndngrId}
+    </update>
+
+    <insert id="insertMsg" parameterType="MsgPushVO">
+        /*
+             SQL ID : MsgPushDAO.insertMsg
+             설  명 : 메시지 등록
+         */
+        INSERT INTO TB_LMS_MSG (
+                                 MSG_ID
+                               , MSG_TMPLT_ID
+                               , MSG_TYCD
+                               , MSG_CTS_GBNCD
+                               , SBJCT_ID
+                               , DGRS_YR
+                               , SMSTR
+                               , TTL
+                               , TXT_CTS
+                               , HTML_CTS
+                               , RSRV_SNDNG_SDTTM
+                               , RGTR_ID
+                               , REG_DTTM
+        ) VALUES (
+                   #{msgId}
+                 , #{msgTmpltId}
+                 , #{msgTycd}
+                 , 'INDV_MSG'
+                 , #{sbjctId}
+                 , #{dgrsYr}
+                 , #{smstr}
+                 , #{ttl}
+                 , #{txtCts}
+                 , #{htmlCts}
+                 , #{rsrvSndngSdttm}
+                 , #{rgtrId}
+                 , FN_DTTM()
+                 )
+    </insert>
+
+    <insert id="insertRcvTrgtr" parameterType="MsgPushVO">
+        /*
+             SQL ID : MsgPushDAO.insertRcvTrgtr
+             설  명 : 수신 대상자 등록
+         */
+        INSERT INTO TB_LMS_MSG_RCV_TRGTR (
+                                           MSG_ID
+                                         , USER_ID
+                                         , RCVRNM
+                                         , RGTR_ID
+                                         , REG_DTTM
+        ) VALUES (
+                   #{msgId}
+                 , #{rcvrId}
+                 , #{rcvrnm}
+                 , #{rgtrId}
+                 , FN_DTTM()
+                 )
+    </insert>
+
+    <insert id="insertMblSndng" parameterType="MsgPushVO">
+        /*
+             SQL ID : MsgPushDAO.insertMblSndng
+             설  명 : 푸시 발송 등록
+         */
+        INSERT INTO TB_LMS_MSG_MBL_SNDNG (
+                                           MSG_MBL_SNDNG_ID
+                                         , MSG_ID
+                                         , SNDNG_RETRY_SEQNO
+                                         , MBL_SNDNG_TYCD
+                                         , SNDNGNM
+                                         , SNDNG_TTL
+                                         , SNDNG_CTS
+                                         , SNDNG_PHNNO
+                                         , SNDNG_DTTM
+                                         , SNDNGR_ID
+                                         , SNDNGYN
+                                         , SNDNG_STSCD
+                                         , SNDNG_RSLT_CTS
+                                         , RCVR_ID
+                                         , SNDNGR_DELYN
+                                         , RCVR_DELYN
+                                         , RGTR_ID
+                                         , REG_DTTM
+        ) VALUES (
+                   #{msgMblSndngId}
+                 , #{msgId}
+                 , 0
+                 , #{mblSndngTycd}
+                 , CASE WHEN #{sndngnm} IS NOT NULL THEN #{sndngnm} ELSE (SELECT U.USERNM FROM TB_LMS_USER U WHERE U.USER_ID = #{sndngrId}) END
+                 , #{sndngTtl}
+                 , #{sndngCts}
+                 , NVL(REPLACE(NVL(#{sndngrPhnno}, (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = #{sndngrId} AND UC.CNTCT_TYCD = 'MBL_PHN')), '-', ''), '00000000000')
+                 , CASE WHEN #{sndngStscd} = 'RSRV' THEN NULL ELSE FN_DTTM() END
+                 , #{sndngrId}
+                 , #{sndngYn}
+                 , #{sndngStscd}
+                 , #{sndngRsltCts, jdbcType=CLOB}
+                 , #{rcvrId}
+                 , 'N'
+                 , 'N'
+                 , #{rgtrId}
+                 , FN_DTTM()
+                 )
+    </insert>
+
+    <update id="updateMsg" parameterType="MsgPushVO">
+        /*
+             SQL ID : MsgPushDAO.updateMsg
+             설  명 : 메시지 수정
+         */
+        UPDATE TB_LMS_MSG
+        SET TTL = #{ttl}
+          , TXT_CTS = #{txtCts}
+          , HTML_CTS = #{htmlCts}
+          , RSRV_SNDNG_SDTTM = #{rsrvSndngSdttm}
+          , SBJCT_ID = #{sbjctId}
+          , DGRS_YR = #{dgrsYr}
+          , SMSTR = #{smstr}
+          , MDFR_ID = #{mdfrId}
+          , MOD_DTTM = FN_DTTM()
+        WHERE MSG_ID = #{msgId}
+          AND EXISTS (
+              SELECT 1 FROM TB_LMS_MSG_MBL_SNDNG S
+              WHERE S.MSG_ID = #{msgId}
+                AND S.MBL_SNDNG_TYCD = #{mblSndngTycd}
+                AND NVL(S.SNDNG_STSCD, CASE WHEN S.SNDNGYN = 'Y' THEN 'SCS' ELSE 'RSRV' END) = 'RSRV'
+          )
+          AND NOT EXISTS (
+              SELECT 1 FROM TB_LMS_MSG_MBL_SNDNG S2
+              WHERE S2.MSG_ID = #{msgId}
+                AND S2.MBL_SNDNG_TYCD = #{mblSndngTycd}
+                AND NVL(S2.SNDNG_STSCD, CASE WHEN S2.SNDNGYN = 'Y' THEN 'SCS' ELSE 'RSRV' END) <![CDATA[<>]]> 'RSRV'
+          )
+        <if test="sndngrId != null and sndngrId != ''">
+            AND RGTR_ID = #{sndngrId}
+        </if>
+    </update>
+
+    <delete id="deleteRcvTrgtr" parameterType="MsgPushVO">
+        /*
+             SQL ID : MsgPushDAO.deleteRcvTrgtr
+             설  명 : 수신 대상자 삭제
+         */
+        DELETE FROM TB_LMS_MSG_RCV_TRGTR
+        WHERE MSG_ID = #{msgId}
+        <if test="sndngrId != null and sndngrId != ''">
+            AND EXISTS (SELECT 1 FROM TB_LMS_MSG M WHERE M.MSG_ID = #{msgId} AND M.RGTR_ID = #{sndngrId})
+        </if>
+    </delete>
+
+    <delete id="deleteMblSndng" parameterType="MsgPushVO">
+        /*
+             SQL ID : MsgPushDAO.deleteMblSndng
+             설  명 : 푸시 발송 삭제
+         */
+        DELETE FROM TB_LMS_MSG_MBL_SNDNG
+        WHERE MSG_ID = #{msgId}
+          AND MBL_SNDNG_TYCD = #{mblSndngTycd}
+          AND NVL(SNDNG_STSCD, CASE WHEN SNDNGYN = 'Y' THEN 'SCS' ELSE 'RSRV' END) = 'RSRV'
+        <if test="sndngrId != null and sndngrId != ''">
+            AND EXISTS (SELECT 1 FROM TB_LMS_MSG M WHERE M.MSG_ID = #{msgId} AND M.RGTR_ID = #{sndngrId})
+        </if>
+    </delete>
+
+    <update id="updatePushSndngRsrvCncl" parameterType="MsgPushVO">
+        /*
+             SQL ID : MsgPushDAO.updatePushSndngRsrvCncl
+             설  명 : 예약 푸시 취소
+         */
+        UPDATE TB_LMS_MSG_MBL_SNDNG
+           SET SNDNG_STSCD = 'CNCL'
+             , SNDNGYN = 'N'
+             , MDFR_ID = #{mdfrId}
+             , MOD_DTTM = FN_DTTM()
+         WHERE MSG_ID = #{msgId}
+           AND MBL_SNDNG_TYCD = #{mblSndngTycd}
+           AND NVL(SNDNG_STSCD, CASE WHEN SNDNGYN = 'Y' THEN 'SCS' ELSE 'RSRV' END) = 'RSRV'
+        <if test="sndngrId != null and sndngrId != ''">
+            AND EXISTS (SELECT 1 FROM TB_LMS_MSG M WHERE M.MSG_ID = #{msgId} AND M.RGTR_ID = #{sndngrId})
+        </if>
+    </update>
+
+    <update id="updateMsgRsrvCncl" parameterType="MsgPushVO">
+        /*
+             SQL ID : MsgPushDAO.updateMsgRsrvCncl
+             설  명 : 예약 발신 취소
+         */
+        UPDATE TB_LMS_MSG
+        SET RSRV_SNDNG_CNCL_DTTM = FN_DTTM()
+          , MDFR_ID = #{mdfrId}
+          , MOD_DTTM = FN_DTTM()
+        WHERE MSG_ID = #{msgId}
+          AND RSRV_SNDNG_SDTTM IS NOT NULL
+          AND RSRV_SNDNG_CNCL_DTTM IS NULL
+        <if test="sndngrId != null and sndngrId != ''">
+            AND RGTR_ID = #{sndngrId}
+        </if>
+    </update>
+
+    <select id="selectMsgRcvTrgtrList" parameterType="MsgPushVO" resultType="MsgPushVO">
+        /*
+             SQL ID : MsgPushDAO.selectMsgRcvTrgtrList
+             설  명 : 수신 대상자 목록 조회
+         */
+        SELECT T.USER_ID AS RCVR_ID
+             , U.USERNM AS RCVRNM
+             , U.STDNT_NO
+             , U.USER_TYCD
+             , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'MBL_PHN') AS MBL_PHN
+             , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'INDV_EML') AS EML
+             , S.SNDNGYN AS SNDNG_YN
+             , S.SNDNG_STSCD
+             , S.SNDNG_RSLT_CTS
+        FROM TB_LMS_MSG_RCV_TRGTR T
+                 INNER JOIN TB_LMS_USER U ON T.USER_ID = U.USER_ID
+                 LEFT JOIN TB_LMS_MSG_MBL_SNDNG S ON S.MSG_ID = T.MSG_ID AND S.RCVR_ID = T.USER_ID AND S.MBL_SNDNG_TYCD = #{mblSndngTycd}
+        WHERE T.MSG_ID = #{msgId}
+        <if test="sndngrId != null and sndngrId != ''">
+            AND EXISTS (SELECT 1 FROM TB_LMS_MSG M WHERE M.MSG_ID = T.MSG_ID AND M.RGTR_ID = #{sndngrId})
+        </if>
+        ORDER BY U.USERNM ASC
+    </select>
+
+</mapper>

@@ -104,4 +104,5 @@ public interface ExamAbsentDAO {
      * @throws Exception
      ******************************************************/
     public EgovMap selectExamAbsentApplicateYn(ExamAbsentVO vo) throws Exception;
+
 }

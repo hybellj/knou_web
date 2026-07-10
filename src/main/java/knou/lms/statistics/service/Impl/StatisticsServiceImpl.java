@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import knou.framework.common.PageInfo;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
 import org.springframework.stereotype.Service;
@@ -19,48 +20,6 @@ public class StatisticsServiceImpl implements StatisticsService {
     
     @Resource(name="statisticsDAO")
     private StatisticsDAO statisticsDAO;
-    
-    /*****************************************************
-     * 학습진도관리 전체/운영과목 현황 조회
-     * @param SubjectVO
-     * @return List<EgovMap>
-     * @throws Exception
-     ******************************************************/
-    public EgovMap stdntlrnPrgrtStatusSelect(SubjectVO vo) throws Exception {
-    	return statisticsDAO.stdntlrnPrgrtStatusSelect(vo);
-    }
-    
-    /*****************************************************
-     * 학습자 학습진도 현황 목록 조회
-     * @param SubjectVO
-     * @return List<EgovMap>
-     * @throws Exception
-     ******************************************************/
-    @Override
-    public List<EgovMap> stdntLrnPrgrtList(SubjectVO vo) throws Exception {
-        //resultVO.setReturnVO(lessonDAO.selectLessonProgress(vo));
-        return statisticsDAO.stdntLrnPrgrtList(vo);
-    }
-    
-    /*****************************************************
-     * 학습진도관리 > 학과별 전체통계 목록 조회
-     * @param SubjectVO
-     * @return List<EgovMap>
-     * @throws Exception
-     ******************************************************/
-	@Override
-	public List<EgovMap> listLrnPrgrtStatusByDept(SubjectVO vo) throws Exception {
-		return statisticsDAO.listLrnPrgrtStatusByDept(vo);
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
     
     /**
      * ***************************************************

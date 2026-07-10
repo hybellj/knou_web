@@ -1,31 +1,31 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="../common/common_inc.jsp" %><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+	<jsp:include page="../common/common_head.jsp">
         <jsp:param name="module" value="editor,fileuploader"/>
 		<jsp:param name="style" value="classroom"/>
 	</jsp:include>
 </head>
 
-<body class="class colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="class"><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
-        <jsp:include page="/WEB-INF/jsp/common_new/class_header.jsp"/>
+        <jsp:include page="../common/class_header.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
         <!-- //common header -->
 
         <!-- classroom -->
         <main class="common">
 
             <!-- gnb -->
-            <jsp:include page="/WEB-INF/jsp/common_new/class_gnb_prof.jsp"/>
+            <jsp:include page="../common/class_gnb_prof.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
             <!-- //gnb -->
 
             <!-- content -->
             <div id="content" class="content-wrap common">
                 <!-- class_sub_top -->
-				<jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+				<jsp:include page="../common/class_sub_top.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 				<!-- //class_sub_top -->
 
                 <div class="class_sub">
@@ -500,30 +500,34 @@
                                     <div class="title-wrap">
                                         <a class="title" href="#">
                                             <i class="arrow xi-angle-down"></i>
-                                            <strong>1주차</strong>
-                                            <p class="labels">
-                                                <label class="label s_online">온라인</label>
-                                                <label class="label s_finish">마감</label>
-                                            </p>
+                                            <div>
+                                                <strong>성량무가 적용돼요. 적태경적은 항상형을 효율적으로 관리해요. 결무표물은 신작서 기준으로 측정돼요. 이처럼 외체를 최적화하면 하질이 향상돼요.</strong>
+                                            </div>
+                                        </a>
+                                        <div class="meta-action-bar">
                                             <p class="desc">
+                                                <label class="label s_online">공개</label>
+                                                <label class="label s_offline">비공개</label>
+                                                <label class="label s_chasi">순차학습</label>
+                                                <label class="label s_finish">마감</label>
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span>출석<strong>35</strong></span>
                                                 <span>지각<strong>3</strong></span>
                                                 <span>결석<strong>2</strong></span>
                                             </p>
-                                        </a>
-                                        <div class="btn_right">
-                                            <button class="btn s_basic down">음성</button>
-                                            <button class="btn s_basic down">강의노트</button>
-                                            <button class="btn s_type1">출결관리</button>
-                                            <button class="btn s_type2">강의보기</button>
-                                            <div class="dropdown">
-                                                <button type="button" class="btn basic icon set settingBtn" aria-label="주차 관리">
-                                                    <i class="xi-ellipsis-v"></i>
-                                                </button>
-                                                <div class="optionWrap option-wrap">
-                                                    <div class="item"><a href="#0">주차 수정</a></div>
-                                                    <div class="item"><a href="#0">주차 추가</a></div>
+                                            <div class="btn_right">
+                                                <button class="btn s_basic down">음성</button>
+                                                <button class="btn s_basic down">강의노트</button>
+                                                <button class="btn s_type1">출결관리</button>
+                                                <button class="btn s_type2">강의보기</button>
+                                                <div class="dropdown">
+                                                    <button type="button" class="btn basic icon set settingBtn" aria-label="주차 관리">
+                                                        <i class="xi-ellipsis-v"></i>
+                                                    </button>
+                                                    <div class="optionWrap option-wrap">
+                                                        <div class="item"><a href="#0">주차 수정</a></div>
+                                                        <div class="item"><a href="#0">주차 추가</a></div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -660,6 +664,10 @@
                                                         <i class="icon-svg-type-square" aria-hidden="true"></i>
                                                         <span>텍스트</span>
                                                     </a>
+                                                    <a href="#0">
+                                                        <i class="icon-svg-exercise" aria-hidden="true"></i>
+                                                        <span>연습문제</span>
+                                                    </a>
                                                 </div>
                                             </div>
                                             <div class="box_item">
@@ -701,29 +709,31 @@
                                     <div class="title-wrap">
                                         <a class="title" href="#">
                                             <i class="arrow xi-angle-down"></i>
-                                            <strong>2주차</strong>
-                                            <p class="labels">
-                                                <label class="label s_online">온라인</label>
-                                                <label class="label s_ing">공개</label>
-                                            </p>
+                                            <div>
+                                                <strong>2주차</strong>
+                                            </div>
+                                        </a>
+                                        <div class="meta-action-bar">
                                             <p class="desc">
+                                                <label class="label s_online">공개</label>
+                                                <label class="label s_chasi">순차학습</label>
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span>출석<strong>35</strong></span>
                                                 <span>지각<strong>3</strong></span>
                                                 <span>결석<strong>2</strong></span>
                                             </p>
-                                        </a>
-                                        <div class="btn_right">
-                                            <button class="btn s_basic down">강의노트</button>
-                                            <button class="btn s_type1">출결관리</button>
-                                            <button class="btn s_type2">강의보기</button>
-                                            <div class="dropdown">
-                                                <button type="button" class="btn basic icon set settingBtn" aria-label="주차 관리">
-                                                    <i class="xi-ellipsis-v"></i>
-                                                </button>
-                                                <div class="optionWrap option-wrap">
-                                                    <div class="item"><a href="#0">주차 수정</a></div>
-                                                    <div class="item"><a href="#0">주차 추가</a></div>
+                                            <div class="btn_right">
+                                                <button class="btn s_basic down">강의노트</button>
+                                                <button class="btn s_type1">출결관리</button>
+                                                <button class="btn s_type2">강의보기</button>
+                                                <div class="dropdown">
+                                                    <button type="button" class="btn basic icon set settingBtn" aria-label="주차 관리">
+                                                        <i class="xi-ellipsis-v"></i>
+                                                    </button>
+                                                    <div class="optionWrap option-wrap">
+                                                        <div class="item"><a href="#0">주차 수정</a></div>
+                                                        <div class="item"><a href="#0">주차 추가</a></div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -824,26 +834,30 @@
                                     <div class="title-wrap">
                                         <a class="title" href="#">
                                             <i class="arrow xi-angle-down"></i>
-                                            <strong>3주차</strong>
-                                            <p class="labels">
-                                                <label class="label s_online">온라인</label>
-                                            </p>
+                                            <div>
+                                                <strong>3주차</strong>
+                                            </div>
+                                        </a>
+                                        <div class="meta-action-bar">
                                             <p class="desc">
+                                                <label class="label s_ing">비공개</label>
+                                                <label class="label s_finish">마감</label>
+
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span>출석<strong>35</strong></span>
                                                 <span>지각<strong>3</strong></span>
                                                 <span>결석<strong>2</strong></span>
                                             </p>
-                                        </a>
-                                        <div class="btn_right">
-                                            <button class="btn s_type1">세미나 출결관리</button>
-                                            <div class="dropdown">
-                                                <button type="button" class="btn basic icon set settingBtn" aria-label="주차 관리">
-                                                    <i class="xi-ellipsis-v"></i>
-                                                </button>
-                                                <div class="optionWrap option-wrap">
-                                                    <div class="item"><a href="#0">주차 수정</a></div>
-                                                    <div class="item"><a href="#0">주차 추가</a></div>
+                                            <div class="btn_right">
+                                                <button class="btn s_type1">세미나 출결관리</button>
+                                                <div class="dropdown">
+                                                    <button type="button" class="btn basic icon set settingBtn" aria-label="주차 관리">
+                                                        <i class="xi-ellipsis-v"></i>
+                                                    </button>
+                                                    <div class="optionWrap option-wrap">
+                                                        <div class="item"><a href="#0">주차 수정</a></div>
+                                                        <div class="item"><a href="#0">주차 추가</a></div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -965,26 +979,29 @@
                                     <div class="title-wrap">
                                         <a class="title" href="#">
                                             <i class="arrow xi-angle-down"></i>
-                                            <strong>4주차</strong>
-                                            <p class="labels">
-                                                <label class="label s_offline">오프라인</label>
-                                            </p>
+                                            <div>
+                                                <strong>4주차</strong>
+                                            </div>                                            
+                                        </a>
+                                        <div class="meta-action-bar">
                                             <p class="desc">
+                                                <label class="label s_online">공개</label>
+                                                <label class="label s_finish">마감</label>
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span>출석<strong>-</strong></span>
                                                 <span>지각<strong>-</strong></span>
                                                 <span>결석<strong>-</strong></span>
                                             </p>
-                                        </a>
-                                        <div class="btn_right">
-                                            <button class="btn s_type1">출결관리</button>
-                                            <div class="dropdown">
-                                                <button type="button" class="btn basic icon set settingBtn" aria-label="주차 관리">
-                                                    <i class="xi-ellipsis-v"></i>
-                                                </button>
-                                                <div class="optionWrap option-wrap">
-                                                    <div class="item"><a href="#0">주차 수정</a></div>
-                                                    <div class="item"><a href="#0">주차 추가</a></div>
+                                            <div class="btn_right">
+                                                <button class="btn s_type1">출결관리</button>
+                                                <div class="dropdown">
+                                                    <button type="button" class="btn basic icon set settingBtn" aria-label="주차 관리">
+                                                        <i class="xi-ellipsis-v"></i>
+                                                    </button>
+                                                    <div class="optionWrap option-wrap">
+                                                        <div class="item"><a href="#0">주차 수정</a></div>
+                                                        <div class="item"><a href="#0">주차 추가</a></div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -1072,29 +1089,36 @@
                                     <div class="title-wrap">
                                         <a class="title" href="#">
                                             <i class="arrow xi-angle-down"></i>
-                                            <strong>15주차</strong>
-                                            <p class="labels">
-                                                <label class="label s_online">온라인</label>
-                                            </p>
+                                            <div>
+                                                <strong>15주차</strong>
+                                            </div>
+                                        </a>
+
+                                        <div class="meta-action-bar">
                                             <p class="desc">
+                                                <label class="label s_online">공개</label>
+                                                <label class="label s_chasi">순차학습</label>
+                                                <label class="label s_finish">마감</label>
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span>출석<strong>-</strong></span>
                                                 <span>지각<strong>-</strong></span>
                                                 <span>결석<strong>-</strong></span>
                                             </p>
-                                        </a>
-                                        <div class="btn_right">
-                                            <button class="btn s_type1">결시원 현황</button>
-                                            <button class="btn s_type1">장애인/고령자 지원현황</button>
-                                            <div class="dropdown">
-                                                <button type="button" class="btn basic icon set settingBtn" aria-label="주차 관리">
-                                                    <i class="xi-ellipsis-v"></i>
-                                                </button>
-                                                <div class="optionWrap option-wrap">
-                                                    <div class="item"><a href="#0">주차 수정</a></div>
-                                                    <div class="item"><a href="#0">주차 추가</a></div>
+
+                                            <div class="btn_right">
+                                                <button class="btn s_type1">결시원 현황</button>
+                                                <button class="btn s_type1">장애인/고령자 지원현황</button>
+                                                <div class="dropdown">
+                                                    <button type="button" class="btn basic icon set settingBtn" aria-label="주차 관리">
+                                                        <i class="xi-ellipsis-v"></i>
+                                                    </button>
+                                                    <div class="optionWrap option-wrap">
+                                                        <div class="item"><a href="#0">주차 수정</a></div>
+                                                        <div class="item"><a href="#0">주차 추가</a></div>
+                                                    </div>
                                                 </div>
                                             </div>
+
                                         </div>
                                     </div>
 
@@ -1209,6 +1233,7 @@
                         <button type="button" class="btn modal__btn" data-modal-open="modal4">학습자료 수정</button>
                         <button type="button" class="btn modal__btn" data-modal-open="modal5">결시신청 현황</button>
                         <button type="button" class="btn modal__btn" data-modal-open="modal6">출결관리</button>
+                        <button type="button" class="btn modal__btn" data-modal-open="modal7">강의보기</button>
                     </div>
                     <!--// modal popup 보여주기 버튼(개발시 삭제) -->
 
@@ -2191,10 +2216,278 @@
             </div>
         </div>
 
+
+        <!-- Modal 7 -->
+        <div class="modal-overlay" id="modal7" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal1Title" >
+            <div class="modal-content modal-lg" tabindex="-1">
+                <div class="modal-header">
+                    <h2 id="modal1Title">강의보기</h2>
+                    <button class="modal-close" aria-label="닫기"><i class="icon-svg-close"></i></button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="course_history mt0">
+                        <div class="h_top">
+                            <div class="h_left">
+                                <strong class="tit">[1주차] 2강. 무생물주어의 처리</strong>
+                                <p class="desc">
+                                    <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
+                                    <span><strong>30분</strong></span>
+                                    <span><strong>출결대상</strong></span>
+                                </p>
+                            </div>
+                            <div class="h_right">
+                                <button class="btn s_type2 noAfter">나의 학습기록</button>
+                            </div>
+                        </div>
+
+                        <div class="padding-4">
+                            <!-- 학습개요 -->
+                            <h3 class="board-title mb10">학습개요</h3>
+                            <div class="board_top class mb40">
+                                한국어와 다른 영어의 구문상 가장 큰 특징 중의 하는 무생물주어를 많이 쓴다는 점이다.한국어와 다른 영어의 구문상 가장 큰 특징 중의 하는 무생물주어를 많이 쓴다는 점이다.한국어와 다른 영어의 구문상 가장 큰 특징 중의 하는 무생물주어를 많이 쓴다는 점이다.한국어와 다른 영어의 구문상 가장 큰 특징 중의 하는 무생물주어를 많이 쓴다는 점이다.
+                            </div>
+
+                            <!-- 오늘의 학습 -->
+                            <h3 class="board-title mb10">오늘의 학습</h3>
+                            <div class="flex align-center justify-content-between mb10 gap-2">
+                                <p class="flex-shrink-0">학습진행</p>
+                                <div class="learning-progress">
+                                    <span>100% (30분 00초)</span>
+                                    <div class="bar" style="width: 40%;"></div>
+                                </div>
+                            </div>
+                            <div class="video-wrap">
+                                <video controls="" playsinline="">
+                                    <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+                                </video>
+                            </div>
+                            <div class="likeBtn">
+                                <button type="button" class="btn"><i class="xi-heart-o"></i>좋아요<span>2,026</span></button>
+                            </div>
+
+                            <!-- 연습문제 ① -->
+                             <div class="board_top">
+                                <h3 class="board-title mb10">연습문제 ①</h3>
+                                <div class="right-area" style="position: relative; display: inline-block;">
+                                    <button type="button" class="btn s_type2 noAfter" aria-expanded="false" aria-controls="ansBox1">정답확인</button>
+                                    <div class="ansBox" id="ansBox1">
+                                        <table class="table-type3">
+                                            <caption>연습문제 1 정답 정보</caption>
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">문제</th>
+                                                    <th scope="col">정답</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <th data-th="문제">1</th>
+                                                    <td data-th="정답">2</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-th="문제">2</th>
+                                                    <td data-th="정답">-</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-th="문제">3</th>
+                                                    <td data-th="정답">2</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-th="문제">4</th>
+                                                    <td data-th="정답">1</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-th="문제">5</th>
+                                                    <td data-th="정답">4</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-th="문제">6</th>
+                                                    <td data-th="정답">2</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-th="문제">7</th>
+                                                    <td data-th="정답">1</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-th="문제">8</th>
+                                                    <td data-th="정답">4</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-th="문제">9</th>
+                                                    <td data-th="정답">학교</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-th="문제">10</th>
+                                                    <td data-th="정답">-</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                             </div>
+
+                            <div class="quiz_paper_wrap">
+                                <div class="quiz_paper_list">
+                                    <ol>
+                                        <li class="active"><span>1</span></li>
+                                        <li class="active"><span>2</span></li>
+                                        <li><span>3</span></li>
+                                        <li><span>4</span></li>
+                                        <li><span>5</span></li>
+                                        <li><span>6</span></li>
+                                        <li><span>7</span></li>
+                                        <li><span>8</span></li>
+                                        <li><span>9</span></li>
+                                        <li><span>10</span></li>
+                                    </ol>
+                                </div>
+                            </div>
+
+                            <div class="course_history bd0">
+                                <div class="question_area pd0">
+                                    <div class="question_con">
+                                        <div class="q_top">
+                                            <div class="flex-item width-100per">
+                                                <p class="flex-none mr15"><b>문제1</b></p>
+                                                <div class="flex-1 tal">Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</div>
+                                            </div>
+                                        </div>
+                                        <div class="q_cont">
+                                            <ol class="q_cont_ans">
+                                                <li>
+                                                    <input type="radio" name="q2_ans" id="q1_ans1">
+                                                    <label for="q1_ans1"><span class="ansNum">1</span>나무</label>
+                                                </li>
+                                                <li>
+                                                    <input type="radio" name="q2_ans" id="q1_ans2">
+                                                    <label for="q1_ans2"><span class="ansNum">2</span>돌</label>
+                                                </li>
+                                                <li>
+                                                    <input type="radio" name="q2_ans" id="q1_ans3" checked="">
+                                                    <label for="q1_ans3"><span class="ansNum">3</span>바다</label>
+                                                </li>
+                                                <li>
+                                                    <input type="radio" name="q2_ans" id="q1_ans4">
+                                                    <label for="q1_ans4"><span class="ansNum">4</span>산</label>
+                                                </li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="course_history bd0">
+                                <div class="question_area pd0">
+                                    <div class="question_con">
+                                        <div class="q_top">
+                                            <div class="flex-item width-100per">
+                                                <p class="flex-none mr15"><b>문제2</b></p>
+                                                <div class="flex-1 tal">다음 문장을 한국어로 번역하세요. 연습문제를 푼 후 구글 클래스룸의 복습하기를 작성하시면 됩니다.<br>
+                                                    The innovative engine design makes this automobile quieter and more fuel efficient</div>
+                                            </div>
+                                        </div>
+                                        <div class="q_cont">
+                                            <div class="q_cont_ans">
+                                            <textarea name="" id="" placeholder="서술형 주관식 입력란" class="width-100per"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="h_content pd0">
+                                <ul class="accordion course_week">
+                                    <li><!-- 클릭시 active 추가 -->
+                                        <div class="title-wrap">                                      
+                                            <a class="title" href="#">                                                
+                                                <div class="lecture_box work">
+                                                    <div class="lecture_tit">
+                                                        <p class="labels">
+                                                            <label class="label s_online">강의</label>
+                                                        </p>
+                                                        <strong>콘텐츠 제목 1</strong>                                                    
+                                                    </div>
+                                                    <p class="desc">
+                                                        <span>학습기간<strong>2026.03.10 10:00 ~ 2026.03.16 22:00</strong></span>                                    
+                                                    </p>
+                                                    <i class="arrow xi-angle-down"></i>
+                                                </div>
+                                            </a>
+                                        </div>
+                                        <div class="cont">
+                                            <div class="flex align-center justify-content-between mb10 gap-2">
+                                                <p class="flex-shrink-0">학습진행</p>
+                                                <div class="learning-progress">
+                                                    <span>100% (30분 00초)</span>
+                                                    <div class="bar" style="width: 40%;"></div>
+                                                </div>
+                                            </div>
+                                            <div class="video-wrap">
+                                                <video controls="" playsinline="">
+                                                    <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+                                                </video>
+                                            </div>
+                                            <div class="likeBtn mb0">
+                                                <button type="button" class="btn"><i class="xi-heart-o"></i>좋아요<span>2,026</span></button>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="modal_btns">
+                        <button type="button" class="btn type2">학습종료</button>
+                    </div>                    
+                </div>
+
+            </div>
+        </div>
+
+        
         <script src="<%=request.getContextPath()%>/webdoc/assets/js/modal.js" defer></script>
 
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const likeButton = document.querySelector('.likeBtn .btn');
+                if (likeButton) {
+                    likeButton.addEventListener('click', function() {
+                        const icon = this.querySelector('i');
+                        const countSpan = this.querySelector('span');
+                        let currentCount = parseInt(countSpan.textContent.replace(/,/g, ''));
+                        this.classList.toggle('active');
+
+                        if (icon.classList.contains('xi-heart-o')) {
+                            icon.classList.remove('xi-heart-o');
+                            icon.classList.add('xi-heart');
+                            countSpan.textContent = (currentCount + 1).toLocaleString();
+                        } else {
+                            icon.classList.remove('xi-heart');
+                            icon.classList.add('xi-heart-o');
+                            countSpan.textContent = (currentCount - 1).toLocaleString();
+                        }
+                    });
+                }
+
+                // 정답확인 버튼 토글 기능
+                const ansBtn = document.querySelector('button[aria-controls="ansBox1"]');
+                if (ansBtn) {
+                    ansBtn.addEventListener('click', function() {
+                        const targetId = this.getAttribute('aria-controls');
+                        const targetBox = document.getElementById(targetId);
+                        const isVisible = targetBox.style.display !== 'none';
+
+                        targetBox.style.display = isVisible ? 'none' : 'block';
+                        this.setAttribute('aria-expanded', !isVisible);
+                    });
+                }
+            });
+        </script>
     </div>
 
 </body>
 </html>
-

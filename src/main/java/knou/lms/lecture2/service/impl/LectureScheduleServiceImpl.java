@@ -1,14 +1,14 @@
 package knou.lms.lecture2.service.impl;
 
-import knou.lms.common.dto.BaseParam;
-import knou.lms.lecture2.dao.LectureScheduleDAO;
-import knou.lms.lecture2.service.LectureScheduleService;
+import java.util.List;
 
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import knou.lms.common.dto.CommonDTO;
+import knou.lms.lecture2.dao.LectureScheduleDAO;
+import knou.lms.lecture2.service.LectureScheduleService;
 
 
 @Service("lectureScheduleService")
@@ -25,8 +25,8 @@ public class LectureScheduleServiceImpl implements LectureScheduleService {
      * @throws Exception
      ******************************************************/
     @Override
-    public List<EgovMap> lectureScheduleList(BaseParam param) throws Exception {
-        return lectureScheduleDAO.lectureScheduleList(param);
+    public List<EgovMap> lectureScheduleList(CommonDTO cmmnDto){
+        return lectureScheduleDAO.lectureScheduleList(cmmnDto);
     }
 
     /*****************************************************
@@ -36,8 +36,8 @@ public class LectureScheduleServiceImpl implements LectureScheduleService {
      * @throws Exception
      ******************************************************/
     @Override
-    public EgovMap thisWeekLectureSelect(BaseParam param) throws Exception {
-        return lectureScheduleDAO.thisWeekLectureSelect(param);
+    public EgovMap thisWeekLectureSelect(CommonDTO cmmnDto){
+        return lectureScheduleDAO.thisWeekLectureSelect(cmmnDto);
     }
 
     /*****************************************************
@@ -47,8 +47,8 @@ public class LectureScheduleServiceImpl implements LectureScheduleService {
      * @throws Exception
      ******************************************************/
     @Override
-    public List<EgovMap> profLectureScheduleList(BaseParam param) throws Exception {
-        return lectureScheduleDAO.profLectureScheduleList(param);
+    public List<EgovMap> profLectureScheduleList(CommonDTO cmmnDto){
+        return lectureScheduleDAO.profLectureScheduleList(cmmnDto);
     }
 
     /*****************************************************
@@ -58,7 +58,7 @@ public class LectureScheduleServiceImpl implements LectureScheduleService {
      * @throws Exception
      ******************************************************/
     @Override
-    public List<EgovMap> byWeeknoLectureSchdlList(BaseParam param) throws Exception {
-        return lectureScheduleDAO.byWeeknoLectureSchdlList(param);
+    public List<EgovMap> byWeeknoLectureSchdlList(CommonDTO cmmnDto) {
+        return lectureScheduleDAO.byWeeknoLectureSchdlList(cmmnDto);
     }
 }

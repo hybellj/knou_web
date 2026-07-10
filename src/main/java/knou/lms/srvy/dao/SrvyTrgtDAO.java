@@ -8,20 +8,13 @@ import knou.lms.srvy.vo.SrvyTrgtVO;
 @Mapper("srvyTrgtDAO")
 public interface SrvyTrgtDAO {
 
-	/**
-	 * 설문대상등록
-	 *
-	 * @param SrvyTrgtVO
-	 * @throws Exception
-	 */
-	public void srvyTrgtRegist(SrvyTrgtVO vo) throws Exception;
+	// 설문대상등록
+	public void srvyTrgtRegist(SrvyTrgtVO vo);
 
-	/**
-	 * 설문대상삭제
-	 *
-	 * @param srvyId 	설문아이디
-	 * @throws Exception
-	 */
-	public void srvyTrgtrDelete(@Param("srvyId") String srvyId) throws Exception;
+	// 설문대상삭제
+	public void srvyTrgtrDelete(@Param("srvyId") String srvyId);
+
+	// 설문대상유형코드수정
+	public void srvyTrgtTycdModify(SrvyTrgtVO vo);
 
 }

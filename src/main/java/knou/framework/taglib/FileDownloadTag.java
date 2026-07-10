@@ -14,6 +14,7 @@ import javax.servlet.jsp.tagext.TagSupport;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import knou.framework.common.CommConst;
 import knou.framework.common.Message;
 import knou.framework.util.DateTimeUtil;
 import knou.framework.util.FileUtil;
@@ -31,6 +32,9 @@ public class FileDownloadTag extends TagSupport {
 	private AtflVO atflVO = null;
 	private List<AtflVO> fileList = null;
 
+	private static final java.util.List<String> DOC_EXTS =
+		    java.util.Arrays.asList(CommConst.DOC_CONVERT_EXTS);
+
 	public int doEndTag() throws JspException {
 		try {
 			StringBuffer tag = new StringBuffer();
@@ -47,7 +51,7 @@ public class FileDownloadTag extends TagSupport {
 			if (fileList != null && fileList.size() > 0) {
 				tag.append("<ul class='add_file'>");
 
-				for (AtflVO vo : fileList) {
+				/* for (AtflVO vo : fileList) {
 					tag.append("<li>");
 					tag.append("<a href='#_' class='file_down' onclick='UiFileDownloader(\""+vo.getEncDownParam()+"\");return false;' title='File download'>");
 					tag.append("<i class='icon-svg-paperclip' aria-hidden='true'></i>");
@@ -60,6 +64,26 @@ public class FileDownloadTag extends TagSupport {
 					tag.append("</a>");
 					tag.append("</li>");
 				}
+				*/
+				for (AtflVO vo : fileList) {
+				    tag.append("<li>");
+				    tag.append("<a href='#_' class='file_down' onclick='UiFileDownloader(\"" + vo.getEncDownParam() + "\");return false;' title='File download'>");
+				    tag.append("<i class='icon-svg-paperclip' aria-hidden='true'></i>");
+				    tag.append("<span class='text'>" + vo.getFilenm() + "</span>");
+				    tag.append("<span class='fileSize'>(" + FileUtil.getFileSizeConvertKByte(vo.getFileSize()) + ")</span>");
+				    tag.append("</a>");
+				    tag.append("<span class='link'>");
+
+				    String ext = (vo.getFileExt() != null) ? vo.getFileExt().toLowerCase() : "";
+                    if (DOC_EXTS.contains(ext) && vo.getAtflId() != null && !"".equals(vo.getAtflId())) {
+                        tag.append("<button class='btn s_basic view' onclick='SynapViewer(\"" + vo.getAtflId() + "\");return false;'>뷰어</button>");
+				    }
+
+				    tag.append("<button class='btn s_basic down' onclick='UiFileDownloader(\"" + vo.getEncDownParam() + "\");return false;'>" + message.getMessage("button.download") + "</button>");
+				    tag.append("</span>");
+				    tag.append("</li>");
+				}
+
 
 				tag.append("</ul>");
 			}

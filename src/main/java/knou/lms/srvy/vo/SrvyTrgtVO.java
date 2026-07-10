@@ -10,6 +10,7 @@ public class SrvyTrgtVO extends DefaultVO {
 	private String srvyTrgtrId;		// 설문대상아이디
 	private String srvyId;			// 설문아이디
 	private String teamId;			// 팀아이디
+	private String srvyTrgtTycd;	// 설문대상유형코드
 
 	public String getSrvyTrgtrId() {
 		return srvyTrgtrId;
@@ -20,6 +21,9 @@ public class SrvyTrgtVO extends DefaultVO {
 	public String getTeamId() {
 		return teamId;
 	}
+	public String getSrvyTrgtTycd() {
+		return srvyTrgtTycd;
+	}
 	public void setSrvyTrgtrId(String srvyTrgtrId) {
 		this.srvyTrgtrId = srvyTrgtrId;
 	}
@@ -29,5 +33,7 @@ public class SrvyTrgtVO extends DefaultVO {
 	public void setTeamId(String teamId) {
 		this.teamId = teamId;
 	}
-
+	public void setSrvyTrgtTycd(String srvyTrgtTycd) {
+		this.srvyTrgtTycd = srvyTrgtTycd;
+	}
 }

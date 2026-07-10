@@ -74,7 +74,7 @@
 		     	, CASE WHEN B.LGN_CNTNU_FAIL_CNT >= (SELECT STNG_VL
 		                                             FROM TB_SYS_CFG
 		                                             WHERE STNG_CTGRCD = 'LOGIN' AND STNG_CD = 'FAILCNT')
-		               THEN 	CASE 	WHEN 	TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') 
+		               THEN 	CASE 	WHEN 	TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
 		               									- NVL(B.LOGIN_FAIL_DTTM, '19900101000001') < ( 	SELECT STNG_VL
 																			   							FROM TB_SYS_CFG
 											  															WHERE STNG_CTGRCD = 'LOGIN' AND STNG_CD = 'GAPTIME')
@@ -330,30 +330,35 @@
         설 	명	: 사용자의 정보 조회
         */
         SELECT	A.*
-        		, ( SELECT  ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM
+        		, ( SELECT MAX(O.ORGNM)
+				      FROM   TB_LMS_ORG O
+				     WHERE  O.ORG_ID IN ( SELECT UA.ORG_ID
+				                            FROM   TB_LMS_USER_AUTHRT UA
+				                           WHERE  UA.USER_ID = A.USER_ID )
+				) AS ORGNM
         		, (	SELECT 	MAX(AUTHRT_ID)
         			FROM 	TB_LMS_USER_AUTHRT
-        			WHERE 	USER_ID = A.USER_ID) AS ADMIN_AUTH_GRP_CD        			
+        			WHERE 	USER_ID = A.USER_ID) AS ADMIN_AUTH_GRP_CD
         		, (	SELECT 	MAX(USER_AUTHRT_ID)
         			FROM 	TB_LMS_USER_AUTHRT
-        			WHERE 	USER_ID = A.USER_ID) AS WWW_AUTH_GRP_CD        			
-        		, SUBSTR(A.USERNM, -2) AS USER_NAME 
+        			WHERE 	USER_ID = A.USER_ID) AS WWW_AUTH_GRP_CD
+        		, SUBSTR(A.USERNM, -2) AS USER_NAME
 		FROM 	TB_LMS_USER A
         WHERE 	1 = 1
        			AND 	A.USER_ID = #{userId}
         <!-- 	SELECT	*
-        		, NVL(A.PRFIL_PHOTO_FILE_ID, 0) AS PRFIL_PHOTO_FILE_ID		        
-		        , (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM		        
+        		, NVL(A.PRFIL_PHOTO_FILE_ID, 0) AS PRFIL_PHOTO_FILE_ID
+		        , (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = A.ORG_ID) AS ORGNM
 		        , CASE 	WHEN REGEXP_LIKE(A.USER_GRADE, '[^0-9]')
         				THEN A.USER_GRADE
         				ELSE '-'
-        		  END AS USER_GRADE		        
+        		  END AS USER_GRADE
         		, (	SELECT 	MAX(MENU_TYCD)
         			FROM 	TB_LMS_USER_AUTHRT
-        			WHERE 	USER_ID = A.USER_ID) AS ADMIN_AUTH_GRP_CD        			
+        			WHERE 	USER_ID = A.USER_ID) AS ADMIN_AUTH_GRP_CD
         		, (	SELECT 	MAX(USER_AUTHRT_ID)
         			FROM 	TB_LMS_USER_AUTHRT
-        			WHERE 	USER_ID = A.USER_ID) AS WWW_AUTH_GRP_CD        			
+        			WHERE 	USER_ID = A.USER_ID) AS WWW_AUTH_GRP_CD
         		, (	SELECT 	LISTAGG(BB.CDNM, ',') WITHIN GROUP (ORDER BY BB.CDNM)
         			FROM 	TB_LMS_USER_AUTHRT AA
         					JOIN TB_ORG_CODE BB ON BB.CD = AA.USER_AUTHRT_ID AND BB.CTGRCD = 'USER_TYPE'
@@ -362,7 +367,7 @@
         		, SUBSTR(A.USERNM, -2) AS USER_NAME
         		, NVL(( SELECT 	CASE UNI_GBN WHEN 'U' THEN 'C' ELSE UNI_GBN END
         				FROM 	TB_HOME_USER_DEPT_CD
-       					WHERE 	DEPT_CD = A.DEPT_CD 
+       					WHERE 	DEPT_CD = A.DEPT_CD
         						AND ORG_ID = A.ORG_ID
         				), 'P') 	AS UNIT_CD
         		, NVL(( SELECT 	SCYR
@@ -679,7 +684,7 @@
              , TKN_EML
         FROM TB_LMS_USR
         WHERE TC_ID = #{tcId} LIMIT 1
-    </select>    
+    </select>
 
     <select id="selectUserByDisabilityCancelGbn" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">
         /*
@@ -1254,7 +1259,7 @@
         ON A.USER_ID = B.USER_ID
         ORDER BY A.USER_ORDER, B.USERNM
         ) A
-        <include refid="CommonSQL.pageSubfix"/>
+        <include refid="CommonSQL.pageSuffix"/>
     </select>
 
     <select id="listSearchByKnouUser" parameterType="usrUserInfoVO" resultType="usrUserInfoVO">

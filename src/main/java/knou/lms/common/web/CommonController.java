@@ -10,6 +10,9 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -19,25 +22,35 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
-import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import knou.framework.common.CommConst;
 import knou.framework.common.ControllerBase;
 import knou.framework.common.MainOrgInfo;
+import knou.framework.common.MenuInfo;
+import knou.framework.common.PageInfo;
+import knou.framework.common.ParamInfo;
 import knou.framework.common.SessionInfo;
+import knou.framework.context2.UserContext;
 import knou.framework.exception.BadRequestUrlException;
 import knou.framework.exception.SessionBrokenException;
 import knou.framework.util.LocaleUtil;
 import knou.framework.util.StringUtil;
 import knou.framework.util.ValidationUtils;
+import knou.lms.common.dto.ResultDTO;
+import knou.lms.common.service.CommonService;
 import knou.lms.common.service.SysFileService;
 import knou.lms.common.vo.DefaultVO;
+import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.crs.crecrs.service.CrecrsService;
 import knou.lms.crs.crecrs.vo.CreCrsVO;
 import knou.lms.log.lesson.service.LogLessonActnHstyService;
 import knou.lms.log.userconn.service.LogUserConnService;
+import knou.lms.menu.vo.MenuVO;
 import knou.lms.org.vo.OrgInfoVO;
 import knou.lms.std.service.StdService;
 import knou.lms.std.vo.StdVO;
+import knou.lms.user.CurrentUser;
+import knou.lms.user.service.UserService;
+import knou.lms.user.vo.UserVO;
 
 /**
  * 공통 Controller
@@ -64,6 +77,12 @@ public class CommonController extends ControllerBase {
 
     @Resource(name = "sysFileService")
     private SysFileService sysFileService;
+
+    @Resource(name="commonService")
+    private CommonService commonService;
+
+    @Resource(name="userService")
+    private UserService userService;
 
     /**
      * 페이지 이동
@@ -340,5 +359,98 @@ public class CommonController extends ControllerBase {
         else {
             return "redirect:/";
         }
+    }
+
+    /**
+     * 관리자 서브메뉴 가져오기 Ajax
+     * @param request
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value="/common/adminSubmenuAjax.do")
+    @ResponseBody
+    public ProcessResultVO<MenuVO> adminSubmenuAjax(HttpServletRequest request, MenuVO menuVO) {
+    	ProcessResultVO<MenuVO> resultVO = new ProcessResultVO<>();
+
+    	try {
+        	menuVO.setMenuGbncd(CommConst.AUTHRT_GRPCD_ADM);
+        	List<MenuVO> subMenuList = MenuInfo.getSubMenuInfo(request, menuVO);
+
+        	resultVO.setReturnList(subMenuList);
+        	resultVO.setResult(1);
+		} catch (Exception e) {
+			resultVO.setResult(-1);
+			resultVO.setMessage(e.getMessage());
+		}
+
+    	return resultVO;
+    }
+
+    /**
+     * 기관별 학기기수목록조회
+     * @param	PageInfo
+     * @return	ResultDTO
+     */
+    @RequestMapping(value={"/common/admYrSmstrSelect.do", "/common/yrSmstrSelect.do"})
+    @ResponseBody
+    public ResultDTO<EgovMap> admYrSmstrSelect(PageInfo pageInfo, @CurrentUser UserContext userCtx) {
+        // 관리자가 아닌 경우만 처리하도록 수정.(시스템 관리자는 모든 기관을 선택할 수 있어야 함)
+        if (!CommConst.AUTHRT_CD_ADM.equals(userCtx.getAuthrtCd())) {
+            pageInfo.setOrgId(userCtx.getLoginUser().getOrgId());
+        }
+        return new ResultDTO<EgovMap>().setReturnList(commonService.yrSmstrSelect(pageInfo)).setResultSuccess();
+    }
+
+    /**
+     * 언어 변경
+     * @param vo
+     * @param request
+     * @param response
+     * @param modelMap
+     * @return
+     * @throws Exception
+     */
+    @RequestMapping(value="/common/changeLang.do")
+    public String changeLang(DefaultVO vo, HttpServletRequest request, HttpServletResponse response, ModelMap modelMap) throws Exception {
+    	String sbjctId = StringUtil.nvl(request.getParameter("sbjctId"));
+    	String language = StringUtil.nvl(request.getParameter("language"));
+    	UserContext userContext = SessionInfo.getUserContext(request);
+    	String userId = "";
+
+    	if (userContext != null) {
+    		userId = StringUtil.nvl(userContext.getUserId());
+    	}
+
+        if (!"".equals(language) && !"".equals(userId)) {
+        	userContext.setLangCd(language);
+            LocaleUtil.setLocale(request, language);
+
+            UserVO userVO = new UserVO();
+            userVO.setUserId(userId);
+	        userVO = userService.userSelect(userId);
+
+            if (userVO != null) {
+	            String conf = StringUtil.nvl(userVO.getUserEnvStngCts());
+
+	            if (StringUtil.isNull(conf)) {
+	                conf = "{}";
+	            }
+
+	            JSONParser parser = new JSONParser();
+	            JSONObject jsonObject = (JSONObject) parser.parse(conf);
+	            jsonObject.put("langCd", language);
+	            userVO.setUserEnvStngCts(jsonObject.toJSONString());
+
+	            //개인환경설정 저장
+	            userService.userStngModify(userVO);
+	        }
+        }
+
+        String url = "/";
+        if (!"".equals(sbjctId)) {
+        	url = "/subject/subject.do?sbjctId="+sbjctId;
+        }
+
+    	return "redirect:"+url;
     }
 }

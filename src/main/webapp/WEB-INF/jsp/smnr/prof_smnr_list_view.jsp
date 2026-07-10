@@ -10,114 +10,117 @@
 	</jsp:include>
 
 	<script type="text/javascript">
-		var dialog;
+		var SEARCH_VALUE	= '<c:out value="${vo.searchValue}" />';
+		var PAGE_INDEX		= '<c:out value="${vo.pageIndex}" />';
+		var LIST_SCALE		= '<c:out value="${vo.listScale}" />';
 
 		$(document).ready(function () {
-			smnrListSelect(1);
-
 			$("#searchValue").on("keyup", function(e) {
 				if(e.keyCode == 13) {
 					smnrListSelect(1);
 				}
 			});
+
+			if(!PAGE_INDEX) {
+				PAGE_INDEX = 1;
+			}
+
+			smnrListSelect(PAGE_INDEX);
 		});
 
 		// list scale 변경
-		function changeListScale() {
+		function changeListScale(scale) {
+			LIST_SCALE = scale;
 			smnrListSelect(1);
 		}
 
 		/**
 		 * 세미나목록조회
-		 * @param {Integer} pageIndex 		- 현재 페이지
-		 * @param {String}  listScale 		- 페이징 목록 수
-		 * @param {String}  sbjctId 		- 과목아이디
-		 * @param {String}  searchValue 	- 검색어(세미나명)
-		 * @returns {list} 세미나목록
+		 * @param page	이동페이지
 		 */
-		function smnrListSelect(page) {
-			var url = "/smnr/profSmnrListAjax.do";
-			var data = {
-				"pageIndex" 	: page,
-				"listScale" 	: $('[id^="listScale"]').eq(0).val(),
-				"sbjctId"		: "${sbjctId}",
-				"searchValue" 	: $("#searchValue").val()
+		function smnrListSelect(pageNo) {
+			PAGE_INDEX   = pageNo;
+			SEARCH_VALUE = $("#searchValue").val();
+
+			const url   = "/smnr/profSmnrListAjax.do";
+			const param = {
+				currentPageNo 		: PAGE_INDEX,
+				recordCountPerPage 	: LIST_SCALE,
+				searchValue 		: SEARCH_VALUE,
+				pageSize 			: 10,
+				sbjctId				: "${vo.sbjctId}"
 			};
 
-			UiComm.showLoading(true);
 			$.ajax({
-	            url 	 : url,
-	            async	 : false,
-	            type 	 : "POST",
-	            dataType : "json",
-	            data 	 : data,
-	        }).done(function(data) {
-	        	UiComm.showLoading(false);
-	        	if (data.result > 0) {
-	        		var returnList = data.returnList || [];
-	        		var dataList = createSmnrListHTML(returnList);	// 세미나 리스트 HTML 생성
+                url			: url,
+                type		: "POST",
+                data		: param,
+                dataType	: "json",
+                beforeSend	: () => UiComm.showLoading(true),
+                success		: function(data) {
+                    if (data.result > 0) {
+    	            	let dataList = createSmnrListHTML(data.returnList);	// 세미나 리스트 HTML 생성
 
-	        		smnrListTable.clearData();
-	        		smnrListTable.replaceData(dataList);
-	        		smnrListTable.setPageInfo(data.pageInfo);
-	        		UiInputmask();
+    	        		smnrListTable.clearData();
+    	        		smnrListTable.replaceData(dataList);
+    	        		smnrListTable.setPageInfo(data.pageInfo);
+    	        		UiInputmask();
 
-	        		mrkRfltrtFrmTrsf(2);	// 성적반영비율폼변환
-	            } else {
-	            	UiComm.showMessage(data.message, "error");
-	            }
-	        }).fail(function() {
-	        	UiComm.showLoading(false);
-	        	UiComm.showMessage("<spring:message code='exam.error.list' />", "error");/* 리스트 조회 중 에러가 발생하였습니다. */
-	        });
+    	        		mrkRfltrtFrmTrsf(2);	// 성적반영비율폼변환
+                    } else {
+                    	UiComm.showMessage(data.message, "error");
+                    }
+                },
+                error		: () => UiComm.showMessage("<spring:message code='exam.error.list' />", "error"),/* 리스트 조회 중 에러가 발생하였습니다. */
+                complete	: () => UiComm.showLoading(false)
+            });
 		}
 
 		 /**
 		  * 성적반영비율폼변환
-		  * @param {Integer} type - 변환 타입 번호 ( 1 : 입력폼 활성화, 2 : 취소)
+		  * @param type - 변환 타입 번호 ( 1 : 입력폼 활성화, 2 : 취소)
 		  */
 		function mrkRfltrtFrmTrsf(type) {
 			if(type == 1) {
 				if($("span.list-card-button > button").hasClass("card")) {
 					$("span.list-card-button > button").trigger("click");
 				}
-				$("#mrkRfltrtFrmTrsfBtn").hide();
-				$(".mrkRfltrtFrmTrsfDiv").css("display", "inline-block");
-				$(".mrkInputDiv").show();
-				$(".mrkRfltrtDiv").hide();
-			} else {
-				$("#mrkRfltrtFrmTrsfBtn").css("display", "inline-block");
-				$(".mrkRfltrtFrmTrsfDiv").hide();
-				$(".mrkInputDiv").hide();
-				$(".mrkRfltrtDiv").show();
 			}
+			$(".mrkInputDiv").toggle(type == 1);
+			$("#mrkRfltrtFrmTrsfBtn").toggle(type != 1);
+			$(".mrkRfltrtFrmTrsfDiv").toggleClass("hidden", type != 1);
+			$(".mrkRfltrtDiv").toggleClass("hidden", type == 1);
 		}
 
 		// 성적반영비율수정
 		function mrkRfltrtModify() {
-			var isMrkCheck = true;		// 성적 합계 확인 유무
-			var sumMrkRfltrt = 0;		// 성적반영비율 합계
-			var smnrMrkList = [];		// 세미나 성적 목록
+			let isMrkCheck 			= true;		// 성적 합계 확인 유무
+			let sumMrkRfltrt 		= 0;		// 성적반영비율 합계
+			let prevSumMrkRfltrt	= 0;		// 기존 성적반영비율 합계
+			let smnrMrkList 		= [];		// 세미나 성적 목록
 
 			$(".mrkRfltrt").each(function(i) {
-				if(Number($(this).val()) < 0 || Number($(this).val()) > 100) {
-					UiComm.showMessage("<spring:message code='exam.alert.score.max.100' />", "info");/* 점수는 100점 까지 입력 가능 합니다. */
-					isMrkCheck = false;
-					return false;
-				}
-				if(Number($(this).val()) == 0) {
-					UiComm.showMessage("<spring:message code='exam.alert.score.ratio.0' />", "info");/* 0점은 입력할 수 없습니다. 다른 값을 입력해주세요. */
+				const mrk = Number($(this).val());
+
+				if(mrk <= 0 || mrk > 100) {
+					const msg = mrk == 0 ? "<spring:message code='exam.alert.score.ratio.0' />"/* 0점은 입력할 수 없습니다. 다른 값을 입력해주세요. */ : "<spring:message code='exam.alert.score.max.100' />"/* 점수는 100점 까지 입력 가능 합니다. */;
+					UiComm.showMessage(msg, "info");
 					isMrkCheck = false;
 					return false;
 				}
 
-				sumMrkRfltrt += Number($(this).val());
+				// 소수점 2자리 변환
+				const val 	  = parseFloat(mrk.toFixed(2));
+			    const prevVal = parseFloat(parseFloat($(this).attr("data-mrkRfltrt")).toFixed(2));
 
-				var smnrMrk = {
-					smnrId : $(this).attr("data-smnrId"),	// 세미나아이디
-					mrkRfltrt : $(this).val()				// 성적반영비율
-				};
-				smnrMrkList.push(smnrMrk);
+			    // 정수로 합산
+				sumMrkRfltrt 	 += Math.round(val * 100);
+				prevSumMrkRfltrt += Math.round(prevVal * 100);
+
+				smnrMrkList.push({
+					srvyId 		: $(this).attr("data-smnrId"),	// 세미나아이디
+					mrkRfltrt 	: val							// 성적반영비율
+				});
 			});
 
 			if($(".mrkRfltrt").length == 0) {
@@ -126,34 +129,29 @@
 			}
 
 			if(isMrkCheck) {
-				if(Number(sumMrkRfltrt) != 100) {
-					UiComm.showMessage("["+sumMrkRfltrt+"] <spring:message code='exam.alert.always.exam.score.ratio.100' />", "info");/* 상시 성적 반영 비율이 100%여야 합니다. */
+				if(sumMrkRfltrt !== prevSumMrkRfltrt) {
+					UiComm.showMessage("기존성적반영비율 : " + (prevSumMrkRfltrt / 100).toFixed(2) +
+									   " / 새성적반영비율 : " + (sumMrkRfltrt / 100).toFixed(2) +
+									   " 성적반영비율 합계가 일치하지 않습니다.", "info");
 					return false;
 				} else {
 					$.ajax({
-		                url: "/smnr/smnrMrkRfltrtModifyAjax.do",
-		                type: "POST",
-		                contentType: "application/json",
-		                data: JSON.stringify(smnrMrkList),
-		                dataType: "json",
-		                beforeSend: function () {
-		                	UiComm.showLoading(true);
-		                },
-		                success: function (data) {
+		                url			: "/smnr/smnrMrkRfltrtModifyAjax.do",
+		                type		: "POST",
+		                contentType	: "application/json",
+		                data		: JSON.stringify(smnrMrkList),
+		                dataType	: "json",
+		                beforeSend	: () => UiComm.showLoading(true),
+		                success		: function (data) {
 		                    if (data.result > 0) {
 		                    	UiComm.showMessage("<spring:message code='exam.alert.insert' />", "success");/* 정상 저장 되었습니다. */
 				        		smnrListSelect(1);
 		                    } else {
 		                    	UiComm.showMessage(data.message, "error");
 		                    }
-		                    UiComm.showLoading(false);
 		                },
-		                error: function (xhr, status, error) {
-		                	UiComm.showMessage("<spring:message code='exam.error.score.ratio' />", "error");/* 반영 비율 저장 중 에러가 발생하였습니다. */
-		                },
-		                complete: function () {
-		                	UiComm.showLoading(false);
-		                },
+		                error		: () => UiComm.showMessage("<spring:message code='exam.error.score.ratio' />", "error"),/* 반영 비율 저장 중 에러가 발생하였습니다. */
+		                complete	: () => UiComm.showLoading(false)
 		            });
 				}
 			}
@@ -161,69 +159,48 @@
 
 		/**
 		 * 성적공개여부수정
-		 * @param {String} smnrId	- 세미나아이디
-		 * @param {String} mrkOyn 	- 성적공개여부
+		 * @param obj - 수정할객체
 		 */
-		document.addEventListener('change', (e) => {
-			if(e.target.classList.contains('switch')) {
-				var mrkOyn = e.target.checked ? "Y" : "N";
-				var url  = "/smnr/smnrMrkOynModifyAjax.do";
-				var data = {
-					"smnrId" 	: e.target.value,
-					"mrkOyn" 	: mrkOyn
-				};
-
-				ajaxCall(url, data, function(data) {
-					if (data.result > 0) {
-				    		smnrListSelect(1);
-				        } else {
-				        	UiComm.showMessage(data.message, "error");
-				        }
-				}, function(xhr, status, error) {
-					UiComm.showMessage("<spring:message code='exam.error.score.open' />", "error");/* 성적 공개 변경 중 에러가 발생하였습니다. */
-				}, true);
-			}
-		});
-
-		/**
-		 * 세미나화면이동
-		 * @param {String}  smnrId 		- 세미나아이디
-		 * @param {String}  sbjctId 	- 과목아이디
-		 */
-		function smnrViewMv(smnrId, tab) {
-			var urlMap = {
-				"1" : "/srvy/profSrvyQstnMngView.do",		// 세미나 평가 관리 화면
-				"8" : "/smnr/profSmnrRegistView.do", 		// 세미나 등록 화면
-				"9" : "/smnr/profSmnrModifyView.do" 		// 세미나 수정 화면
-			};
-
-			var kvArr = [];
-
-			kvArr.push({'key' : 'smnrId',   	'val' : smnrId});
-			kvArr.push({'key' : 'sbjctId', 		'val' : "${sbjctId}"});
-
-			submitForm(urlMap[tab], kvArr);
-		}
-
-		/**
-		 * 세미나삭제
-		 * @param {String}  smnrId 		- 세미나아이디
-		 * @param {String}  sbjctId 	- 과목아이디
-		 */
-		function smnrDelete(smnrId) {
-			var url  = "/smnr/smnrDeleteAjax.do";
-			var data = {
-				  "smnrId" 	: smnrId
-				, "sbjctId"	: "${sbjctId}"
+		function modifyMrkOyn(obj) {
+			const url  = "/smnr/smnrMrkOynModifyAjax.do";
+			const data = {
+				smnrId 	: obj.value,
+				mrkOyn 	: obj.checked ? "Y" : "N"
 			};
 
 			ajaxCall(url, data, function(data) {
 				if (data.result > 0) {
+			   		smnrListSelect(1);
+			    } else {
+			    	UiComm.showMessage(data.message, "error");
+			    }
+			}, function(xhr, status, error) {
+				UiComm.showMessage("<spring:message code='exam.error.score.open' />", "error");/* 성적 공개 변경 중 에러가 발생하였습니다. */
+			}, true);
+		}
+
+		/**
+		 * 세미나삭제
+		 * @param smnrId 	- 세미나아이디
+		 */
+		function smnrDelete(smnrId) {
+			const extData = {
+				smnrId 	: smnrId
+			};
+
+			const url   = "/smnr/smnrDeleteAjax.do";
+			const param = {
+				encParams	: EPARAM,
+				addParams	: UiComm.makeEncParams(extData)
+			};
+
+			ajaxCall(url, param, function(data) {
+				if (data.result > 0) {
 					UiComm.showMessage("<spring:message code='exam.alert.delete' />", "success");/* 정상 삭제 되었습니다. */
-			    		smnrListSelect(1);
-			        } else {
-			         	UiComm.showMessage(data.message, "error");
-			        }
+			    	smnrListSelect(1);
+			    } else {
+			      	UiComm.showMessage(data.message, "error");
+			    }
 		    }, function(xhr, status, error) {
 		    	UiComm.showMessage("<spring:message code='exam.error.delete' />", "error");/* 삭제 중 에러가 발생하였습니다. */
 		    }, true);
@@ -237,83 +214,70 @@
 				return dataList;
 			} else {
 				smnrList.forEach(function(v,i) {
-					var smnrGbn = v.smnrGbn == "SMNR_TEAM" ? "세미나 팀" : "세미나";
-					// 제목
-					var smnrnm = "<a href='javascript:smnrViewMv(\""+v.smnrId+"\", 2)' class='header header-icon link'>" + v.smnrnm + "</a>";
-					// 기간
-					var smnrDttm = UiComm.formatDate(v.smnrSdttm, "datetime2") + " ~ " + UiComm.formatDate(v.smnrEdttm, "datetime2");
-					// 시간
-					var smnrMnts = v.smnrMnts + "분";
 					// 성적반영비율
-					var cardMrkRfltrt = v.mrkRfltrt + "%";
-					var mrkRfltrt  = "<div class='mrkInputDiv ui input'>";
-						mrkRfltrt += "	<input type='text' class='mrkRfltrt w80' data-smnrId=\"" + v.smnrId + "\" value=\"" + v.mrkRfltrt + "\" inputmask='numeric' inputmode='decimal' maxVal='100' />";
+					let mrkRfltrt  = "<div class='mrkInputDiv ui input' style='display: none;'>";
+						mrkRfltrt += "	<input type='text' class='mrkRfltrt w80' data-smnrId=\"" + v.smnrId + "\" data-mrkRfltrt=\"" + v.mrkRfltrt + "\" value=\"" + v.mrkRfltrt + "\" inputmask='numeric' inputmode='decimal' maxVal='100' />";
 						mrkRfltrt += "</div>";
 						mrkRfltrt += "<div class='mrkRfltrtDiv'>" + v.mrkRfltrt + "%</div>";
 					if(v.mrkRfltyn == 'N') {
 						mrkRfltrt = "0%";
-						cardMrkRfltrt = "0%";
 					}
-					// 참석현황
-					var atndStatus = "<a href='javascript:smnrViewMv(\"" + v.smnrId + "\", 2)' class='fcBlue'>" + v.smnrAtndCnt +"/" + v.smnrTrgtCnt + "</a>";
-					// 평가현황
-					var evlStatus = "<a href='javascript:smnrViewMv(\"" + v.smnrId + "\", 2)' class='fcBlue'>" + v.smnrEvlteeCnt +"/" + v.smnrAtndCnt + "</a>";
 					// 성적공개
-					var mrkOyn = "";
-					if(v.mrkRfltyn == 'N') {
-						mrkOyn = "-";
-					} else {
-						mrkOyn = "<input type='checkbox' value=\"" + v.smnrId + "\" class='switch small' " + (v.mrkOyn == "Y" ? "checked" : "") + " />";
+					let mrkOyn = "-";
+					if(v.mrkRfltyn == 'Y') {
+						mrkOyn = "<input type='checkbox' value=\"" + v.smnrId + "\" class='switch small' " + (v.mrkOyn == "Y" ? "checked" : "") + " onchange='modifyMrkOyn(this)' />";
 					}
 					// 관리
-					var manage = "-";
-					var manageBtn = "";
+					let manage = "-";
+					let manageBtn = "";
 					// 오프라인 세미나
 					if(v.smnrGbncd == "OFLN_SMNR") {
-						manage = "<a href='javascript:smnrViewMv(\"" + v.smnrId + "\", 1)' class='btn basic small'>참여관리</a>";
-						manageBtn = "<div class='item'><a href='javascript:smnrViewMv(\"" + v.smnrId + "\", 1)'>참여관리​</a></div>";
+						manage = "<a style='line-height: 40px;' href='javascript:smnrViewMv(\"" + v.smnrId + "\", \"EVL\")' class='btn basic small'>참여관리</a>";
+						manageBtn = "<div class='item'><a href='javascript:smnrViewMv(\"" + v.smnrId + "\", \"EVL\")'>참여관리​</a></div>";
 					// 온라인 세미나
 					} else if(v.smnrGbncd == "ONLN_SMNR") {
 						// 세미나 시작가능 and 종료 전
 						if(v.smnrStartyn == "Y" && v.smnrEndyn == "N") {
 							// 메인교수 계정
-							if("${userId}" == v.profId) {
-								manage = "<a href='javascript:zoomHostStart(\"" + v.smnrId + "\")' class='btn basic small'>ZOOM 시작</a>";
+							if("${userCtx.userId}" == v.profId) {
+								manage = "<a style='line-height: 40px;' href='javascript:zoomHostStart(\"" + v.smnrId + "\")' class='btn basic small'>ZOOM 시작</a>";
 								manageBtn = "<div class='item'><a href='javascript:zoomHostStart(\"" + v.smnrId + "\")'>ZOOM 시작​</a></div>";
 							// 그 외
 							} else {
-								manage = "<a href='javascript:zoomUserStart(\"" + v.smnrId + "\")' class='btn basic small'>ZOOM 시작</a>";
+								manage = "<a style='line-height: 40px;' href='javascript:zoomUserStart(\"" + v.smnrId + "\")' class='btn basic small'>ZOOM 시작</a>";
 								manageBtn = "<div class='item'><a href='javascript:zoomUserStart(\"" + v.smnrId + "\")'>ZOOM 시작​</a></div>";
 							}
 						// 세미나 종료
 						} else if(v.smnrEndyn == "Y") {
-							// 세미나 참석기록반영 전
-							if(v.atndRcdPfltyn == "N") {
-								manage = "<a href='javascript:zoomAtndRegist(\"" + v.smnrId + "\")' class='btn basic small'>참여기록 가져오기</a>";
-								manageBtn = "<div class='item'><a href='javascript:zoomAtndRegist(\"" + v.smnrId + "\")'>ZOOM 시작​</a></div>";
-							// 세미나 참석기록반영 후
-							} else {
-								manage = "<a href='javascript:smnrViewMv(\"" + v.smnrId + "\", 1)' class='btn basic small'>참여관리</a>";
-								manageBtn = "<div class='item'><a href='javascript:smnrViewMv(\"" + v.smnrId + "\", 1)'>참여관리​</a></div>";
-							}
+//							// 세미나 참석기록반영 전
+//							if(v.atndRcdPfltyn == "N") {
+//								manage = "<a href='javascript:zoomAtndRegist(\"" + v.smnrId + "\")' class='btn basic small'>참여기록 가져오기</a>";
+//								manageBtn = "<div class='item'><a href='javascript:zoomAtndRegist(\"" + v.smnrId + "\")'>참여기록 가져오기​</a></div>";
+//							// 세미나 참석기록반영 후
+//							} else {
+//								manage = "<a href='javascript:smnrViewMv(\"" + v.smnrId + "\", \"EVL\")' class='btn basic small'>참여관리</a>";
+//								manageBtn = "<div class='item'><a href='javascript:smnrViewMv(\"" + v.smnrId + "\", \"EVL\")'>참여관리​</a></div>";
+//							}
+							manage = "<a style='line-height: 40px;' href='javascript:smnrViewMv(\"" + v.smnrId + "\", \"EVL\")' class='btn basic small'>참여관리</a>";
+							manageBtn = "<div class='item'><a href='javascript:smnrViewMv(\"" + v.smnrId + "\", \"EVL\")'>참여관리​</a></div>";
 						}
 					}
 					dataList.push({
 						no: 				v.lineNo,
-						smnrGbn: 			smnrGbn,
+						smnrGbn: 			v.smnrGbn == "SMNR_TEAM" ? "세미나 팀" : "세미나",
 						smnrGbnnm: 			v.smnrGbnnm,
-						smnrnm: 			smnrnm,
-						smnrDttm: 			smnrDttm,
-						smnrMnts:			smnrMnts,
+						smnrnm: 			"<a href='javascript:smnrViewMv(\""+v.smnrId+"\", \"EVL\")' class='header header-icon link'>" + v.smnrnm + "</a>",
+						smnrDttm: 			UiComm.formatDate(v.smnrSdttm, "datetime2") + " ~ " + UiComm.formatDate(v.smnrEdttm, "datetime2"),
+						smnrMnts:			v.smnrMnts + "분",
 						mrkRfltrt: 			mrkRfltrt,
-						atndStatus: 		atndStatus,
-						evlStatus: 			evlStatus,
+						atndStatus: 		v.smnrAtndCnt +"/" + v.smnrTrgtCnt,
+						evlStatus: 			"<a href='javascript:smnrViewMv(\"" + v.smnrId + "\", \"EVL\")' class='fcBlue'>" + v.smnrEvlteeCnt +"/" + v.smnrAtndCnt + "</a>",
 						mrkOyn: 			mrkOyn,
 						manage: 			manage,
 						smnrId: 			v.smnrId,
 						smnrAtndCnt: 		v.smnrAtndCnt,
 						manageBtn: 			manageBtn,
-						cardMrkRfltrt:		cardMrkRfltrt
+						cardMrkRfltrt:		v.mrkRfltyn == 'N' ? "0%" : v.mrkRfltrt + "%"
 					});
 				});
 			}
@@ -323,15 +287,15 @@
 
 		// ZOOM 호스트 시작
 		function zoomHostStart(smnrId) {
-			var url = "/zoom/zoomHostUrlSelectAjax.do";
-			var data = {
-	   			"smnrId" : smnrId
+			const url  = "/zoom/zoomHostUrlSelectAjax.do";
+			const data = {
+	   			smnrId : smnrId
 	   		};
 
 			ajaxCall(url, data, function(data) {
 				if(data.result > 0) {
-					var windowOpener = window.open();
-					windowOpener.location = data.returnVO.start_url;
+					let windowOpener = window.open();
+					windowOpener.location = data.data.start_url;
 	        	} else {
 	        		UiComm.showMessage(data.message, "error");
 	        	}
@@ -340,17 +304,17 @@
 			}, true);
 		}
 
-		// ZOOM 참여자 시작 ( 임시 )
+		// ZOOM 참여자 시작
 		function zoomUserStart(smnrId) {
-			var url = "/zoom/zoomHostUrlSelectAjax.do";
-			var data = {
-	   			"smnrId" : smnrId
+			const url  = "/zoom/zoomUserUrlSelectAjax.do";
+			const data = {
+	   			smnrId : smnrId
 	   		};
 
 			ajaxCall(url, data, function(data) {
 				if(data.result > 0) {
-					var windowOpener = window.open();
-					windowOpener.location = data.returnVO.join_url;
+					let windowOpener = window.open();
+					windowOpener.location = data.data.trgtrCntnUrl;
 	        	} else {
 	        		UiComm.showMessage(data.message, "error");
 	        	}
@@ -361,7 +325,7 @@
 	</script>
 </head>
 
-<body class="class colorA">
+<body class="class ${uiex:getTheme()}">
     <div id="wrap" class="main">
         <!-- common header -->
         <jsp:include page="/WEB-INF/jsp/common_new/class_header.jsp"/>
@@ -376,34 +340,15 @@
 
             <!-- content -->
             <div id="content" class="content-wrap common">
-            	<div class="class_sub_top">
-					<div class="navi_bar">
-						<ul>
-							<li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-							<li>강의실</li>
-							<li><span class="current">내강의실</span></li>
-						</ul>
-					</div>
-					<div class="btn-wrap">
-						<div class="first">
-							<select class="form-select">
-								<option value="2025년 2학기">2025년 2학기</option>
-								<option value="2025년 1학기">2025년 1학기</option>
-							</select>
-							<select class="form-select wide">
-								<option value="">강의실 바로가기</option>
-								<option value="2025년 2학기">2025년 2학기</option>
-								<option value="2025년 1학기">2025년 1학기</option>
-							</select>
-						</div>
-						<div class="sec">
-							<button type="button" class="btn type1"><i class="xi-book-o"></i>교수 매뉴얼</button>
-							<button type="button" class="btn type1"><i class="xi-info-o"></i>학습안내정보</button>
-						</div>
-					</div>
-				</div>
+				<!-- class_sub_top -->
+				<jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+				<!-- //class_sub_top -->
 
 		        <div class="class_sub">
+					<!-- class_info -->
+					<jsp:include page="/WEB-INF/jsp/common_new/class_info.jsp"/>
+					<!-- //class_info -->
+
 		        	<div class="sub-content">
 				        <div class="page-info">
 				        	<h2 class="page-title">
@@ -414,7 +359,7 @@
                             <div class="item">
                                 <span class="item_tit"><label for="searchValue"><spring:message code='common.search.keyword'/></label></span><%-- 검색어 --%>
                                 <div class="itemList">
-                                    <input class="form-control wide" type="text" name="" id="searchValue" value="${param.searchValue}" placeholder="세미나명 입력">
+                                    <input class="form-control wide" type="text" name="" id="searchValue" value="${vo.searchValue}" placeholder="세미나명 입력">
                                 </div>
                             </div>
                             <div class="button-area">
@@ -431,13 +376,13 @@
 								     	<a href="javascript:mrkRfltrtFrmTrsf(2)" class="btn type2">취소</a>
 							        </div>
 							        <a href="javascript:mrkRfltrtFrmTrsf(1)" id="mrkRfltrtFrmTrsfBtn" class="btn type2">성적반영비율조정</a>
-						            <a href="javascript:smnrViewMv('', 8)" class="btn type2">세미나 등록</a>
+						            <a href="javascript:smnrViewMv('', 'REGIST')" class="btn type2">세미나 등록</a>
 
 									<%-- 리스트/카드 선택 버튼 --%>
 									<span class="list-card-button"></span>
 
 									<%-- 목록 스케일 선택 --%>
-									<uiex:listScale func="changeListScale" value="" />
+									<uiex:listScale func="changeListScale" value="${vo.listScale}" />
 	                            </div>
 	                        </div>
 
@@ -458,7 +403,7 @@
                                             </button>
                                             <div class="option-wrap">
                                                 #[manageBtn]
-                                                <div class="item"><a href="javascript:smnrViewMv('#[smnrId]', 9)">수정</a></div>
+                                                <div class="item"><a href="javascript:smnrViewMv('#[smnrId]', 'MODIFY')">수정</a></div>
                                                 <div class="item"><a href="javascript:smnrDelete('#[smnrId]')">삭제</a></div>
                                             </div>
                                         </div>
@@ -493,7 +438,7 @@
 										{title:"참여현황", 	field:"atndStatus",	 		headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},
 										{title:"평가현황", 	field:"evlStatus", 			headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
 										{title:"성적공개", 	field:"mrkOyn", 			headerHozAlign:"center", hozAlign:"center",	width:80,	minWidth:80},
-										{title:"관리", 		field:"manage", 			headerHozAlign:"center", hozAlign:"center",	width:100,	minWidth:100},
+										{title:"관리", 		field:"manage", 			headerHozAlign:"center", hozAlign:"center",	width:0,	minWidth:130},
 									]
 								});
 							</script>

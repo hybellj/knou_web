@@ -511,14 +511,20 @@ public class SeminarHomeController extends ControllerBase {
     public String seminarCopyListPop(SeminarVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         // 사용자 접속상태 저장
         //logUserConnService.saveUserConnState(request, CommConst.CONN_SEMINAR);
-        String menuType  = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String userAuthrtGrpcd  = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String userAuthrtCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
         
         request.setAttribute("vo", vo);
         TermVO termVO = new TermVO();
         termVO.setUserId(SessionInfo.getUserId(request));
-        termVO.setSearchKey(authGrpCd.contains("TUT") ? "ASSISTANT" : "PROF");
-        if(menuType.contains("ADM") && !menuType.contains("PROF")) termVO.setSearchKey(null);
+        
+        //termVO.setSearchKey( userAuthrtCd.contains("TUT") ? "ASSISTANT" : "PROF");
+        termVO.setSearchKey( CommConst.AUTHRT_CD_TUT.equals( userAuthrtCd )
+        		? "ASSISTANT" : CommConst.AUTHRT_CD_PROF );
+        
+        if( CommConst.AUTHRT_GRPCD_ADM.equals(userAuthrtGrpcd) ) 
+        	termVO.setSearchKey(null);
+        
         request.setAttribute("creYearList", termService.listCreYearByProf(termVO));
         request.setAttribute("termList", orgCodeService.selectOrgCodeList("HAKSA_TERM"));
         

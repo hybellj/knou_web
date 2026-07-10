@@ -3,36 +3,37 @@
 <mapper namespace="knou.lms.common.dao.SysFileDAO">
 
     <sql id="selectQuery">
-        SELECT A.FILE_ID
+        SELECT A.ATFL_ID
              , A.FILENM
-             , A.FILE_SAVENM
-             , SUBSTR(A.FILE_SAVENM, 1, INSTR(A.FILE_SAVENM, '.', 1, 1)-1) AS FILE_ID
+             , A.FILE_SAVNM
+             , SUBSTR(A.FILE_SAVNM, 1, INSTR(A.FILE_SAVNM, '.', 1, 1)-1) AS FILE_ID
+             , A.FILE_SAVNM AS FILE_SAVE_NM
              , A.FILE_PATH
-             , A.FILE_EXTNM
+             , A.FILE_EXT
              , NVL(A.FILE_SIZE, 0) AS FILE_SIZE
              , A.FILE_TYCD
-             , A.ORG_ID
+             --, A.ORG_ID
              , A.ATFL_REPO_ID
-             , A.ATFL_REPO_PATH
+             --, A.ATFL_REPO_PATH
              , A.MIME_TYCD
-             , NVL(A.INQ_CNT, 0) INQ_CNT
-             , A.LST_INQ_DTTM
+             , NVL(A.DWLD_CNT, 0) INQ_CNT
+             --, A.LST_INQ_DTTM
              , A.RGTR_ID
-             , A.FRST_INQ_DTTM
-             , A.ATCL_ID
-             , A.ETCINFO1
-             , A.ETCINFO2
-             , A.ETCINFO3
+             --, A.FRST_INQ_DTTM
+             , A.REF_ID
+             , A.ETC_INFO1
+             , A.ETC_INFO2
+             , A.ETC_INFO3
              , A.THMB_FILE_PATH
-             , A.OJB_STRG_PATH
+             --, A.OJB_STRG_PATH
              , (SELECT CASE WHEN A.RGTR_ID = '000000000000'
                             THEN '관리자'
                             ELSE NVL(USERNM, 'UnKnown')
                        END
-                  FROM TB_LMS_USR
+                  FROM TB_LMS_USER
                  WHERE USER_ID = A.RGTR_ID) AS RGTRNM
-             , B.UP_TBLNM
-             , B.UP_CLMNNM
+             --, B.UP_TBLNM
+             --, B.UP_CLMNNM
         <if test="parFieldNm != null">
             <if test="isUsingTable == 'true'">
              , (SELECT COUNT(*)
@@ -59,7 +60,7 @@
            AND (A.ATFL_REPO_ID = #{repoCd} OR A.ATFL_REPO_ID = 'ASMNT_CNVS')
         </if>
         <if test="fileBindDataSn != null and fileBindDataSn != ''">
-           AND A.ATCL_ID = #{fileBindDataSn}
+           AND A.REF_ID = #{fileBindDataSn}
         </if>
         <if test="fileNm != null and fileNm != ''">
            AND A.FILENM LIKE '%'||#{fileNm}||'%'
@@ -68,12 +69,12 @@
            AND A.FILE_EXTNM LIKE '%'||#{fileExt}||'%'
         </if>
         <if test="fileSnList != null and fileSnList.length > 0">
-           AND A.FILE_ID IN
+           AND A.ATFL_ID IN
            <foreach collection="fileSnList" item="item" index="index" separator="," open="(" close=")">
                #{item}
            </foreach>
         </if>
-         ORDER BY A.FILE_ID
+         ORDER BY A.ATFL_ID
     </sql>
 
     <select id="list" parameterType="fileVO" resultType="fileVO">
@@ -91,9 +92,9 @@
          */
          <include refid="CommonSQL.pagePrefix"/>
          <include refid="listQuery"/>
-         <include refid="CommonSQL.pageSubfix"/>
+         <include refid="CommonSQL.pageSuffix"/>
     </select>
-    
+
     <select id="count" parameterType="fileVO" resultType="Integer">
         /*
              SQL ID : SysFileDAO.count
@@ -229,13 +230,13 @@
          */
         SELECT FILE_ID
           FROM TB_LMS_ATFL
-         WHERE ATFL_REPO_ID NOT IN ('FILE_BOX', 'POPUP', 'USER_PROFILE') 
+         WHERE ATFL_REPO_ID NOT IN ('FILE_BOX', 'POPUP', 'USER_PROFILE')
            AND ATCL_ID IS NULL
            AND FRST_INQ_DTTM < DATE_FORMAT(CURDATE(), '%Y%m%d%H%i%s')
            AND ORG_ID = #{orgId}
         ]]>
     </select>
-    
+
     <insert id="copyFileInfoFromOrigin" parameterType="fileVO" >
         /*
              SQL ID : SysFileDAO.copyFileInfoFromOrigin

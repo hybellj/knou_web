@@ -12,7 +12,7 @@ public class SrvyVwitmVO extends DefaultVO {
 	private String  vwitmGbncd;			// 보기항목구분코드
 	private String  vwitmCts;			// 보기항목내용
 	private Integer vwitmSeqno;			// 보기항목순번
-	private String  mvmnSrvyQstnId;		// 다음설문지아이디
+	private String  mvmnSrvypprId;		// 이동설문지아이디
 	private String  etcInptyn;			// 기타입력여부
 	private String  edtrUseyn;			// 편집기사용여부
 
@@ -31,8 +31,8 @@ public class SrvyVwitmVO extends DefaultVO {
 	public Integer getVwitmSeqno() {
 		return vwitmSeqno;
 	}
-	public String getMvmnSrvyQstnId() {
-		return mvmnSrvyQstnId;
+	public String getMvmnSrvypprId() {
+		return mvmnSrvypprId;
 	}
 	public String getEtcInptyn() {
 		return etcInptyn;
@@ -55,8 +55,8 @@ public class SrvyVwitmVO extends DefaultVO {
 	public void setVwitmSeqno(Integer vwitmSeqno) {
 		this.vwitmSeqno = vwitmSeqno;
 	}
-	public void setMvmnSrvyQstnId(String mvmnSrvyQstnId) {
-		this.mvmnSrvyQstnId = mvmnSrvyQstnId;
+	public void setMvmnSrvypprId(String mvmnSrvypprId) {
+		this.mvmnSrvypprId = mvmnSrvypprId;
 	}
 	public void setEtcInptyn(String etcInptyn) {
 		this.etcInptyn = etcInptyn;
@@ -64,5 +64,4 @@ public class SrvyVwitmVO extends DefaultVO {
 	public void setEdtrUseyn(String edtrUseyn) {
 		this.edtrUseyn = edtrUseyn;
 	}
-
 }

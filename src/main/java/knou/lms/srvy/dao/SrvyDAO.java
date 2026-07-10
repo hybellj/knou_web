@@ -7,154 +7,120 @@ import org.apache.ibatis.annotations.Param;
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 
+import knou.framework.common.PageInfo;
 import knou.lms.srvy.vo.SrvyVO;
+import knou.lms.srvy.web.view.SrvyPageInfo;
 
 @Mapper("srvyDAO")
 public interface SrvyDAO {
 
-	/**
-	* 교수설문목록조회
-	*
-	* @param sbjctId 		과목아이디
-	* @param searchValue 	검색내용(설문명)
-	* @param listScale	 	페이지크기
-	* @return 설문목록 페이징
-	* @throws Exception
-	*/
-	public List<EgovMap> profSrvyListPaging(SrvyVO vo) throws Exception;
+    public List<EgovMap> admAllSrvyList(int limitTop);
 
-	/**
-	 * 과목성적공개설문수조회
-	 *
-	 * @param sbjctId 	과목아이디
-	 * @param srvyId 	설문아이디
-	 * @throws Exception
-	 */
-	public int sbjctMrkOynSrvyCntSelect(@Param("sbjctId") String sbjctId, @Param("srvyId") String srvyId) throws Exception;
+	// 교수설문목록조회
+	public List<EgovMap> profSrvyListPaging(PageInfo pageInfo);
 
-	/**
-	 * 성적반영설문목록조회
-	 *
-	 * @param sbjctId	과목아이디
-	 * @return 성적반영설문목록
-	 * @throws Exception
-	 */
-	public List<SrvyVO> mrkRfltSrvyList(SrvyVO vo) throws Exception;
+	// 과목성적공개설문수조회
+	public int sbjctMrkOynSrvyCntSelect(@Param("sbjctId") String sbjctId, @Param("srvyId") String srvyId);
 
-	/**
-	 * 설문성적반영비율목록수정
-	 *
-	 * @param List<SrvyVO>
-	 * @throws Exception
-	 */
-	public void srvyMrkRfltrtListModify(List<SrvyVO> list) throws Exception;
+	// 성적반영설문목록조회
+	public List<SrvyVO> mrkRfltSrvyList(SrvyVO vo);
 
-	/**
-	 * 설문등록
-	 *
-	 * @param SrvyVO
-	 * @throws Exception
-	 */
-	public void srvyRegist(SrvyVO vo) throws Exception;
+	// 설문성적반영비율목록수정
+	public void srvyMrkRfltrtListModify(List<SrvyVO> list);
 
-	/**
-	 * 설문수정
-	 *
-	 * @param SrvyVO
-	 * @throws Exception
-	 */
-	public void srvyModify(SrvyVO vo) throws Exception;
+	// 설문등록
+	public void srvyRegist(SrvyVO vo);
 
-	/**
-	* 설문그룹과목목록조회
-	*
-	* @param srvyId 	설문아이디
-	* @return 설문그룹과목목록
-	* @throws Exception
-	*/
-	public List<EgovMap> srvyGrpSbjctList(@Param("srvyId") String srvyId) throws Exception;
+	// 설문수정
+	public void srvyModify(SrvyVO vo);
 
-	/**
-	* 설문조회
-	*
-	* @param SrvyVO
-	* @return 설문정보
-	* @throws Exception
-	*/
-	public EgovMap srvySelect(SrvyVO vo) throws Exception;
+	// 설문그룹과목목록조회
+	public List<EgovMap> srvyGrpSbjctList(@Param("srvyId") String srvyId);
 
-	/**
-	 * 하위설문삭제
-	 *
-	 * @param srvyId	설문아이디
-	 * @throws Exception
-	 */
-	public void subSrvyDelete(@Param("srvyId") String srvyId) throws Exception;
+	// 설문조회
+	public EgovMap srvySelect(SrvyVO vo);
 
-	/**
-	 * 하위설문삭제여부수정
-	 *
-	 * @param SrvyVO
-	 * @throws Exception
-	 */
-	public void subSrvyDelynModify(SrvyVO vo) throws Exception;
+	// 하위설문삭제
+	public void subSrvyDelete(@Param("srvyId") String srvyId);
 
-	/**
-	* 설문팀목록조회
-	*
-	* @param srvyId 	설문아이디
-	* @return 설문팀목록
-	* @throws Exception
-	*/
-	public List<EgovMap> srvyTeamList(@Param("srvyId") String srvyId) throws Exception;
+	// 하위설문삭제여부수정
+	public void subSrvyDelynModify(SrvyVO vo);
 
-	/**
-	* 설문아이디조회
-	*
-	* @param srvyGrpId		설문그룹아이디
-	* @param sbjctId		과목아이디
-	* @return srvyId 		설문기본아이디
-	* @throws Exception
-	*/
-	public String srvyIdSelect(SrvyVO vo) throws Exception;
+	// 설문팀목록조회
+	public List<EgovMap> srvyTeamList(@Param("srvyId") String srvyId);
 
-	/**
-	* 설문학습그룹부과제목록조회
-	*
-	* @param lrnGrpId 	학습그룹아이디
-	* @param srvyId 	설문아이디
-	* @return 설문부과제목록
-	* @throws Exception
-	*/
-	public List<EgovMap> srvyLrnGrpSubAsmtList(Map<String, Object> params) throws Exception;
+	// 설문아이디조회
+	public String srvyIdSelect(SrvyVO vo);
 
-	/**
-	* 교수권한과목설문목록조회
-	*
-	* @param userId 		교수아이디
-	* @param smstrChrtId 	학기기수아이디
-	* @param sbjctId	 	과목아이디
-	* @param searchValue 	검색내용(설문명)
-	* @return 설문목록
-	* @throws Exception
-	*/
-	public List<EgovMap> profAuthrtSbjctSrvyList(Map<String, Object> params) throws Exception;
+	// 설문팀그룹부설문목록조회
+	public List<EgovMap> srvyTeamGrpSubSrvyList(Map<String, Object> params);
 
-	/**
-	* 설문팀문제출제완료여부조회
-	*
-	* @param srvyId 	설문아이디
-	* @throws Exception
-	*/
-	public Boolean srvyTeamQstnsCmptnynSelect(String srvyId) throws Exception;
+	// 교수권한과목설문목록조회
+	public List<EgovMap> profAuthrtSbjctSrvyList(SrvyVO vo);
 
-	/**
-	* 문제가져오기설문목록조회
-	*
-    * @param sbjctId 		과목이이디
-	* @return 설문목록
-	* @throws Exception
-	*/
-	public List<SrvyVO> qstnCopySrvyList(@Param("sbjctId") String sbjctId) throws Exception;
+	// 설문팀문제출제완료여부조회
+	public Boolean srvyTeamQstnsCmptnynSelect(String srvyId);
 
+	// 문제가져오기설문목록조회
+	public List<SrvyVO> qstnCopySrvyList(@Param("sbjctId") String sbjctId);
+
+	// 과목별설문목록조회
+	public List<EgovMap> bySubjectSrvyList(SrvyVO vo);
+
+	// 학생설문목록조회
+	public List<EgovMap> stdntSrvyListPaging(PageInfo pageInfo);
+
+	// 학생설문조회
+	public EgovMap stdntSrvySelect(SrvyVO vo);
+
+	// 관리자설문강의평가목록페이징
+	public List<EgovMap> admSrvyLctrEvlListPaging(PageInfo pageInfo);
+
+	// 설문강의평가미등록과목목록
+	public List<EgovMap> srvyLctrEvlNRegistSbjctList(Map<String, Object> params);
+
+	// 설문일괄등록
+	public void srvyBulkRegist(List<SrvyVO> list);
+
+	// 설문강의평가조회
+	public EgovMap srvyLctrEvlSelect(SrvyVO vo);
+
+	// 설문강의평가등록과목목록
+	public List<EgovMap> srvyLctrEvlRegistSbjctList(SrvyVO vo);
+
+	// 가져오기설문강의평가목록
+	public List<EgovMap> copySrvyLctrEvlList(Map<String, Object> params);
+
+	// 관리자설문강의평가결과목록페이징
+	public List<EgovMap> admSrvyLctrEvlRsltListPaging(SrvyPageInfo pageInfo);
+
+	// 관리자전체설문목록페이징
+	public List<EgovMap> admSrvyListPaging(PageInfo pageInfo);
+
+	// 관리자전체설문조회
+	public EgovMap admSrvySelect(SrvyVO vo);
+
+	// 가져오기전체설문목록
+	public List<EgovMap> copySrvyList(Map<String, Object> params);
+
+	// 관리자전체설문결과목록페이징
+	public List<EgovMap> admSrvyRsltListPaging(SrvyPageInfo pageInfo);
+
+	// 학생대시보드설문강의평가목록조회
+	public List<EgovMap> stdntMainSrvyLctrEvlList(Map<String, Object> params);
+
+	// 학생설문강의평가조회
+	public EgovMap stdntSrvyLctrEvlSelect(SrvyVO vo);
+
+	// 대상전체설문목록페이징
+	public List<EgovMap> trgtWholSrvyListPaging(PageInfo pageInfo);
+
+	// 대상전체설문조회
+	public EgovMap trgtWholSrvySelect(SrvyVO vo);
+
+	// 학생설문강의평가목록페이징
+	public List<EgovMap> stdntSrvyLctrEvlListPaging(SrvyPageInfo pageInfo);
+
+	// 설문강의평가과목참여목록
+	public List<EgovMap> srvyLctrEvlSbjctPtcpList(SrvyVO vo);
 }

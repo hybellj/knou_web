@@ -16,12 +16,13 @@
         FROM (
                  SELECT
                      SUM(CASE WHEN A.MBL_SNDNG_TYCD = 'PUSH' THEN 1 ELSE 0 END) AS PUSH_CNT,
-                     SUM(CASE WHEN A.MBL_SNDNG_TYCD = 'SMS' THEN 1 ELSE 0 END) AS SMS_CNT,
+                     SUM(CASE WHEN A.MBL_SNDNG_TYCD IN ('SMS', 'LMS') THEN 1 ELSE 0 END) AS SMS_CNT,
                      SUM(CASE WHEN A.MBL_SNDNG_TYCD = 'ALIM_TALK' THEN 1 ELSE 0 END) AS ALIMTALK_CNT
                  FROM TB_LMS_MSG_MBL_SNDNG A
                  INNER JOIN TB_LMS_MSG_RCV_TRGTR T ON A.MSG_ID = T.MSG_ID AND A.RCVR_ID = T.USER_ID
                  WHERE A.RCVR_ID = #{userId}
                    AND A.RCVR_DELYN = 'N'
+                   AND NVL(A.SNDNG_STSCD, CASE WHEN A.SNDNGYN = 'Y' THEN 'SCS' ELSE 'RSRV' END) = 'SCS'
                    AND T.READ_YN = 'N'
              ) M,
              (
@@ -30,7 +31,7 @@
                  INNER JOIN TB_LMS_MSG_RCV_TRGTR T ON A.MSG_ID = T.MSG_ID AND A.RCVR_ID = T.USER_ID
                  WHERE A.RCVR_ID = #{userId}
                    AND A.RCVR_DELYN = 'N'
-                   AND A.SNDNGYN = 'Y'
+                   AND NVL(A.SNDNG_STSCD, CASE WHEN A.SNDNGYN = 'Y' THEN 'SCS' ELSE 'RSRV' END) = 'SCS'
                    AND T.READ_YN = 'N'
              ) S
     </select>
@@ -53,7 +54,7 @@
             LEFT JOIN TB_LMS_MSG_RCV_TRGTR T ON A.MSG_ID = T.MSG_ID AND A.RCVR_ID = T.USER_ID
             WHERE A.RCVR_ID = #{userId}
               AND A.RCVR_DELYN = 'N'
-              AND A.SNDNGYN = 'Y'
+              AND NVL(A.SNDNG_STSCD, CASE WHEN A.SNDNGYN = 'Y' THEN 'SCS' ELSE 'RSRV' END) = 'SCS'
             ORDER BY NVL(T.READ_YN, 'N') ASC, A.SNDNG_DTTM DESC
         )
         WHERE ROWNUM <![CDATA[<=]]> #{listCnt}
@@ -76,8 +77,16 @@
                     A.SNDNGNM, A.SNDNG_TTL, A.SNDNG_DTTM
                 FROM TB_LMS_MSG_MBL_SNDNG A
                 WHERE A.RCVR_ID = #{userId}
-                  AND A.MBL_SNDNG_TYCD = #{mblSndngTycd}
+                  <choose>
+                      <when test="mblSndngTycd == 'SMS'">
+                          AND A.MBL_SNDNG_TYCD IN ('SMS', 'LMS')
+                      </when>
+                      <otherwise>
+                          AND A.MBL_SNDNG_TYCD = #{mblSndngTycd}
+                      </otherwise>
+                  </choose>
                   AND A.RCVR_DELYN = 'N'
+                  AND NVL(A.SNDNG_STSCD, CASE WHEN A.SNDNGYN = 'Y' THEN 'SCS' ELSE 'RSRV' END) = 'SCS'
             ) B
             LEFT JOIN TB_LMS_MSG M ON B.MSG_ID = M.MSG_ID
             LEFT JOIN TB_LMS_SBJCT S ON M.SBJCT_ID = S.SBJCT_ID
@@ -86,5 +95,27 @@
         )
         WHERE ROWNUM <![CDATA[<=]]> #{listCnt}
     </select>
+
+    <update id="updateAlimReadDttm" parameterType="MsgAlimVO">
+        /*
+             SQL ID : MsgAlimDAO.updateAlimReadDttm
+             설  명 : 채널별(PUSH/SMS/LMS/ALIM_TALK/SHRTNT) 알림 읽음 처리
+         */
+        UPDATE TB_LMS_MSG_RCV_TRGTR
+        SET READ_YN = 'Y'
+          , READ_DTTM = FN_DTTM()
+        WHERE MSG_ID = (
+            <choose>
+                <when test="chnlCd == 'SHRTNT'">
+                    SELECT MSG_ID FROM TB_LMS_MSG_SHRTNT_SNDNG WHERE MSG_SHRTNT_SNDNG_ID = #{sndngId}
+                </when>
+                <otherwise>
+                    SELECT MSG_ID FROM TB_LMS_MSG_MBL_SNDNG WHERE MSG_MBL_SNDNG_ID = #{sndngId}
+                </otherwise>
+            </choose>
+          )
+          AND USER_ID = #{userId}
+          AND READ_YN = 'N'
+    </update>
 
 </mapper>

@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import knou.lms.bbs.vo.BbsAtclVO;
 import knou.lms.bbs.vo.BbsCmntVO;
-import knou.lms.bbs.vo.BbsInfoVO;
+import knou.lms.bbs.vo.BbsVO;
 import knou.lms.common.vo.ProcessResultVO;
 
 public interface BbsCmntService {
@@ -38,13 +38,13 @@ public interface BbsCmntService {
     /*****************************************************
      * 댓글 목록 페이징 (수정, 삭제 권한 체크)
      * @param request
-     * @param bbsInfoVO
+     * @param bbsVO
      * @param bbsAtclVO
      * @param vo
      * @return ProcessResultVO<BbsCmntVO>
      * @throws Exception
      ******************************************************/
-    public ProcessResultVO<BbsCmntVO> listBbsCmntPagingWithAuth(HttpServletRequest request, BbsInfoVO bbsInfoVO, BbsAtclVO bbsAtclVO, BbsCmntVO vo) throws Exception;
+    public ProcessResultVO<BbsCmntVO> listBbsCmntPagingWithAuth(HttpServletRequest request, BbsVO bbsVO, BbsAtclVO bbsAtclVO, BbsCmntVO vo) throws Exception;
 
     /*****************************************************
      * 댓글 저장

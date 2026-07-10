@@ -97,24 +97,30 @@
 		    WHERE ATNDLC.AUDITYN = 'N'
 		      AND SBJCT.SBJCT_ID = #{sbjctId}
 		)
-		SELECT
-			COUNT(RSPNS.SRVY_RSPNS_ID)
-		  FROM TB_LMS_SRVY SRVY
-		  JOIN TB_LMS_SRVYPPR SRVYPPR
-		    ON SRVY.SRVY_ID = SRVYPPR.SRVY_ID
-		  JOIN TB_LMS_SRVY_QSTN QSTN
-		    ON SRVYPPR.SRVYPPR_ID = QSTN.SRVYPPR_ID
-		   AND QSTN.DELYN = 'N'
-		  JOIN TB_LMS_SRVY_PTCP PTCP
-		    ON SRVY.SRVY_ID = PTCP.SRVY_ID
-		  JOIN TB_LMS_SRVY_RSPNS RSPNS
-		    ON PTCP.SRVY_PTCP_ID = RSPNS.SRVY_PTCP_ID
-		   AND QSTN.SRVY_QSTN_ID = RSPNS.SRVY_QSTN_ID
-		 WHERE SRVY.DELYN = 'N'
-		   AND SRVY.USEYN = 'Y'
-		   AND SRVY.SRVY_ID = #{srvyId}
-		   AND SRVYPPR.SRVYPPR_ID = #{srvypprId}
-		   AND PTCP.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
+		SELECT COUNT(*)
+		  FROM (
+		        SELECT
+		               RSPNS.*,
+		               ROW_NUMBER() OVER (PARTITION BY RSPNS.SRVY_PTCP_ID ORDER BY 1) AS RN
+		          FROM TB_LMS_SRVY SRVY
+		          JOIN TB_LMS_SRVYPPR SRVYPPR
+		            ON SRVY.SRVY_ID = SRVYPPR.SRVY_ID
+		          JOIN TB_LMS_SRVY_QSTN QSTN
+		            ON SRVYPPR.SRVYPPR_ID = QSTN.SRVYPPR_ID
+		           AND QSTN.DELYN = 'N'
+		          JOIN TB_LMS_SRVY_PTCP PTCP
+		            ON SRVY.SRVY_ID = PTCP.SRVY_ID
+		           AND PTCP.PTCP_EDTTM IS NOT NULL
+		          JOIN TB_LMS_SRVY_RSPNS RSPNS
+		            ON PTCP.SRVY_PTCP_ID = RSPNS.SRVY_PTCP_ID
+		           AND QSTN.SRVY_QSTN_ID = RSPNS.SRVY_QSTN_ID
+		         WHERE SRVY.DELYN = 'N'
+		           AND SRVY.USEYN = 'Y'
+		           AND SRVY.SRVY_ID = #{srvyId}
+		           AND SRVYPPR.SRVYPPR_ID = #{srvypprId}
+		           AND PTCP.USER_ID IN (SELECT USER_ID FROM SBJCT_USER)
+		       )
+		 WHERE RN = 1
 	</select>
 
 	<delete id="srvypprDelete" parameterType="String">
@@ -181,7 +187,13 @@
              설  명  : 설문지전체삭제
          */
         DELETE FROM TB_LMS_SRVYPPR
-         WHERE SRVY_ID = #{srvyId}
+         WHERE SRVY_ID IN (
+         	SELECT
+         		SRVY_ID
+         	  FROM TB_LMS_SRVY
+         	 WHERE SRVY_ID = #{srvyId}
+         	    OR UP_SRVY_ID = #{srvyId}
+         )
 	</delete>
 
 	<insert id="srvypprBulkRegist" parameterType="java.util.List">

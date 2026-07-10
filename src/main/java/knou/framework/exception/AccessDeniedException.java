@@ -1,6 +1,5 @@
 package knou.framework.exception;
 
-
 public class AccessDeniedException
 		extends AuthorityException {
 

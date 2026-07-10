@@ -6,6 +6,11 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+
+/*
+ * 언제 만들어 졌는지는 모르겠지만 PageInfo를 앞으로는 PageInfo를 사용합니다. by jinkoon 26.06.09
+ */
+@Deprecated
 public abstract class PagenationVO implements Serializable {
 
     private static final long serialVersionUID = -8684749003374859188L;

@@ -5,15 +5,19 @@ import java.util.Map;
 
 public interface TkexamAnswShtService {
 
-	/**
-	* 시험응시답안점수수정
-	*
-	* @param exampprId 			시험지아이디
-	* @param qstnId 			문항아이디
-	* @param tkexamAnswShtId 	시험응시답안아이디
-	* @param userId 			사용자아이디
-	* @throws Exception
-	*/
-	public void tkexamAnswShtScrModify(List<Map<String, Object>> list) throws Exception;
+	// 시험응시답안점수수정
+	public void tkexamAnswShtScrModify(List<Map<String, Object>> list);
+
+	// 학생단일문항임시저장
+	public void stdntSsnlQstnTempSave(Map<String, Object> params);
+
+	// 학생문항일괄임시저장
+	public void stdntQstnBulkTempSave(Map<String, Object> params);
+
+	// 학생퀴즈시험지제출
+	public void stdntQuizExampprSbmsn(Map<String, Object> params);
+
+	// 퀴즈시험지이력등록
+	public void quizExampprHstryRegist(Map<String, Object> params, String examHstryGbncd);
 
 }

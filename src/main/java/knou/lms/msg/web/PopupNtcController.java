@@ -1,21 +1,17 @@
 package knou.lms.msg.web;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-
+import knou.framework.common.ControllerBase;
+import knou.framework.context2.UserContext;
+import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.msg.service.PopupNtcService;
+import knou.lms.msg.vo.PopupNtcVO;
+import knou.lms.user.CurrentUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import knou.framework.common.ControllerBase;
-import knou.framework.common.SessionInfo;
-import knou.framework.context2.UserContext;
-
-import knou.lms.common.vo.ProcessResultVO;
-import knou.lms.msg.service.PopupNtcService;
-import knou.lms.msg.vo.PopupNtcVO;
-import knou.lms.user.CurrentUser;
+import javax.annotation.Resource;
 
 @Controller
 public class PopupNtcController extends ControllerBase {
@@ -23,346 +19,192 @@ public class PopupNtcController extends ControllerBase {
     @Resource(name = "popupNtcService")
     private PopupNtcService popupNtcService;
 
-    private static final int PAGE_SIZE = 10;
-
-    private UserContext getUserContext(HttpServletRequest request) {
-        return new UserContext(
-                SessionInfo.getOrgId(request),
-                SessionInfo.getUserId(request),
-                SessionInfo.getAuthrtCd(request),
-                SessionInfo.getAuthrtGrpcd(request),
-                SessionInfo.getUserRprsId(request),
-                SessionInfo.getLastLogin(request));
-    }
-
-    private boolean isAdmin(UserContext userCtx) {
-        String authrtGrpcd = userCtx.getAuthrtGrpcd();
-        return authrtGrpcd != null && authrtGrpcd.contains("ADM");
-    }
-
-    /**
+    /*****************************************************
      * 팝업공지 목록 화면
      * @param vo
+     * @param userCtx
      * @param model
-     * @param request
-     * @return
-     * @throws Exception
-     */
-    @RequestMapping(value = "/popupNtcListView.do")
-    public String popupNtcListView(PopupNtcVO vo, @CurrentUser UserContext userCtx,
-    		ModelMap model, HttpServletRequest request) throws Exception {
+     * @return "msg/popup_ntc_list_view"
+     ******************************************************/
+    @RequestMapping(value = "/admPopupNtcListView.do")
+    public String popupNtcListView(PopupNtcVO vo, @CurrentUser UserContext userCtx, ModelMap model) {
 
-        if (!isAdmin(userCtx)) {
-            model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/error";
-        }
+        model.addAttribute("orgList", popupNtcService.selectOrgList(vo));
+        model.addAttribute("vo", vo);
 
-        model.addAttribute("userCtx", userCtx);
-        model.addAttribute("pageSize", PAGE_SIZE);
-
-        return "msg2/popup_ntc_list";
+        return "msg/popup_ntc_list_view";
     }
 
-    /**
-     * 팝업공지 목록 조회 (AJAX)
+    /*****************************************************
+     * 팝업공지 목록 조회
      * @param vo
-     * @param request
-     * @return
+     * @param userCtx
+     * @return ProcessResultVO<PopupNtcVO>
      * @throws Exception
-     */
-    @RequestMapping(value = "/popupNtcListAjax.do")
+     ******************************************************/
+    @RequestMapping(value = "/admPopupNtcListAjax.do")
     @ResponseBody
-    public ProcessResultVO<PopupNtcVO> popupNtcListAjax(PopupNtcVO vo, HttpServletRequest request) throws Exception {
-        ProcessResultVO<PopupNtcVO> resultVO = new ProcessResultVO<PopupNtcVO>();
+    public ProcessResultVO<PopupNtcVO> popupNtcListAjax(PopupNtcVO vo, @CurrentUser UserContext userCtx) throws Exception {
+        ProcessResultVO<PopupNtcVO> resultVO = new ProcessResultVO<>();
 
-        try {
-            UserContext userCtx = getUserContext(request);
-
-            if (!isAdmin(userCtx)) {
-                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-                resultVO.setMessage(getCommonNoAuthMessage());
-                return resultVO;
-            }
-
-            resultVO = popupNtcService.selectPopupNtcListPage(vo);
-            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
-        } catch (Exception e) {
-            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-            resultVO.setMessage(getMessage("fail.common.select"));
-        }
+        resultVO = popupNtcService.selectPopupNtcListPage(vo);
+        resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        resultVO.setEncParams(getEncParams());
 
         return resultVO;
     }
 
-    /**
+    /*****************************************************
      * 팝업공지 상세보기 화면
      * @param vo
+     * @param userCtx
      * @param model
-     * @param request
-     * @return
-     * @throws Exception
-     */
-    @RequestMapping(value = "/popupNtcDetail.do")
-    public String popupNtcDetail(PopupNtcVO vo, @CurrentUser UserContext userCtx,
-    		ModelMap model, HttpServletRequest request) throws Exception {
-        if (!isAdmin(userCtx)) {
-            model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/error";
-        }
-
+     * @return "msg/popup_ntc_select_view"
+     ******************************************************/
+    @RequestMapping(value = "/admPopupNtcSelectView.do")
+    public String popupNtcSelectView(PopupNtcVO vo, @CurrentUser UserContext userCtx, ModelMap model) {
         PopupNtcVO detailVO = popupNtcService.selectPopupNtc(vo);
 
-        model.addAttribute("userCtx", userCtx);
         model.addAttribute("detailVO", detailVO);
+        model.addAttribute("vo", vo);
 
-        return "msg2/popup_ntc_detail";
+        return "msg/popup_ntc_select_view";
     }
 
-    /**
+    /*****************************************************
      * 팝업공지 등록 화면
      * @param vo
+     * @param userCtx
      * @param model
-     * @param request
-     * @return
-     * @throws Exception
-     */
-    @RequestMapping(value = "/popupNtcRegist.do")
-    public String popupNtcRegist(PopupNtcVO vo, @CurrentUser UserContext userCtx, 
-    		ModelMap model, HttpServletRequest request) throws Exception {
+     * @return "msg/popup_ntc_regist_view"
+     ******************************************************/
+    @RequestMapping(value = "/admPopupNtcRegistView.do")
+    public String popupNtcRegistView(PopupNtcVO vo, @CurrentUser UserContext userCtx, ModelMap model) {
 
-        if (!isAdmin(userCtx)) {
-            model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/error";
-        }
-
-        model.addAttribute("userCtx", userCtx);
         model.addAttribute("mode", "regist");
+        model.addAttribute("vo", vo);
 
-        return "msg2/popup_ntc_regist";
+        return "msg/popup_ntc_regist_view";
     }
 
-    /**
+    /*****************************************************
      * 팝업공지 수정 화면
      * @param vo
+     * @param userCtx
      * @param model
-     * @param request
-     * @return
-     * @throws Exception
-     */
-    @RequestMapping(value = "/popupNtcModify.do")
-    public String popupNtcModify(PopupNtcVO vo, @CurrentUser UserContext userCtx,
-    		ModelMap model, HttpServletRequest request) throws Exception {
-
-        if (!isAdmin(userCtx)) {
-            model.addAttribute("message", getCommonNoAuthMessage());
-            return "common/error";
-        }
+     * @return "msg/popup_ntc_regist_view"
+     ******************************************************/
+    @RequestMapping(value = "/admPopupNtcModifyView.do")
+    public String popupNtcModifyView(PopupNtcVO vo, @CurrentUser UserContext userCtx, ModelMap model) {
 
         PopupNtcVO detailVO = popupNtcService.selectPopupNtc(vo);
 
-        model.addAttribute("userCtx", userCtx);
         model.addAttribute("detailVO", detailVO);
         model.addAttribute("mode", "modify");
+        model.addAttribute("vo", vo);
 
-        return "msg2/popup_ntc_regist";
+        return "msg/popup_ntc_regist_view";
     }
 
-    /**
-     * 팝업공지 등록 (AJAX)
+    /*****************************************************
+     * 팝업공지 등록
      * @param vo
-     * @param request
-     * @return
-     * @throws Exception
-     */
-    @RequestMapping(value = "/popupNtcRegistAjax.do")
+     * @param userCtx
+     * @return ProcessResultVO<PopupNtcVO>
+     ******************************************************/
+    @RequestMapping(value = "/admPopupNtcRegistAjax.do")
     @ResponseBody
-    public ProcessResultVO<PopupNtcVO> popupNtcRegistAjax(PopupNtcVO vo, HttpServletRequest request) throws Exception {
-        ProcessResultVO<PopupNtcVO> resultVO = new ProcessResultVO<PopupNtcVO>();
+    public ProcessResultVO<PopupNtcVO> popupNtcRegistAjax(PopupNtcVO vo, @CurrentUser UserContext userCtx) {
+        ProcessResultVO<PopupNtcVO> resultVO = new ProcessResultVO<>();
+        vo.setOrgId(userCtx.getOrgId());
+        vo.setRgtrId(userCtx.getUserId());
 
-        try {
-            UserContext userCtx = getUserContext(request);
-
-            if (!isAdmin(userCtx)) {
-                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-                resultVO.setMessage(getCommonNoAuthMessage());
-                return resultVO;
-            }
-
-            vo.setOrgId(userCtx.getOrgId());
-            vo.setRgtrId(userCtx.getUserId());
-
-            int cnt = popupNtcService.registPopupNtc(vo);
-            resultVO.setResult(cnt > 0 ? ProcessResultVO.RESULT_SUCC : ProcessResultVO.RESULT_FAIL);
-        } catch (Exception e) {
-            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-            resultVO.setMessage(getMessage("fail.common.insert"));
-        }
+        popupNtcService.insertPopupNtc(vo);
+        resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        resultVO.setEncParams(getEncParams());
 
         return resultVO;
     }
 
-    /**
-     * 팝업공지 수정 (AJAX)
+    /*****************************************************
+     * 팝업공지 수정
      * @param vo
-     * @param request
-     * @return
-     * @throws Exception
-     */
-    @RequestMapping(value = "/popupNtcModifyAjax.do")
+     * @param userCtx
+     * @return ProcessResultVO<PopupNtcVO>
+     ******************************************************/
+    @RequestMapping(value = "/admPopupNtcModifyAjax.do")
     @ResponseBody
-    public ProcessResultVO<PopupNtcVO> popupNtcModifyAjax(PopupNtcVO vo, HttpServletRequest request) throws Exception {
-        ProcessResultVO<PopupNtcVO> resultVO = new ProcessResultVO<PopupNtcVO>();
+    public ProcessResultVO<PopupNtcVO> popupNtcModifyAjax(PopupNtcVO vo, @CurrentUser UserContext userCtx) {
+        ProcessResultVO<PopupNtcVO> resultVO = new ProcessResultVO<>();
 
-        try {
-            UserContext userCtx = getUserContext(request);
+        vo.setMdfrId(userCtx.getUserId());
 
-            if (!isAdmin(userCtx)) {
-                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-                resultVO.setMessage(getCommonNoAuthMessage());
-                return resultVO;
-            }
-
-            vo.setMdfrId(userCtx.getUserId());
-
-            int cnt = popupNtcService.modifyPopupNtc(vo);
-            resultVO.setResult(cnt > 0 ? ProcessResultVO.RESULT_SUCC : ProcessResultVO.RESULT_FAIL);
-        } catch (Exception e) {
-            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-            resultVO.setMessage(getMessage("fail.common.update"));
-        }
+        popupNtcService.updatePopupNtc(vo);
+        resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        resultVO.setEncParams(getEncParams());
 
         return resultVO;
     }
 
-    /**
-     * 팝업공지 삭제 (AJAX)
+    /*****************************************************
+     * 팝업공지 삭제
      * @param vo
-     * @param request
-     * @return
-     * @throws Exception
-     */
-    @RequestMapping(value = "/popupNtcDeleteAjax.do")
+     * @param userCtx
+     * @return ProcessResultVO<PopupNtcVO>
+     ******************************************************/
+    @RequestMapping(value = "/admPopupNtcDeleteAjax.do")
     @ResponseBody
-    public ProcessResultVO<PopupNtcVO> popupNtcDeleteAjax(PopupNtcVO vo, HttpServletRequest request) throws Exception {
-        ProcessResultVO<PopupNtcVO> resultVO = new ProcessResultVO<PopupNtcVO>();
+    public ProcessResultVO<PopupNtcVO> popupNtcDeleteAjax(PopupNtcVO vo, @CurrentUser UserContext userCtx) {
+        ProcessResultVO<PopupNtcVO> resultVO = new ProcessResultVO<>();
 
-        try {
-            UserContext userCtx = getUserContext(request);
-
-            if (!isAdmin(userCtx)) {
-                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-                resultVO.setMessage(getCommonNoAuthMessage());
-                return resultVO;
-            }
-
-            if (vo.getPopupNtcId() == null || vo.getPopupNtcId().isEmpty()) {
-                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-                resultVO.setMessage(getMessage("common.item.select.msg"));
-                return resultVO;
-            }
-
-            int cnt = popupNtcService.deletePopupNtc(vo);
-            resultVO.setResult(cnt > 0 ? ProcessResultVO.RESULT_SUCC : ProcessResultVO.RESULT_FAIL);
-        } catch (Exception e) {
+        if (vo.getPopupNtcId() == null || vo.getPopupNtcId().isEmpty()) {
             resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-            resultVO.setMessage(getMessage("fail.common.delete"));
+            resultVO.setMessage(getMessage("common.item.select.msg"));
+            return resultVO;
         }
+
+        popupNtcService.deletePopupNtc(vo);
+        resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        resultVO.setEncParams(getEncParams());
 
         return resultVO;
     }
 
-    /**
-     * 팝업공지 전시여부 변경 (AJAX)
+    /*****************************************************
+     * 팝업공지 전시여부 변경
      * @param vo
-     * @param request
-     * @return
-     * @throws Exception
-     */
-    @RequestMapping(value = "/popupNtcUseynModifyAjax.do")
+     * @param userCtx
+     * @return ProcessResultVO<PopupNtcVO>
+     ******************************************************/
+    @RequestMapping(value = "/admPopupNtcUseynModifyAjax.do")
     @ResponseBody
-    public ProcessResultVO<PopupNtcVO> popupNtcUseynModifyAjax(PopupNtcVO vo, HttpServletRequest request) throws Exception {
-        ProcessResultVO<PopupNtcVO> resultVO = new ProcessResultVO<PopupNtcVO>();
+    public ProcessResultVO<PopupNtcVO> popupNtcUseynModifyAjax(PopupNtcVO vo, @CurrentUser UserContext userCtx) {
+        ProcessResultVO<PopupNtcVO> resultVO = new ProcessResultVO<>();
 
-        try {
-            UserContext userCtx = getUserContext(request);
+        vo.setMdfrId(userCtx.getUserId());
 
-            if (!isAdmin(userCtx)) {
-                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-                resultVO.setMessage(getCommonNoAuthMessage());
-                return resultVO;
-            }
-
-            vo.setMdfrId(userCtx.getUserId());
-
-            int cnt = popupNtcService.modifyPopupNtcUseyn(vo);
-            resultVO.setResult(cnt > 0 ? ProcessResultVO.RESULT_SUCC : ProcessResultVO.RESULT_FAIL);
-        } catch (Exception e) {
-            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-            resultVO.setMessage(getMessage("fail.common.update"));
-        }
+        popupNtcService.updatePopupNtcUseyn(vo);
+        resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        resultVO.setEncParams(getEncParams());
 
         return resultVO;
     }
 
-    /**
-     * 기관 목록 조회 (AJAX)
+    /*****************************************************
+     * 팝업공지 단건 조회
      * @param vo
-     * @param request
-     * @return
-     * @throws Exception
-     */
-    @RequestMapping(value = "/popupNtcOrgListAjax.do")
+     * @param userCtx
+     * @return ProcessResultVO<PopupNtcVO>
+     ******************************************************/
+    @RequestMapping(value = "/admPopupNtcSelectAjax.do")
     @ResponseBody
-    public ProcessResultVO<PopupNtcVO> popupNtcOrgListAjax(PopupNtcVO vo, HttpServletRequest request) throws Exception {
-        ProcessResultVO<PopupNtcVO> resultVO = new ProcessResultVO<PopupNtcVO>();
+    public ProcessResultVO<PopupNtcVO> popupNtcSelectAjax(PopupNtcVO vo, @CurrentUser UserContext userCtx) {
+        ProcessResultVO<PopupNtcVO> resultVO = new ProcessResultVO<>();
 
-        try {
-            UserContext userCtx = getUserContext(request);
-
-            if (!isAdmin(userCtx)) {
-                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-                resultVO.setMessage(getCommonNoAuthMessage());
-                return resultVO;
-            }
-
-            resultVO.setReturnList(popupNtcService.selectOrgList(vo));
-            resultVO.setResult(ProcessResultVO.RESULT_SUCC);
-        } catch (Exception e) {
-            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-            resultVO.setMessage(getMessage("fail.common.select"));
-        }
-
-        return resultVO;
-    }
-
-    /**
-     * 팝업공지 단건 조회 (미리보기/AJAX)
-     * @param vo
-     * @param request
-     * @return
-     * @throws Exception
-     */
-    @RequestMapping(value = "/popupNtcSelectAjax.do")
-    @ResponseBody
-    public ProcessResultVO<PopupNtcVO> popupNtcSelectAjax(PopupNtcVO vo, HttpServletRequest request) throws Exception {
-        ProcessResultVO<PopupNtcVO> resultVO = new ProcessResultVO<PopupNtcVO>();
-
-        try {
-            UserContext userCtx = getUserContext(request);
-
-            if (!isAdmin(userCtx)) {
-                resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-                resultVO.setMessage(getCommonNoAuthMessage());
-                return resultVO;
-            }
-
-            PopupNtcVO result = popupNtcService.selectPopupNtc(vo);
-            resultVO.setReturnVO(result);
-            resultVO.setResult(result != null ? ProcessResultVO.RESULT_SUCC : ProcessResultVO.RESULT_FAIL);
-        } catch (Exception e) {
-            resultVO.setResult(ProcessResultVO.RESULT_FAIL);
-            resultVO.setMessage(getMessage("fail.common.select"));
-        }
+        PopupNtcVO result = popupNtcService.selectPopupNtc(vo);
+        resultVO.setReturnVO(result);
+        resultVO.setResult(ProcessResultVO.RESULT_SUCC);
+        resultVO.setEncParams(getEncParams());
 
         return resultVO;
     }

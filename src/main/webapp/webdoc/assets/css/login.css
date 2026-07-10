@@ -99,7 +99,6 @@ LOGIN
     .sns_pc {display: none;}
     .sns_mo {display: block;}
     .sns_mo .sns_title {margin-bottom: 1.5rem;}
-    /* .sns_mo .sns_title .title {margin-bottom: 1.2rem;} */
     .sns_wrap .sns_mo .sns_btns {flex-direction: column; justify-content:flex-start; gap: 0;}
     .sns_wrap .sns_mo .sns_btns .btn {position: relative; color: #333; width: 100%; height:4.2rem; font-weight: 600; justify-content:flex-start; border-radius:0; border-bottom: 1px solid #DEDEDE;}
     .sns_wrap .sns_mo .sns_btns .btn:hover {color: hsl(194, 100%, 32%);}
@@ -173,6 +172,5 @@ footer .relate_site.active .list { opacity: 1; visibility: visible; border: 1px 
 @media all and (max-width:380px) {       
     footer .inner-wrap ul li { display: inline; white-space: normal; }
     footer .inner-wrap ul address, footer .inner-wrap ul span { display: inline; }
-    /* footer .inner-wrap ul li span::before { display: none; } */
     footer .inner-wrap ul li.copyright { display: block; margin-top: .5rem; }
 }

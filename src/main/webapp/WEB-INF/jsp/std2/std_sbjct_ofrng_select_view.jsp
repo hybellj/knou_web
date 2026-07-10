@@ -5,12 +5,12 @@
 <link rel="stylesheet" type="text/css" href="/webdocs/assets/css/classroom.css" />
 <script src="../assets/js/d3.v4/d3.v4.js"></script><!-- chart d3.js -->
 
-<body class="class colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="class ${uiex:getTheme()} "><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
         <%@ include file="../common_new/class_header.jsp" %>
         <!-- //common header -->
-    
+
         <!-- classroom -->
         <main class="common">
 
@@ -20,31 +20,9 @@
 
             <!-- content -->
             <div id="content" class="content-wrap common">
-                <div class="class_sub_top">
-                    <div class="navi_bar">                                
-                        <ul>
-                            <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                            <li>강의실</li>
-                            <li><span class="current">내강의실</span></li>                                 
-                        </ul>                                                                         
-                    </div>  
-                    <div class="btn-wrap">
-                        <div class="first">
-                            <select class="form-select">
-                                <option value="2025년 2학기">2025년 2학기</option>
-                                <option value="2025년 1학기">2025년 1학기</option>
-                            </select>
-                            <select class="form-select wide">
-                                <option value="">강의실 바로가기</option>
-                                <option value="2025년 2학기">2025년 2학기</option>
-                                <option value="2025년 1학기">2025년 1학기</option>
-                            </select>
-                        </div>
-                        <div class="sec">
-                            <button type="button" class="btn type1"><i class="xi-book-o"></i>학습자 매뉴얼</button>
-                        </div>                          
-                    </div>
-                </div>  
+				<!-- class_sub_top -->
+				<jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+				<!-- //class_sub_top -->
 
                 <div class="class_sub">
                     <!-- 강의실 상단 -->
@@ -53,8 +31,8 @@
                             <div class="class_info">
                                 <p class="labels">
                                     <label class="label uniA">대학원</label>
-                                </p>    
-                                <h2>데이터베이스의 이해와 활용 1반</h2>                                
+                                </p>
+                                <h2>데이터베이스의 이해와 활용 1반</h2>
                             </div>
                             <div class="class_detail">
                                 <div class="detail_txt">
@@ -68,14 +46,14 @@
                                     </p>
                                 </div>
 
-                                <div class="classSection">                        
+                                <div class="classSection">
                                     <div class="cls_btn">
                                         <a href="#0" class="btn"><em>강의</em>계획서</a>
                                         <a href="#0" class="btn"><em>평가</em>기준</a>
                                         <a href="#0" class="btn"><em>강의실</em>나가기</a>
                                     </div>
                                 </div>
-                            </div>                            
+                            </div>
                         </div>
                         <div class="info-right">
 
@@ -90,7 +68,7 @@
                                             <!-- 접속 현황 레이어 -->
                                             <div class="user-option-wrap">
                                                 <div class="option_head">
-                                                    <div class="sort_btn"> 
+                                                    <div class="sort_btn">
                                                         <button type="button">이름<i class="sort xi-long-arrow-up" aria-hidden="true"></i></button>
                                                         <button type="button">이름<i class="sort xi-long-arrow-down" aria-hidden="true"></i></button>
                                                     </div>
@@ -98,7 +76,7 @@
                                                     <button type="button" class="btn-close" aria-label="접속현황 닫기">
                                                         <i class="icon-svg-close"></i>
                                                     </button>
-                                                </div>                                                
+                                                </div>
                                                 <ul class="user_area">
                                                     <li>
                                                         <div class="user-info">
@@ -108,11 +86,11 @@
                                                             <div class="user-desc">
                                                                 <p class="name">나방송</p>
                                                                 <p class="subject"><span class="major">[대학원]</span>정보와기술</p>
-                                                            </div> 
+                                                            </div>
                                                             <div class="btn_wrap">
-                                                                <button type="button"><i class="xi-info-o"></i></button> 
+                                                                <button type="button"><i class="xi-info-o"></i></button>
                                                                 <button type="button"><i class="xi-bell-o"></i></button>
-                                                            </div>                                                         
+                                                            </div>
                                                         </div>
                                                     </li>
                                                     <li>
@@ -123,11 +101,11 @@
                                                             <div class="user-desc">
                                                                 <p class="name">최남단</p>
                                                                 <p class="subject"><span class="major">[대학원]</span>데이터베이스의 이해와 활용</p>
-                                                            </div> 
+                                                            </div>
                                                             <div class="btn_wrap">
-                                                                <button type="button"><i class="xi-info-o"></i></button> 
+                                                                <button type="button"><i class="xi-info-o"></i></button>
                                                                 <button type="button"><i class="xi-bell-o"></i></button>
-                                                            </div>                                                            
+                                                            </div>
                                                         </div>
                                                     </li>
                                                     <li>
@@ -138,11 +116,11 @@
                                                             <div class="user-desc">
                                                                 <p class="name">나방송</p>
                                                                 <p class="subject"><span class="major">[대학원]</span>정보와기술</p>
-                                                            </div> 
+                                                            </div>
                                                             <div class="btn_wrap">
-                                                                <button type="button"><i class="xi-info-o"></i></button> 
+                                                                <button type="button"><i class="xi-info-o"></i></button>
                                                                 <button type="button"><i class="xi-bell-o"></i></button>
-                                                            </div>                                                         
+                                                            </div>
                                                         </div>
                                                     </li>
                                                     <li>
@@ -153,11 +131,11 @@
                                                             <div class="user-desc">
                                                                 <p class="name">최남단</p>
                                                                 <p class="subject"><span class="major">[대학원]</span>데이터베이스의 이해와 활용</p>
-                                                            </div> 
+                                                            </div>
                                                             <div class="btn_wrap">
-                                                                <button type="button"><i class="xi-info-o"></i></button> 
+                                                                <button type="button"><i class="xi-info-o"></i></button>
                                                                 <button type="button"><i class="xi-bell-o"></i></button>
-                                                            </div>                                                            
+                                                            </div>
                                                         </div>
                                                     </li>
                                                     <li>
@@ -168,21 +146,21 @@
                                                             <div class="user-desc">
                                                                 <p class="name">최남단</p>
                                                                 <p class="subject"><span class="major">[대학원]</span>데이터베이스의 이해와 활용</p>
-                                                            </div> 
+                                                            </div>
                                                             <div class="btn_wrap">
-                                                                <button type="button"><i class="xi-info-o"></i></button> 
+                                                                <button type="button"><i class="xi-info-o"></i></button>
                                                                 <button type="button"><i class="xi-bell-o"></i></button>
-                                                            </div>                                                            
+                                                            </div>
                                                         </div>
                                                     </li>
                                                 </ul>
-                                                
-                                            </div>                                         
+
+                                            </div>
                                         </div>
                                         <div class="item_info">
                                             <span class="big">37</span>
                                             <span class="small">250</span>
-                                        </div>                                                                            
+                                        </div>
                                     </div>
 
                                     <div class="item week">
@@ -203,7 +181,7 @@
                                                 <span class="chart_value_my"></span>
                                                 <span><em>나의</em><em>진도율</em></span>
                                             </div>
-                                        </div>                                    
+                                        </div>
                                     </div>
 
                                     <div class="chart_average">
@@ -214,7 +192,7 @@
                                                 <span><em>평균</em><em>진도율</em></span>
                                             </div>
                                         </div>
-                                        
+
                                     </div>
 
                                     <script>
@@ -285,7 +263,7 @@
                                                     .attr("fill", "url(#attendanceGradientMy)");
 
                                                 // 중앙 텍스트 업데이트
-                                                $('.chart_value_my').text(data.cnt + '%'); 
+                                                $('.chart_value_my').text(data.cnt + '%');
                                             }
 
                                             // 평균 진도율 차트 그리기
@@ -353,7 +331,7 @@
                                                     .attr("fill", "url(#attendanceGradientAverage)");
 
                                                 // 중앙 텍스트 업데이트
-                                                $('.chart_value_average').text(data.cnt + '%'); 
+                                                $('.chart_value_average').text(data.cnt + '%');
                                             }
 
                                             // 차트 그리기
@@ -372,16 +350,16 @@
                             </div>
 
                         </div>
-                        
+
                     </div>
                     <!-- //강의실 상단 -->
-                    
+
                     <div class="segment-row">
 
                         <!-- 공지사항 -->
                         <div class="segment">
-                            <div class="box_title">  
-                                <i class="icon-svg-notice"></i>                     
+                            <div class="box_title">
+                                <i class="icon-svg-notice"></i>
                                 <h3 class="h3">과목 공지사항</h3>
                                 <div class="btn-wrap">
                                     <a href="#0" class="btn_more"><i class="xi-plus"></i></a>
@@ -389,40 +367,40 @@
                             </div>
                             <div class="box_content">
                                 <ul class="dash_item_listA">
-                                    <li class="dot">                                       
-                                        <a href="#0" class="item_txt">                                            
+                                    <li class="dot">
+                                        <a href="#0" class="item_txt">
                                             <p class="tit">1학기 성적처리 기준 안내입니다.</p>
                                             <p class="desc">
-                                                <span class="date">2025.05.17</span> 
+                                                <span class="date">2025.05.17</span>
                                             </p>
                                         </a>
                                         <div class="state">
                                             <label class="label check_no">읽지않음</label>
                                         </div>
                                     </li>
-                                    <li class="dot">                                       
-                                        <a href="#0" class="item_txt">                                            
+                                    <li class="dot">
+                                        <a href="#0" class="item_txt">
                                             <p class="tit">퀴즈가 등록되었습니다.</p>
                                             <p class="desc">
-                                                <span class="date">2025.05.17</span> 
+                                                <span class="date">2025.05.17</span>
                                             </p>
                                         </a>
                                         <div class="state">
                                             <label class="label check_ok">읽음</label>
                                         </div>
                                     </li>
-                                    <li class="dot">                                        
-                                        <a href="#0" class="item_txt">                                            
+                                    <li class="dot">
+                                        <a href="#0" class="item_txt">
                                             <p class="tit">중간고사 기간 안내입니다.</p>
                                             <p class="desc">
-                                                <span class="date">2025.05.17</span> 
+                                                <span class="date">2025.05.17</span>
                                             </p>
                                         </a>
                                         <div class="state">
                                             <label class="label check_ok">읽음</label>
                                         </div>
                                     </li>
-                                </ul>  
+                                </ul>
                             </div>
 
                         </div>
@@ -442,11 +420,11 @@
                                         <div class="user">
                                            <span class="user_img"></span>
                                         </div>
-                                        <a href="#0" class="item_txt">                                            
+                                        <a href="#0" class="item_txt">
                                             <p class="tit">과제 제출 언제까지 인가요?</p>
                                             <p class="desc">
-                                                <span class="name">김길동</span> 
-                                                <span class="date">2025.05.17</span> 
+                                                <span class="name">김길동</span>
+                                                <span class="date">2025.05.17</span>
                                             </p>
                                         </a>
                                         <div class="state">
@@ -457,11 +435,11 @@
                                         <div class="user">
                                            <span class="user_img"><img src="../assets/img/common/photo_user_sample2.jpg" aria-hidden="true" alt="사진"></span>
                                         </div>
-                                        <a href="#0" class="item_txt">                                            
+                                        <a href="#0" class="item_txt">
                                             <p class="tit">강의 내용 중에 이해가 안되는 부분이 있습니다.</p>
                                             <p class="desc">
-                                                <span class="name">김길동</span> 
-                                                <span class="date">2025.05.17</span> 
+                                                <span class="name">김길동</span>
+                                                <span class="date">2025.05.17</span>
                                             </p>
                                         </a>
                                         <div class="state">
@@ -472,26 +450,26 @@
                                         <div class="user">
                                            <span class="user_img"></span>
                                         </div>
-                                        <a href="#0" class="item_txt">                                            
+                                        <a href="#0" class="item_txt">
                                             <p class="tit">과제 제출 언제까지 인가요?</p>
                                             <p class="desc">
-                                                <span class="name">김길동</span> 
-                                                <span class="date">2025.05.17</span> 
+                                                <span class="name">김길동</span>
+                                                <span class="date">2025.05.17</span>
                                             </p>
                                         </a>
                                         <div class="state">
                                             <label class="label check_reply">답변</label>
                                         </div>
                                     </li>
-                                </ul>                               
-							</div>      
+                                </ul>
+							</div>
 
                         </div>
 
                         <!-- 자료실 -->
                         <div class="segment">
-                            <div class="box_title">  
-                                <i class="icon-svg-save"></i>                     
+                            <div class="box_title">
+                                <i class="icon-svg-save"></i>
                                 <h3 class="h3">자료실</h3>
                                 <div class="btn-wrap">
                                     <a href="#0" class="btn_more"><i class="xi-plus"></i></a>
@@ -499,44 +477,44 @@
                             </div>
                             <div class="box_content">
                                 <ul class="dash_item_listA">
-                                    <li class="dot">                                       
-                                        <a href="#0" class="item_txt">                                            
+                                    <li class="dot">
+                                        <a href="#0" class="item_txt">
                                             <p class="tit">1주차 강의자료 업로드</p>
                                             <p class="desc">
-                                                <span class="date">2025.05.17</span> 
+                                                <span class="date">2025.05.17</span>
                                             </p>
                                         </a>
                                         <div class="state">
                                             <a href="#0" class="btn btn_down">다운로드</a>
                                         </div>
                                     </li>
-                                    <li class="dot">                                       
-                                        <a href="#0" class="item_txt">                                            
+                                    <li class="dot">
+                                        <a href="#0" class="item_txt">
                                             <p class="tit">실전 NoSQL 데이터베이스 활용 자료입니다.</p>
                                             <p class="desc">
-                                                <span class="date">2025.05.17</span> 
+                                                <span class="date">2025.05.17</span>
                                             </p>
                                         </a>
                                         <div class="state">
                                             <a href="#0" class="btn btn_down">다운로드</a>
                                         </div>
                                     </li>
-                                    <li class="dot">                                        
-                                        <a href="#0" class="item_txt">                                            
+                                    <li class="dot">
+                                        <a href="#0" class="item_txt">
                                             <p class="tit">SQL 성능 튜닝 예제 모음집</p>
                                             <p class="desc">
-                                                <span class="date">2025.05.17</span> 
+                                                <span class="date">2025.05.17</span>
                                             </p>
                                         </a>
                                         <div class="state">
                                             <a href="#0" class="btn btn_down">다운로드</a>
                                         </div>
                                     </li>
-                                </ul>  
+                                </ul>
                             </div>
 
                         </div>
-                        
+
                     </div>
 
                     <div class="segment">
@@ -546,71 +524,71 @@
                             <p class="ing"><i class="icon-svg-state"></i>학습 진행중</p>
                             <p class="no"><i class="icon-svg-state"></i>학습 미완료</p>
                         </div>
-                        <div class="week_area"> 
-                            <div class="info-week">                    
+                        <div class="week_area">
+                            <div class="info-week">
                                 <div class="title">학습현황</div>
                                 <div class="week_state_list">
                                     <div class="state">
-                                        <div class="state_icon ok" aria-label="학습완료"><i class="icon-svg-state"></i></div>                                
-                                        <span class="week">1</span>                                                               
+                                        <div class="state_icon ok" aria-label="학습완료"><i class="icon-svg-state"></i></div>
+                                        <span class="week">1</span>
                                     </div>
                                     <div class="state">
-                                        <div class="state_icon ok" aria-label="학습완료"><i class="icon-svg-state"></i></div>                                
-                                        <span class="week">2</span>                                                               
+                                        <div class="state_icon ok" aria-label="학습완료"><i class="icon-svg-state"></i></div>
+                                        <span class="week">2</span>
                                     </div>
                                     <div class="state">
-                                        <div class="state_icon ok" aria-label="학습완료"><i class="icon-svg-state"></i></div>                                
-                                        <span class="week">3</span>                                                               
+                                        <div class="state_icon ok" aria-label="학습완료"><i class="icon-svg-state"></i></div>
+                                        <span class="week">3</span>
                                     </div>
                                     <div class="state">
-                                        <div class="state_icon ok" aria-label="학습완료"><i class="icon-svg-state"></i></div>                                
-                                        <span class="week">4</span>                                                               
+                                        <div class="state_icon ok" aria-label="학습완료"><i class="icon-svg-state"></i></div>
+                                        <span class="week">4</span>
                                     </div>
                                     <div class="state">
-                                        <div class="state_icon ok" aria-label="학습완료"><i class="icon-svg-state"></i></div>                                
-                                        <span class="week">5</span>                                                               
+                                        <div class="state_icon ok" aria-label="학습완료"><i class="icon-svg-state"></i></div>
+                                        <span class="week">5</span>
                                     </div>
                                     <div class="state">
-                                        <div class="state_icon no" aria-label="학습 미완료"><i class="icon-svg-state"></i></div>                                
-                                        <span class="week">6</span>                                                               
+                                        <div class="state_icon no" aria-label="학습 미완료"><i class="icon-svg-state"></i></div>
+                                        <span class="week">6</span>
                                     </div>
                                     <div class="state">
-                                        <div class="state_icon ok" aria-label="학습완료"><i class="icon-svg-state"></i></div>                                
-                                        <span class="week">7</span>                                                               
+                                        <div class="state_icon ok" aria-label="학습완료"><i class="icon-svg-state"></i></div>
+                                        <span class="week">7</span>
                                     </div>
                                     <div class="state">
-                                        <div class="state_icon test_ok" aria-label="시험 완료"><i class="icon-svg-state"></i></div>                                
-                                        <span class="week">중간</span>                                                               
+                                        <div class="state_icon test_ok" aria-label="시험 완료"><i class="icon-svg-state"></i></div>
+                                        <span class="week">중간</span>
                                     </div>
                                     <div class="state">
-                                        <div class="state_icon ing" aria-label="학습 진행중"><i class="icon-svg-state"></i></div>                                
-                                        <span class="week">9</span>                                                               
+                                        <div class="state_icon ing" aria-label="학습 진행중"><i class="icon-svg-state"></i></div>
+                                        <span class="week">9</span>
                                     </div>
                                     <div class="state">
-                                        <div class="state_icon" aria-label="학습 미진행"><i class="icon-svg-state"></i></div>                                
-                                        <span class="week">10</span>                                                               
+                                        <div class="state_icon" aria-label="학습 미진행"><i class="icon-svg-state"></i></div>
+                                        <span class="week">10</span>
                                     </div>
                                     <div class="state">
-                                        <div class="state_icon" aria-label="학습 미진행"><i class="icon-svg-state"></i></div>                                
-                                        <span class="week">11</span>                                                               
+                                        <div class="state_icon" aria-label="학습 미진행"><i class="icon-svg-state"></i></div>
+                                        <span class="week">11</span>
                                     </div>
                                     <div class="state">
-                                        <div class="state_icon" aria-label="학습 미진행"><i class="icon-svg-state"></i></div>                                
-                                        <span class="week">12</span>                                                               
+                                        <div class="state_icon" aria-label="학습 미진행"><i class="icon-svg-state"></i></div>
+                                        <span class="week">12</span>
                                     </div>
                                     <div class="state">
-                                        <div class="state_icon" aria-label="학습 미진행"><i class="icon-svg-state"></i></div>                                
-                                        <span class="week">13</span>                                                               
+                                        <div class="state_icon" aria-label="학습 미진행"><i class="icon-svg-state"></i></div>
+                                        <span class="week">13</span>
                                     </div>
                                     <div class="state">
-                                        <div class="state_icon" aria-label="학습 미진행"><i class="icon-svg-state"></i></div>                                
-                                        <span class="week">14</span>                                                               
+                                        <div class="state_icon" aria-label="학습 미진행"><i class="icon-svg-state"></i></div>
+                                        <span class="week">14</span>
                                     </div>
                                     <div class="state">
-                                        <div class="state_icon test" aria-label="시험 미진행"><i class="icon-svg-state"></i></div>                                
-                                        <span class="week">기말</span>                                                               
+                                        <div class="state_icon test" aria-label="시험 미진행"><i class="icon-svg-state"></i></div>
+                                        <span class="week">기말</span>
                                     </div>
-                                    
+
                                 </div>
                             </div>
                             <div class="info-set">
@@ -623,7 +601,7 @@
                                     <p class="desc">
                                         <span class="tit">시간:</span>
                                         <span>40분</span>
-                                    </p>                                                       
+                                    </p>
                                 </div>
                                 <div class="info">
                                     <p class="point">
@@ -633,15 +611,15 @@
                                     <p class="desc">
                                         <span class="tit">시간:</span>
                                         <span>40분</span>
-                                    </p>                                                       
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                        
+
 
                         <div class="board_top">
                             <i class="icon-svg-openbook"></i>
-                            <h3 class="board-title">강의목록</h3>                            
+                            <h3 class="board-title">강의목록</h3>
                             <div class="right-area">
                                 <button type="button" class="btn basic">주차 접음</button>
                                 <select class="form-select">
@@ -654,48 +632,48 @@
                                 </select>
                                 <a href="#0" class="btn_list_type on" aria-label="리스트형 보기"><i class="icon-svg-list" aria-hidden="true"></i></a>
                                 <a href="#0" class="btn_list_type" aria-label="카드형 보기"><i class="icon-svg-grid" aria-hidden="true"></i></a>
-                            </div>                         
-                        </div>                        
+                            </div>
+                        </div>
 
                         <div class="course_list">
                             <ul class="accordion course_week">
                                 <li class="active"><!-- 클릭시 active 추가 -->
-                                    <div class="title-wrap"> 
+                                    <div class="title-wrap">
                                         <a class="title" href="#">
-                                            <i class="arrow xi-angle-down"></i> 
+                                            <i class="arrow xi-angle-down"></i>
                                             <strong>1주차</strong>
                                             <p class="labels">
                                                 <label class="label s_online">온라인</label>
                                                 <label class="label s_finish">마감</label>
-                                            </p>                                             
+                                            </p>
                                             <p class="desc">
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span><strong>106분</strong></span>
                                             </p>
-                                        </a>                                        
+                                        </a>
                                         <div class="btn_right">
                                             <div class="desc_info">
                                                 <span>진도율<strong class="navy">52%</strong></span>
                                             </div>
                                             <button class="btn s_basic down">강의노트</button>
-                                            <button class="btn s_type2">강의보기</button>                                            
-                                        </div>                                                                    
+                                            <button class="btn s_type2">강의보기</button>
+                                        </div>
                                     </div>
 
-                                    <div class="cont">                                        
+                                    <div class="cont">
                                         <div class="lecture_box">
                                             <div class="lecture_tit">
                                                 <p class="labels">
                                                     <label class="label s_chasi">1차시</label>
                                                     <label class="label s_basic">동영상</label>
-                                                </p>   
+                                                </p>
                                                 <strong>우리 생활 주변의 데이터베이스</strong>
                                             </div>
                                             <div class="btn_right">
                                                 <div class="desc_info">
                                                     <span>진도율<strong class="navy">52%</strong></span>
                                                 </div>
-                                                <button class="btn s_basic play">강의보기</button>                                                	
+                                                <button class="btn s_basic play">강의보기</button>
                                             </div>
                                         </div>
                                         <div class="lecture_box">
@@ -703,139 +681,139 @@
                                                 <p class="labels">
                                                     <label class="label s_chasi">2차시</label>
                                                     <label class="label s_basic">동영상</label>
-                                                </p>   
+                                                </p>
                                                 <strong>데이터베이스 관리 시스템</strong>
                                             </div>
                                             <div class="btn_right">
                                                 <div class="desc_info">
                                                     <span>진도율<strong class="navy">52%</strong></span>
                                                 </div>
-                                                <button class="btn s_basic play">강의보기</button>                                                
+                                                <button class="btn s_basic play">강의보기</button>
                                             </div>
                                         </div>
                                         <div class="lecture_box">
                                             <div class="lecture_tit">
                                                 <p class="labels">
                                                     <label class="label s_work">과제</label>
-                                                </p>   
+                                                </p>
                                                 <strong>ER 다이어그램을 그리고 그것을 관계형 모델로 변환해보기</strong>
                                             </div>
                                             <div class="btn_right mr">
                                                 <div class="desc_info">
                                                     <span>기간<strong>2025.03.06 10:00 ~ 2025.04.12 22:00</strong></span>
                                                 </div>
-                                                <button class="btn s_basic set">과제제출</button>                                                
+                                                <button class="btn s_basic set">과제제출</button>
                                             </div>
                                         </div>
                                         <div class="lecture_box">
                                             <div class="lecture_tit">
-                                                <p class="labels">                                                    
+                                                <p class="labels">
                                                     <label class="label s_debate">토론</label>
-                                                </p>   
+                                                </p>
                                                 <strong>찬반토론</strong>
                                             </div>
                                             <div class="btn_right mr">
                                                 <div class="desc_info">
                                                     <span>기간<strong>2025.03.06 10:00 ~ 2025.04.12 22:00</strong></span>
                                                 </div>
-                                                <button class="btn s_basic set">토론참여</button>                                                
+                                                <button class="btn s_basic set">토론참여</button>
                                             </div>
                                         </div>
                                         <div class="lecture_box">
                                             <div class="lecture_tit">
-                                                <p class="labels">                                                    
+                                                <p class="labels">
                                                     <label class="label s_basic">자료</label>
-                                                </p>   
+                                                </p>
                                                 <strong>PDF : 학습자료제목</strong>
                                             </div>
-                                            <div class="btn_right mr">                                               
-                                                <button class="btn s_basic down">학습자료</button>                                                
+                                            <div class="btn_right mr">
+                                                <button class="btn s_basic down">학습자료</button>
                                             </div>
                                         </div>
                                         <div class="lecture_box">
                                             <div class="lecture_tit">
-                                                <p class="labels">                                                    
+                                                <p class="labels">
                                                     <label class="label s_basic">자료</label>
-                                                </p>   
+                                                </p>
                                                 <strong>웹링크 : 학습자료제목 학습자료제목 2</strong>
                                             </div>
-                                            <div class="btn_right mr">                                               
-                                                <button class="btn s_basic">학습자료 <i class="icon-svg-link" aria-hidden="true"></i></button>                                                
+                                            <div class="btn_right mr">
+                                                <button class="btn s_basic">학습자료 <i class="icon-svg-link" aria-hidden="true"></i></button>
                                             </div>
                                         </div>
-                                        
+
                                     </div>
                                 </li>
-                                
+
                                 <li class=""><!-- 클릭시 active 추가 -->
-                                    <div class="title-wrap"> 
+                                    <div class="title-wrap">
                                         <a class="title" href="#">
-                                            <i class="arrow xi-angle-down"></i> 
+                                            <i class="arrow xi-angle-down"></i>
                                             <strong>2주차</strong>
                                             <p class="labels">
                                                 <label class="label s_online">온라인</label>
                                                 <label class="label s_ing">공개</label>
-                                            </p>                                             
+                                            </p>
                                             <p class="desc">
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span><strong>106분</strong></span>
                                                 <span><strong>선택학습</strong></span>
                                             </p>
-                                        </a>                                        
+                                        </a>
                                         <div class="btn_right">
                                             <div class="desc_info">
                                                 <span>진도율<strong class="navy">52%</strong></span>
                                             </div>
                                             <button class="btn s_basic down">강의노트</button>
-                                            <button class="btn s_type2">강의보기</button>                                            
-                                        </div>                                                                     
+                                            <button class="btn s_type2">강의보기</button>
+                                        </div>
                                     </div>
 
-                                    <div class="cont">                                        
+                                    <div class="cont">
                                         <div class="lecture_box">
                                             <div class="lecture_tit">
                                                 <p class="labels">
                                                     <label class="label s_chasi">1차시</label>
                                                     <label class="label s_basic">동영상</label>
-                                                </p>   
+                                                </p>
                                                 <strong>우리 생활 주변의 데이터베이스</strong>
                                             </div>
                                             <div class="btn_right">
                                                 <div class="desc_info">
                                                     <span>진도율<strong class="navy">52%</strong></span>
                                                 </div>
-                                                <button class="btn s_basic play">강의보기</button>                                                
+                                                <button class="btn s_basic play">강의보기</button>
                                             </div>
-                                        </div>                                        
-                                       
+                                        </div>
+
                                     </div>
-                                </li>  
-                                
+                                </li>
+
                                 <li class=""><!-- 클릭시 active 추가 -->
-                                    <div class="title-wrap"> 
+                                    <div class="title-wrap">
                                         <a class="title" href="#">
-                                            <i class="arrow xi-angle-down"></i> 
+                                            <i class="arrow xi-angle-down"></i>
                                             <strong>3주차</strong>
                                             <p class="labels">
                                                 <label class="label s_online">온라인</label>
-                                            </p>                                             
+                                            </p>
                                             <p class="desc">
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span><strong>106분</strong></span>
                                                 <span><strong>선택학습</strong></span>
                                             </p>
-                                        </a>                                        
-                                        <div class="btn_right">                                        
+                                        </a>
+                                        <div class="btn_right">
                                             <button class="btn s_type2">세미나</button>
-                                        </div>                                                                    
+                                        </div>
                                     </div>
 
-                                    <div class="cont">                                        
+                                    <div class="cont">
                                         <div class="lecture_box seminar">
                                             <div class="lecture_tit">
                                                 <p class="labels">
                                                     <label class="label s_seminar">세미나</label>
-                                                </p>   
+                                                </p>
                                                 <strong>화상세미나</strong>
                                             </div>
                                             <div class="btn_right mr">
@@ -844,7 +822,7 @@
                                                     <span>지각<strong>3</strong></span>
                                                     <span>결석<strong>1</strong></span>
                                                 </div>
-                                                <button class="btn s_basic set">세미나관리</button>                                                
+                                                <button class="btn s_basic set">세미나관리</button>
                                             </div>
 
                                             <div class="seminar_detail">
@@ -857,7 +835,7 @@
                                                 </div>
                                                 <div class="row message red">
                                                     [중요] 반드시 Zoom Meeting 프로그램을 실행하여 참가해 주세요.<br>
-                                                    <span class="caution">Zoom 프로그램이 아닌 브라우저 상의 "브라우저에서 참가"를 클릭하여 입장한 경우에는 출결이 기록되지 않습니다.</span> 
+                                                    <span class="caution">Zoom 프로그램이 아닌 브라우저 상의 "브라우저에서 참가"를 클릭하여 입장한 경우에는 출결이 기록되지 않습니다.</span>
                                                 </div>
                                                 <div class="row message">
                                                     <div class="list-tit">참가에 실패하는 경우</div>
@@ -873,98 +851,98 @@
                                                 </div>
                                             </div>
 
-                                        </div>                                        
-                                        
+                                        </div>
+
                                     </div>
-                                </li> 
-                                
+                                </li>
+
                                 <li class=""><!-- 클릭시 active 추가 -->
-                                    <div class="title-wrap"> 
+                                    <div class="title-wrap">
                                         <a class="title" href="#">
-                                            <i class="arrow xi-angle-down"></i> 
+                                            <i class="arrow xi-angle-down"></i>
                                             <strong>4주차</strong>
                                             <p class="labels">
                                                 <label class="label s_offline">오프라인</label>
-                                            </p>                                             
+                                            </p>
                                             <p class="desc">
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span><strong>60분</strong></span>
                                                 <span><strong>선택학습</strong></span>
                                             </p>
-                                        </a>                                        
+                                        </a>
                                         <div class="btn_right">
                                             <div class="desc_info">
                                                 <span>진도율<strong class="navy">52%</strong></span>
                                             </div>
                                             <button class="btn s_basic down">강의노트</button>
-                                        </div>                                                                    
+                                        </div>
                                     </div>
 
-                                    <div class="cont">                                        
+                                    <div class="cont">
                                         <div class="lecture_box">
                                             <div class="lecture_tit">
-                                                <p class="labels">                                                    
+                                                <p class="labels">
                                                     <label class="label s_basic">자료</label>
-                                                </p>   
+                                                </p>
                                                 <strong>PDF : 학습자료제목</strong>
                                             </div>
-                                            <div class="btn_right">                                               
-                                                <button class="btn s_basic set">학습자료</button>                                                
+                                            <div class="btn_right">
+                                                <button class="btn s_basic set">학습자료</button>
                                             </div>
-                                        </div>                                     
-                                        
+                                        </div>
+
                                     </div>
-                                </li>   
+                                </li>
 
                                 <li class=""><!-- 클릭시 active 추가 -->
-                                    <div class="title-wrap"> 
+                                    <div class="title-wrap">
                                         <a class="title" href="#">
-                                            <i class="arrow xi-angle-down"></i> 
+                                            <i class="arrow xi-angle-down"></i>
                                             <strong>15주차</strong>
                                             <p class="labels">
                                                 <label class="label s_online">온라인</label>
-                                            </p>                                             
+                                            </p>
                                             <p class="desc">
                                                 <span>학습기간<strong>2025.06.02 ~ 2025.06.10</strong></span>
                                                 <span><strong>60분</strong></span>
                                                 <span><strong>선택학습</strong></span>
                                             </p>
-                                        </a>                                        
+                                        </a>
                                         <div class="btn_right">
                                             <button class="btn s_type1">결시원 신청</button>
-                                            <button class="btn s_type1">장애인/고령자 지원신청</button>                                            
-                                        </div>                                                                    
+                                            <button class="btn s_type1">장애인/고령자 지원신청</button>
+                                        </div>
                                     </div>
 
-                                    <div class="cont">                                        
+                                    <div class="cont">
                                         <div class="lecture_box">
                                             <div class="lecture_tit">
-                                                <p class="labels">                                                    
+                                                <p class="labels">
                                                     <label class="label s_test">시험</label>
-                                                </p>   
+                                                </p>
                                                 <strong>실시간시험 기말고사</strong>
                                             </div>
                                             <div class="btn_right">
                                                 <div class="desc_info">
-                                                    <span>시험일시<strong>2025.07.22 16:00</strong></span>                                                    
-                                                </div>                                               
-                                                <button class="btn s_basic">시험응시<i class="icon-svg-arrow"></i></button>                                                
+                                                    <span>시험일시<strong>2025.07.22 16:00</strong></span>
+                                                </div>
+                                                <button class="btn s_basic">시험응시<i class="icon-svg-arrow"></i></button>
                                             </div>
-                                        </div> 
+                                        </div>
                                         <div class="lecture_box">
                                             <div class="lecture_tit">
-                                                <p class="labels">                                                    
+                                                <p class="labels">
                                                     <label class="label s_test">대체과제</label>
-                                                </p>   
+                                                </p>
                                                 <strong>대체과제명</strong>
                                             </div>
                                             <div class="btn_right">
                                                 <div class="desc_info">
-                                                    <span>기간2025.07.21 10:00 ~ 2025.07.23 22:00</strong></span>                                                    
-                                                </div>                                               
-                                                <button class="btn s_basic">과제제출<i class="icon-svg-arrow"></i></button>                                                
+                                                    <span>기간2025.07.21 10:00 ~ 2025.07.23 22:00</strong></span>
+                                                </div>
+                                                <button class="btn s_basic">과제제출<i class="icon-svg-arrow"></i></button>
                                             </div>
-                                        </div>                                                                            
+                                        </div>
 
                                     </div>
                                 </li>
@@ -972,12 +950,12 @@
                         </div>
 
                     </div>
-                                                        
-                </div>   
-                
+
+                </div>
+
             </div>
             <!-- //content -->
-        
+
 
         </main>
         <!-- //classroom-->

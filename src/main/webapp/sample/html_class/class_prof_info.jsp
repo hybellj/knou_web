@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="../common/common_inc.jsp" %><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+	<jsp:include page="../common/common_head.jsp">
 		<jsp:param name="style" value="classroom"/>
 	</jsp:include>
 </head>
@@ -11,25 +11,25 @@
 <body class="class colorA "><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
-        <jsp:include page="/WEB-INF/jsp/common_new/class_header.jsp"/>
+        <jsp:include page="../common/class_header.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
         <!-- //common header -->
 
         <!-- classroom -->
         <main class="common">
 
             <!-- gnb -->
-            <jsp:include page="/WEB-INF/jsp/common_new/class_gnb_prof.jsp"/>
+            <jsp:include page="../common/class_gnb_prof.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
             <!-- //gnb -->
 
             <!-- content -->
             <div id="content" class="content-wrap common">
                 <!-- class_sub_top -->
-				<jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+				<jsp:include page="../common/class_sub_top.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 				<!-- //class_sub_top -->
 
                 <div class="class_sub">
                     <!-- class_info -->
-					<jsp:include page="/WEB-INF/jsp/common_new/class_info.jsp"/>
+					<jsp:include page="../common/class_info.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
                     <!-- //class_info -->
 
                     <div class="sub-content">
@@ -45,7 +45,7 @@
                                     <div class="user-img">
                                         <div class="user-photo">
                                             <!--프로필 사진-->
-                                            <img src="/lms_design_sample/webdoc/assets/img/common/photo_user_sample.png" alt="사진">
+                                            <img src="/lms_design_sample/webdoc/assets/img/common/default_prof.png" alt="사진">
                                         </div>
                                     </div>
                                     <div class="user-btn"><button type="button" class="btn type2">정보수정</button></div>
@@ -189,7 +189,7 @@
                         <div class="user-img">
                             <div class="user-photo">
                                 <!--프로필 사진-->
-                                <img src="/lms_design_sample/webdoc/assets/img/common/photo_user_sample.png" alt="사진">
+                                <img src="/lms_design_sample/webdoc/assets/img/common/default_prof.png" alt="사진">
                             </div>
                         </div>
 

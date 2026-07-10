@@ -1,13 +1,14 @@
 package knou.lms.msg.service.impl;
 
 import knou.framework.common.IdPrefixType;
+import knou.framework.common.PageInfo;
 import knou.framework.common.ServiceBase;
+import knou.framework.exception.AccessDeniedException;
 import knou.framework.util.IdGenerator;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.msg.dao.MsgTmpltDAO;
 import knou.lms.msg.service.MsgTmpltService;
 import knou.lms.msg.vo.MsgTmpltVO;
-import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -20,29 +21,20 @@ public class MsgTmpltServiceImpl extends ServiceBase implements MsgTmpltService 
     private MsgTmpltDAO msgTmpltDAO;
 
     /*****************************************************
-     * 템플릿 목록 조회 (페이징)
+     * 템플릿 목록 조회
      * @param vo
      * @return ProcessResultVO<MsgTmpltVO>
      ******************************************************/
     @Override
-    public ProcessResultVO<MsgTmpltVO> selectTmpltListPage(MsgTmpltVO vo) {
+    public ProcessResultVO<MsgTmpltVO> selectTmpltListPage(MsgTmpltVO vo) throws Exception {
         ProcessResultVO<MsgTmpltVO> resultVO = new ProcessResultVO<>();
 
-        PaginationInfo paginationInfo = new PaginationInfo();
-        paginationInfo.setCurrentPageNo(vo.getPageIndex());
-        paginationInfo.setRecordCountPerPage(vo.getListScale());
-        paginationInfo.setPageSize(vo.getPageScale());
-
-        vo.setFirstIndex(paginationInfo.getFirstRecordIndex() + 1);
-        vo.setLastIndex(paginationInfo.getFirstRecordIndex() + vo.getListScale());
-
-        int totalCnt = msgTmpltDAO.selectTmpltCnt(vo);
-        paginationInfo.setTotalRecordCount(totalCnt);
-
+        PageInfo pageInfo = new PageInfo(vo);
         List<MsgTmpltVO> list = msgTmpltDAO.selectTmpltList(vo);
+        pageInfo.setTotalRecord(list);
 
         resultVO.setReturnList(list);
-        resultVO.setPageInfo(paginationInfo);
+        resultVO.setPageInfo(pageInfo);
 
         return resultVO;
     }
@@ -63,10 +55,10 @@ public class MsgTmpltServiceImpl extends ServiceBase implements MsgTmpltService 
      * @return int
      ******************************************************/
     @Override
-    public int registTmplt(MsgTmpltVO vo) {
+    public int insertTmplt(MsgTmpltVO vo) {
         String msgTmpltId = IdGenerator.getNewId(IdPrefixType.MSTML.getCode());
         vo.setMsgTmpltId(msgTmpltId);
-        return msgTmpltDAO.registTmplt(vo);
+        return msgTmpltDAO.insertTmplt(vo);
     }
 
     /*****************************************************
@@ -75,22 +67,21 @@ public class MsgTmpltServiceImpl extends ServiceBase implements MsgTmpltService 
      * @return int
      ******************************************************/
     @Override
-    public int modifyTmplt(MsgTmpltVO vo) {
-        return msgTmpltDAO.modifyTmplt(vo);
+    public int updateTmplt(MsgTmpltVO vo) {
+        return msgTmpltDAO.updateTmplt(vo);
     }
 
     private static final String ORG_MSG = "ORG_MSG";
 
     /*****************************************************
-     * 템플릿 삭제 (권한 검증 포함)
+     * 템플릿 삭제
      * @param vo
      * @param userId
      * @param isAdmin
      * @return int
-     * @throws Exception
      ******************************************************/
     @Override
-    public int deleteTmplt(MsgTmpltVO vo, String userId, boolean isAdmin) throws Exception {
+    public int deleteTmplt(MsgTmpltVO vo, String userId, boolean isAdmin) {
         String[] ids = vo.getMsgTmpltIds();
         if (ids == null || ids.length == 0) {
             if (vo.getMsgTmpltId() != null) {
@@ -107,7 +98,7 @@ public class MsgTmpltServiceImpl extends ServiceBase implements MsgTmpltService 
             if (existVo != null) {
                 boolean hasAuth = ORG_MSG.equals(existVo.getMsgCtsGbncd()) ? isAdmin : userId.equals(existVo.getRgtrId());
                 if (!hasAuth) {
-                    throw new IllegalAccessException();
+                    throw new AccessDeniedException();
                 }
             }
         }

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.smnr.dao.SmnrFdbkDAO">
+
+	<insert id="smnrFdbkRegist" parameterType="smnrFdbkVO">
+		/*
+             SQL ID : SmnrFdbkDAO.smnrFdbkRegist
+             설  명 : 세미나피드백등록
+         */
+        INSERT INTO TB_LMS_SMNR_FDBK (
+        	  SMNR_FDBK_ID
+			, SMNR_ID
+			, USER_ID
+			, FDBK_CTS
+			, RGTR_ID
+			, REG_DTTM
+        ) VALUES (
+        	  #{smnrFdbkId}
+			, #{smnrId}
+			, #{userId}
+			, #{fdbkCts}
+			, #{rgtrId}
+			, FN_DTTM()
+        )
+	</insert>
+
+	<insert id="smnrFdbkBulkRegist" parameterType="java.util.List">
+		/*
+             SQL ID : SmnrFdbkDAO.smnrFdbkBulkRegist
+             설  명 : 세미나피드백일괄등록
+         */
+        INSERT ALL
+		<foreach item="item" collection="list">
+			INTO TB_LMS_SMNR_FDBK (
+	         	  SMNR_FDBK_ID
+				, SMNR_ID
+				, USER_ID
+				, FDBK_CTS
+				, RGTR_ID
+				, REG_DTTM
+	         ) VALUES (
+	         	  #{item.smnrFdbkId}
+				, #{item.smnrId}
+				, #{item.userId}
+				, #{item.fdbkCts}
+				, #{item.rgtrId}
+				, FN_DTTM()
+	         )
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+
+	<select id="smnrFdbkList" parameterType="smnrFdbkVO" resultType="smnrFdbkVO">
+		/*
+             SQL ID : SmnrFdbkDAO.smnrFdbkList
+             설  명 : 세미나피드백목록
+         */
+        SELECT
+			  FDBK.*
+			, FN_REF_FILE_CNT(FDBK.SMNR_FDBK_ID) AS FILE_CNT
+		  FROM TB_LMS_SMNR_FDBK FDBK
+		 WHERE FDBK.SMNR_ID = #{smnrId}
+		   AND FDBK.USER_ID = #{userId}
+		   AND FDBK.DELYN = 'N'
+	</select>
+
+	<update id="smnrFdbkModify" parameterType="smnrFdbkVO">
+		/*
+             SQL ID : SmnrFdbkDAO.smnrFdbkModify
+             설  명  : 세미나피드백수정
+         */
+        MERGE INTO TB_LMS_SMNR_FDBK FDBK
+	    USING (
+	        SELECT
+		    	  #{smnrFdbkId} AS SMNR_FDBK_ID
+			   	, #{smnrId} AS SMNR_ID
+			   	, #{userId} AS USER_ID
+			   	, #{fdbkCts} AS FDBK_CTS
+			   	, #{rgtrId} AS RGTR_ID
+		     FROM DUAL
+	    ) USR
+	    ON (
+	    	    FDBK.SMNR_FDBK_ID = USR.SMNR_FDBK_ID
+	     	AND FDBK.USER_ID = USR.USER_ID
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	        	  FDBK.FDBK_CTS = USR.FDBK_CTS
+	        	, FDBK.MDFR_ID = USR.RGTR_ID
+				, FDBK.MOD_DTTM = FN_DTTM()
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	        	  SMNR_FDBK_ID
+				, SMNR_ID
+				, USER_ID
+				, FDBK_CTS
+				, RGTR_ID
+				, REG_DTTM
+	        ) VALUES (
+	        	  USR.SMNR_FDBK_ID
+				, USR.SMNR_ID
+				, USR.USER_ID
+				, USR.FDBK_CTS
+				, USR.RGTR_ID
+				, FN_DTTM()
+	        )
+	</update>
+
+	<select id="smnrFdbkSelect" parameterType="smnrFdbkVO" resultType="smnrFdbkVO">
+		/*
+             SQL ID : SmnrFdbkDAO.smnrFdbkSelect
+             설  명 : 세미나피드백조회
+         */
+        SELECT
+			  FDBK.*
+			, FN_REF_FILE_CNT(FDBK.SMNR_FDBK_ID) AS FILE_CNT
+		  FROM TB_LMS_SMNR_FDBK FDBK
+		 WHERE FDBK.SMNR_FDBK_ID = #{smnrFdbkId}
+		   AND FDBK.DELYN = 'N'
+	</select>
+
+	<update id="smnrFdbkDelete" parameterType="smnrFdbkVO">
+		/*
+             SQL ID : SmnrFdbkDAO.smnrFdbkDelete
+             설  명 : 세미나피드백삭제
+         */
+        UPDATE TB_LMS_SMNR_FDBK SET
+        	  DELYN = 'Y'
+        	, MDFR_ID = #{mdfrId}
+        	, MOD_DTTM = FN_DTTM()
+         WHERE SMNR_FDBK_ID = #{smnrFdbkId}
+	</update>
+
+</mapper>

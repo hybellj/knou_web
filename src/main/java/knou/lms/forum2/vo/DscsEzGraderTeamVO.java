@@ -1,31 +1,19 @@
 package knou.lms.forum2.vo;
 
 import knou.lms.common.vo.DefaultVO;
-import knou.lms.forum2.vo.DscsJoinUserVO;
 
 import java.util.List;
 
 public class DscsEzGraderTeamVO extends DefaultVO {
 
-    private String dscsId;
-    private String orgId;           // 기관 코드
-    private String sbjctId;
+    private String dscsId;          // 토론아이디
+    private String sbjctId;         // 과목아이디
+    private String teamTycd;        // 팀유형코드
+    private String teamId;          // 팀아이디
+    private String teamnm;          // 팀명
+    private String teamStdIds;      // 팀원 사용자아이디 목록
 
-    private String teamCtgrCd;
-    private String teamCtgrNm;
-    private String teamTycd;
-    private String teamId;
-    private String teamNm;
-    private String asmntSubmitStatusCd;
-    private int    score;
-    private String teamStdIds;      // 팀원의 stdNo(, 로 연결된 문자열)
-    private String evalYn;
-    private String submitStdNo;     // 제출자의 학생번호(팀장이 아닌 팀원이 제출 할수도 있음.)
-
-    private List<DscsJoinUserVO> teamMembers;
-
-    // 파일 업로드
-//    private List<SysFileVO> attachFiles; // 관련서류첨부 파일목록
+    private List<DscsJoinUserVO> teamMembers; // 팀원 목록
 
     public String getDscsId() {
         return dscsId;
@@ -33,14 +21,6 @@ public class DscsEzGraderTeamVO extends DefaultVO {
 
     public void setDscsId(String dscsId) {
         this.dscsId = dscsId;
-    }
-
-    public String getOrgId() {
-        return orgId;
-    }
-
-    public void setOrgId(String orgId) {
-        this.orgId = orgId;
     }
 
     public String getSbjctId() {
@@ -51,28 +31,12 @@ public class DscsEzGraderTeamVO extends DefaultVO {
         this.sbjctId = sbjctId;
     }
 
-    public String getTeamCtgrCd() {
-        return teamCtgrCd;
-    }
-
-    public void setTeamCtgrCd(String teamCtgrCd) {
-        this.teamCtgrCd = teamCtgrCd;
-    }
-
     public String getTeamTycd() {
         return teamTycd;
     }
 
     public void setTeamTycd(String teamTycd) {
         this.teamTycd = teamTycd;
-    }
-
-    public String getTeamCtgrNm() {
-        return teamCtgrNm;
-    }
-
-    public void setTeamCtgrNm(String teamCtgrNm) {
-        this.teamCtgrNm = teamCtgrNm;
     }
 
     public String getTeamId() {
@@ -83,28 +47,12 @@ public class DscsEzGraderTeamVO extends DefaultVO {
         this.teamId = teamId;
     }
 
-    public String getTeamNm() {
-        return teamNm;
+    public String getTeamnm() {
+        return teamnm;
     }
 
-    public void setTeamNm(String teamNm) {
-        this.teamNm = teamNm;
-    }
-
-    public String getAsmntSubmitStatusCd() {
-        return asmntSubmitStatusCd;
-    }
-
-    public void setAsmntSubmitStatusCd(String asmntSubmitStatusCd) {
-        this.asmntSubmitStatusCd = asmntSubmitStatusCd;
-    }
-
-    public int getScore() {
-        return score;
-    }
-
-    public void setScore(int score) {
-        this.score = score;
+    public void setTeamnm(String teamnm) {
+        this.teamnm = teamnm;
     }
 
     public String getTeamStdIds() {
@@ -113,22 +61,6 @@ public class DscsEzGraderTeamVO extends DefaultVO {
 
     public void setTeamStdIds(String teamStdIds) {
         this.teamStdIds = teamStdIds;
-    }
-
-    public String getEvalYn() {
-        return evalYn;
-    }
-
-    public void setEvalYn(String evalYn) {
-        this.evalYn = evalYn;
-    }
-
-    public String getSubmitStdNo() {
-        return submitStdNo;
-    }
-
-    public void setSubmitStdNo(String submitStdNo) {
-        this.submitStdNo = submitStdNo;
     }
 
     public List<DscsJoinUserVO> getTeamMembers() {

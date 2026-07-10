@@ -13,73 +13,28 @@ import knou.lms.srvy.vo.SrvyVwitmVO;
 @Mapper("srvyVwitmDAO")
 public interface SrvyVwitmDAO {
 
-	/**
-	 * 설문문항목록보기항목삭제
-	 *
-	 * @param List<SrvyQstnVO>
-	 * @throws Exception
-	 */
-	public void srvyQstnListVwitmDelete(List<SrvyQstnVO> list) throws Exception;
+	// 설문문항목록보기항목삭제
+	public void srvyQstnListVwitmDelete(List<SrvyQstnVO> list);
 
-	/**
-	 * 설문보기항목일괄등록
-	 *
-	 * @param SrvyVwitmVO
-	 * @throws Exception
-	 */
-	public void srvyVwitmBulkRegist(List<SrvyVwitmVO> list) throws Exception;
+	// 설문보기항목일괄등록
+	public void srvyVwitmBulkRegist(List<SrvyVwitmVO> list);
 
-	/**
-	 * 설문보기항목삭제
-	 *
-	 * @param srvyQstnId 설문문항아이디
-	 * @throws Exception
-	 */
-	public void srvyVwitmDelete(@Param("srvyQstnId") String srvyQstnId) throws Exception;
+	// 설문보기항목삭제
+	public void srvyVwitmDelete(@Param("srvyQstnId") String srvyQstnId);
 
-	/**
-	 * 설문보기항목목록조회
-	 *
-	 * @param srvyQstnId 설문문항아이디
-	 * return 설문보기항목목록
-	 * @throws Exception
-	 */
-	public List<SrvyVwitmVO> srvyVwitmList(@Param("srvyQstnId") String srvyQstnId) throws Exception;
+	// 설문보기항목목록조회
+	public List<SrvyVwitmVO> srvyVwitmList(@Param("srvyQstnId") String srvyQstnId);
 
-	/**
-	 * 설문보기항목가져오기
-	 *
-	 * @param copySrvyQstnId 	복사설문문항아이디
-	 * @param srvyQstnId 		설문문항아이디
-	 * @throws Exception
-	 */
-	public void srvyVwitmCopy(List<Map<String, Object>> list) throws Exception;
+	// 설문보기항목가져오기
+	public void srvyVwitmCopy(List<Map<String, Object>> list);
 
-	/**
-	 * 설문보기항목일괄조회
-	 *
-	 * @param srvyId 		설문아이디
-	 * @param qstnRspnsTycd 문항답변유형코드
-	 * @param searchType 	조회유형
-	 * return 설문보기항목목록
-	 * @throws Exception
-	 */
-	public List<SrvyVwitmVO> srvyVwitmBulkList(@Param("srvyId") String srvyId, @Param("qstnRspnsTycd") String qstnRspnsTycd, @Param("searchType") String searchType) throws Exception;
+	// 설문보기항목일괄조회
+	public List<SrvyVwitmVO> srvyVwitmBulkList(@Param("srvyId") String srvyId, @Param("qstnRspnsTycd") String qstnRspnsTycd, @Param("searchType") String searchType);
 
-	/**
-	 * 설문문항목록보기항목전체삭제
-	 *
-	 * @param SrvyVO
-	 * @throws Exception
-	 */
-	public void srvyQstnListVwitmAllDelete(SrvyVO vo) throws Exception;
+	// 설문문항목록보기항목전체삭제
+	public void srvyQstnListVwitmAllDelete(SrvyVO vo);
 
-	/**
-	 * 설문보기항목설문지이동아이디수정
-	 *
-	 * @param srvyId 	설문아이디
-	 * @throws Exception
-	 */
-	public void srvyVwitmMvmnSrvypprIdModify(@Param("srvyId") String srvyId) throws Exception;
+	// 설문보기항목설문지이동아이디수정
+	public void srvyVwitmMvmnSrvypprIdModify(@Param("srvyId") String srvyId);
 
 }

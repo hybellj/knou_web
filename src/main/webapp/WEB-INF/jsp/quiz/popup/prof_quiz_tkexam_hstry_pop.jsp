@@ -14,38 +14,34 @@
 	</div>
 
 	<script type="text/javascript">
-		$(document).ready(function() {
-		});
 	</script>
 
 	<body class="modal-page">
         <div id="wrap">
         	<div class="board_top">
         		<div class="right-area fcBlue">
-	            	<b>${quizExamnee.deptnm } ${quizExamnee.stdntNo } ${quizExamnee.usernm } <span class="f150">${quizExamnee.totScr }<spring:message code="exam.label.score.point" /></span></b><!-- 점 -->
+	            	<b>${quizExamnee.deptnm } ${quizExamnee.stdntNo } ${quizExamnee.usernm } <span class="f150">${quizExamnee.totScr }<spring:message code="message.score" /></span></b><!-- 점 -->
         		</div>
         	</div>
-        	<div class="table-wrap">
-                <table class="table-type2">
+        	<div class="table-wrap overflow-y bd0">
+                <table class="table-type3">
                     <colgroup>
                         <col class="width-5per">
                         <col class="width-10per">
                         <col class="width-15per">
                         <col class="width-15per">
-                        <col class="width-15per">
                         <col class="">
-                        <col class="width-10per">
-                        <col class="width-7per">
+                        <col class="width-15per">
+                        <col class="width-15per">
                     </colgroup>
                     <thead>
                         <tr>
                             <th>NO.</th>
-                            <th>학과</th>
-                            <th>대표아이디</th>
-                            <th>학번</th>
-                            <th>이름</th>
-                            <th>로그</th>
-                            <th>등록일시</th>
+                            <th><spring:message code="common.dept_name" /><!-- 학과 --></th>
+                            <th><spring:message code="common.label.student.number" /><!-- 학번 --></th>
+                            <th><spring:message code="common.name" /><!-- 이름 --></th>
+                            <th><spring:message code="common.label.log" /><!-- 로그 --></th>
+                            <th><spring:message code="common.label.reg.dttm" /><!-- 등록일시 --></th>
                             <th>IP</th>
                         </tr>
                     </thead>
@@ -54,7 +50,6 @@
 							<tr>
 								<td>${list.lineNo }</td>
 								<td>${list.deptnm }</td>
-								<td>${list.userRprsId }</td>
 								<td>${list.stdntNo }</td>
 								<td>${list.usernm }</td>
 								<td>${list.hstryGbnnm }</td>
@@ -63,12 +58,11 @@
 							</tr>
 						</c:forEach>
                     </tbody>
-
                 </table>
             </div>
 
 			<div class="btns">
-                <button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code="exam.button.close" /></button><!-- 닫기 -->
+                <button class="btn type2" onclick="window.parent.closeDialog();"><spring:message code="common.button.close" /></button><!-- 닫기 -->
 			</div>
         </div>
 		<script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>

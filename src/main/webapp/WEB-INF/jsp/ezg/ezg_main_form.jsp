@@ -1,20 +1,14 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
+<%@ page import="knou.framework.common.SessionInfo" %>
+<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="/WEB-INF/jsp/forum2/common/dscs_common_inc.jsp" %>
 <!DOCTYPE html>
 <html lang="ko">
-<%@ include file="/WEB-INF/jsp/common/main_common.jsp" %>
-<%@ include file="/WEB-INF/jsp/common/common.jsp" %>
-<%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
-<%@ include file="/WEB-INF/jsp/asmt/common/asmt_common_inc.jsp" %>
-
-<script type="text/javascript" src="/webdoc/js/iframe-content.js"></script>
-
-<script src="/webdoc/player/plyr.js" crossorigin="anonymous"></script>
-<script src="/webdoc/player/player.js" crossorigin="anonymous"></script>
-<script src="/webdoc/audio-recorder/audio-recorder.js"></script>
-
-<link rel="stylesheet" type="text/css" href="/webdoc/css/class_default.css?v=2.1"/>
-<link rel="stylesheet" href="/webdoc/player/plyr.css"/>
-<link rel="stylesheet" href="/webdoc/audio-recorder/audio-recorder.css"/>
+<head>
+<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+    <jsp:param name="module" value="editor,fileuploader"/>
+    <jsp:param name="style" value="classroom"/>
+</jsp:include>
 
 <style>
     #imgFullView {
@@ -107,7 +101,6 @@
 </style>
 
 <script type="text/javascript">
-    var audioRecord = null;
     var gStdNo = "${stdNo}";
     var clickType = "";
 
@@ -122,23 +115,6 @@
                 }
             }
         });
-        audioRecord = UiAudioRecorder("audioRecord");
-        audioRecord.formName = "recordForm";
-        audioRecord.dataName = "audioData";
-        audioRecord.fileName = "audioFile";
-        audioRecord.lang = "ko";
-        audioRecord.init();
-
-        audioRecord.recorderBox.css({"top": "0px", "left": "0px"});
-        audioRecord.setRecorder();
-
-        $("#audioRecord").height($(".recorder-box").height() + 22);
-
-        $(".audio-header").remove();
-        $(".audio-btm .btm-btn").remove();
-
-        audioRecord.recorderBox.show();
-
         viewListHide();
 
         listAsmntUser();
@@ -1199,9 +1175,7 @@
             "fdbkTgtCd": "${vo.teamAsmntCfgYn}" == 'Y' ? "team" : "std",
             "fdbkCts": $("#fdbkValue").val(),
             "uploadFiles": $("#fdbkUploadForm > input[name='uploadFiles']").val(),
-            "uploadPath": $("#fdbkUploadForm > input[name='uploadPath']").val(),
-            "audioData": audioRecord.audioData,
-            "audioFile": audioRecord.audioFile
+            "uploadPath": $("#fdbkUploadForm > input[name='uploadPath']").val()
         };
 
         ajaxCall(url, data, function (data) {
@@ -1331,16 +1305,6 @@
         var fileUploader = dx5.get("fileUploader");
         fileUploader.removeAll();
         $("#fdbkFileViewPop").empty();
-    }
-
-    // 피드백 음성녹음 팝업 열기
-    function fdbkAudioPopOpen() {
-        $('#fdbkAudioPop').modal('show');
-    }
-
-    // 피드백 음성녹음 팝업 닫기
-    function fdbkAudioPopClose() {
-        $('#fdbkAudioPop').modal('hide');
     }
 
     // 이전 버튼
@@ -1567,6 +1531,7 @@
         }
     }
 </script>
+</head>
 
 <body class="modal-page EG-grader <%=SessionInfo.getThemeMode(request)%>">
 <div id="wrap" class="pusher <%=SessionInfo.getThemeMode(request)%>">
@@ -1897,38 +1862,6 @@
 </div>
 
 
-<div class="modal fade" id="fdbkAudioPop" tabindex="-1" role="dialog"
-     aria-labelledby="<spring:message code="forum.label.feedback" /><spring:message code="forum.label.fdbk.audio.attach" />"
-     aria-hidden="false">
-    <div class="modal-dialog modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal"
-                        aria-label="<spring:message code="resh.button.close" />"><!-- 닫기 -->
-                    <span aria-hidden="true">&times;</span>
-                </button>
-                <h4 class="modal-title"><spring:message code="forum.label.feedback"/><spring:message
-                        code="forum.label.fdbk.audio.attach"/></h4><!-- 피드백 음성녹음 -->
-            </div>
-            <div class="modal-body">
-                <div class="modal-page">
-                    <div id="wrap">
-                        <div class="ui form" style="height:50px">
-                            <div id="audioRecord"></div>
-                        </div>
-                        <div class="bottom-content">
-                            <a class="ui blue black button toggle_btn flex-left-auto"
-                               onclick="fdbkAudioPopClose();"><spring:message code="forum.button.attaching"/></a>
-                            <!-- 첨부하기 -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-
 <div id="imgFullView">
     <div id="fullMediaExtBtn">
         <div style="display:table;float:right">
@@ -1952,7 +1885,7 @@
     <input type="hidden" name="stdNo"/>
     <input type="hidden" name="hstyCd"/>
 </form>
-<div class="modal fade" id="viewAllAsmntPop" tabindex="-1" role="dialog" aria-labelledby="audio" data-backdrop="static"
+<div class="modal fade" id="viewAllAsmntPop" tabindex="-1" role="dialog" aria-labelledby="viewAllAsmnt" data-backdrop="static"
      data-keyboard="false" aria-hidden="false" style="display: none;">
     <div class="modal-dialog modal-lg2" role="document" style="margin: 20px auto;">
         <div class="modal-content p10">
@@ -1991,9 +1924,15 @@
     </div>
 </div>
 <script>
-    $('iframe').iFrameResize();
+    if ($.fn.iFrameResize) {
+        $('iframe').iFrameResize();
+    }
     window.closeModal = function () {
-        $('.modal').modal('hide');
+        if ($.fn.modal) {
+            $('.modal').modal('hide');
+        } else {
+            $('.modal').hide();
+        }
 
         $("#viewAllAsmntIfm").attr("src", "");
         $("#mutEvalViewIfm").attr("src", "");

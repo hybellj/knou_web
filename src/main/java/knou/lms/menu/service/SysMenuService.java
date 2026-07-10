@@ -2,6 +2,9 @@ package knou.lms.menu.service;
 
 import java.util.List;
 
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+
+import knou.framework.context2.UserContext;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.menu.vo.MenuUseOrgVO;
 import knou.lms.menu.vo.MenuVO;
@@ -31,6 +34,22 @@ public interface SysMenuService {
      * @throws Exception
      */
     public List<MgrSysMenuVO> selectSysMenulist(SysMenuVO vo) throws Exception;
+
+    /**
+     *  권한에 대한 메뉴 리스트를 조회한다.
+     * @param SysMenuVO
+     * @return List<MgrSysMenuVO>
+     * @throws Exception
+     */
+    public ProcessResultVO<SysAuthGrpVO> admAuthMngListViewAjax(SysAuthGrpVO vo) throws Exception;
+
+    /**
+     *  권한에 대한 메뉴 리스트를 조회한다.
+     * @param SysMenuVO
+     * @return List<MgrSysMenuVO>
+     * @throws Exception
+     */
+    public ProcessResultVO<SysAuthGrpVO> admAuthMngPopViewAjax(SysAuthGrpVO vo) throws Exception;
 
     /**
      *  관리자 메뉴 사용 유무 저장
@@ -176,20 +195,37 @@ public interface SysMenuService {
 
 
 	/**
-     * 서비스 메뉴 정보 조회
-     */
+	 * 서비스 메뉴 정보 조회
+	 * @param vo
+	 * @return List<SysMenuVO>
+	 * @throws Exception
+	 */
     public List<SysMenuVO> selectServiceMenuAll(SysMenuVO vo) throws Exception;
 
 
     /**
      * 메인메뉴 전체 목록 조회
+     * @param vo
+     * @return List<MenuVO>
+     * @throws Exception
      */
     public List<MenuVO> selectMainMenuAll(MenuVO vo) throws Exception;
 
     /**
      * 메인메뉴 기관 사용 전체 목록 조회
+     * @param vo
+     * @return List<MenuUseOrgVO>
+     * @throws Exception
      */
     public List<MenuUseOrgVO> selectMainMenuUseOrgAll(MenuUseOrgVO vo) throws Exception;
+
+    /**
+     * 기관 메인메뉴 목록 조회
+     * @param vo
+     * @return List<MenuVO>
+     * @throws Exception
+     */
+    public List<MenuVO> selectOrgMainMenuList(MenuVO vo) throws Exception;
 
     /**
      * 강의실 메뉴 목록 조회
@@ -197,4 +233,62 @@ public interface SysMenuService {
      * @throws Exception
      */
     public List<MenuVO> selectLectMenuList(MenuVO vo) throws Exception;
+
+    /**
+     * 기관 기본 메뉴 생성
+     * @param vo
+     * @throws Exception
+     */
+    public void insertOrgDefaultMenu(MenuVO vo) throws Exception;
+
+    /**
+     * 관리자 권한 등록
+     * @param vo
+     * @throws Exception
+     */
+    public void admAuthSave(List<SysAuthGrpVO> admList);
+
+    /*****************************************************
+     * 게시글 삭제
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void admAuthDelete(SysAuthGrpVO vo) throws Exception;
+
+    /*****************************************************
+     * 조회 필터 옵션
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    EgovMap loadFilterOptions(UserContext userCtx) throws Exception;
+
+	public List<MenuVO> adminMenuList(MenuVO vo);
+
+	/*****************************************************
+     * 권한에 따른 메뉴 리스트 조회
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public List<SysAuthGrpVO> admAuthrtTabList(SysAuthGrpVO vo) throws Exception;
+
+    /*****************************************************
+     * 메뉴 사용 여부 수정
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void admMenuUseynModify(SysAuthGrpVO vo);
+
+    /*****************************************************
+     * 메뉴 쓰기 허용 변경 이력
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public void admMenuWriteynChgHstry(SysAuthGrpVO vo);
+
+    /*****************************************************
+     * 권한에 따른 메뉴 리스트 조회
+     * @param vo
+     * @throws Exception
+     ******************************************************/
+    public List<EgovMap> admMenuList(MenuVO vo);
 }

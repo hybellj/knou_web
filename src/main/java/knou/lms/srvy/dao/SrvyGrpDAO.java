@@ -7,12 +7,7 @@ import knou.lms.srvy.vo.SrvyGrpVO;
 @Mapper("srvyGrpDAO")
 public interface SrvyGrpDAO {
 
-	/**
-	 * 설문그룹등록
-	 *
-	 * @param SrvyGrpVO
-	 * @throws Exception
-	 */
-	public void srvyGrpRegist(SrvyGrpVO vo) throws Exception;
+	// 설문그룹등록
+	public void srvyGrpRegist(SrvyGrpVO vo);
 
 }

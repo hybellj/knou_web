@@ -86,7 +86,7 @@
                 "startDt": startDt,
                 "endDt": endDt
             },
-            url: "/sch/schMgr/schCalendarList.do",
+            url: "/schedule/schCalendarList.do",
             success: function (data) {
                 var returnList = data.returnList || [];
 
@@ -242,7 +242,7 @@
             $("#writeSchForm input[name=end]").val(end.getFullYear() + "" + pad(end.getMonth() + 1, 2) + "" + pad(end.getDate(), 2) + "" + pad(end.getHours(), 2) + "" + pad(end.getMinutes(), 2) + "" + pad(end.getSeconds(), 2));
         }
         $("#writeSchForm").attr("target", "writeSchPopIfm");
-        $("#writeSchForm").attr("action", "/sch/schMgr/writeSchPop.do");
+        $("#writeSchForm").attr("action", "/schedule/writeSchPop.do");
         $("#writeSchForm").submit();
         $('#writeSchPop').modal('show');
     }
@@ -253,7 +253,7 @@
         $("#writeSchPop h4").text("<spring:message code='sch.cal_lesson' /> <spring:message code='sch.cal_schedule' /> <spring:message code='common.button.modify' />"); /* 수업 *//* 일정 *//* 수정 */
         $("#writeSchForm input[name=acadSchSn]").val(acadSchSn);
         $("#writeSchForm").attr("target", "writeSchPopIfm");
-        $("#writeSchForm").attr("action", "/sch/schMgr/editSchPop.do");
+        $("#writeSchForm").attr("action", "/schedule/scheduleModifyPopView.do");
         $("#writeSchForm").submit();
         $('#writeSchPop').modal('show');
     }
@@ -265,7 +265,7 @@
             return false;
         }
 
-        var url = "/sch/schMgr/delSch.do";
+        var url = "/schedule/scheduleDelete.do";
         var data = {
             "acadSchSn": acadSchSn
         };
@@ -327,7 +327,7 @@
 
     // 목록 리스트
     function schList(page) {
-        var url = "/sch/schMgr/schListPaging.do";
+        var url = "/schedule/schListPaging.do";
         var data = {
             creYear: $("#creYear").val()
             , uniCd: $("#uniCd").val()

@@ -16,6 +16,7 @@ public class TkexamVO extends DefaultVO {
 	private String 	tkexamEdttm;		// 시험응시종료일시
 	private String 	retkexamYn;			// 재응시여부
 	private String 	delyn;				// 삭제여부
+	private String  exrcsSddnQstnBscId;	// 연습돌발문항기본아이디
 
 	public String getTkexamId() {
 		return tkexamId;
@@ -44,6 +45,9 @@ public class TkexamVO extends DefaultVO {
 	public String getDelyn() {
 		return delyn;
 	}
+	public String getExrcsSddnQstnBscId() {
+		return exrcsSddnQstnBscId;
+	}
 	public void setTkexamId(String tkexamId) {
 		this.tkexamId = tkexamId;
 	}
@@ -71,5 +75,7 @@ public class TkexamVO extends DefaultVO {
 	public void setDelyn(String delyn) {
 		this.delyn = delyn;
 	}
-
+	public void setExrcsSddnQstnBscId(String exrcsSddnQstnBscId) {
+		this.exrcsSddnQstnBscId = exrcsSddnQstnBscId;
+	}
 }

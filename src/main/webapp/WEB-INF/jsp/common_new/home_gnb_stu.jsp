@@ -1,5 +1,4 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
-<%@page import="knou.lms.user.vo.UsrUserInfoVO"%>
 <%@page import="java.util.List"%>
 <%@page import="knou.lms.menu.vo.MenuVO"%>
 <%@page import="knou.framework.common.MenuInfo"%>
@@ -48,13 +47,13 @@ pageContext.setAttribute("auditYn", SessionInfo.getAuditYn(request)); // 청강�
 			<!-- user info -->
 			<div class="user-info">
 				<div class="box">
-					<div class="user-photo">
-						<img src="<%=request.getContextPath()%>/webdoc/assets/img/common/photo_user_sample2.jpg" aria-hidden="true" alt="사진">
+					<div class="user-photo stu">
+						${uiex:userPhoto()}<%-- 사진 --%>
 					</div>
 					<a href="#0"><div class="btn-setting"><i class="icon-svg-setting" aria-hidden="true"></i></div></a>
 					<div class="user-desc">
-						<p class="name">나방송 <span class="prof">학생</span></p>
-						<p class="major">마케팅·애널리틱스</p>
+						<p class="name"><%=SessionInfo.getUserNm(request)%></span></p><%-- 이름 --%>
+						<!-- <p class="major">마케팅·애널리틱스</p> -->
 					</div>
 				</div>
 			</div>
@@ -66,7 +65,7 @@ pageContext.setAttribute("auditYn", SessionInfo.getAuditYn(request)); // 청강�
 			            <%-- 상위 메뉴 --%>
 			            <a id="MENU_${menu.menuId}" href="#0"
 			                class="<c:if test='${menu.menuId == curMenuId or (empty curMenuId and status.index == 0)}'>current</c:if>"
-			                onclick='moveMenu(this, "${menu.menuUrl}", "${menu.upMenuId}", "${menu.menuId}", "${menu.menunm}", "${menu.linkTargetTycd}");return false;'
+			                onclick='moveMenu(this, "${menu.menuUrl}<c:if test="${not empty menu.menuUrl}">${fn:contains(menu.menuUrl, '?') ? '&' : '?'}encParams=${encParams}</c:if>", "${menu.upMenuId}", "${menu.menuId}", "${menu.menunm}", "${menu.linkTargetTycd}");return false;'
 			                title="${menu.menunm}">
 			                <i class="${menu.menuImgFileId}" aria-hidden="true"></i>
 			                <span>${menu.menunm}</span>
@@ -79,7 +78,7 @@ pageContext.setAttribute("auditYn", SessionInfo.getAuditYn(request)); // 청강�
 			                        <li id="${sub.menuId}">
 			                            <a id="SUBMENU_${sub.menuId}" href="#0"
 			                                class="<c:if test='${sub.menuId == curMenuId}'>current</c:if>"
-			                                onclick='moveMenu(this, "${sub.menuUrl}", "${sub.upMenuId}", "${sub.menuId}", "${sub.menunm}", "${sub.linkTargetTycd}");return false;'
+			                                onclick='moveMenu(this, "${sub.menuUrl}<c:if test="${not empty sub.menuUrl}">${fn:contains(sub.menuUrl, '?') ? '&' : '?'}encParams=${encParams}</c:if>", "${sub.upMenuId}", "${sub.menuId}", "${sub.menunm}", "${sub.linkTargetTycd}");return false;'
 			                                title="${sub.menunm}">
 			                                <span>${sub.menunm}</span>
 			                            </a>

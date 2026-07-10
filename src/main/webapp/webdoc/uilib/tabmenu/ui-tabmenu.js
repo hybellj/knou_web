@@ -151,6 +151,9 @@ function UiTabMenu(pageTabId, pageFrameId) {
 			this.currentMenuId = menuId;
 
 			this.resetMenuStatus(menuId);
+			
+			// 활성화된 탭이 항상 보이도록 이동
+    		this.scrollToMenu(menuId);
 		},
 
 		// 모든메뉴 닫기
@@ -179,6 +182,28 @@ function UiTabMenu(pageTabId, pageFrameId) {
 			this.pageTabs.animate({
 	            scrollLeft: fullWidth
 	        }, 200);
+		},
+		
+		
+		// 추가 -- by jinkoon
+		scrollToMenu: function(menuId) {
+
+		    const $tab = $("#TAB_" + menuId);
+		
+		    if (!$tab.length) {
+		        return;
+		    }
+		
+		    const container = this.pageTabs;
+		
+		    const targetLeft =
+		        container.scrollLeft() +
+		        $tab.position().left -
+		        (container.width() - $tab.outerWidth()) / 2;
+		
+		    container.stop().animate({
+		        scrollLeft: targetLeft
+		    }, 200);
 		},
 
 		// 메뉴상태 재설정

@@ -3,66 +3,159 @@
 <mapper namespace="knou.lms.bbs2.dao.Bbs2AtclDAO">
 
 	<select id="bbsUnreadCntSelect" resultType="eGovMap">
-		/*	설	명 : 게시판미열람수조회	*/
+		/*  학생대시보드에서 게시판미열람수 조회쿼리 두개로 분리해야함 TODO:jinkoon 20260630*/
+		WITH REPLY_YN AS (
+		    SELECT DISTINCT
+		           UP_ATCL_ID
+		      FROM TB_LMS_BBS_ATCL
+		     WHERE DELYN = 'N'
+		       AND UP_ATCL_ID IS NOT NULL
+		),
+		READ_YN AS (
+		    SELECT DISTINCT
+		           ATCL_ID
+		      FROM TB_LMS_BBS_ATCL_INQ_RCD
+		     WHERE VWER_ID = #{userId}
+		)
 		SELECT
-		    SUM(
-		        CASE 
+		    NVL( SUM(
+		        CASE
 		            WHEN BBS.BBS_TYCD = 'NTC'
-		                 AND NOT EXISTS (
-		                        SELECT 1
-		                        FROM TB_LMS_BBS_ATCL_INQ_RCD IR
-		                        WHERE IR.ATCL_ID = BA.ATCL_ID
-		                          AND IR.VWER_ID = #{userId}
-		                 )
-		            THEN 1 
+		            THEN 1
 		            ELSE 0
 		        END
-		    ) AS NOTICE_UNREAD_CNT, /* 1. 공지사항미열람수 */
-		    SUM(
-		        CASE 
+		    ), 0 ) AS NOTICE_UNREAD_CNT,
+		    NVL( SUM(
+		        CASE
 		            WHEN BBS.BBS_TYCD = 'QNA'
-		                 AND NOT EXISTS (
-		                        SELECT 1
-		                        FROM TB_LMS_BBS_ATCL REPLY
-		                        WHERE REPLY.UP_ATCL_ID = BA.ATCL_ID AND REPLY.DELYN = 'N'
-		                 )
-		            THEN 1 ELSE 0
+		            THEN 1
+		            ELSE 0
 		        END
-		    ) AS QNA_NOREPLY_CNT,  /* 2. Qna미답변수 */	    
-		    SUM(
-		        CASE 
+		    ) , 0 )AS QNA_NOREPLY_CNT,
+		    NVL ( SUM(
+		        CASE
 		            WHEN BBS.BBS_TYCD = '1ON1'
-		                 AND NOT EXISTS (
-		                        SELECT 1
-		                        FROM TB_LMS_BBS_ATCL REPLY
-		                        WHERE REPLY.UP_ATCL_ID = BA.ATCL_ID
-		                          AND REPLY.DELYN = 'N'
-		                 )
-		            THEN 1 ELSE 0
+		            THEN 1
+		            ELSE 0
 		        END
-		    ) AS ONE_ON_ONE_NOREPLY_CNT, /* 3. 1대1미답변수 */
-		    SUM(
-		        CASE 
-		            WHEN BBS.BBS_TYCD = 'DATA'
-		                 AND NOT EXISTS (
-		                        SELECT 1
-		                        FROM TB_LMS_BBS_ATCL_INQ_RCD IR
-		                        WHERE IR.ATCL_ID = BA.ATCL_ID
-		                          AND IR.VWER_ID = #{userId}
-		                 )
-		            THEN 1 ELSE 0
+		    ) , 0 ) AS ONE_ON_ONE_NOREPLY_CNT,
+		    NVL ( SUM(
+		        CASE
+		            WHEN BBS.BBS_TYCD = 'DATARM'
+		            THEN 1
+		            ELSE 0
 		        END
-		    ) AS DATARM_UNREAD_CNT /* 4. 자료실미열람수 */
-		FROM TB_LMS_BBS_ATCL 	BA
-		JOIN TB_LMS_BBS BBS		ON 	BA.BBS_ID = BBS.BBS_ID AND BBS.DELYN = 'N'
-								<if test="sbjctId != null and sbjctId != ''">
-									AND BBS.SBJCT_ID = #{sbjctId}
-								</if>
-		WHERE BA.DELYN = 'N'		
+		    ) , 0 ) AS DATARM_UNREAD_CNT
+		FROM    TB_LMS_BBS_ATCL BA
+		        JOIN TB_LMS_BBS BBS         ON BBS.BBS_ID = BA.BBS_ID AND BBS.DELYN = 'N' AND BBS.SBJCT_ID = #{sbjctId}
+		        JOIN TB_LMS_SBJCT S         ON S.SBJCT_ID = BBS.SBJCT_ID
+		        /* 교수 테이블과 학생 수강 테이블을 각각 LEFT JOIN */
+		        LEFT JOIN TB_LMS_SBJCT_ADM SA ON SA.SBJCT_ID = S.SBJCT_ID AND SA.USER_ID = #{userId}
+		        LEFT JOIN TB_LMS_ATNDLC ATNDLC   ON ATNDLC.SBJCT_ID = S.SBJCT_ID AND ATNDLC.USER_ID = #{userId} /* 수강 테이블 컬럼명확인 필요 */
+		        LEFT JOIN REPLY_YN RP       ON RP.UP_ATCL_ID = BA.ATCL_ID
+		        LEFT JOIN READ_YN RD        ON RD.ATCL_ID = BA.ATCL_ID
+		WHERE   BA.DELYN = 'N'
+		  AND   BA.UP_ATCL_ID IS NULL
+		  /* 교수의 과목이거나 학생이 수강중인 과목인 데이터만 필터링 (서로 겹치지 않게 방어) */
+		  AND   (SA.SBJCT_ID IS NOT NULL OR ATNDLC.SBJCT_ID IS NOT NULL)
 	</select>
-	
+
+	<select id="profQnaNoreplyCntSelect" resultType="eGovMap">
+	/*		설명 : 교수QNA미답변수조회	- 분리하려다 남과장에게 던지기 함. 	*/
+		WITH REPLY_ATCL AS (
+		    SELECT 	DISTINCT
+		           	UP_ATCL_ID
+		      FROM 	TB_LMS_BBS_ATCL 	BA
+			      	JOIN TB_LMS_BBS 	BBS		ON BA.BBS_ID = BBS.BBS_ID 		AND 	BBS.DELYN = 'N'
+			        JOIN TB_LMS_SBJCT 	S		ON S.SBJCT_ID = BBS.SBJCT_ID
+		      		JOIN TB_LMS_SBJCT_ADM SA	ON SA.SBJCT_ID = S.SBJCT_ID		AND		SA.USER_ID = BA.USER_ID
+		     WHERE 	1 = 1
+		     		AND 	BA.DELYN = 'N'	AND 	BA.UP_ATCL_ID IS NOT NULL
+			        AND 	SA.USER_ID = #{userId}
+		),
+		SELECT 	NVL( SUM(
+			        CASE
+			            WHEN BBS.BBS_TYCD = 'QNA'
+			            THEN 1
+			            ELSE 0
+			        END
+		    	) , 0 )AS QNA_NOREPLY_CNT
+		FROM    TB_LMS_BBS_ATCL BA
+		        JOIN TB_LMS_BBS BBS         ON BBS.BBS_ID = BA.BBS_ID AND BBS.DELYN = 'N'
+		        JOIN TB_LMS_SBJCT S         ON S.SBJCT_ID = BBS.SBJCT_ID
+		        /* 교수 테이블과 학생 수강 테이블을 각각 LEFT JOIN */
+		        LEFT JOIN TB_LMS_SBJCT_ADM SA ON SA.SBJCT_ID = S.SBJCT_ID
+		        <if test="profIds != null and profIds.size() > 0">
+			        AND SA.USER_ID IN <foreach collection="profIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+				</if>
+		        LEFT JOIN REPLY_YN RP       ON RP.UP_ATCL_ID = BA.ATCL_ID
+		WHERE   BA.DELYN = 'N'
+		  AND   BA.UP_ATCL_ID IS NULL
+
+	</select>
+
+
+	<select id="profBbsUnreadCntSelect" resultType="eGovMap">
+		/*  설   명 :  교수대시보드 게시판미열람수 조회쿼리 */
+		WITH REPLY_YN AS (
+		    SELECT DISTINCT
+		           UP_ATCL_ID
+		      FROM TB_LMS_BBS_ATCL
+		     WHERE DELYN = 'N'
+		       AND UP_ATCL_ID IS NOT NULL
+		),
+		READ_YN AS (
+		    SELECT DISTINCT
+		           ATCL_ID
+		      FROM TB_LMS_BBS_ATCL_INQ_RCD
+		     WHERE VWER_ID = #{userId}
+		)
+		SELECT
+		    NVL( SUM(
+		        CASE
+		            WHEN BBS.BBS_TYCD = 'NTC'
+		            THEN 1
+		            ELSE 0
+		        END
+		    ), 0 ) AS NOTICE_UNREAD_CNT,
+		    NVL( SUM(
+		        CASE
+		            WHEN BBS.BBS_TYCD = 'QNA'
+		            THEN 1
+		            ELSE 0
+		        END
+		    ) , 0 )AS QNA_NOREPLY_CNT,
+		    NVL ( SUM(
+		        CASE
+		            WHEN BBS.BBS_TYCD = '1ON1'
+		            THEN 1
+		            ELSE 0
+		        END
+		    ) , 0 ) AS ONE_ON_ONE_NOREPLY_CNT,
+		    NVL ( SUM(
+		        CASE
+		            WHEN BBS.BBS_TYCD = 'DATARM'
+		            THEN 1
+		            ELSE 0
+		        END
+		    ) , 0 ) AS DATARM_UNREAD_CNT
+		FROM    TB_LMS_BBS_ATCL BA
+		        JOIN TB_LMS_BBS BBS         ON BBS.BBS_ID = BA.BBS_ID AND BBS.DELYN = 'N'
+		        JOIN TB_LMS_SBJCT S         ON S.SBJCT_ID = BBS.SBJCT_ID
+		        /* 교수 테이블과 학생 수강 테이블을 각각 LEFT JOIN */
+		        LEFT JOIN TB_LMS_SBJCT_ADM SA ON SA.SBJCT_ID = S.SBJCT_ID
+		        <if test="profIds != null and profIds.size() > 0">
+			        AND SA.USER_ID IN <foreach collection="profIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+				</if>
+		        LEFT JOIN REPLY_YN RP       ON RP.UP_ATCL_ID = BA.ATCL_ID
+		        LEFT JOIN READ_YN RD        ON RD.ATCL_ID = BA.ATCL_ID
+		WHERE   BA.DELYN = 'N'
+		  AND   BA.UP_ATCL_ID IS NULL
+	</select>
+
+
 	<select id="dashCrsNoticeList" resultType="eGovMap">
-		/* 대시보드과정공지목록조회 (교수학생공통) : TOPIC - CRS_NOTICE, BADGE - 과정공지 */
+		/* 대시보드과정공지목록조회 (교수학생공통) : TOPIC - CRS_NOTICE, BADGE - 전체공지 */
 		SELECT *
 		FROM (
 		    SELECT
@@ -78,23 +171,26 @@
 				            FROM 	TB_LMS_BBS_ATCL_INQ_RCD R
 				            WHERE 	R.ATCL_ID = BA.ATCL_ID
 				            		AND R.VWER_ID = #{userId}
-				        ) THEN 'Y' ELSE 'N' END 
+				        ) THEN 'Y' ELSE 'N' END
 			        READ_YN,
 			        ROW_NUMBER() OVER ( ORDER BY BA.REG_DTTM DESC ) RN,
-			        ORG.ORGNM
+			        ORG.ORGNM,
+			        ORG.ORG_ID,
+			        S.SBJCT_ID
 		    FROM 	TB_LMS_BBS BBS
+		    		JOIN	TB_LMS_SBJCT	S	ON	S.SBJCT_ID = BBS.SBJCT_ID
 		    		JOIN 	TB_LMS_BBS_ATCL BA	ON	BBS.BBS_ID = BA.BBS_ID
 		    		JOIN	TB_LMS_ORG		ORG	ON	ORG.ORG_ID = BBS.ORG_ID
 		    WHERE 	1 = 1
 		    		AND BBS.DELYN = 'N' AND BA.DELYN = 'N'
 		    		AND	BBS.ORG_ID = #{orgId}
-		    		AND BBS.BBS_TYCD = 'CRS_NTC'
+		    		AND BBS.BBS_TYCD IN ( 'CRS_NTC')
 		) WHERE RN &lt;= #{limitTop}
 	</select>
 
 	<!-- 대시보드 -->
 	<select id="profDashAllNoticeList" resultType="eGovMap">
-		/*	교수대시보드모든공지목록조회 : TOPIC - PROF_DASH_ALL_NOTICE, BADGE - 과정공지 혹은 과목공지 */
+		/*	교수대시보드모든공지목록조회 : TOPIC - PROF_DASH_ALL_NOTICE, BADGE - 전체 */
 		SELECT *
 		FROM (
 		    SELECT
@@ -110,26 +206,52 @@
 				            FROM 	TB_LMS_BBS_ATCL_INQ_RCD R
 				            WHERE 	R.ATCL_ID = BA.ATCL_ID
 				            		AND R.VWER_ID = #{userId}
-				        ) THEN 'Y' ELSE 'N' END 
+				        ) THEN 'Y' ELSE 'N' END
 			        READ_YN,
 			        ROW_NUMBER() OVER (	ORDER BY BA.REG_DTTM DESC ) RN,
 			        ORG.ORGNM,
 			        SC.SMSTR_CHRTNM,
-			        S.SBJCTNM
+			        S.SBJCTNM,
+			        S.SBJCT_ID
 		    FROM 	TB_LMS_SBJCT_ADM ADM
 	        		JOIN 	TB_LMS_SBJCT S			ON ADM.SBJCT_ID = S.SBJCT_ID
-		            JOIN 	TB_LMS_SMSTR_CHRT SC	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID 
-	        		JOIN 	TB_LMS_BBS BBS			ON BBS.SBJCT_ID = S.SBJCT_ID AND BBS.BBS_TYCD IN ('NTC', 'CRS_NTC')
-	        											AND BBS.DELYN = 'N'	AND BBS.ORG_ID = #{orgId}
+		            JOIN 	TB_LMS_SMSTR_CHRT SC	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID
+	        		<!-- JOIN 	TB_LMS_BBS BBS			ON BBS.SBJCT_ID = S.SBJCT_ID AND BBS.BBS_TYCD IN ('NTC', 'CRS_NTC')
+	        											AND BBS.DELYN = 'N'
+	        											<if test="orgId != null and orgId != ''">
+													       AND BBS.ORG_ID = #{orgId}
+													    </if> -->
+					<!--
+			            강의실(과목 전용) 게시판 + 메인화면(기관 공통) 게시판을 함께 조회
+			            - 강의실: BBS.SBJCT_ID = S.SBJCT_ID 로 매칭
+			            - 메인화면: BBS.BBS_ID가 'orgId_NTC_SBJCT'(과목공지) 또는 'orgId_NTC_ORG'(기관/전체공지) 규칙과 일치
+			              (CRS_NTC는 메인화면 대응 게시판이 없어 강의실 매칭만 적용)
+			        -->
+			        JOIN TB_LMS_BBS BBS ON (
+			                BBS.SBJCT_ID = S.SBJCT_ID
+			             OR (
+			                    BBS.BBS_TYCD = 'NTC'
+			                    AND BBS.BBS_ID IN (
+			                            BBS.ORG_ID || '_NTC_SBJCT',
+			                            BBS.ORG_ID || '_NTC_ORG'
+			                        )
+			                )
+			            )
+			            AND BBS.BBS_TYCD IN ('NTC', 'CRS_NTC')
+			            AND BBS.DELYN = 'N'
+			            <if test="orgId != null and orgId != ''">
+			               AND BBS.ORG_ID = #{orgId}
+			            </if>
 		    		JOIN 	TB_LMS_BBS_ATCL BA	ON BBS.BBS_ID = BA.BBS_ID AND BA.DELYN = 'N'
 		    		JOIN	TB_LMS_ORG		ORG	ON ORG.ORG_ID = BBS.ORG_ID
 		    WHERE 	1 = 1
 		    		AND	ADM.USER_ID = #{userId}
 		) WHERE RN &lt;= #{limitTop}
+
 	</select>
-		
+
 	<select id="profDashSubjectNoticeList" resultType="eGovMap">
-		/* 교수대시보드과목공지목록조회 : TOPIC - PROF_DASH_SUBJECT_NOTICE, BADGE - 과목 */		
+		/* 교수대시보드과목공지목록조회 : TOPIC - PROF_DASH_SUBJECT_NOTICE, BADGE - 과목 */
 		SELECT *
 		FROM (
 		    SELECT
@@ -145,127 +267,125 @@
 				            FROM 	TB_LMS_BBS_ATCL_INQ_RCD R
 				            WHERE 	R.ATCL_ID = BA.ATCL_ID
 				            		AND R.VWER_ID = #{userId}
-				        ) THEN 'Y' ELSE 'N' END 
+				        ) THEN 'Y' ELSE 'N' END
 			        READ_YN,
 			        ROW_NUMBER() OVER (	ORDER BY BA.REG_DTTM DESC ) RN,
 			        ORG.ORGNM,
 			        SC.SMSTR_CHRTNM,
-			        S.SBJCTNM
+			        S.SBJCTNM,
+			        S.SBJCT_ID
 		    FROM 	TB_LMS_SBJCT_ADM ADM
 	        		JOIN 	TB_LMS_SBJCT S			ON ADM.SBJCT_ID = S.SBJCT_ID
-		            JOIN 	TB_LMS_SMSTR_CHRT SC	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID 
-	        		JOIN 	TB_LMS_BBS BBS			ON BBS.SBJCT_ID = S.SBJCT_ID AND BBS.BBS_TYCD = 'NTC' 
-	        											AND BBS.DELYN = 'N'	AND BBS.ORG_ID = #{orgId}
+		            JOIN 	TB_LMS_SMSTR_CHRT SC	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID
+	        		<!-- JOIN 	TB_LMS_BBS BBS			ON BBS.SBJCT_ID = S.SBJCT_ID AND BBS.BBS_TYCD IN ('NTC', 'CRS_NTC')
+	        											AND BBS.DELYN = 'N'
+	        											<if test="orgId != null and orgId != ''">
+													       AND BBS.ORG_ID = #{orgId}
+													    </if> -->
+					<!--
+			            강의실(과목 전용) 게시판 + 메인화면(기관 공통) 게시판을 함께 조회
+			            - 강의실: BBS.SBJCT_ID = S.SBJCT_ID 로 매칭
+			            - 메인화면: BBS.BBS_ID가 'orgId_bbsTycd[_SBJCT]' 규칙과 일치 (NTC만 참조코드 SBJCT 붙음, CRS_NTC는 없음)
+			        -->
+			        JOIN TB_LMS_BBS BBS ON (
+			                BBS.SBJCT_ID = S.SBJCT_ID
+			             OR BBS.BBS_ID = BBS.ORG_ID || '_' || BBS.BBS_TYCD ||
+			                    CASE WHEN BBS.BBS_TYCD = 'NTC' THEN '_SBJCT' ELSE '' END
+			            )
+			            AND BBS.BBS_TYCD IN ('NTC', 'CRS_NTC')
+			            AND BBS.DELYN = 'N'
+			            <if test="orgId != null and orgId != ''">
+			               AND BBS.ORG_ID = #{orgId}
+			            </if>
 		    		JOIN 	TB_LMS_BBS_ATCL BA	ON BBS.BBS_ID = BA.BBS_ID AND BA.DELYN = 'N'
 		    		JOIN	TB_LMS_ORG		ORG	ON ORG.ORG_ID = BBS.ORG_ID
 		    WHERE 	1 = 1
 		    		AND	ADM.USER_ID = #{userId}
 		) WHERE RN &lt;= #{limitTop}
 	</select>
-	
+
 	<select id="profDashLctrQnaList" resultType="eGovMap">
 		/* 교수대시보드강의QNA목록조회 : TOPIC - PROF_DASH_LCTR_QNA, BADGE - 문의자이미지 썸네일 */
+
 		WITH REPLY_ATCL AS (
 		    SELECT  UP_ATCL_ID,
-		            COUNT(*) AS ANSWER_CNT,
 		            MAX(ATCL_ID) AS ANSWER_ATCL_ID
 		    FROM    TB_LMS_BBS_ATCL
 		    WHERE   DELYN = 'N'
 		    GROUP BY UP_ATCL_ID
 		)
-		SELECT *
+		SELECT	BASE.*
+				, REPLY_ATCL.ANSWER_ATCL_ID ANSWER_ATCL_ID
 		FROM (
-		    SELECT
-		        'PROF_DASH_LCTR_QNA' AS TOPIC,
-		        'USER_IMAGE' AS BADGE,
-		        BBS.BBS_ID,
-		        BBS.BBS_TYCD,
-		        BA.ATCL_ID,
-		        BA.ATCL_TTL,
-		        BA.REG_DTTM,
-		        CASE 
-		            WHEN EXISTS (
-		                SELECT 1
-		                FROM TB_LMS_BBS_ATCL_INQ_RCD R
-		                WHERE R.ATCL_ID = BA.ATCL_ID
-		                  AND R.VWER_ID = #{userId}
-		            ) THEN 'Y'
-		            ELSE 'N'
-		        END AS READ_YN,
-		        ROW_NUMBER() OVER ( ORDER BY BA.REG_DTTM DESC ) RN,
-		        ORG.ORGNM,
-		        SC.SMSTR_CHRTNM,
-		        S.SBJCTNM,
-		        NVL(U.PHOTO_FILE_ID, 'user_img') AS USER_THUMBNAIL,
-		        RA.ANSWER_ATCL_ID
-		    FROM TB_LMS_BBS BBS
-		        JOIN 	TB_LMS_BBS_ATCL BA ON BBS.BBS_ID = BA.BBS_ID
-		        JOIN 	TB_LMS_ORG ORG ON ORG.ORG_ID = BBS.ORG_ID
-		        LEFT 	JOIN 	TB_LMS_SBJCT S ON BBS.SBJCT_ID = S.SBJCT_ID
-		        LEFT 	JOIN 	TB_LMS_SMSTR_CHRT SC ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID
-		        LEFT 	JOIN 	REPLY_ATCL RA ON RA.UP_ATCL_ID = BA.ATCL_ID
-		        LEFT 	JOIN 	TB_LMS_USER U ON U.USER_ID = BA.USER_ID
-		    WHERE BBS.DELYN = 'N'
-		      AND BA.DELYN = 'N'
-		      AND BBS.ORG_ID = #{orgId}
-		      AND BBS.BBS_TYCD = 'QNA'
-		)
+			    SELECT 	'PROF_DASH_LCTR_QNA' AS TOPIC,
+			        'USER_IMAGE' AS BADGE,
+			        BBS.BBS_ID,
+			        BBS.BBS_TYCD,
+			        BA.ATCL_ID,
+			        BA.ATCL_TTL,
+			        BA.REG_DTTM,
+			        ROW_NUMBER() OVER ( ORDER BY BA.REG_DTTM DESC ) RN,
+			        ORG.ORGNM,
+			        SC.SMSTR_CHRTNM,
+			        S.SBJCTNM,
+			        S.SBJCT_ID,
+			        NVL(U.PHOTO_FILE_ID, 'user_img') AS USER_THUMBNAIL
+				FROM	TB_LMS_BBS BBS
+						JOIN 	TB_LMS_BBS_ATCL BA 	ON BBS.BBS_ID = BA.BBS_ID AND BA.DELYN = 'N' AND BA.UP_ATCL_ID IS NULL
+						LEFT	JOIN 	TB_LMS_ORG ORG 					ON ORG.ORG_ID = BBS.ORG_ID
+						LEFT 	JOIN 	TB_LMS_SBJCT S 			ON BBS.SBJCT_ID = S.SBJCT_ID
+				        LEFT 	JOIN 	TB_LMS_SMSTR_CHRT SC 	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID
+				        LEFT 	JOIN 	TB_LMS_USER U 			ON U.USER_ID = BA.USER_ID
+				WHERE BBS.DELYN = 'N'
+				      AND BBS.ORG_ID = #{orgId}
+				      AND BBS.BBS_TYCD = 'QNA'
+			) BASE
+			LEFT	JOIN REPLY_ATCL	ON REPLY_ATCL.UP_ATCL_ID = BASE.ATCL_ID
 		WHERE RN &lt;= #{limitTop}
 	</select>
-	
+
 	<select id="profDashOneOnOneList" resultType="eGovMap">
-		/* 교수대시보드일대일목록조회 : TOPIC - PROF_DASH_1ON1, BADGE - 문의자이미지 썸네일 */
+		/* 교수대시보드일대일목록조회 : TOPIC - PROF_DASH_1ON1, BADGE - 문의자이미지 썸네일, 상담요청한 글만 출력*/
 		WITH REPLY_ATCL AS (
 		    SELECT  UP_ATCL_ID,
-		            COUNT(*) AS ANSWER_CNT,
-		            MIN(ATCL_ID) AS ANSWER_ATCL_ID
+		            MAX(ATCL_ID) AS ANSWER_ATCL_ID
 		    FROM    TB_LMS_BBS_ATCL
 		    WHERE   DELYN = 'N'
 		    GROUP BY UP_ATCL_ID
 		)
-		SELECT *
+		SELECT	BASE.*
+				, REPLY_ATCL.ANSWER_ATCL_ID ANSWER_ATCL_ID
 		FROM (
-		    SELECT
-		        'PROF_DASH_1ON1' AS TOPIC,
-		        'USER_IMAGE' AS BADGE,
-		        BBS.BBS_ID,
-		        BBS.BBS_TYCD,
-		        BA.ATCL_ID,
-		        BA.ATCL_TTL,
-		        BA.REG_DTTM,
-		        CASE 
-		            WHEN EXISTS (
-		                SELECT 1
-		                FROM TB_LMS_BBS_ATCL_INQ_RCD R
-		                WHERE R.ATCL_ID = BA.ATCL_ID
-		                  AND R.VWER_ID = #{userId}
-		            ) THEN 'Y'
-		            ELSE 'N'
-		        END AS READ_YN,
-		        ROW_NUMBER() OVER ( ORDER BY BA.REG_DTTM DESC ) RN,
-		        ORG.ORGNM,
-		        SC.SMSTR_CHRTNM,
-		        S.SBJCTNM,
-		        NVL(U.PHOTO_FILE_ID, 'user_img') AS USER_THUMBNAIL,
-		        RA.ANSWER_ATCL_ID
-		    FROM TB_LMS_BBS BBS
-		        JOIN 	TB_LMS_BBS_ATCL BA ON BBS.BBS_ID = BA.BBS_ID
-		        JOIN 	TB_LMS_ORG ORG ON ORG.ORG_ID = BBS.ORG_ID
-		        LEFT 	JOIN 	TB_LMS_SBJCT S ON BBS.SBJCT_ID = S.SBJCT_ID
-		        LEFT 	JOIN 	TB_LMS_SMSTR_CHRT SC ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID
-		        LEFT 	JOIN 	REPLY_ATCL RA ON RA.UP_ATCL_ID = BA.ATCL_ID
-		        LEFT 	JOIN 	TB_LMS_USER U ON U.USER_ID = BA.USER_ID
-		    WHERE BBS.DELYN = 'N'
-		      AND BA.DELYN = 'N'
-		      AND BBS.ORG_ID = #{orgId}
-		      AND BBS.BBS_TYCD = '1ON1'
-		)
+			    SELECT 	'PROF_DASH_1ON1' AS TOPIC,
+			        'USER_IMAGE' AS BADGE,
+			        BBS.BBS_ID,
+			        BBS.BBS_TYCD,
+			        BA.ATCL_ID,
+			        BA.ATCL_TTL,
+			        BA.REG_DTTM,
+			        ROW_NUMBER() OVER ( ORDER BY BA.REG_DTTM DESC ) RN,
+			        ORG.ORGNM,
+			        SC.SMSTR_CHRTNM,
+			        S.SBJCTNM,
+			        S.SBJCT_ID,
+			        NVL(U.PHOTO_FILE_ID, 'user_img') AS USER_THUMBNAIL
+				FROM	TB_LMS_BBS BBS
+						JOIN 	TB_LMS_BBS_ATCL BA 	ON BBS.BBS_ID = BA.BBS_ID AND BA.DELYN = 'N' AND BA.UP_ATCL_ID IS NULL
+						LEFT	JOIN 	TB_LMS_ORG ORG 					ON ORG.ORG_ID = BBS.ORG_ID
+						LEFT 	JOIN 	TB_LMS_SBJCT S 			ON BBS.SBJCT_ID = S.SBJCT_ID
+				        LEFT 	JOIN 	TB_LMS_SMSTR_CHRT SC 	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID
+				        LEFT 	JOIN 	TB_LMS_USER U 			ON U.USER_ID = BA.USER_ID
+				WHERE BBS.DELYN = 'N'
+				      AND BBS.ORG_ID = #{orgId}
+				      AND BBS.BBS_TYCD = '1ON1'
+			) BASE
+			LEFT	JOIN REPLY_ATCL	ON REPLY_ATCL.UP_ATCL_ID = BASE.ATCL_ID
 		WHERE RN &lt;= #{limitTop}
 	</select>
-	
-	
+
+
 	<select id="stdntDashAllNoticeList" resultType="eGovMap">
-		/*	학생대시보드모든공지목록조회 : TOPIC - STDNT_DASH_ALL_NOTICE, BADGE - 전체 혹은 과목 */
+		/*	학생대시보드전체목록조회 : TOPIC - STDNT_DASH_ALL_NOTICE, BADGE - 기관공지 + 과목공지 */
 		SELECT *
 		FROM (
 		    SELECT
@@ -281,24 +401,45 @@
 				            FROM 	TB_LMS_BBS_ATCL_INQ_RCD R
 				            WHERE 	R.ATCL_ID = BA.ATCL_ID
 				            		AND R.VWER_ID = #{userId}
-				        ) THEN 'Y' ELSE 'N' END 
+				        ) THEN 'Y' ELSE 'N' END
 			        READ_YN,
 			        ROW_NUMBER() OVER ( ORDER BY BA.REG_DTTM DESC ) RN,
 			        ORG.ORGNM,
+			        ORG.ORG_ID,
 			        SC.SMSTR_CHRTNM,
-			        S.SBJCTNM
+			        S.SBJCTNM,
+			        S.SBJCT_ID
 		    FROM 	TB_LMS_ATNDLC	ATNDLC
 	        		JOIN 	TB_LMS_SBJCT S			ON ATNDLC.SBJCT_ID = S.SBJCT_ID
-		            JOIN 	TB_LMS_SMSTR_CHRT SC	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID 
-	        		JOIN 	TB_LMS_BBS BBS			ON BBS.SBJCT_ID = S.SBJCT_ID AND BBS.BBS_TYCD IN ('NTC', 'CRS_NTC')
-	        											AND BBS.DELYN = 'N'	AND BBS.ORG_ID = #{orgId}
+		            JOIN 	TB_LMS_SMSTR_CHRT SC	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID
+	        		<!-- JOIN 	TB_LMS_BBS BBS			ON BBS.SBJCT_ID = S.SBJCT_ID AND BBS.BBS_TYCD IN ('NTC', 'CRS_NTC')
+                            AND BBS.DELYN = 'N'	AND BBS.ORG_ID = #{orgId} -->
+                    <!--
+			            강의실(과목 전용) 게시판 + 메인화면(기관 공통) 게시판을 함께 조회
+			            - 강의실: BBS.SBJCT_ID = S.SBJCT_ID 로 매칭
+			            - 메인화면: BBS.BBS_ID가 'orgId_NTC_SBJCT'(과목공지) 또는 'orgId_NTC_ORG'(기관/전체공지) 규칙과 일치
+			              (CRS_NTC는 메인화면 대응 게시판이 없어 강의실 매칭만 적용)
+			        -->
+			        JOIN TB_LMS_BBS BBS ON (
+			                BBS.SBJCT_ID = S.SBJCT_ID
+			             OR (
+			                    BBS.BBS_TYCD = 'NTC'
+			                    AND BBS.BBS_ID IN (
+			                            BBS.ORG_ID || '_NTC_SBJCT',
+			                            BBS.ORG_ID || '_NTC_ORG'
+			                        )
+			                )
+			            )
+			            AND BBS.BBS_TYCD IN ('NTC', 'CRS_NTC')
+			            AND BBS.DELYN = 'N'
+			            AND BBS.ORG_ID = #{orgId}
 		    		JOIN 	TB_LMS_BBS_ATCL BA	ON BBS.BBS_ID = BA.BBS_ID AND BA.DELYN = 'N'
 		    		JOIN	TB_LMS_ORG		ORG	ON ORG.ORG_ID = BBS.ORG_ID
 		    WHERE 	1 = 1
 		    		AND		ATNDLC.USER_ID = #{userId}
 		) WHERE RN &lt;= #{limitTop}
 	</select>
-		
+
 	<select id="stdntDashSubjectNoticeList" resultType="eGovMap">
 		/* 학생대시보드과목공지목록조회 : TOPIC - STDNT_DASH_SUBJECT_NOTICE, BADGE - 과목 */
 		SELECT *
@@ -316,24 +457,35 @@
 				            FROM 	TB_LMS_BBS_ATCL_INQ_RCD R
 				            WHERE 	R.ATCL_ID = BA.ATCL_ID
 				            		AND R.VWER_ID = #{userId}
-				        ) THEN 'Y' ELSE 'N' END 
+				        ) THEN 'Y' ELSE 'N' END
 			        READ_YN,
 			        ROW_NUMBER() OVER (	ORDER BY BA.REG_DTTM DESC ) RN,
 			        ORG.ORGNM,
+			        ORG.ORG_ID,
 			        SC.SMSTR_CHRTNM,
-			        S.SBJCTNM
+			        S.SBJCTNM,
+			        S.SBJCT_ID
 		    FROM 	TB_LMS_ATNDLC	ATNDLC
 	        		JOIN 	TB_LMS_SBJCT S			ON ATNDLC.SBJCT_ID = S.SBJCT_ID
-		            JOIN 	TB_LMS_SMSTR_CHRT SC	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID 
-	        		JOIN 	TB_LMS_BBS BBS			ON BBS.SBJCT_ID = S.SBJCT_ID AND BBS.BBS_TYCD = 'NTC' 
-	        											AND BBS.DELYN = 'N'	AND BBS.ORG_ID = #{orgId}
+		            JOIN 	TB_LMS_SMSTR_CHRT SC	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID
+	        		<!-- JOIN 	TB_LMS_BBS BBS			ON BBS.SBJCT_ID = S.SBJCT_ID AND BBS.BBS_TYCD = 'NTC'
+	        											AND BBS.DELYN = 'N'	AND BBS.ORG_ID = #{orgId} -->
+	        		<!-- 강의실(과목 전용) 게시판 + 메인화면(기관 공통) 게시판을 함께 조회 -->
+        			JOIN TB_LMS_BBS BBS ON BBS.ORG_ID = #{orgId}
+                            AND BBS.DELYN = 'N'
+                            AND BBS.BBS_TYCD IN ('NTC', 'CRS_NTC')
+                            AND (
+                                    BBS.SBJCT_ID = S.SBJCT_ID
+                                 OR BBS.BBS_ID = #{orgId} || '_' || BBS.BBS_TYCD ||
+                                        CASE WHEN BBS.BBS_TYCD = 'NTC' THEN '_SBJCT' ELSE '' END
+                                )
 		    		JOIN 	TB_LMS_BBS_ATCL BA	ON BBS.BBS_ID = BA.BBS_ID AND BA.DELYN = 'N'
 		    		JOIN	TB_LMS_ORG		ORG	ON ORG.ORG_ID = BBS.ORG_ID
 		    WHERE 	1 = 1
 		    		AND		ATNDLC.USER_ID = #{userId}
 		) WHERE RN &lt;= #{limitTop}
 	</select>
-	
+
 	<select id="stdntDashLctrQnaList" resultType="eGovMap">
 		/* 학생대시보드강의Qna목록조회 : TOPIC - STDNT_DASH_LCTR_QNA, BADGE - 문의자이미지 썸네일 */
 		WITH REPLY_ATCL AS (
@@ -359,18 +511,19 @@
 				            FROM 	TB_LMS_BBS_ATCL_INQ_RCD R
 				            WHERE 	R.ATCL_ID = BA.ATCL_ID
 				            		AND R.VWER_ID = #{userId}
-				        ) THEN 'Y' ELSE 'N' END 
+				        ) THEN 'Y' ELSE 'N' END
 			        READ_YN,
 			        ROW_NUMBER() OVER (	ORDER BY BA.REG_DTTM DESC ) RN,
 			        ORG.ORGNM,
 			        SC.SMSTR_CHRTNM,
 			        S.SBJCTNM,
+			        S.SBJCT_ID,
 		        	NVL(U.PHOTO_FILE_ID, 'user_img') AS USER_THUMBNAIL,
 		        	RA.ANSWER_ATCL_ID
 		    FROM 	TB_LMS_ATNDLC	ATNDLC
 	        		JOIN 	TB_LMS_SBJCT S			ON ATNDLC.SBJCT_ID = S.SBJCT_ID
 		            JOIN 	TB_LMS_SMSTR_CHRT SC	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID
-	        		JOIN 	TB_LMS_BBS BBS			ON BBS.SBJCT_ID = S.SBJCT_ID AND BBS.BBS_TYCD = 'QNA' 
+	        		JOIN 	TB_LMS_BBS BBS			ON BBS.SBJCT_ID = S.SBJCT_ID AND BBS.BBS_TYCD = 'QNA'
 	        											AND BBS.DELYN = 'N'	AND BBS.ORG_ID = #{orgId}
 		    		JOIN 	TB_LMS_BBS_ATCL BA	ON BBS.BBS_ID = BA.BBS_ID AND BA.DELYN = 'N'
 		    		JOIN	TB_LMS_ORG		ORG	ON ORG.ORG_ID = BBS.ORG_ID
@@ -380,7 +533,7 @@
 		    		AND		ATNDLC.USER_ID = #{userId}
 		) WHERE RN &lt;= #{limitTop}
 	</select>
-	
+
 	<select id="stdntDashDatarmList" resultType="eGovMap">
 		/* 학생대시보드자료실목록조회 : TOPIC - STDNT_DASH_DATARM, BADGE - 없음 */
 		SELECT *
@@ -398,12 +551,13 @@
 				            FROM 	TB_LMS_BBS_ATCL_INQ_RCD R
 				            WHERE 	R.ATCL_ID = BA.ATCL_ID
 				            		AND R.VWER_ID = #{userId}
-				        ) THEN 'Y' ELSE 'N' END 
+				        ) THEN 'Y' ELSE 'N' END
 			        READ_YN,
 			        ROW_NUMBER() OVER ( ORDER BY BA.REG_DTTM DESC ) RN,
 			        ORG.ORGNM,
 			        SC.SMSTR_CHRTNM,
-			        S.SBJCTNM
+			        S.SBJCTNM,
+			        S.SBJCT_ID
 		    FROM 	TB_LMS_BBS BBS
 		    		JOIN 	TB_LMS_BBS_ATCL BA		ON	BBS.BBS_ID = BA.BBS_ID
 		    		JOIN	TB_LMS_ORG		ORG		ON	ORG.ORG_ID = BBS.ORG_ID
@@ -412,17 +566,68 @@
 		    WHERE 	1 = 1
 		    		AND BBS.DELYN = 'N' AND BA.DELYN = 'N'
 		    		AND	BBS.ORG_ID = #{orgId}
-		    		AND BBS.BBS_TYCD = 'DATA'
+		    		AND BBS.BBS_TYCD = 'DATARM'
 		) WHERE RN &lt;= #{limitTop}
 	</select>
-	
+
 	<!--
 	<select id="stdntDashOneOnOneList" resultType="eGovMap">
 		/* 학생대시보드일대일목록조회 : TOPIC - STDNT_DASH_1ON1, BADGE - 문의자이미지 썸네일 */
 	</select>
 	  -->
+    <select id="admDashSysNoticeList" resultType="egovMap">
+        /*	관리자 대시보드 시스템공지목록조회 */
+        SELECT *
+        FROM (
+            SELECT
+                  ROW_NUMBER() OVER(ORDER BY ATCL.REG_DTTM DESC) AS RN
+                , ATCL.ATCL_ID
+                , ATCL.ATCL_TTL
+                , ATCL.INQ_CNT
+                , ATCL.REG_DTTM
+                , USR.USERNM /* 시스템공지사항 작성자는 모두 '관리자'표기? */
+            FROM TB_LMS_BBS BBS
+            JOIN TB_LMS_BBS_ATCL ATCL
+                ON BBS.BBS_ID = ATCL.BBS_ID
+            LEFT JOIN TB_LMS_USER USR
+                ON ATCL.RGTR_ID = USR.USER_ID
+            WHERE BBS.BBS_TYCD = 'SYS_NTC'
+             )X
+        <![CDATA[
+        WHERE X.RN <= #{limitTop}
+        ]]>
+    </select>
+
+    <select id="admDashAllNoticeList" resultType="eGovMap">
+        /*	관리자 대시보드 모든공지목록조회 (과정공지, 과목공지) */
+        SELECT *
+        FROM (
+            SELECT
+                  ROW_NUMBER() OVER(ORDER BY ATCL.REG_DTTM DESC) AS RN
+                , ORG.ORGNM
+                , ATCL.ATCL_ID
+                , ATCL.ATCL_TTL
+                , ATCL.INQ_CNT
+                , ATCL.REG_DTTM
+                , USR.USERNM /* 시스템공지사항 작성자는 모두 '관리자'표기? */
+            FROM TB_LMS_BBS BBS
+            JOIN TB_LMS_BBS_ATCL ATCL
+                ON BBS.BBS_ID = ATCL.BBS_ID
+            LEFT JOIN TB_LMS_USER USR
+                ON ATCL.RGTR_ID = USR.USER_ID
+            JOIN TB_LMS_ORG ORG
+                 ON BBS.ORG_ID = ORG.ORG_ID
+            WHERE BBS.BBS_TYCD IN ('NTC', 'CRS_NTC')
+        )X
+        <![CDATA[
+        WHERE X.RN <= #{limitTop}
+        ]]>
+    </select>
+
+
+
 	<!-- //대시보드 -->
-	
+
 	<!-- 과목 -->
 	<select id="subjectTopNoticeList" resultType="eGovMap">
 		/* 과목최신공지사항목록조회 : TOPIC - SUBJECT_TOP_NOTICE, BADGE - 점 */
@@ -433,6 +638,8 @@
 		    		'DOT' BADGE,
 			        BBS.BBS_ID,
 			        BBS.BBS_TYCD,
+			        BA.OYN,
+			        BA.RGTR_ID,
 			        BA.ATCL_ID,
 			        BA.ATCL_TTL,
 			        BA.REG_DTTM,
@@ -441,15 +648,16 @@
 				            FROM 	TB_LMS_BBS_ATCL_INQ_RCD R
 				            WHERE 	R.ATCL_ID = BA.ATCL_ID
 				            		AND R.VWER_ID = #{userId}
-				        ) THEN 'Y' ELSE 'N' END 
+				        ) THEN 'Y' ELSE 'N' END
 			        READ_YN,
 			        ROW_NUMBER() OVER (	ORDER BY BA.REG_DTTM DESC ) RN,
 			        ORG.ORGNM,
 			        SC.SMSTR_CHRTNM,
-			        S.SBJCTNM
+			        S.SBJCTNM,
+			        S.SBJCT_ID
 		    FROM 	TB_LMS_SBJCT S
-		            JOIN 	TB_LMS_SMSTR_CHRT SC	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID 
-	        		JOIN 	TB_LMS_BBS BBS			ON BBS.SBJCT_ID = S.SBJCT_ID AND BBS.BBS_TYCD = 'NTC' 
+		            JOIN 	TB_LMS_SMSTR_CHRT SC	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID
+	        		JOIN 	TB_LMS_BBS BBS			ON BBS.SBJCT_ID = S.SBJCT_ID AND BBS.BBS_TYCD = 'NTC'
 	        											AND BBS.DELYN = 'N'	AND BBS.ORG_ID = #{orgId}
 		    		JOIN 	TB_LMS_BBS_ATCL BA	ON BBS.BBS_ID = BA.BBS_ID AND BA.DELYN = 'N'
 		    		JOIN	TB_LMS_ORG		ORG	ON ORG.ORG_ID = BBS.ORG_ID
@@ -457,7 +665,7 @@
 		    		AND		S.SBJCT_ID = #{sbjctId}
 		) WHERE RN &lt;= #{limitTop}
 	</select>
-	
+
 	<select id="subjectTopLctrQnaList" resultType="eGovMap">
 		/* 과목최신강의Qna목록조회 : TOPIC - SUBJECT_TOP_LCTR_QNA, BADGE - 문의자이미지 썸네일 */
 		WITH REPLY_ATCL AS (
@@ -483,28 +691,29 @@
 				            FROM 	TB_LMS_BBS_ATCL_INQ_RCD R
 				            WHERE 	R.ATCL_ID = BA.ATCL_ID
 				            		AND R.VWER_ID = #{userId}
-				        ) THEN 'Y' ELSE 'N' END 
+				        ) THEN 'Y' ELSE 'N' END
 			        READ_YN,
 			        ROW_NUMBER() OVER (	ORDER BY BA.REG_DTTM DESC ) RN,
 			        ORG.ORGNM,
 			        SC.SMSTR_CHRTNM,
 			        S.SBJCTNM,
+			        S.SBJCT_ID,
 			        NVL(U.PHOTO_FILE_ID, 'user_img') AS USER_THUMBNAIL,
 			        RA.ANSWER_ATCL_ID,
 			        U.USERNM
 		    FROM 	TB_LMS_SBJCT S
-		            JOIN 	TB_LMS_SMSTR_CHRT SC	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID 
-	        		JOIN 	TB_LMS_BBS BBS			ON BBS.SBJCT_ID = S.SBJCT_ID AND BBS.BBS_TYCD = 'QNA' 
+		            JOIN 	TB_LMS_SMSTR_CHRT SC	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID
+	        		JOIN 	TB_LMS_BBS BBS			ON BBS.SBJCT_ID = S.SBJCT_ID AND BBS.BBS_TYCD = 'QNA'
 	        											AND BBS.DELYN = 'N'	AND BBS.ORG_ID = #{orgId}
 		    		JOIN 	TB_LMS_BBS_ATCL BA	ON BBS.BBS_ID = BA.BBS_ID AND BA.DELYN = 'N'
 		    		JOIN	TB_LMS_ORG		ORG	ON ORG.ORG_ID = BBS.ORG_ID
-		    		LEFT 	JOIN 	TB_LMS_USER U ON U.USER_ID = BA.USER_ID
+		    		JOIN 	TB_LMS_USER U ON U.USER_ID = BA.USER_ID
 		    		LEFT 	JOIN 	REPLY_ATCL RA ON RA.UP_ATCL_ID = BA.ATCL_ID
 		    WHERE 	1 = 1
 		    		AND		S.SBJCT_ID = #{sbjctId}
 		) WHERE RN &lt;= #{limitTop}
 	</select>
-	
+
 	<select id="profSubjectTopOneOnOneList" resultType="eGovMap">
 		/* 교수과목최신일대일목록조회 : TOPIC - PROF_SUBJECT_TOP_1ON1, BADGE - 문의자이미지 썸네일 */
 		WITH REPLY_ATCL AS (
@@ -530,35 +739,36 @@
 				            FROM 	TB_LMS_BBS_ATCL_INQ_RCD R
 				            WHERE 	R.ATCL_ID = BA.ATCL_ID
 				            		AND R.VWER_ID = #{userId}
-				        ) THEN 'Y' ELSE 'N' END 
+				        ) THEN 'Y' ELSE 'N' END
 			        READ_YN,
 			        ROW_NUMBER() OVER (	ORDER BY BA.REG_DTTM DESC ) RN,
 			        ORG.ORGNM,
 			        SC.SMSTR_CHRTNM,
 			        S.SBJCTNM,
+			        S.SBJCT_ID,
 			        NVL(U.PHOTO_FILE_ID, 'user_img') AS USER_THUMBNAIL,
 			        RA.ANSWER_ATCL_ID,
 			        U.USERNM
 		    FROM 	TB_LMS_SBJCT_ADM ADM
 	        		JOIN 	TB_LMS_SBJCT S			ON ADM.SBJCT_ID = S.SBJCT_ID
-		            JOIN 	TB_LMS_SMSTR_CHRT SC	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID 
-	        		JOIN 	TB_LMS_BBS BBS			ON BBS.SBJCT_ID = S.SBJCT_ID AND BBS.BBS_TYCD = '1ON1' 
+		            JOIN 	TB_LMS_SMSTR_CHRT SC	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID
+	        		JOIN 	TB_LMS_BBS BBS			ON BBS.SBJCT_ID = S.SBJCT_ID AND BBS.BBS_TYCD = '1ON1'
 	        											AND BBS.DELYN = 'N'	AND BBS.ORG_ID = #{orgId}
 		    		JOIN 	TB_LMS_BBS_ATCL BA	ON BBS.BBS_ID = BA.BBS_ID AND BA.DELYN = 'N'
 		    		JOIN	TB_LMS_ORG		ORG	ON ORG.ORG_ID = BBS.ORG_ID
 		    		LEFT 	JOIN 	TB_LMS_USER U ON U.USER_ID = BA.USER_ID
 		    		LEFT 	JOIN 	REPLY_ATCL RA ON RA.UP_ATCL_ID = BA.ATCL_ID
 		    WHERE 	1 = 1
-		    		AND	ADM.USER_ID = #{userId}
+		    		AND 	S.SBJCT_ID = #{sbjctId}
 		) WHERE RN &lt;= #{limitTop}
 	</select>
-	
+
 	<!--
 	<select id="stdntSubjectOneOnOneList" resultType="eGovMap">
 		/* 과목 학생과목일대일상담목록조회 : TOPIC - STDNT_SUBJECT_ONE_ON_ONE, BADGE - 문의자이미지 썸네일 */
 	</select>
   	-->
-	
+
 	<select id="stdntSubjectTopDatarmList" resultType="eGovMap">
 		/* 학생과목최근자료실목록조회 : TOPIC - STDNT_SUBJECT_TOP_DATARM, BADGE - 점 */
 		SELECT *
@@ -576,22 +786,25 @@
 				            FROM 	TB_LMS_BBS_ATCL_INQ_RCD R
 				            WHERE 	R.ATCL_ID = BA.ATCL_ID
 				            		AND R.VWER_ID = #{userId}
-				        ) THEN 'Y' ELSE 'N' END 
+				        ) THEN 'Y' ELSE 'N' END
 			        READ_YN,
 			        ROW_NUMBER() OVER (	ORDER BY BA.REG_DTTM DESC ) RN,
 			        ORG.ORGNM,
 			        SC.SMSTR_CHRTNM,
-			        S.SBJCTNM
+			        S.SBJCTNM,
+			        S.SBJCT_ID
 		    FROM 	TB_LMS_SBJCT S
-		            JOIN 	TB_LMS_SMSTR_CHRT SC	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID 
-	        		JOIN 	TB_LMS_BBS BBS			ON BBS.SBJCT_ID = S.SBJCT_ID AND BBS.BBS_TYCD = 'DATARM' 
+		            JOIN 	TB_LMS_SMSTR_CHRT SC	ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID
+	        		JOIN 	TB_LMS_BBS BBS			ON BBS.SBJCT_ID = S.SBJCT_ID AND BBS.BBS_TYCD = 'DATARM'
 	        											AND BBS.DELYN = 'N'	AND BBS.ORG_ID = #{orgId}
 		    		JOIN 	TB_LMS_BBS_ATCL BA		ON BBS.BBS_ID = BA.BBS_ID AND BA.DELYN = 'N'
 		    		JOIN	TB_LMS_ORG		ORG	ON ORG.ORG_ID = BBS.ORG_ID
 		    WHERE 	1 = 1
-		    		AND		S.SBJCT_ID = #{sbjctId}
+		    		<if test="sbjctId != null and sbjctId != ''">
+				       AND		S.SBJCT_ID = #{sbjctId}
+				    </if>
 		) WHERE RN &lt;= #{limitTop}
 	</select>
 	<!--// 과목 -->
-	
+
 </mapper>

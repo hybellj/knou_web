@@ -6,48 +6,30 @@ public class DscsListVO extends DefaultVO {
 
     private static final long serialVersionUID = 1L;
 
-    private String sbjctId; // 검색조건: 과목아이디
-    private String dvclsNo; // 검색조건: 분반아이디
-    private String lrnGrpId; // 검색조건: 학습그룹아이디
-    private String dscsGbncd; // 검색조건: 토론구분코드
-    private String dscsUnitTycd; // 검색조건: 토론단위유형코드
-    private String evlScrTycd; // 평가점수유형코드
-    private String dscsTtl; // 검색조건: 토론제목
-    private String dscsSdttmFrom; // 검색조건: 토론시작일시 From
-    private String dscsSdttmTo; // 검색조건: 토론시작일시 To
+    private String sbjctId; // 과목아이디
+    private String dvclasNo; // 분반번호
+    private String dscsUnitTycd; // 토론단위유형코드
+    private String dscsTtl; // 토론제목
 
-    private String dscsId; // 목록표시: 토론아이디
-    private String dscsGrpId; // 목록표시: 토론그룹아이디
-    private String dscsCts; // 목록표시: 토론내용
-    private String dscsSdttm; // 목록표시: 토론시작일시
-    private String dscsEdttm; // 목록표시: 토론종료일시
-    private String delyn; // 목록표시: 삭제여부
-    private String oatclInqyn; // 목록표시: 타게시글조회여부
-    private String oknokStngyn; // 목록표시: 찬성반대토론설정여부
-    private String oknokrtOyn; // 목록표시: 찬성반대비율공개여부
-    private String oknokModyn; // 목록표시: 찬성반대수정여부
-    private String mltOpnnRegyn; // 목록표시: 다중의견등록여부
-    private String oknokRgtrOyn; // 목록표시: 작성자공개여부
-    private String cmntRspnsReqyn; // 목록표시: 댓글답변요청여부
-    private String mrkRfltyn; // 목록표시: 성적반영여부
-    private Integer mrkRfltrt; // 목록표시: 성적반영비율
-    private String mrkOyn; // 목록표시: 성적공개여부
-    private String rgtrId; // 목록표시: 등록자아이디
-    private String regDttm; // 목록표시: 등록일시
-    private String mdfrId; // 목록표시: 수정자아이디
-    private String modDttm; // 목록표시: 수정일시
+    private String dscsId; // 토론아이디
+    private String dscsSdttm; // 토론시작일시
+    private String dscsEdttm; // 토론종료일시
+    private String mrkRfltyn; // 성적반영여부
+    private Integer mrkRfltrt; // 성적반영비율
+    private String mrkOyn; // 성적공개여부
 
-    /*DB와 관계없는 파라미터*/
-    private boolean viewAll; // 전체조회여부 (교수: 삭제여부 관계없이 조회)
-    private Integer dscsAtclCnt; // 목록표시: 게시글 개수
-    private Integer dscsCmntCnt; // 목록표시: 댓글 개수
-    private Integer dscsUserTotalCnt; // 목록표시: 총 인원 수
-    private Integer dscsJoinUserCnt; // 목록표시: 참여자 수
-    private Integer dscsEvalCnt;  // 목록표시: 평가한 인원수
-    private Integer dscsMyAtclCnt; // 목록표시: 나의 게시글 개수
-    private Integer dscsMyCmntCnt; // 목록표시: 나의 댓글 개수
-    private Integer dscsMyScore; // 목록표시: 나의 점수
-    private Integer dscsMyFdbk; // 목록표시: 나의 피드백 여부
+    /* DB와 관계없는 파라미터 */
+    private Integer dscsAtclCnt; // 게시글 개수
+    private Integer dscsCmntCnt; // 댓글 개수
+    private Integer dscsUserTotalCnt; // 총 인원 수
+    private Integer dscsJoinUserCnt; // 참여자 수
+    private Integer dscsEvalCnt; // 평가한 인원수
+    private String learnerDscsId; // 학습자 기준 토론아이디
+    private String learnerTeamId; // 학습자 팀아이디
+    private Integer dscsMyAtclCnt; // 나의 게시글 개수
+    private Integer dscsMyCmntCnt; // 나의 댓글 개수
+    private Double scr; // 점수
+    private Integer dscsFdbkCnt; // 피드백 개수
 
     public String getSbjctId() {
         return sbjctId;
@@ -57,28 +39,12 @@ public class DscsListVO extends DefaultVO {
         this.sbjctId = sbjctId;
     }
 
-    public String getdvclsNo() {
-        return dvclsNo;
+    public String getDvclasNo() {
+        return dvclasNo;
     }
 
-    public void setdvclsNo(String dvclsNo) {
-        this.dvclsNo = dvclsNo;
-    }
-
-    public String getLrnGrpId() {
-        return lrnGrpId;
-    }
-
-    public void setLrnGrpId(String lrnGrpId) {
-        this.lrnGrpId = lrnGrpId;
-    }
-
-    public String getDscsGbncd() {
-        return dscsGbncd;
-    }
-
-    public void setDscsGbncd(String dscsGbncd) {
-        this.dscsGbncd = dscsGbncd;
+    public void setDvclasNo(String dvclasNo) {
+        this.dvclasNo = dvclasNo;
     }
 
     public String getDscsUnitTycd() {
@@ -89,14 +55,6 @@ public class DscsListVO extends DefaultVO {
         this.dscsUnitTycd = dscsUnitTycd;
     }
 
-    public String getEvlScrTycd() {
-        return evlScrTycd;
-    }
-
-    public void setEvlScrTycd(String evlScrTycd) {
-        this.evlScrTycd = evlScrTycd;
-    }
-
     public String getDscsTtl() {
         return dscsTtl;
     }
@@ -105,44 +63,12 @@ public class DscsListVO extends DefaultVO {
         this.dscsTtl = dscsTtl;
     }
 
-    public String getDscsSdttmFrom() {
-        return dscsSdttmFrom;
-    }
-
-    public void setDscsSdttmFrom(String dscsSdttmFrom) {
-        this.dscsSdttmFrom = dscsSdttmFrom;
-    }
-
-    public String getDscsSdttmTo() {
-        return dscsSdttmTo;
-    }
-
-    public void setDscsSdttmTo(String dscsSdttmTo) {
-        this.dscsSdttmTo = dscsSdttmTo;
-    }
-
     public String getDscsId() {
         return dscsId;
     }
 
     public void setDscsId(String dscsId) {
         this.dscsId = dscsId;
-    }
-
-    public String getDscsGrpId() {
-        return dscsGrpId;
-    }
-
-    public void setDscsGrpId(String dscsGrpId) {
-        this.dscsGrpId = dscsGrpId;
-    }
-
-    public String getDscsCts() {
-        return dscsCts;
-    }
-
-    public void setDscsCts(String dscsCts) {
-        this.dscsCts = dscsCts;
     }
 
     public String getDscsSdttm() {
@@ -161,84 +87,12 @@ public class DscsListVO extends DefaultVO {
         this.dscsEdttm = dscsEdttm;
     }
 
-    public String getDelyn() {
-        return delyn;
-    }
-
-    public void setDelyn(String delyn) {
-        this.delyn = delyn;
-    }
-
-    public String getOatclInqyn() {
-        return oatclInqyn;
-    }
-
-    public void setOatclInqyn(String oatclInqyn) {
-        this.oatclInqyn = oatclInqyn;
-    }
-
-    public String getOknokStngyn() {
-        return oknokStngyn;
-    }
-
-    public void setOknokStngyn(String oknokStngyn) {
-        this.oknokStngyn = oknokStngyn;
-    }
-
-    public String getOknokrtOyn() {
-        return oknokrtOyn;
-    }
-
-    public void setOknokrtOyn(String oknokrtOyn) {
-        this.oknokrtOyn = oknokrtOyn;
-    }
-
-    public String getOknokModyn() {
-        return oknokModyn;
-    }
-
-    public void setOknokModyn(String oknokModyn) {
-        this.oknokModyn = oknokModyn;
-    }
-
-    public String getMltOpnnRegyn() {
-        return mltOpnnRegyn;
-    }
-
-    public void setMltOpnnRegyn(String mltOpnnRegyn) {
-        this.mltOpnnRegyn = mltOpnnRegyn;
-    }
-
-    public String getOknokRgtrOyn() {
-        return oknokRgtrOyn;
-    }
-
-    public void setOknokRgtrOyn(String oknokRgtrOyn) {
-        this.oknokRgtrOyn = oknokRgtrOyn;
-    }
-
-    public String getCmntRspnsReqyn() {
-        return cmntRspnsReqyn;
-    }
-
-    public void setCmntRspnsReqyn(String cmntRspnsReqyn) {
-        this.cmntRspnsReqyn = cmntRspnsReqyn;
-    }
-
     public String getMrkRfltyn() {
         return mrkRfltyn;
     }
 
     public void setMrkRfltyn(String mrkRfltyn) {
         this.mrkRfltyn = mrkRfltyn;
-    }
-
-    public String getMrkOyn() {
-        return mrkOyn;
-    }
-
-    public void setMrkOyn(String mrkOyn) {
-        this.mrkOyn = mrkOyn;
     }
 
     public Integer getMrkRfltrt() {
@@ -249,44 +103,12 @@ public class DscsListVO extends DefaultVO {
         this.mrkRfltrt = mrkRfltrt;
     }
 
-    public String getRgtrId() {
-        return rgtrId;
+    public String getMrkOyn() {
+        return mrkOyn;
     }
 
-    public void setRgtrId(String rgtrId) {
-        this.rgtrId = rgtrId;
-    }
-
-    public String getRegDttm() {
-        return regDttm;
-    }
-
-    public void setRegDttm(String regDttm) {
-        this.regDttm = regDttm;
-    }
-
-    public String getMdfrId() {
-        return mdfrId;
-    }
-
-    public void setMdfrId(String mdfrId) {
-        this.mdfrId = mdfrId;
-    }
-
-    public String getModDttm() {
-        return modDttm;
-    }
-
-    public void setModDttm(String modDttm) {
-        this.modDttm = modDttm;
-    }
-
-    public boolean isViewAll() {
-        return viewAll;
-    }
-
-    public void setViewAll(boolean viewAll) {
-        this.viewAll = viewAll;
+    public void setMrkOyn(String mrkOyn) {
+        this.mrkOyn = mrkOyn;
     }
 
     public Integer getDscsAtclCnt() {
@@ -329,6 +151,22 @@ public class DscsListVO extends DefaultVO {
         this.dscsEvalCnt = dscsEvalCnt;
     }
 
+    public String getLearnerDscsId() {
+        return learnerDscsId;
+    }
+
+    public void setLearnerDscsId(String learnerDscsId) {
+        this.learnerDscsId = learnerDscsId;
+    }
+
+    public String getLearnerTeamId() {
+        return learnerTeamId;
+    }
+
+    public void setLearnerTeamId(String learnerTeamId) {
+        this.learnerTeamId = learnerTeamId;
+    }
+
     public Integer getDscsMyAtclCnt() {
         return dscsMyAtclCnt;
     }
@@ -345,19 +183,19 @@ public class DscsListVO extends DefaultVO {
         this.dscsMyCmntCnt = dscsMyCmntCnt;
     }
 
-    public Integer getDscsMyScore() {
-        return dscsMyScore;
+    public Double getScr() {
+        return scr;
     }
 
-    public void setDscsMyScore(Integer dscsMyScore) {
-        this.dscsMyScore = dscsMyScore;
+    public void setScr(Double scr) {
+        this.scr = scr;
     }
 
-    public Integer getDscsMyFdbk() {
-        return dscsMyFdbk;
+    public Integer getDscsFdbkCnt() {
+        return dscsFdbkCnt;
     }
 
-    public void setDscsMyFdbk(Integer dscsMyFdbk) {
-        this.dscsMyFdbk = dscsMyFdbk;
+    public void setDscsFdbkCnt(Integer dscsFdbkCnt) {
+        this.dscsFdbkCnt = dscsFdbkCnt;
     }
 }

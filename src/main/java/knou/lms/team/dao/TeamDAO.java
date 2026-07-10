@@ -12,7 +12,7 @@ import knou.lms.team.vo.TeamVO;
 @Mapper("teamDAO")
 public interface TeamDAO {
 
-    public List<TeamVO> list(TeamVO vo) throws Exception;
+    public List<TeamVO> list(TeamVO vo);
 
     // 팀토론 토론방 팀리스트
     public List<TeamVO> teamList(TeamVO vo) throws Exception;
@@ -47,7 +47,7 @@ public interface TeamDAO {
     public List<TeamVO> listStd(TeamVO vo) throws Exception;
 
     public List<TeamMemberVO> teamStdList(TeamVO vo) throws Exception;
-    
+
     public List<TeamVO> selectTeamList(TeamVO vo) throws Exception;
 
     public List<TeamMemberVO> selectTeamMemberList(TeamVO pVo) throws Exception;
@@ -60,7 +60,7 @@ public interface TeamDAO {
 
     // group_concat함수 최대 길이 세팅
 	public void setGroupConcatMaxLen() throws Exception;
-	
+
 	public void update(TeamVO vo) throws Exception;
 
 }

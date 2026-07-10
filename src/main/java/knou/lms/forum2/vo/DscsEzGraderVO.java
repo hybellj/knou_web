@@ -6,15 +6,11 @@ public class DscsEzGraderVO extends DefaultVO {
 	
 	private static final long serialVersionUID = 7100179735049056024L;
 	
-	private String dscsId;
-    private String orgId;                  // 기관 코드
-    private String sbjctId;
-    private String stdId;
-    private String teamId;
-    private String evalCd;
-    
-    private String evalCritUseYn;          // 평가기준사용여부
-    private String evalCtgr;               // 평가방식(R : 루브릭)
+	private String dscsId;      // 토론아이디
+    private String sbjctId;     // 과목아이디
+    private String stdId;       // 사용자아이디
+    private String teamId;      // 팀아이디
+    private String evlScrTycd;  // 평가점수유형코드
 
     public String getDscsId() {
         return dscsId;
@@ -22,14 +18,6 @@ public class DscsEzGraderVO extends DefaultVO {
 
     public void setDscsId(String dscsId) {
         this.dscsId = dscsId;
-    }
-
-    public String getOrgId() {
-        return orgId;
-    }
-
-    public void setOrgId(String orgId) {
-        this.orgId = orgId;
     }
 
     public String getSbjctId() {
@@ -56,35 +44,12 @@ public class DscsEzGraderVO extends DefaultVO {
         this.teamId = teamId;
     }
 
-    public String getEvalCritUseYn() {
-        return evalCritUseYn;
-    }
-
-    public void setEvalCritUseYn(String evalCritUseYn) {
-        this.evalCritUseYn = evalCritUseYn;
-    }
-
-	public String getEvalCtgr() {
-		return evalCtgr;
-	}
-
-	public void setEvalCtgr(String evalCtgr) {
-		this.evalCtgr = evalCtgr;
-	}
     public String getEvlScrTycd() {
-        return evalCtgr;
+        return evlScrTycd;
     }
 
     public void setEvlScrTycd(String evlScrTycd) {
-        this.evalCtgr = evlScrTycd;
+        this.evlScrTycd = evlScrTycd;
     }
-
-	public String getEvalCd() {
-		return evalCd;
-	}
-
-	public void setEvalCd(String evalCd) {
-		this.evalCd = evalCd;
-	}
 
 }

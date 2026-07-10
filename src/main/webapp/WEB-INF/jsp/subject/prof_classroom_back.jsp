@@ -11,7 +11,7 @@
 <link rel="stylesheet" type="text/css" href="/webdoc/assets/css/classroom.css" />
 
 <script type="text/javascript">
-function loadLctrPlandocPopView(sbjctId) {	
+function loadLctrPlandocPopView(sbjctId) {
     fetch('/lctr/plandoc/profLctrPlandocPopView.do?sbjctId=' + encodeURIComponent(sbjctId))
         .then(response => response.text())
         .then(data => {
@@ -36,7 +36,7 @@ function loadLctrPlandocPopView(sbjctId) {
 }
 
 
-function loadLessonProgressManage(sbjctId) {	
+function loadLessonProgressManage(sbjctId) {
     fetch('/lesson/lessonMgr/lessonProgressManage.do?sbjctId=' + encodeURIComponent(sbjctId))
         .then(response => response.text())
         .then(data => {
@@ -60,7 +60,7 @@ function loadLessonProgressManage(sbjctId) {
         });
 }
 </script>
-<body class="class colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="class ${uiex:getTheme()} "><!-- 컬러선택시 클래스변경 -->
 <div style="display:none;" id="lecturePlanDoc"></div>
 <div style="display:none;" id="lessonProgressManagePopView"></div>
     <div id="wrap" class="main">
@@ -78,32 +78,9 @@ function loadLessonProgressManage(sbjctId) {
 
 			<!-- content -->
 			<div id="content" class="content-wrap common">
-				<div class="class_sub_top">
-					<div class="navi_bar">
-						<ul>
-							<li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-							<li>강의실</li>
-							<li><span class="current">내강의실</span></li>
-						</ul>
-					</div>
-					<div class="btn-wrap">
-						<div class="first">
-							<select class="form-select">
-								<option value="2026년 1학기">2026년 1학기</option>
-								<option value="2026년 2학기">2026년 2학기</option>
-							</select>
-							<select class="form-select wide">
-								<option value="">강의실 바로가기</option>
-								<option value="2026년 1학기">2026년 1학기</option>
-								<option value="2026년 2학기">2026년 2학기</option>
-							</select>
-						</div>
-						<div class="sec">
-							<button type="button" class="btn type1"><i class="xi-book-o"></i>교수 매뉴얼</button>
-							<button type="button" class="btn type1"><i class="xi-info-o"></i>학습안내정보</button>
-						</div>
-					</div>
-				</div>
+				<!-- class_sub_top -->
+				<jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+				<!-- //class_sub_top -->
 
 				<!-- class_sub -->
 				<div class="class_sub">
@@ -134,7 +111,7 @@ function loadLessonProgressManage(sbjctId) {
 	                                    <a href="/smnr/profSmnrListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>세미나</span><div class="num_txt">${item.smnrCnt}</div></a>
 	                                    <a href="/quiz/profQuizListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>퀴즈</span><div class="num_txt">${item.quizCnt}</div></a>
 	                                    <a href="/srvy/profSrvyListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>설문</span><div class="num_txt">${item.srvyCnt}</div></a>
-	                                    <a href="/exam/profExamListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>시험</span><div class="num_txt">${item.examCnt}</div></a>	                                    
+	                                    <a href="/exam/profExamListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}" class="info"><span>시험</span><div class="num_txt">${item.examCnt}</div></a>
                                     </c:forEach>
                                 </div>
                                 <div class="info-set">
@@ -219,7 +196,7 @@ function loadLessonProgressManage(sbjctId) {
                                                             <button type="button"><i class="xi-bell-o"></i></button>
                                                         </div>
                                                     </div>
-                                                </li>                                                
+                                                </li>
                                                 <li>
                                                     <div class="user-info">
                                                         <div class="user-photo">
@@ -286,7 +263,7 @@ function loadLessonProgressManage(sbjctId) {
                                 <h3 class="h3">과목 공지사항
                                 <c:if test="${not empty subjectVM.subjectTopNoticeList}">
                                 	<small class="msg_num">${subjectVM.badge.noticeUnreadCnt}</small></h3><!-- 과목 공지사항-->
-                                </c:if>                                
+                                </c:if>
                                 <div class="btn-wrap">
                                     <a href="/bbs/bbsHome/bbsAtclListView.do?bbsId=${subjectVM.subjectBbsIds.ntcBbsId}" class="btn_more"><i class="xi-plus"></i></a>
                                 </div>
@@ -333,7 +310,7 @@ function loadLessonProgressManage(sbjctId) {
                         <div class="segment">
                             <div class="box_title">
                                 <i class="icon-svg-question"></i>
-                                <h3 class="h3">강의 Q&A 
+                                <h3 class="h3">강의 Q&A
                                 <c:if test="${not empty subjectVM.subjectTopLctrQnaList}">
                                 	<small class="msg_num">${subjectVM.badge.qnaNoreplyCnt}</small>
                                 </c:if>
@@ -442,9 +419,9 @@ function loadLessonProgressManage(sbjctId) {
                     </div>
 					<!-- //segment row -->
 
-					<!-- segment-->		
+					<!-- segment-->
 					<div class="segment">
-					
+
 						<!-- 강의목록top -->
 						<div class="board_top">
                             <i class="icon-svg-openbook"></i>
@@ -470,7 +447,7 @@ function loadLessonProgressManage(sbjctId) {
                             <select class="form-select">
                             	<option value="전체 주차">전체 주차</option>
                             	<c:forEach var="item" items="${subjectVM.byWeeknoLectureSchdlList}">
-                            		<c:if test="${item.srcTbl == 'TB_LMS_LCTR_WKNO_SCHDL' && item.firstOrd == 0 }">                                
+                            		<c:if test="${item.srcTbl == 'TB_LMS_LCTR_WKNO_SCHDL' && item.firstOrd == 0 }">
 		                                <option value="${item.wkno}">${item.wkno}주차</option>
 		                            </c:if>
 	                            </c:forEach>
@@ -481,7 +458,7 @@ function loadLessonProgressManage(sbjctId) {
                             </div>
                         </div>
 						<!-- //강의목록top -->
-						
+
                         <!-- course_list 목록형-->
                         <div class="course_list">
 	                        <ul class="accordion course_week">
@@ -489,7 +466,7 @@ function loadLessonProgressManage(sbjctId) {
 								<c:forEach var="item" items="${subjectVM.byWeeknoLectureSchdlList}">
 								    <!-- 주차 -->
 								    <c:if test="${item.srcTbl == 'TB_LMS_LCTR_WKNO_SCHDL' && item.firstOrd == 0 }"> <!-- 0이면 주차 타이틀, 1이면 학습콘텐츠, 2이면 학습자료추가-->
-								        <c:set var="PREV_LCTR_WKNO_SCHDL_ID" value="${item.lctrWknoSchdlId}" />								        
+								        <c:set var="PREV_LCTR_WKNO_SCHDL_ID" value="${item.lctrWknoSchdlId}" />
 								        <!-- active 추가 -->
 		                                <li class="active">
 		                                    <div class="title-wrap">
@@ -528,23 +505,23 @@ function loadLessonProgressManage(sbjctId) {
 		                                            </div>
 			                                     </div>
 			                                </div>
-			                                
+
 			                                <!-- divcont -->
 			                            	<div class="cont">
 									</c:if>
 								    <!--//주차-->
-										    
+
 										    <!-- 학습콘텐츠 -->
 										    <c:if test="${item.firstOrd == '1'}">
 										    <!-- n차시와 성적활동 -->
-										    
+
 										    <c:choose>
-										    
-		                                        <c:when test="${ item.seqno != 0 }">								        
+
+		                                        <c:when test="${ item.seqno != 0 }">
 									                <div class="lecture_box">
 			                                            <div class="lecture_tit">
 			                                                <p class="labels">
-			                                                   	<label class="label s_chasi">${item.seqno}차시</label>			                                                    	
+			                                                   	<label class="label s_chasi">${item.seqno}차시</label>
 			                                                    <label class="label s_basic">동영상</label>
 			                                                </p>
 			                                                <strong>${item.nm}</strong>
@@ -566,9 +543,9 @@ function loadLessonProgressManage(sbjctId) {
 			                                            </div>
 			                                        </div>
 			                                    </c:when>
-			                                    
+
 			                                    <c:when test="${ item.seqno == 0 }">
-			                                    
+
 			                                    	<c:if test="${item.srcTbl == 'TB_LMS_EXAM_BSC.EXAM'}">
 				                                    	<div class="lecture_box">
 				                                            <div class="lecture_tit">
@@ -585,7 +562,7 @@ function loadLessonProgressManage(sbjctId) {
 				                                            </div>
 				                                        </div>
 			                                        </c:if>
-			                                        
+
 			                                        <c:if test="${item.srcTbl == 'TB_LMS_EXAM_BSC.QUIZ'}">
 				                                    	<div class="lecture_box">
 				                                            <div class="lecture_tit">
@@ -602,7 +579,7 @@ function loadLessonProgressManage(sbjctId) {
 				                                            </div>
 				                                        </div>
 			                                        </c:if>
-			                                    	
+
 			                                    	<c:if test="${item.srcTbl == 'TB_LMS_ASMT'}">
 				                                    	<div class="lecture_box">
 				                                            <div class="lecture_tit">
@@ -621,7 +598,7 @@ function loadLessonProgressManage(sbjctId) {
 				                                            </div>
 				                                        </div>
 			                                        </c:if>
-			                                        
+
 			                                        <c:if test="${item.srcTbl == 'TB_LMS_DSCS'}">
 				                                    	<div class="lecture_box">
 				                                            <div class="lecture_tit">
@@ -639,7 +616,7 @@ function loadLessonProgressManage(sbjctId) {
 				                                            </div>
 				                                        </div>
 			                                        </c:if>
-			                                        
+
 			                                        <c:if test="${item.srcTbl == 'TB_LMS_SRVY'}">
 				                                    	<div class="lecture_box">
 				                                            <div class="lecture_tit">
@@ -657,7 +634,7 @@ function loadLessonProgressManage(sbjctId) {
 				                                            </div>
 				                                        </div>
 			                                        </c:if>
-			                                        
+
 			                                        <c:if test="${item.srcTbl == 'TB_LMS_SMNR'}">
 				                                    	<div class="lecture_box seminar">
 				                                            <div class="lecture_tit">
@@ -691,16 +668,16 @@ function loadLessonProgressManage(sbjctId) {
 				                                                    <ul class="list-bullet">
 				                                                        <li>화상강의 참가가 원할히 진행되지 않을 경우 아래 버튼을 클릭하여 시도할 수 있습니다.</li>
 				                                                        <li>참가 등록 시 아래 표시된 본인 LMS 상의 이메일 주소를 입력해야 자동 출석인정 합니다.</li>
-				                                                    </ul>				
+				                                                    </ul>
 				                                                    <div class="list-tit-bg">이메일 직접 등록하여 참가</div>
 				                                                    <ul class="list-bullet">
 				                                                        <li>참가 등록시 입력할 이메일 주소 : <strong class="fcRed">아이디@knou.ac.kr</strong></li>
-				                                                    </ul>				
-				                                                </div>				
+				                                                    </ul>
+				                                                </div>
 				                                            </div>
 				                                        </div>
 			                                        </c:if>
-			                                        			                                        
+
 			                                        <c:if test="${item.srcTbl == 'TB_LMS_BBS'}">
 				                                    	<div class="lecture_box">
 				                                            <div class="lecture_tit">
@@ -713,13 +690,13 @@ function loadLessonProgressManage(sbjctId) {
 				                                                <button class="btn s_basic set">학습자료</button>
 				                                            </div>
 				                                        </div>
-			                                        </c:if>			                                        
-			                                        
-			                                	</c:when>			                                	
+			                                        </c:if>
+
+			                                	</c:when>
 			                                </c:choose>
 											</c:if>
 									<!--//학습콘텐츠 -->
-									
+
 										<!--학습자료추가 -->
 							    		<c:if test="${item.srcTbl == 'TB_LMS_LCTR_WKNO_SCHDL' && item.firstOrd == 2}">
 										        <div class="lecture_add_box">
@@ -742,20 +719,20 @@ function loadLessonProgressManage(sbjctId) {
 		                                                    <a href="/exam/profExamListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-alarm-clock" aria-hidden="true"></i><span>시험</span></a>
 		                                                    <a href="/forum2/forumLect/profForumListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-message-chat" aria-hidden="true"></i><span>토론</span></a>
 		                                                    <a href="/srvy/profSrvyListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-check-done" aria-hidden="true"></i><span>설문</span></a>
-		                                                    <a href="/smnr/profSmnrListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-presentation" aria-hidden="true"></i><span>세미나</span></a>		                                                    
+		                                                    <a href="/smnr/profSmnrListView.do?sbjctId=${subjectVM.subjectVO.sbjctId}"><i class="icon-svg-presentation" aria-hidden="true"></i><span>세미나</span></a>
 		                                                </div>
 		                                            </div>
 		                                        </div>
 		                                     </div>
 		                                     <!-- //divcont -->
-                                			</li>                       	
-										</c:if>	
-									<!--//학습자료추가 -->			    
+                                			</li>
+										</c:if>
+									<!--//학습자료추가 -->
 								</c:forEach>
 							</ul>
                         </div>
                         <!-- //course_list 목록형 -->
-                        
+
 					</div>
 					<!-- //segment-->
 

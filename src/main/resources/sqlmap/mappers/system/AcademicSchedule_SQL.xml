@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="knou.lms.system.manage.dao.AcademicScheduleDAO">
+	
+	<sql id="listQuery">
+		SELECT	ACAD.*
+				, ROW_NUMBER() OVER(ORDER BY TO_DATE(ACAD.REG_DTTM, 'YYYYMMDDHH24MISS') DESC)	AS "LINE_NO" /* Row Number */
+				, O.ORGNM
+				, SC.SMSTR_CHRTNM
+		FROM	TB_LMS_ACAD_SCHDL	ACAD
+				JOIN 	TB_LMS_ORG		O		ON 	ACAD.ORG_ID = O.ORG_ID
+				LEFT 	JOIN	TB_LMS_SMSTR_CHRT 	SC	ON ACAD.SMSTR_CHRT_ID = SC.SMSTR_CHRT_ID
+		WHERE
+			1 = 1		
+		<if test="orgId != null and orgId != ''" >
+			AND ACAD.ORG_ID = #{orgId}
+		</if>
+		<if test="smstrChrtId != null and smstrChrtId != ''">
+            AND ACAD.SMSTR_CHRT_ID = #{smstrChrtId}
+        </if>	
+		<if test="searchText != null and searchText !=''">
+            AND ( ACAD.SCHDL_EXPLN LIKE '%'||#{searchText}||'%' )
+        </if>
+	</sql>		
+	
+	<select id="academicScheduleCnt" parameterType="pageInfo" resultType="Integer">
+		/*	설명 : 관리자학사일정수 	*/		
+		SELECT	COUNT(1) AS TOTAL_CNT
+		FROM
+			(<include refid="listQuery"/>) Z
+	</select>
+
+	<select id="academicScheduleListPaging" parameterType="pageInfo" resultType="egovMap">
+		/*	설명 	: 관리자학사일정목록페이징 */		
+		<include refid="CommonSQL.pagePrefix2" />
+		<include refid="listQuery"/>
+		<include refid="CommonSQL.pageSuffix2" />
+	</select>
+	
+	<delete id="academicScheduleDelete" parameterType="string">
+		/*	설명 : 학사일정삭제 	*/		
+		DELETE 
+		FROM	TB_LMS_ACAD_SCHDL	ACAD
+		WHERE	ACAD.ACAD_SCHDL_ID = #{acadSchdlId}
+	</delete>
+	
+	<insert id="academicScheduleRegist" parameterType="AcademicScheduleVO">
+		/*	설명 : 학사일정등록 	*/
+		INSERT INTO TB_LMS_ACAD_SCHDL (
+	          ACAD_SCHDL_ID
+	        , ORG_ID
+	        , ACAD_SCHDL_SDTTM
+	        , ACAD_SCHDL_EDTTM
+	        , ACAD_SCHDL_TYCD
+	        , ACAD_SCHDL_EXPLN
+	        , RGTR_ID
+	        , REG_DTTM
+	        , SMSTR_CHRT_ID
+	    ) VALUES (
+	          #{acadSchdlId}
+	        , #{orgId}
+	        , #{acadSchdlSdttm}
+	        , #{acadSchdlEdttm}
+	        , #{acadSchdlTycd}
+	        , #{acadSchdlExpln}
+	        , #{rgtrId}
+	        , TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+	        , #{smstrChrtId}
+	    )	
+	</insert>
+	
+	<update id="academicScheduleModify" parameterType="AcademicScheduleVO">
+		/*	설명 : 학사일정수정 	*/		
+		UPDATE TB_LMS_ACAD_SCHDL
+		   SET 
+		       ACAD_SCHDL_SDTTM = #{acadSchdlSdttm}
+		     , ACAD_SCHDL_EDTTM = #{acadSchdlEdttm}
+		     , ACAD_SCHDL_TYCD  = #{acadSchdlTycd}
+		     , ACAD_SCHDL_EXPLN = #{acadSchdlExpln}
+		     , SMSTR_CHRT_ID    = #{smstrChrtId}
+		     , MDFR_ID          = #{mdfrId}
+		     , MOD_DTTM         = TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+		 WHERE ACAD_SCHDL_ID    = #{acadSchdlId}		
+	</update>
+	
+	<select id="academicScheduleSelect" parameterType="AcademicScheduleVO" resultType="AcademicScheduleVO">
+		/*	설명 : 학사일정조회 	*/		
+		SELECT	ACAD.*
+		FROM	TB_LMS_ACAD_SCHDL ACAD
+		WHERE	ACAD.ACAD_SCHDL_ID = #{acadSchdlId}
+	</select>	
+	
+</mapper>

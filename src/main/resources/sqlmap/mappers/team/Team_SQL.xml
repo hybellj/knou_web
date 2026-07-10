@@ -50,7 +50,7 @@
 				AND TEAM.TEAM_ID = #{teamCd}
 			</if>
 			<if test="teamCtgrCd != null and teamCtgrCd != ''">
-				AND TEAM.LRN_GRP_ID = #{teamCtgrCd}
+				AND TEAM.TEAM_GRP_ID = #{teamCtgrCd}
 			</if>
 			<if test="teamNm != null and teamNm != ''">
 				AND LOWER(TEAM.TEAMNM) LIKE LOWER(CONCAT('%', #{teamNm}, '%'))

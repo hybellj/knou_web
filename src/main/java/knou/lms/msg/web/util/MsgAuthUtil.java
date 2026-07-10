@@ -7,17 +7,13 @@ import knou.lms.common.vo.DefaultVO;
 
 public class MsgAuthUtil extends AuthUtil {
 
-    // 교수 검색 제약 (교수: orgId + userId 강제, 관리자: orgId 비어있으면 기본값)
-    public static void applyProfConstraints(DefaultVO vo, UserContext userCtx) {
-        if (isProfessor(userCtx) && !isAdmin(userCtx)) {
-            vo.setOrgId(userCtx.getOrgId());
-            vo.setUserId(userCtx.getUserId());
-        } else if ("".equals(StringUtil.nvl(vo.getOrgId()))) {
+    public static void applyOrgScope(DefaultVO vo, UserContext userCtx) {
+        if (!isAdmin(userCtx)) {
             vo.setOrgId(userCtx.getOrgId());
         }
     }
 
-    // 템플릿 조회 권한 (관리자: 전체, 교수: 본인 등록 또는 기관공통)
+
     public static String getTmpltAccessAuth(UserContext userCtx, String rgtrId, String msgCtsGbncd, String tmpltOrgId) {
         String auth = "N";
         String userId = userCtx.getUserId();
@@ -37,7 +33,6 @@ public class MsgAuthUtil extends AuthUtil {
         return auth;
     }
 
-    // 템플릿 수정 권한 (관리자: 기관공통 포함 전체, 교수: 본인 등록만)
     public static String getTmpltEditAuth(UserContext userCtx, String rgtrId, String msgCtsGbncd) {
         String auth = "N";
         String userId = userCtx.getUserId();
@@ -57,19 +52,4 @@ public class MsgAuthUtil extends AuthUtil {
         return auth;
     }
 
-    // 쪽지 발신 접근 권한 (관리자: 전체, 비관리자: 본인 발신만)
-    public static String getShrtntSndngAuth(UserContext userCtx, String sndngrId) {
-        String auth = "N";
-        String userId = userCtx.getUserId();
-
-        if (isAdmin(userCtx)) {
-            auth = "Y";
-        } else {
-            if (StringUtil.nvl(userId).equals(sndngrId)) {
-                auth = "Y";
-            }
-        }
-
-        return auth;
-    }
 }

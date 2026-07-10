@@ -48,13 +48,13 @@
         function initAbsnceInfoListTable(data) {
             if (absnceHstrInfoListTable) return;
             var absnceInfoColumns = [
-                {title:"No",       field:"lineNo",       headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:50},
-                {title:"시험구분",  field:"examGbnnm",    headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"처리상태",  field:"aplyStsnm",    headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
-                {title:"처리일시",  field:"aprvdttm",     headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},
-                {title:"결시사유",  field:"absnceTtl",    headerHozAlign:"center", hozAlign:"center", width:150, minWidth:150},
-                {title:"적용비율",  field:"absnceRfltrt", headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                {title:"처리의견",  field:"aprvCts",      headerHozAlign:"center", hozAlign:"left",   width:0,   minWidth:150}
+                {title:"No", field:"lineNo", headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:50},
+                {title:"<spring:message code='exam.label.exam.stare.type' />",  field:"examGbnnm", headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},    /* 시험구분 */
+                {title:"<spring:message code='exam.label.process.status' />",  field:"aplyStsnm", headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},      /* 처리상태 */
+                {title:"<spring:message code='exam.label.process.dttm' />",  field:"aprvdttm", headerHozAlign:"center", hozAlign:"center", width:140, minWidth:140},        /* 처리일시 */
+                {title:"<spring:message code='exam.label.absent.cts' />",  field:"absnceTtl", headerHozAlign:"center", hozAlign:"center", width:150, minWidth:150},         /* 결시사유 */
+                {title:"<spring:message code='exam.label.appl.rate' />",  field:"absnceRfltrt", headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},       /* 적용비율 */
+                {title:"<spring:message code='exam.label.approve.cts' />",  field:"aprvCts", headerHozAlign:"center", hozAlign:"left",   width:0,   minWidth:150}           /* 처리의견 */
             ];
             absnceHstrInfoListTable = UiTable("absnceHstrList", {
                 lang: "ko",
@@ -73,13 +73,13 @@
                     // 처리상태
                     var aplyStsnm;
                     if (v.aplyStscd == "APLY") {
-                        aplyStsnm = "<span class='fcBlue'>신청</span>";
+                        aplyStsnm = "<span class='fcBlue'><spring:message code='exam.label.applicate' /></span>";       /* 신청 */
                     } else if (v.aplyStscd == "RE_APLY") {
-                        aplyStsnm = "<span class='fcOrange'>재신청</span>";
+                        aplyStsnm = "<span class='fcOrange'><spring:message code='exam.label.rapplicate' /></span>";    /* 재신청 */
                     } else if (v.aplyStscd == "APRV") {
-                        aplyStsnm = "<span class='fcBlack'>승인</span>";
+                        aplyStsnm = "<span class='fcBlack'><spring:message code='exam.label.approve' /></span>";        /* 승인 */
                     } else {
-                        aplyStsnm = "<span class='fcRed'>거절</span>";
+                        aplyStsnm = "<span class='fcRed'><spring:message code='exam.label.companion' /></span>";        /* 반려 */
                     }
                     // 처리일시
                     var aprvdttm;
@@ -124,7 +124,7 @@
         <div id="wrap">
         	<div class="board_top">
         		<div class="left-area">
-	            	<a><strong>결시 신청 이력 [총 ${absnceHstr.pageInfo.totalRecordCount} 건]</strong></a>
+	            	<a><strong><spring:message code='exam.label.absent.hsty' /> [<spring:message code='exam.label.total' /> ${absnceHstr.pageInfo.totalRecordCount} <spring:message code='exam.label.cnt' />]</strong></a><!-- 결시 신청이력 --><!-- 총 --><!-- 건 -->
         		</div>
         	</div>
             <div class="table-wrap margin-bottom-4">
@@ -135,15 +135,15 @@
                     </colgroup>
                     <tbody>
                         <tr>
-                            <th><label>학번</label></th>
+                            <th><label><spring:message code='exam.label.user.no' /></label></th><!-- 학번 -->
                             <td class="t_left"><pre>${absnceHstr.returnList[0].stdntNo}</pre></td>
-                            <th><label>이름</label></th>
+                            <th><label><spring:message code='exam.label.user.nm' /></label></th><!-- 이름 -->
                             <td class="t_left"><pre>${absnceHstr.returnList[0].usernm}</pre></td>
                         </tr>
                         <tr>
-                            <th><label>학과</label></th>
+                            <th><label><spring:message code='exam.label.dept' /></label></th><!-- 학과 -->
                             <td class="t_left"><pre>${absnceHstr.returnList[0].deptnm}</pre></td>
-                            <th><label>연락처</label></th>
+                            <th><label><spring:message code='exam.label.mobile.no' /></label></th><!-- 연락처 -->
                             <td class="t_left"><pre>${absnceHstr.returnList[0].mobileNo}</pre></td>
                         </tr>
                     </tbody>

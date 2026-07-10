@@ -12,6 +12,7 @@
 	<script type="text/javascript">
 		var PAGE_INDEX = 1;
 		var LIST_SCALE = 10;
+		var EXAM_TTL   = '<c:out value="${vo.examTtl}" />';
 
         /*****************************************************************************
          * tabulator 관련 기능
@@ -20,39 +21,42 @@
          *****************************************************************************/
 		/* 1 */
 		function loadExamList(page) {
-			var url = "/exam/profExamPaging.do";
-			var data = {
-				"pageIndex"     : page,
-				"listScale"     : $('[id^="listScale"]').eq(0).val(),
-                "sbjctId"       : "${sbjctId}",
-                "examTtl"       : $("#examTtl").val()
-			};
+            PAGE_INDEX = page || PAGE_INDEX;
+            UiComm.showLoading(true);
+            $.ajax({
+                url      : "/exam/profExamPaging.do",
+                type     : "GET",
+                dataType : "json",
+                data     : {
+                    pageIndex   : PAGE_INDEX,
+                    listScale   : $('[id^="listScale"]').eq(0).val(),
+                    encParams   : EPARAM,
+                    examTtl     : $("#examTtl").val()
+                },
+                success: function(data) {
+                    if (data.result > 0) {
+                        if (data.encParams != null && data.encParams != "") {
+                            EPARAM = data.encParams;
+                        }
+                        var returnList = data.returnList || [];
+                        var dataList = createExamListHtml(returnList);
 
-			UiComm.showLoading(true);
-			$.ajax({
-                url         : url,
-                async       : false,
-                type        : "GET",
-                dataType    : "json",
-                data        : data,
-            }).done(function(data) {
-                UiComm.showLoading(false);
-                if (data.result > 0) {
-                    var returnList = data.returnList || [];
-                    var dataList = createExamListHtml(returnList);
+                        examListTable.clearData();
+                        examListTable.replaceData(dataList);
+                        examListTable.setPageInfo(data.pageInfo);
+                        UiInputmask();
 
-                    examListTable.clearData();
-                    examListTable.replaceData(dataList);
-                    examListTable.setPageInfo(data.pageInfo);
-                    UiInputmask();
-
-                    mrkRfltrtFrmTrsf(2);	// 성적 반영비율 폼 변환
-                } else {
-                    UiComm.showMessage(data.message, "error");
+                        mrkRfltrtFrmTrsf(2);	// 성적 반영비율 폼 변환
+                    } else {
+                        UiComm.showMessage(data.message, "error");
+                    }
+                },
+                error: function() {
+                    UiComm.showMessage("<spring:message code='exam.error.list' />", "error");/* 리스트 조회 중 에러가 발생하였습니다. */
+                },
+                complete: function() {
+                    UiComm.showLoading(false);
                 }
-            }).fail(function() {
-                UiComm.showLoading(false);
-                UiComm.showMessage("<spring:message code='exam.error.list' />", "error");/* 리스트 조회 중 에러가 발생하였습니다. */
             });
         }
         /* 2 */
@@ -98,31 +102,37 @@
                     var _p  = "\"" + v.examBscId + "\",\"" + v.tkexamMthdCd + "\",\"" + v.byteamSubrexamUseyn + "\"";
                     var _dp = "\"" + v.examBscId + "\",\"" + v.byteamSubrexamUseyn + "\"";
                     var _tk = "\"" + v.sbjctId + "\"";
-                    /* context 에 spring message 등록 해야 함 */
-                    var manageBtnDefault = "<a href='javascript:tkexamStatPop(" + _tk + ")' class='btn basic small'>응시현황</a>"
-                                        + "<a href='javascript:examViewMv(" + _p + ", 1)' class='btn basic small'>시험지 보기</a>"
-                                        + "<a href='javascript:examViewMv(" + _p + ", 3)' class='btn basic small'>결시현황</a>";
-                    var manageCardBtnDefault = "<div class='item'><a href='javascript:tkexamStatPop(" + _tk + ")'>응시현황</a></div>"
-                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 1)'>시험지 보기</a></div>"
-                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 3)'>결시현황</a></div>"
-                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'>수정</a></div>"
-                                        + "<div class='item'><a href='javascript:examDelete(" + _dp + ")'>삭제</a></div>";
-                    var manageBtnQuiz = "<a href='javascript:examViewMv(" + _p + ", 1)' class='btn basic small'>퀴즈정보 및 평가</a>";
-                    var manageCardBtnQuiz = "<div class='item'><a href='javascript:examViewMv(" + _p + ", 1)'>퀴즈정보 및 평가</a></div>"
-                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'>수정</a></div>"
-                                        + "<div class='item'><a href='javascript:examDelete(" + _dp + ")'>삭제</a></div>";
-                    var manageBtnExam = "<a href='javascript:examViewMv(" + _p + ", 2)' class='btn basic small'>시험대체</a>"
-                                        + "<a href='javascript:tkexamStatPop(" + _tk + ")' class='btn basic small'>응시현황</a>"
-                                        + "<a href='javascript:examViewMv(" + _p + ", 1)' class='btn basic small'>시험지 보기</a>"
-                                        + "<a href='javascript:examViewMv(" + _p + ", 4)' class='btn basic small'>장애인/고령자 지원현황</a>"
-                                        + "<a href='javascript:examViewMv(" + _p + ", 3)' class='btn basic small'>결시현황</a>";
-                    var manageCardBtnExam = "<div class='item'><a href='javascript:examViewMv(" + _p + ", 2)'>시험대체</a></div>"
-                                        + "<div class='item'><a href='javascript:tkexamStatPop(" + _tk + ")'>응시현황</a></div>"
-                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 1)'>시험지 보기</a></div>"
-                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 4)'>장애인/고령자 지원현황</a></div>"
-                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 3)'>결시현황</a></div>"
-                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'>수정</a></div>"
-                                        + "<div class='item'><a href='javascript:examDelete(" + _dp + ")'>삭제</a></div>";
+
+                    var manageBtnDefault = "<div style='display:flex;align-items:center;gap:0 3px'>"
+                                        + "<a href='javascript:tkexamStatPop(" + _tk + ")' class='btn basic small'><spring:message code='exam.label.stare.status' /></a>"       /* 응시현황 */
+                                        + "<a href='javascript:examViewMv(" + _p + ", 1)' class='btn basic small'><spring:message code='exam.button.view.paper' /></a>"         /* 시험지 보기 */
+                                        + "<a href='javascript:examViewMv(" + _p + ", 3)' class='btn basic small'><spring:message code='exam.button.miss.status' /></a>"        /* 결시현황 */
+                                        + "&nbsp;</div>";
+                    var manageCardBtnDefault = "<div class='item'><a href='javascript:tkexamStatPop(" + _tk + ")'><spring:message code='exam.label.stare.status' /></a></div>"  /* 응시현황 */
+                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 1)'><spring:message code='exam.button.view.paper' /></a></div>"         /* 시험지 보기 */
+                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 3)'><spring:message code='exam.button.miss.status' /></a></div>"        /* 결시현황 */
+                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'><spring:message code='exam.button.mod' /></a></div>"                /* 수정 */
+                                        + "<div class='item'><a href='javascript:examDelete(" + _dp + ")'><spring:message code='exam.button.del' /></a></div>";                 /* 삭제 */
+                    var manageBtnQuiz = "<div style='display:flex;align-items:center;gap:0 3px'>"
+                                        + "<a href='javascript:examViewMv(" + _p + ", 1)' class='btn basic small'><spring:message code='exam.label.quiz' /> <spring:message code='exam.label.info.score.manage' /></a>" /* 퀴즈 */ /* 정보 및 평가 */
+                                        + "&nbsp;</div>";
+                    var manageCardBtnQuiz = "<div class='item'><a href='javascript:examViewMv(" + _p + ", 1)'><spring:message code='exam.label.quiz' /> <spring:message code='exam.label.info.score.manage' /></a></div>"   /* 퀴즈 */ /* 정보 및 평가 */
+                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'><spring:message code='exam.button.mod' /></a></div>"                /* 수정 */
+                                        + "<div class='item'><a href='javascript:examDelete(" + _dp + ")'><spring:message code='exam.button.del' /></a></div>";                 /* 삭제 */
+                    var manageBtnExam = "<div style='display:flex;align-items:center;gap:0 3px'>"
+                                        + "<a href='javascript:examViewMv(" + _p + ", 2)' class='btn basic small'><spring:message code='exam.label.exam' /> <spring:message code='exam.label.sub' /></a>"     /* 시험 */ /* 대체 */
+                                        + "<a href='javascript:tkexamStatPop(" + _tk + ")' class='btn basic small'><spring:message code='exam.label.stare.status' /></a>"       /* 응시현황 */
+                                        + "<a href='javascript:examViewMv(" + _p + ", 1)' class='btn basic small'><spring:message code='exam.button.view.paper' /></a>"         /* 시험지 보기 */
+                                        + "<a href='javascript:examViewMv(" + _p + ", 4)' class='btn basic small'><spring:message code='exam.label.dsbl' />/<spring:message code='exam.label.snrs' /> <spring:message code='exam.label.support.stts' /></a>"    /* 장애인 */ /* 고령자 */ /* 지원 현황 */
+                                        + "<a href='javascript:examViewMv(" + _p + ", 3)' class='btn basic small'><spring:message code='exam.button.miss.status' /></a>"        /* 결시현황 */
+                                        + "&nbsp;</div>";
+                    var manageCardBtnExam = "<div class='item'><a href='javascript:examViewMv(" + _p + ", 2)'><spring:message code='exam.label.exam' /> <spring:message code='exam.label.sub' /></a></div>" /* 시험 */ /* 대체 */
+                                        + "<div class='item'><a href='javascript:tkexamStatPop(" + _tk + ")'><spring:message code='exam.label.stare.status' /></a></div>"       /* 응시현황 */
+                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 1)'><spring:message code='exam.button.view.paper' /></a></div>"         /* 시험지 보기 */
+                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 4)'><spring:message code='exam.label.dsbl' />/<spring:message code='exam.label.snrs' /> <spring:message code='exam.label.support.stts' /></a></div>"    /* 장애인 */ /* 고령자 */ /* 지원 현황 */
+                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 3)'><spring:message code='exam.button.miss.status' /></a></div>"        /* 결시현황 */
+                                        + "<div class='item'><a href='javascript:examViewMv(" + _p + ", 9)'><spring:message code='exam.button.mod' /></a></div>"                /* 수정 */
+                                        + "<div class='item'><a href='javascript:examDelete(" + _dp + ")'><spring:message code='exam.button.del' /></a></div>";                 /* 삭제 */
 
                     var manage = "-";
                     var manageBtn = "";
@@ -306,21 +316,23 @@
                 "9" : "/exam/profExamWriteView.do"      // 시험 등록/수정 화면
             };
 
-            var kvArr = [];
-
+            var extData;
             if (arguments.length === 1) {
-                // tab 번호만 전달된 경우 (시험 등록)
                 tab = examBscId;
-                kvArr.push({'key' : 'isModify', 'val' : 'N'});
+                extData = { tabType: tab, isModify: 'N' };
             } else {
-                // 시험 컨텍스트와 함께 전달된 경우 (시험 수정)
-                kvArr.push({'key' : 'examBscId',          'val' : examBscId});
-                kvArr.push({'key' : 'tkexamMthdCd',       'val' : tkexamMthdCd});
-                kvArr.push({'key' : 'byteamSubrexamUseyn','val' : byteamSubrexamUseyn});
-                kvArr.push({'key' : 'isModify',           'val' : 'Y'});
+                extData = {
+                    examBscId           : examBscId,
+                    tkexamMthdCd        : tkexamMthdCd,
+                    byteamSubrexamUseyn : byteamSubrexamUseyn,
+                    tabType             : tab,
+                    isModify            : 'Y'
+                };
             }
 
-            submitForm(urlMap[tab], "", "", kvArr);
+            document.location.href = urlMap[tab]
+                + "?encParams=" + EPARAM
+                + "&addParams=" + UiComm.makeEncParams(extData);
         }
 
         /**
@@ -332,12 +344,12 @@
             ajaxCall(url, data, function(data) {
                 // 응시자가 있을 경우
                 if (data.pageInfo.totalRecordCount > 0) {
-                    UiComm.showMessage("학습중인 수강생이 있습니다.\n삭제할 경우 수강생의 학습정보가 삭제됩니다.\n정말 삭제하시겠습니까?", "confirm")
+                    UiComm.showMessage("<spring:message code='exam.confirm.exist.answer.user.y' />", "confirm") /* 응시한 학습자가 있습니다. 삭제 시 학습정보가 삭제됩니다. 정말 삭제하시겠습니까? */
                     .then(function(result) {
                         if (result) {
                             ajaxCall("/exam/examDelete.do", { examBscId: examBscId, byteamSubrexamUseyn: byteamSubrexamUseyn }, function(data) {
                                 if (data.result > 0) {
-                                    UiComm.showMessage("<spring:message code='exam.alert.delete' />", "info")
+                                    UiComm.showMessage("<spring:message code='exam.alert.delete' />", "info")   /* 정상 삭제 되었습니다. */
                                         .then(function() {
                                             location.reload();
                                         });
@@ -345,17 +357,17 @@
                                     UiComm.showMessage(data.message, "error");
                                 }
                             }, function(xhr, status, error) {
-                                UiComm.showMessage("<spring:message code='exam.error.list' />", "error");
+                                UiComm.showMessage("<spring:message code='exam.error.delete' />", "error"); /* 삭제 중 에러가 발생하였습니다. */
                             }, true);
                         }
                     });
                 } else {
-                    UiComm.showMessage("학습중인 수강생이 없습니다.\n정말 삭제하시겠습니까?", "confirm")
+                    UiComm.showMessage("<spring:message code='exam.confirm.exist.answer.user.n' />", "confirm") /* 응시한 학습자가 없습니다. 삭제하시겠습니까? */
                     .then(function(result) {
                         if (result) {
                             ajaxCall("/exam/examDelete.do", { examBscId: examBscId, byteamSubrexamUseyn: byteamSubrexamUseyn }, function(data) {
                                 if (data.result > 0) {
-                                    UiComm.showMessage("<spring:message code='exam.alert.delete' />", "info")
+                                    UiComm.showMessage("<spring:message code='exam.alert.delete' />", "info")   /* 정상 삭제 되었습니다. */
                                     .then(function() {
                                         location.reload();
                                     });
@@ -363,25 +375,25 @@
                                     UiComm.showMessage(data.message, "error");
                                 }
                             }, function(xhr, status, error) {
-                                UiComm.showMessage("<spring:message code='exam.error.list' />", "error");
+                                UiComm.showMessage("<spring:message code='exam.error.delete' />", "error"); /* 삭제 중 에러가 발생하였습니다. */
                             }, true);
                         }
                     });
                 }
             }, function(xhr, status, error) {
-                UiComm.showMessage("<spring:message code='exam.error.list' />", "error");
+                UiComm.showMessage("<spring:message code='exam.error.delete' />", "error"); /* 삭제 중 에러가 발생하였습니다. */
             });
         }
 
         /**
-         * 응시현황팝업
+         * 응시현황 팝업
          * @param {String}  sbjctId 	- 과목아이디
          */
         function tkexamStatPop(sbjctId) {
             var data = "sbjctId="+sbjctId;
 
             dialog = UiDialog("dialog1", {
-                title: "응시현황",
+                title: "<spring:message code='exam.label.stare.status' />", /* 응시현황 */
                 width: 800,
                 height: 500,
                 url: "/exam/tkexamStatListPopup.do?"+data,
@@ -403,7 +415,7 @@
 	</script>
 </head>
 
-<body class="class colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="class ${uiex:getTheme()} "><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
         <jsp:include page="/WEB-INF/jsp/common_new/class_header.jsp"/>
@@ -418,83 +430,14 @@
 
             <!-- content -->
             <div id="content" class="content-wrap common">
-                <div class="class_sub_top">
-                    <div class="navi_bar">
-                        <ul>
-                            <li><i class="xi-home-o" aria-hidden="true"></i><span class="sr-only">Home</span></li>
-                            <li>강의실</li>
-                            <li><span class="current">시험</span></li>
-                        </ul>
-                    </div>
-                    <div class="btn-wrap">
-                        <div class="first">
-                            <select class="form-select">
-                                <option value="2025년 2학기">2025년 2학기</option>
-                                <option value="2025년 1학기">2025년 1학기</option>
-                            </select>
-                            <select class="form-select wide">
-                                <option value="">강의실 바로가기</option>
-                                <option value="2025년 2학기">2025년 2학기</option>
-                                <option value="2025년 1학기">2025년 1학기</option>
-                            </select>
-                        </div>
-                        <div class="sec">
-                            <button type="button" class="btn type1"><i class="xi-book-o"></i>교수 매뉴얼</button>
-                            <button type="button" class="btn type1"><i class="xi-info-o"></i>학습안내정보</button>
-                        </div>
-                    </div>
-                </div>
+				<!-- class_sub_top -->
+				<jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+				<!-- //class_sub_top -->
 
                 <div class="class_sub">
                     <!-- 강의실 상단 -->
-                    <div class="segment class-area">
-                        <div class="info-left">
-                            <div class="class_info">
-                                <h2>데이터베이스의 이해와 활용 1반</h2>
-                                <div class="classSection">
-                                    <div class="cls_btn">
-                                        <a href="#0" class="btn">강의계획서</a>
-                                        <a href="#0" class="btn">학습진도관리</a>
-                                        <a href="#0" class="btn">평가기준</a>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="info-cnt">
-                                <div class="info_iconSet">
-                                    <a href="#0" class="info"><span>공지</span><div class="num_txt">2</div></a>
-                                    <a href="#0" class="info"><span>Q&A</span><div class="num_txt point">17</div></a>
-                                    <a href="#0" class="info"><span>1:1</span><div class="num_txt point">3</div></a>
-                                    <a href="#0" class="info"><span>과제</span><div class="num_txt">2</div></a>
-                                    <a href="#0" class="info"><span>토론</span><div class="num_txt">2</div></a>
-                                    <a href="#0" class="info"><span>세미나</span><div class="num_txt">2</div></a>
-                                    <a href="#0" class="info"><span>퀴즈</span><div class="num_txt">2</div></a>
-                                    <a href="#0" class="info"><span>설문</span><div class="num_txt">2</div></a>
-                                    <a href="#0" class="info"><span>시험</span><div class="num_txt">2</div></a>
-                                </div>
-                                <div class="info-set">
-                                    <div class="info">
-                                        <p class="point"><span class="tit">중간고사:</span><span>2025.04.26 16:00</span></p>
-                                        <p class="desc"><span class="tit">시간:</span><span>40분</span></p>
-                                    </div>
-                                    <div class="info">
-                                        <p class="point"><span class="tit">기말고사:</span><span>2025.07.26 16:00</span></p>
-                                        <p class="desc"><span class="tit">시간:</span><span>40분</span></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="info-right">
-                            <div class="flex">
-                                <div class="item week">
-                                    <div class="item_icon"><i class="icon-svg-calendar-check-02" aria-hidden="true"></i></div>
-                                    <div class="item_tit">2025.04.14 ~ 04.20</div>
-                                    <div class="item_info"><span class="big">7</span><span class="small">주차</span></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <jsp:include page="/WEB-INF/jsp/common_new/class_info.jsp"/>
                     <!-- //강의실 상단 -->
-
                     <div class="sub-content">
                         <div class="search-typeA">
                             <div class="item">
@@ -505,7 +448,7 @@
                                 </span>
                                 <div class="itemList">
                                     <!-- 시험 --><!-- 명 --><!-- 입력 -->
-                                    <input class="form-control wide" type="text" name="examTtl" id="examTtl" value="${param.examTtl}"
+                                    <input class="form-control wide" type="text" name="examTtl" id="examTtl" value="${vo.examTtl}"
                                            placeholder = "<spring:message code='exam.label.exam' /><spring:message code='exam.label.nm' /> <spring:message code='exam.label.input' />">
                                 </div>
                             </div>
@@ -515,14 +458,16 @@
                                 </button>
                             </div>
                         </div>
-                        <%-- 시험 목록 (list) --%>
+                        <!-- 시험 목록 (list) -->
                         <div id = "examListArea">
                             <!-- 상단 영역 -->
                             <div class="board_top">
                                 <i class="icon-svg-openbook"></i>
-                                <h3 class="board-title">시험목록</h3>
+                                <h3 class="board-title">
+                                    <spring:message code="exam.label.exam" /> <!-- 시험 -->
+                                    <spring:message code="exam.button.list" /><!-- 목록 -->
+                                </h3>
                                 <div class="right-area">
-                                    <!-- 버튼 ID들 지정 해야함 -->
                                     <div class="mrkRfltrtFrmTrsfDiv">
                                         <a href="javascript:mrkRfltrtModify()" class="btn type2">
                                             <spring:message code="exam.label.grade.score" /> <!-- 성적 -->
@@ -538,17 +483,22 @@
                                         <spring:message code="exam.label.score.aply.rate" /> <!-- 반영비율 -->
                                         <spring:message code="exam.button.adju" /><!-- 조정 -->
                                     </a>
-                                    <button type="button" class="btn type2" onclick = "examViewMv(9)">시험 등록</button>
-                                    <button type="button" class="btn basic">시험 맛보기</button>
-                                    <%-- 리스트/카드 전환 버튼 (UiTable 자동 렌더링) --%>
+                                    <button type="button" class="btn type2" onclick = "examViewMv(9)">
+                                        <spring:message code="exam.label.exam" /> <!-- 시험 -->
+                                        <spring:message code="exam.button.reg" /><!-- 등록 -->
+                                    </button>
+                                    <button type="button" class="btn basic">
+                                        <spring:message code="exam.label.exam.taste" /><!-- 시험 맛보기 -->
+                                    </button>
+                                    <!-- 리스트/카드 전환 버튼 (UiTable 자동 렌더링) -->
                                     <span class="list-card-button"></span>
-                                    <%-- 목록 스케일 선택 --%>
+                                    <!-- 목록 스케일 선택 -->
                                     <uiex:listScale func="changeListScale" value="10" />
                                 </div>
                             </div>
                             <!-- 시험 리스트 -->
                             <div id="examList"></div>
-                            <%-- 시험 목록 카드 폼 --%>
+                            <!-- 시험 목록 카드 폼 -->
                             <div id="examList_cardForm" style="display:none">
                                 <div class="card-header">
                                     #[examGbnnm]
@@ -557,7 +507,10 @@
                                     </div>
                                     <div class = "btn_right">
                                         <div class = "dropdown">
-                                            <button type="button" class="btn basic icon set settingBtn" aria-label="시험 관리" onclick="this.nextElementSibling.classList.toggle('show')">
+                                            <!-- 시험 --> <!-- 관리 -->
+                                            <button type="button" class="btn basic icon set settingBtn"
+                                                    aria-label="<spring:message code="exam.label.exam" /> <spring:message code="exam.label.manage" />"
+                                                    onclick="this.nextElementSibling.classList.toggle('show')">
                                                 <i class="xi-ellipsis-v"></i>
                                             </button>
                                             <div class="option-wrap">
@@ -568,51 +521,46 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="desc">
-                                        <p><label class="label-title">방식</label><strong>#[tkexamMthdNm]</strong></p>
-                                        <p><label class="label-title">시험일시</label><strong>#[examDrtn]</strong></p>
-                                        <p><label class="label-title">시험시간</label><strong>#[examMnts]</strong></p>
-                                        <p><label class="label-title">반영비율</label><span>#[mrkRfltrt]</span></p>
+                                        <p><label class="label-title"><spring:message code="exam.label.type" /></label><strong>#[tkexamMthdNm]</strong></p>                                         <!-- 유형 -->
+                                        <p><label class="label-title"><spring:message code="exam.label.exam" /> <spring:message code="exam.label.dttm" /></label><strong>#[examDrtn]</strong></p>   <!-- 시험 --> <!-- 일시 -->
+                                        <p><label class="label-title"><spring:message code="exam.label.exam" /> <spring:message code="exam.label.time" /></label><strong>#[examMnts]</strong></p>   <!-- 시험 --> <!-- 시간 -->
+                                        <p><label class="label-title"><spring:message code="exam.label.score.aply.rate" /></label><span>#[mrkRfltrt]</span></p>                                     <!-- 반영비율 -->
                                     </div>
                                     <div class="etc">
-                                        <p><label class="label-title">응시현황</label><strong>#[tkexamCmptnynTot]</strong></p>
-                                        <p><label class="label-title">평가현황</label><strong>#[evlynTot]</strong></p>
-                                        <p><label class="label-title">출제상태</label><strong>#[examQstnsCmptnyn]</strong></p>
-                                        <p><label class="label-title">성적공개</label><strong>#[mrkOyn]</strong></p>
+                                        <p><label class="label-title"><spring:message code='exam.label.stare.status' /></label><strong>#[tkexamCmptnynTot]</strong></p>                             <!-- 응시현황 -->
+                                        <p><label class="label-title"><spring:message code='exam.label.eval.status' /></label><strong>#[evlynTot]</strong></p>                                      <!-- 평가현황 -->
+                                        <p><label class="label-title"><spring:message code='exam.label.qstn.submit.status' /></label><strong>#[examQstnsCmptnyn]</strong></p>                       <!-- 출제상태 -->
+                                        <p><label class="label-title"><spring:message code='exam.label.score.open.y' /></label><strong>#[mrkOyn]</strong></p>                                       <!-- 성적공개 -->
                                     </div>
                                 </div>
                             </div>
                         </div>
-
                         <script type="text/javascript">
                         let examListTable = UiTable("examList", {
                             lang: "ko",
                             pageFunc: loadExamList,
                             columns: [
-                                {title:"No",            field:"no",               headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:50},
-                                {title:"구분",          field:"examGbnnm",         headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},
-                                {title:"방식",          field:"tkexamMthdNm",      headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},
-                                {title:"시험",          field:"examTtl",           headerHozAlign:"center", hozAlign:"left",   width:0,   minWidth:200},
-                                {title:"시험일시(기간)", field:"examDrtn",          headerHozAlign:"center", hozAlign:"center", width:280, minWidth:280},
-                                {title:"시험시간",       field:"examMnts",          headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
-                                {title:"반영비율",       field:"mrkRfltrt",         headerHozAlign:"center", hozAlign:"center", width:80,   minWidth:100},
-                                {title:"응시현황",       field:"tkexamCmptnynTot",  headerHozAlign:"center", hozAlign:"center", width:80, minWidth:80},
-                                {title:"평가현황",       field:"evlynTot",          headerHozAlign:"center", hozAlign:"center", width:80, minWidth:80},
-                                {title:"출제상태",       field:"examQstnsCmptnyn",  headerHozAlign:"center", hozAlign:"center", width:90,  minWidth:90},
-                                {title:"성적공개",       field:"mrkOyn",            headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},
-                                {title:"관리",          field:"manage",            headerHozAlign:"center", hozAlign:"left",   width:0,   minWidth:600}
+                                {title:"No", field:"no", headerHozAlign:"center", hozAlign:"center", width:50,  minWidth:50},
+                                {title:"<spring:message code="exam.label.stare.type" />", field:"examGbnnm", headerHozAlign:"center", hozAlign:"center", width:100, minWidth:100},                  /* 구분 */
+                                {title:"<spring:message code="exam.label.type" />", field:"tkexamMthdNm", headerHozAlign:"center", hozAlign:"center", width:120, minWidth:120},                     /* 유형 */
+                                {title:"<spring:message code="exam.label.exam.nm" />", field:"examTtl", headerHozAlign:"center", hozAlign:"left",   width:0,   minWidth:200},                       /* 시험명*/
+                                {title:"<spring:message code="exam.label.exam" /><spring:message code="exam.label.dttm" />(<spring:message code="exam.label.period" />)", field:"examDrtn", headerHozAlign:"center", hozAlign:"center", width:280, minWidth:280},   /* 시험 */ /* 일시 */ /* 기간 */
+                                {title:"<spring:message code="exam.label.exam" /> <spring:message code="exam.label.time" />", field:"examMnts", headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},    /* 시험 */ /* 시간 */
+                                {title:"<spring:message code="exam.label.score.aply.rate" />", field:"mrkRfltrt", headerHozAlign:"center", hozAlign:"center", width:80,   minWidth:100},            /* 반영비율 */
+                                {title:"<spring:message code='exam.label.stare.status' />", field:"tkexamCmptnynTot", headerHozAlign:"center", hozAlign:"center", width:80, minWidth:80},           /* 응시현황 */
+                                {title:"<spring:message code='exam.label.eval.status' />", field:"evlynTot", headerHozAlign:"center", hozAlign:"center", width:80, minWidth:80},                    /* 평가현황 */
+                                {title:"<spring:message code='exam.label.qstn.submit.status' />", field:"examQstnsCmptnyn", headerHozAlign:"center", hozAlign:"center", width:90,  minWidth:90},    /* 출제상태 */
+                                {title:"<spring:message code='exam.label.score.open.y' />", field:"mrkOyn", headerHozAlign:"center", hozAlign:"center", width:80,  minWidth:80},                    /* 성적공개 */
+                                {title:"<spring:message code='exam.label.manage' />", field:"manage", headerHozAlign:"center", hozAlign:"left",   width:0,   minWidth:600}                          /* 관리 */
                             ]
                         });
                         </script>
                     </div>
                 </div>
-
             </div>
             <!-- //content -->
-
         </main>
         <!-- //classroom-->
-
     </div>
-
 </body>
 </html>

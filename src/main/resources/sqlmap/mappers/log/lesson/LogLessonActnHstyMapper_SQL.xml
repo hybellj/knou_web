@@ -49,7 +49,7 @@
 	 	*/
 	 	<include refid="CommonSQL.pagePrefix" />
 		<include refid="selectQuery" />
-		<include refid="CommonSQL.pageSubfix" />
+		<include refid="CommonSQL.pageSuffix" />
 	</select>
 	
 	<insert id="insertLessonActnHsty" parameterType="logLessonActnHstyVO">

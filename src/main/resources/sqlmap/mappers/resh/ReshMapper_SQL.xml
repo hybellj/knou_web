@@ -138,7 +138,7 @@
 		) A
 		ORDER BY A.SRVY_SDTTM DESC, A.FRST_INQ_DTTM DESC
 		<!-- LIMIT #{firstIndex}, #{listScale} -->
-		<include refid="CommonSQL.pageSubfix"/>
+		<include refid="CommonSQL.pageSuffix"/>
 	</select>
 	
 	<select id="count" parameterType="reshVO" resultType="int">
@@ -229,7 +229,7 @@
          <!-- <if test='pagingYn == null or pagingYn == "".toString() or pagingYn == "Y".toString()'>
          LIMIT #{firstIndex}, #{listScale}
          </if> -->
-         <include refid="CommonSQL.pageSubfix" />
+         <include refid="CommonSQL.pageSuffix" />
 	</select>
 	
 	<insert id="insertResh" parameterType="reshVO">

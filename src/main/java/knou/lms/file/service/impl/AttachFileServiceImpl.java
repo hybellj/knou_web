@@ -34,7 +34,7 @@ public class AttachFileServiceImpl  extends ServiceBase implements AttachFileSer
      * @throws Exception
      ******************************************************/
     @Override
-    public AtflVO selectAtfl(AtflVO vo) throws Exception {
+    public AtflVO selectAtfl(AtflVO vo) {
     	return attachFileDAO.selectAtfl(vo);
     }
 
@@ -45,7 +45,7 @@ public class AttachFileServiceImpl  extends ServiceBase implements AttachFileSer
      * @throws Exception
      ******************************************************/
     @Override
-    public List<AtflVO> selectAtflListByRefId(AtflVO vo) throws Exception {
+    public List<AtflVO> selectAtflListByRefId(AtflVO vo) {
     	return attachFileDAO.selectAtflListByRefId(vo);
     }
 
@@ -53,7 +53,7 @@ public class AttachFileServiceImpl  extends ServiceBase implements AttachFileSer
      * 첨부파일 목록 저장
      * @param List<AtflVO>
      *****************************************************/
-    public void insertAtflList(List<AtflVO> fileList) throws Exception {
+    public void insertAtflList(List<AtflVO> fileList) {
     	attachFileDAO.insertAtflList(fileList);
     }
 
@@ -107,7 +107,7 @@ public class AttachFileServiceImpl  extends ServiceBase implements AttachFileSer
      * @return List<AtflRepoVO>
      * @throws Exception
      ******************************************************/
-    public List<AtflRepoVO> selectAtflRepoList() throws Exception {
+    public List<AtflRepoVO> selectAtflRepoList() {
     	return attachFileDAO.selectAtflRepoList();
     }
 

@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
-import knou.lms.bbs.vo.BbsAtclVO;
 import knou.lms.common.vo.DefaultVO;
 import knou.lms.crs.term.vo.TermVO;
 import knou.lms.dashboard.vo.DashboardAdminVO;
@@ -37,7 +36,7 @@ public interface DashboardDAO {
      * @throws Exception
      *****************************************************
      */
-    public List<TermVO> listStdTerm(TermVO vo) throws Exception;
+    public List<EgovMap> listStdTerm(TermVO vo) throws Exception;
 
     /**
      * ***************************************************
@@ -81,7 +80,7 @@ public interface DashboardDAO {
      * @throws Exception
      *****************************************************
      */
-    public List<TermVO> listProfTerm(TermVO vo) throws Exception;
+    public List<EgovMap> listProfTerm(TermVO vo);
 
     /**
      * ***************************************************
@@ -91,7 +90,7 @@ public interface DashboardDAO {
      * @throws Exception
      *****************************************************
      */
-    public List<TermVO> profSmstrList(TermVO vo) throws Exception;
+    public List<EgovMap>  profSmstrList(TermVO vo);
 
     /**
      * ***************************************************
@@ -259,7 +258,7 @@ public interface DashboardDAO {
      * @return List<EgovMap>
      * @throws Exception
      ******************************************************/
-    public List<EgovMap> listLessonStatusByCrs(DashboardVO vo) throws Exception;
+    public List<EgovMap> lrnStsListBySbjct(DefaultVO vo);
 
     /*****************************************************
      * 관리자 메인 > 학생별 학습현황
@@ -267,7 +266,7 @@ public interface DashboardDAO {
      * @return List<EgovMap>
      * @throws Exception
      ******************************************************/
-    public List<EgovMap> listLessonStatusByStd(DashboardVO vo) throws Exception;
+    public List<EgovMap> lrnStsListByStd(DashboardVO vo);
 
     /*****************************************************
      * 관리자 메인 > 사용자 검색 수
@@ -284,6 +283,8 @@ public interface DashboardDAO {
      * @throws Exception
      ******************************************************/
     public List<EgovMap> listPagingAdminDashUser(DashboardVO vo) throws Exception;
+
+    public List<EgovMap> userList(DashboardVO vo);
 
     /**
      * ***************************************************
@@ -380,4 +381,5 @@ public interface DashboardDAO {
      * @throws Exception
      ******************************************************/
     public void widgetStngReset(DashboardVO vo) throws Exception;
+
 }

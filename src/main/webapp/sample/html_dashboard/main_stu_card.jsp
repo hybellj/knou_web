@@ -1,25 +1,25 @@
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
-<%@ include file="/WEB-INF/jsp/common_new/common_inc.jsp" %>
+<%@ include file="../common/common_inc.jsp" %><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-	<jsp:include page="/WEB-INF/jsp/common_new/common_head.jsp">
+	<jsp:include page="../common/common_head.jsp">
 		<jsp:param name="module" value="chart"/>
 		<jsp:param name="style" value="dashboard"/>
 	</jsp:include>
 </head>
 
-<body class="home colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="home"><!-- 컬러선택시 클래스변경 -->
     <div id="wrap" class="main">
         <!-- common header -->
-        <jsp:include page="/WEB-INF/jsp/common_new/home_header.jsp"/>
+        <jsp:include page="../common/home_header.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
         <!-- //common header -->
 
         <!-- dashboard -->
         <main class="common">
 
             <!-- gnb -->
-            <jsp:include page="/WEB-INF/jsp/common_new/home_gnb_stu.jsp"/>
+            <jsp:include page="../common/home_gnb_stu.jsp"/><!-- [../common/] 를 [/WEB-INF/jsp/common_new/] 로 변경하여 적용 -->
             <!-- //gnb -->
 
             <!-- content -->
@@ -889,17 +889,17 @@
                                                     </div>
                                                 </div>
                                                 <div class="bottom_button">
-                                                   <div class="card_btns">
-                                                        <a href="#0">공지<span>2</span></a>
-                                                        <a href="#0">Q&A<span>2</span></a>
-                                                        <a href="#0">1 : 1<span>2</span></a>
-                                                        <a href="#0">과제<span>2</span></a>
-                                                        <a href="#0">토론<span>2</span></a>
-                                                        <a href="#0">세미나<span>2</span></a>
-                                                        <a href="#0">퀴즈<span>2</span></a>
-                                                        <a href="#0">설문<span>2</span></a>
-                                                        <a href="#0">시험<span>2</span></a>
-                                                    </div>
+                                                   <ul class="card_btns">
+                                                        <li><a href="#0">공지<span>2</span></a></li>
+                                                        <li><a href="#0">Q&A<span>2</span></a></li>
+                                                        <li><a href="#0">1 : 1<span>2</span></a></li>
+                                                        <li><a href="#0">과제<span>2</span></a></li>
+                                                        <li><a href="#0">토론<span>2</span></a></li>
+                                                        <li><a href="#0">세미나<span>2</span></a></li>
+                                                        <li><a href="#0">퀴즈<span>2</span></a></li>
+                                                        <li><a href="#0">설문<span>2</span></a></li>
+                                                        <li><a href="#0">시험<span>2</span></a></li>
+                                                    </ul>
                                                 </div>
                                             </div>
                                         </li>
@@ -945,17 +945,17 @@
                                                     </div>
                                                 </div>
                                                 <div class="bottom_button">
-                                                   <div class="card_btns">
-                                                        <a href="#0">공지<span>2</span></a>
-                                                        <a href="#0">Q&A<span>2</span></a>
-                                                        <a href="#0">1 : 1<span>2</span></a>
-                                                        <a href="#0">과제<span>2</span></a>
-                                                        <a href="#0">토론<span>2</span></a>
-                                                        <a href="#0">세미나<span>2</span></a>
-                                                        <a href="#0">퀴즈<span>2</span></a>
-                                                        <a href="#0">설문<span>2</span></a>
-                                                        <a href="#0">시험<span>2</span></a>
-                                                    </div>
+                                                   <ul class="card_btns">
+                                                        <li><a href="#0">공지<span>2</span></a></li>
+                                                        <li><a href="#0">Q&A<span>2</span></a></li>
+                                                        <li><a href="#0">1 : 1<span>2</span></a></li>
+                                                        <li><a href="#0">과제<span>2</span></a></li>
+                                                        <li><a href="#0">토론<span>2</span></a></li>
+                                                        <li><a href="#0">세미나<span>2</span></a></li>
+                                                        <li><a href="#0">퀴즈<span>2</span></a></li>
+                                                        <li><a href="#0">설문<span>2</span></a></li>
+                                                        <li><a href="#0">시험<span>2</span></a></li>
+                                                    </ul>
                                                 </div>
                                             </div>
                                         </li>
@@ -998,14 +998,14 @@
                                                     </div>
                                                 </div>
                                                 <div class="bottom_button">
-                                                   <div class="card_btns">
-                                                        <a href="#0">공지<span>2</span></a>
-                                                        <a href="#0">Q&A<span>2</span></a>
-                                                        <a href="#0">1 : 1<span>2</span></a>
-                                                        <a href="#0">과제<span>2</span></a>
-                                                        <a href="#0">설문<span>2</span></a>
-                                                        <a href="#0">시험<span>2</span></a>
-                                                    </div>
+                                                   <ul class="card_btns">
+                                                        <li><a href="#0">공지<span>2</span></a></li>
+                                                        <li><a href="#0">Q&A<span>2</span></a></li>
+                                                        <li><a href="#0">1 : 1<span>2</span></a></li>
+                                                        <li><a href="#0">퀴즈<span>2</span></a></li>
+                                                        <li><a href="#0">설문<span>2</span></a></li>
+                                                        <li><a href="#0">시험<span>2</span></a></li>
+                                                    </ul>
                                                 </div>
                                             </div>
                                         </li>
@@ -1051,13 +1051,13 @@
                                                     </div>
                                                 </div>
                                                 <div class="bottom_button">
-                                                   <div class="card_btns">
-                                                        <a href="#0">공지<span>2</span></a>
-                                                        <a href="#0">Q&A<span>2</span></a>
-                                                        <a href="#0">1 : 1<span>2</span></a>
-                                                        <a href="#0">설문<span>2</span></a>
-                                                        <a href="#0">시험<span>2</span></a>
-                                                    </div>
+                                                   <ul class="card_btns">
+                                                        <li><a href="#0">공지<span>2</span></a></li>
+                                                        <li><a href="#0">Q&A<span>2</span></a></li>
+                                                        <li><a href="#0">1 : 1<span>2</span></a></li>
+                                                        <li><a href="#0">과제<span>2</span></a></li>
+                                                        <li><a href="#0">토론<span>2</span></a></li>
+                                                    </ul>
                                                 </div>
                                             </div>
                                         </li>
@@ -1103,17 +1103,17 @@
                                                     </div>
                                                 </div>
                                                 <div class="bottom_button">
-                                                   <div class="card_btns">
-                                                        <a href="#0">공지<span>2</span></a>
-                                                        <a href="#0">Q&A<span>2</span></a>
-                                                        <a href="#0">1 : 1<span>2</span></a>
-                                                        <a href="#0">과제<span>2</span></a>
-                                                        <a href="#0">토론<span>2</span></a>
-                                                        <a href="#0">세미나<span>2</span></a>
-                                                        <a href="#0">퀴즈<span>2</span></a>
-                                                        <a href="#0">설문<span>2</span></a>
-                                                        <a href="#0">시험<span>2</span></a>
-                                                    </div>
+                                                   <ul class="card_btns">
+                                                        <li><a href="#0">공지<span>2</span></a></li>
+                                                        <li><a href="#0">Q&A<span>2</span></a></li>
+                                                        <li><a href="#0">1 : 1<span>2</span></a></li>
+                                                        <li><a href="#0">과제<span>2</span></a></li>
+                                                        <li><a href="#0">토론<span>2</span></a></li>
+                                                        <li><a href="#0">세미나<span>2</span></a></li>
+                                                        <li><a href="#0">퀴즈<span>2</span></a></li>
+                                                        <li><a href="#0">설문<span>2</span></a></li>
+                                                        <li><a href="#0">시험<span>2</span></a></li>
+                                                    </ul>
                                                 </div>
                                             </div>
                                         </li>
@@ -1159,13 +1159,13 @@
                                                     </div>
                                                 </div>
                                                 <div class="bottom_button">
-                                                   <div class="card_btns">
-                                                        <a href="#0">공지<span>2</span></a>
-                                                        <a href="#0">Q&A<span>2</span></a>
-                                                        <a href="#0">1 : 1<span>2</span></a>
-                                                        <a href="#0">과제<span>2</span></a>
-                                                        <a href="#0">토론<span>2</span></a>
-                                                    </div>
+                                                   <ul class="card_btns">
+                                                        <li><a href="#0">공지<span>2</span></a></li>
+                                                        <li><a href="#0">Q&A<span>2</span></a></li>
+                                                        <li><a href="#0">1 : 1<span>2</span></a></li>
+                                                        <li><a href="#0">과제<span>2</span></a></li>
+                                                        <li><a href="#0">토론<span>2</span></a></li>
+                                                    </ul>
                                                 </div>
                                             </div>
                                         </li>
@@ -1201,7 +1201,7 @@
 
 
             <!-- common footer -->
-            <jsp:include page="/WEB-INF/jsp/common_new/home_footer.jsp"/>
+            <jsp:include page="../common/home_footer.jsp"/>
             <!-- //common footer -->
 
         </main>

@@ -8,20 +8,19 @@
              SQL ID : MarkItemSettingDAO.mrkItmStngList
              설  명  : 성적항목설정 목록 조회(공통코드 기준 + 과목별 설정값)
          */
-
         SELECT
               CD.CD                               AS MRK_ITM_TYCD
             , CD.CDNM                             AS MRK_ITM_TYNM
+            , CD.GRPCD                            AS GRPCD
             , STNG.MRK_RFLTRT
             , STNG.MRK_OYN
             , NVL(STNG.MRK_ITM_USEYN, 'N')  AS MRK_ITM_USEYN
         FROM TB_LMS_CMMN_CD CD
-        LEFT JOIN TB_LMS_MRK_ITM_STNG STNG
+        LEFT JOIN TB_LMS_MRK_ITM_STNG STNG	
           ON STNG.SBJCT_ID     = #{sbjctId}
          AND STNG.MRK_ITM_TYCD = CD.CD
         WHERE CD.UP_CD   = 'MRK_ITM_TYCD'
           AND CD.UP_CD != CD.CD
-          AND CD.ORG_ID  = #{orgId}
           AND CD.LANG_CD = NVL(#{langCd}, 'ko')
         <if test="mrkItmUseyn != null and mrkItmUseyn != ''">
           AND STNG.MRK_ITM_USEYN = #{mrkItmUseyn}

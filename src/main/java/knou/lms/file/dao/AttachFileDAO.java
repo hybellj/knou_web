@@ -16,7 +16,7 @@ public interface AttachFileDAO {
      * @return AtflVO
      * @throws Exception
      ******************************************************/
-    public AtflVO selectAtfl(AtflVO vo) throws Exception;
+    public AtflVO selectAtfl(AtflVO vo);
 
     /*****************************************************
      * 첨부파일목록조회 (by RefId)
@@ -24,25 +24,25 @@ public interface AttachFileDAO {
      * @return List<AtflVO>
      * @throws Exception
      ******************************************************/
-    public List<AtflVO> selectAtflListByRefId(AtflVO vo) throws Exception;
+    public List<AtflVO> selectAtflListByRefId(AtflVO vo);
 
     /*****************************************************
      * 첨부파일목록저장
      * @param List<AtflVO>
      * @throws Exception
      ******************************************************/
-    public void insertAtflList(List<AtflVO> fileList) throws Exception;
+    public void insertAtflList(List<AtflVO> fileList);
 
     /*****************************************************
      * 첨부파일 삭제
      * @param AtflVO
      ******************************************************/
-    public void deleteAtfl(AtflVO vo) throws Exception;
+    public void deleteAtfl(AtflVO vo);
 
     /*****************************************************
      * 첨부파일저장소목록조회
      * @return List<AtflRepoVO>
      * @throws Exception
      ******************************************************/
-    public List<AtflRepoVO> selectAtflRepoList() throws Exception;
+    public List<AtflRepoVO> selectAtflRepoList();
 }

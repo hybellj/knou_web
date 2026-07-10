@@ -7,17 +7,17 @@ import knou.lms.msg.vo.PopupNtcVO;
 
 public interface PopupNtcService {
 
-    ProcessResultVO<PopupNtcVO> selectPopupNtcListPage(PopupNtcVO vo);
+    ProcessResultVO<PopupNtcVO> selectPopupNtcListPage(PopupNtcVO vo) throws Exception;
 
     PopupNtcVO selectPopupNtc(PopupNtcVO vo);
 
-    int registPopupNtc(PopupNtcVO vo);
+    int insertPopupNtc(PopupNtcVO vo);
 
-    int modifyPopupNtc(PopupNtcVO vo);
+    int updatePopupNtc(PopupNtcVO vo);
 
     int deletePopupNtc(PopupNtcVO vo);
 
-    int modifyPopupNtcUseyn(PopupNtcVO vo);
+    int updatePopupNtcUseyn(PopupNtcVO vo);
 
     List<PopupNtcVO> selectOrgList(PopupNtcVO vo);
 }

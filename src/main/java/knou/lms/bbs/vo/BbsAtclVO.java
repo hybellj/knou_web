@@ -14,7 +14,7 @@ import knou.framework.util.ValidationUtils;
  * @author 김도희
  *
  */
-public class BbsAtclVO extends BbsInfoVO {
+public class BbsAtclVO extends BbsVO {
     private static final long serialVersionUID = 180723044442176021L;
     // 게시글 테이블
     private String		atclId;				// 게시글아이디
@@ -81,7 +81,7 @@ public class BbsAtclVO extends BbsInfoVO {
     private String		teamCtgrCd;          // 팀 카테고리 코드
     private String		teamCtgrNm;          // 팀 카테고리 명
     private String		teamCd;              // 팀 코드
-    private String		teamNm;              // 팀 명
+    private String		teamnm;              // 팀 명
     private String		termCd;              // 학기코드
     private int   		noAnsCnt = 0;        // 미답변수
     private String		rsrvDttmStartYn;     // 예약등록일 시작여부
@@ -139,9 +139,25 @@ public class BbsAtclVO extends BbsInfoVO {
     private String bbsTycd;
     private String bbsRefTycd;
 
-    private int		rspnsCnt;             // 답변 수
+    private String dvclasNcknm;
+    private int    rspnsCnt;             // 답변 수
 
-    /* 불필요 시 삭제 가능 */
+    private String lstInqDttm;
+    private String teamGrpId;
+    private String lrnTeamId;
+
+    private String usernm;
+    private String role;
+
+    private List<BbsAtclVO> userList;
+    private String grpNtcUseyn;
+    private String bbsGrpNtcTrgtrId;
+    private String grpNtcGbncd;
+
+    private String professorYn;
+
+    private String searchOrgId;
+
 
     public void setContentUrls(String contentUrls) {
         this.contentUrls = contentUrls;
@@ -531,12 +547,12 @@ public class BbsAtclVO extends BbsInfoVO {
 		this.teamCd = teamCd;
 	}
 
-	public String getTeamNm() {
-		return teamNm;
+	public String getTeamnm() {
+		return teamnm;
 	}
 
-	public void setTeamNm(String teamNm) {
-		this.teamNm = teamNm;
+	public void setTeamnm(String teamnm) {
+		this.teamnm = teamnm;
 	}
 
 	public String getTermCd() {
@@ -1003,5 +1019,132 @@ public class BbsAtclVO extends BbsInfoVO {
 
 	public void setBbsTycd(String bbsTycd) {
 		this.bbsTycd = bbsTycd;
+	}
+
+	public String getDvclasNcknm() {
+		return dvclasNcknm;
+	}
+
+	public void setDvclasNcknm(String dvclasNcknm) {
+		this.dvclasNcknm = dvclasNcknm;
+	}
+
+	@Override
+	public String toString() {
+	    return "toString Start >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> BbsAtclVO{" +
+	            "atclId='" + atclId + '\'' +
+	            ", bbsId='" + bbsId + '\'' +
+	            ", userId='" + userId + '\'' +
+	            ", upAtclId='" + upAtclId + '\'' +
+	            ", dvclasRegAtclId='" + dvclasRegAtclId + '\'' +
+	            ", refCmntId='" + refCmntId + '\'' +
+	            ", thmbFileId='" + thmbFileId + '\'' +
+	            ", athrId='" + athrId + '\'' +
+	            ", dscsnProfId='" + dscsnProfId + '\'' +
+	            ", srcAtclId='" + srcAtclId + '\'' +
+	            ", prevAtclId='" + prevAtclId + '\'' +
+	            ", nextAtclId='" + nextAtclId + '\'' +
+	            ", sbjctId='" + sbjctId + '\'' +
+	            ", orgId='" + orgId + '\'' +
+	            ", deptId='" + deptId + '\'' +
+	            ", rgtrId='" + rgtrId + '\'' +
+	            ", mdfrId='" + mdfrId + '\'' +
+
+	            ", procStscd='" + procStscd + '\'' +
+	            ", hdrTycd='" + hdrTycd + '\'' +
+	            ", prcsStatusCd='" + prcsStatusCd + '\'' +
+	            ", menuTycd='" + menuTycd + '\'' +
+	            ", bbsTycd='" + bbsTycd + '\'' +
+	            ", bbsRefTycd='" + bbsRefTycd + '\'' +
+	            ", teamCtgrCd='" + teamCtgrCd + '\'' +
+	            "} <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< toString end";
+	}
+
+	public String getLstInqDttm() {
+		return lstInqDttm;
+	}
+
+	public void setLstInqDttm(String lstInqDttm) {
+		this.lstInqDttm = lstInqDttm;
+	}
+
+	public String getLrnTeamId() {
+		return lrnTeamId;
+	}
+
+	public void setLrnTeamId(String lrnTeamId) {
+		this.lrnTeamId = lrnTeamId;
+	}
+
+	public String getUsernm() {
+		return usernm;
+	}
+
+	public String getRole() {
+		return role;
+	}
+
+	public void setUsernm(String usernm) {
+		this.usernm = usernm;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
+	}
+
+	public String getTeamGrpId() {
+		return teamGrpId;
+	}
+
+	public void setTeamGrpId(String teamGrpId) {
+		this.teamGrpId = teamGrpId;
+	}
+
+	public List<BbsAtclVO> getUserList() {
+		return userList;
+	}
+
+	public String getGrpNtcUseyn() {
+		return grpNtcUseyn;
+	}
+
+	public void setUserList(List<BbsAtclVO> userList) {
+		this.userList = userList;
+	}
+
+	public void setGrpNtcUseyn(String grpNtcUseyn) {
+		this.grpNtcUseyn = grpNtcUseyn;
+	}
+
+	public String getBbsGrpNtcTrgtrId() {
+		return bbsGrpNtcTrgtrId;
+	}
+
+	public void setBbsGrpNtcTrgtrId(String bbsGrpNtcTrgtrId) {
+		this.bbsGrpNtcTrgtrId = bbsGrpNtcTrgtrId;
+	}
+
+	public String getProfessorYn() {
+		return professorYn;
+	}
+
+	public void setProfessorYn(String professorYn) {
+		this.professorYn = professorYn;
+	}
+
+	public String getGrpNtcGbncd() {
+		return grpNtcGbncd;
+	}
+
+	public void setGrpNtcGbncd(String grpNtcGbncd) {
+		this.grpNtcGbncd = grpNtcGbncd;
+	}
+
+	public String getSearchOrgId() {
+		return searchOrgId;
+	}
+
+	public void setSearchOrgId(String searchOrgId) {
+		this.searchOrgId = searchOrgId;
 	}
 }

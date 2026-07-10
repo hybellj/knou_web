@@ -26,10 +26,9 @@ public class SrvyQstnVwitmLvlServiceImpl extends ServiceBase implements SrvyQstn
 	 * 설문문항목록보기항목레벨삭제
 	 *
 	 * @param List<SrvyQstnVO>
-	 * @throws Exception
 	 */
 	@Override
-	public void srvyQstnListVwitmLvlDelete(List<SrvyQstnVO> list) throws Exception {
+	public void srvyQstnListVwitmLvlDelete(List<SrvyQstnVO> list) {
 		srvyQstnVwitmLvlDAO.srvyQstnListVwitmLvlDelete(list);
 	}
 
@@ -38,10 +37,9 @@ public class SrvyQstnVwitmLvlServiceImpl extends ServiceBase implements SrvyQstn
 	 *
 	 * @param SrvyQstnVO
 	 * @param List<Map<String, Object>> lvls
-	 * @throws Exception
 	 */
 	@Override
-	public void srvyQstnVwitmLvlRegist(SrvyQstnVO vo, List<Map<String, Object>> lvls) throws Exception {
+	public void srvyQstnVwitmLvlRegist(SrvyQstnVO vo, List<Map<String, Object>> lvls) {
 		List<SrvyQstnVwitmLvlVO> lvlList = new ArrayList<SrvyQstnVwitmLvlVO>();
 
 		for (Map<String, Object> map : lvls) {
@@ -62,10 +60,9 @@ public class SrvyQstnVwitmLvlServiceImpl extends ServiceBase implements SrvyQstn
 	 * 설문문항보기항목레벨삭제
 	 *
 	 * @param srvyQstnId 설문문항아이디
-	 * @throws Exception
 	 */
 	@Override
-	public void srvyQstnVwitmLvlDelete(String srvyQstnId) throws Exception {
+	public void srvyQstnVwitmLvlDelete(String srvyQstnId) {
 		srvyQstnVwitmLvlDAO.srvyQstnVwitmLvlDelete(srvyQstnId);
 	}
 
@@ -74,10 +71,9 @@ public class SrvyQstnVwitmLvlServiceImpl extends ServiceBase implements SrvyQstn
 	 *
 	 * @param srvyQstnId 설문문항아이디
 	 * return 설문문항보기항목레벨목록
-	 * @throws Exception
 	 */
 	@Override
-	public List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlList(String srvyQstnId) throws Exception {
+	public List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlList(String srvyQstnId) {
 		return srvyQstnVwitmLvlDAO.srvyQstnVwitmLvlList(srvyQstnId);
 	}
 
@@ -87,10 +83,9 @@ public class SrvyQstnVwitmLvlServiceImpl extends ServiceBase implements SrvyQstn
 	 * @param srvyId 		설문아이디
 	 * @param searchType 	조회유형
 	 * return 설문문항보기항목레벨일괄목록
-	 * @throws Exception
 	 */
 	@Override
-	public List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlBulkList(String srvyId, String searchType) throws Exception {
+	public List<SrvyQstnVwitmLvlVO> srvyQstnVwitmLvlBulkList(String srvyId, String searchType) {
 		return srvyQstnVwitmLvlDAO.srvyQstnVwitmLvlBulkList(srvyId, searchType);
 	}
 

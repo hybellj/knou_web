@@ -22,6 +22,8 @@ public class TeamCtgrVO extends TeamVO {
     private int asmntCnt;
     private int forumCnt;
 
+    private String teamGrpId;	// 팀그룹아이디
+    private String teamGrpnm;	// 팀그룹명
     private String lrnGrpId;	// 학습그룹아이디
     private String lrnGrpnm;	// 학습그룹명
 
@@ -151,6 +153,22 @@ public class TeamCtgrVO extends TeamVO {
 
 	public void setLrnGrpnm(String lrnGrpnm) {
 		this.lrnGrpnm = lrnGrpnm;
+	}
+
+	public String getTeamGrpId() {
+		return teamGrpId;
+	}
+
+	public String getTeamGrpnm() {
+		return teamGrpnm;
+	}
+
+	public void setTeamGrpId(String teamGrpId) {
+		this.teamGrpId = teamGrpId;
+	}
+
+	public void setTeamGrpnm(String teamGrpnm) {
+		this.teamGrpnm = teamGrpnm;
 	}
 
 }

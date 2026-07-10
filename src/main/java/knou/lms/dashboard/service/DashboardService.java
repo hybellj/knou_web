@@ -5,7 +5,6 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
-import knou.lms.bbs.vo.BbsAtclVO;
 import knou.lms.common.vo.DefaultVO;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.crs.crecrs.vo.CreCrsVO;
@@ -63,7 +62,7 @@ public interface DashboardService {
     * @throws Exception
     *****************************************************
     */
-    public ProcessResultVO<TermVO> listStdTerm(TermVO vo) throws Exception;
+    public ProcessResultVO<EgovMap> listStdTerm(TermVO vo) throws Exception;
 
    /**
     * ***************************************************
@@ -93,7 +92,7 @@ public interface DashboardService {
     * @throws Exception
     *****************************************************
     */
-    public ProcessResultVO<TermVO> listProfTerm(TermVO vo) throws Exception;
+    public ProcessResultVO<EgovMap> listProfTerm(TermVO vo) throws Exception;
 
    /**
     * ***************************************************
@@ -167,7 +166,7 @@ public interface DashboardService {
       * @return List<EgovMap>
       * @throws Exception
       ******************************************************/
-     public List<EgovMap> listLessonStatusByCrs(DashboardVO vo) throws Exception;
+     public List<EgovMap> lrnStsListBySbjct(DefaultVO vo);
 
      /*****************************************************
       * 관리자 메인 > 과목별 학습현황 (엑셀)
@@ -183,7 +182,7 @@ public interface DashboardService {
       * @return List<EgovMap>
       * @throws Exception
       ******************************************************/
-     public List<EgovMap> listLessonStatusByStd(DashboardVO vo) throws Exception;
+     public List<EgovMap> lrnStsListByStd(DashboardVO vo);
 
      /*****************************************************
       * 관리자 메인 > 사용자 검색
@@ -191,7 +190,7 @@ public interface DashboardService {
       * @return List<EgovMap>
       * @throws Exception
       ******************************************************/
-     public ProcessResultVO<EgovMap> listAdminDashUser(DashboardVO vo) throws Exception;
+     public List<EgovMap> userList(DashboardVO vo);
 
      /**
       * 대시보드 위젯 설정
@@ -234,7 +233,7 @@ public interface DashboardService {
       * @return void
       * @throws Exception
       ******************************************************/
-     public ProcessResultVO<TermVO> profSmstrList(TermVO vo) throws Exception;
+     public ProcessResultVO<EgovMap> profSmstrList(TermVO vo) throws Exception;
 
      /*****************************************************
       * 위젯 팝업화면

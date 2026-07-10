@@ -1,18 +1,56 @@
 package knou.lms.exam.web;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import knou.framework.common.*;
+import knou.framework.context2.UserContext;
+import knou.lms.org.service.OrgService;
+import knou.lms.subject.service.SubjectService;
+import knou.lms.user.CurrentUser;
+import knou.lms.user.service.UsrDeptCdService;
+import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import knou.framework.common.CommConst;
-import knou.framework.common.ControllerBase;
-import knou.framework.common.RepoInfo;
-import knou.framework.common.SessionInfo;
+
 import knou.framework.exception.AccessDeniedException;
 import knou.framework.exception.BadRequestUrlException;
 import knou.framework.exception.MediopiaDefineException;
-import knou.framework.util.*;
+import knou.framework.util.CryptoUtil;
+import knou.framework.util.DateTimeUtil;
+import knou.framework.util.ExcelUtilPoi;
+import knou.framework.util.FileUtil;
+import knou.framework.util.LocaleUtil;
+import knou.framework.util.SecureUtil;
+import knou.framework.util.StringUtil;
+import knou.framework.util.ValidationUtils;
 import knou.framework.vo.FileVO;
 import knou.lms.asmt.service.AsmtProService;
 import knou.lms.asmt.vo.AsmtVO;
+import knou.lms.asmt2.service.AsmtFdbkService;
+import knou.lms.asmt2.vo.AsmtFdbkVO;
 import knou.lms.common.vo.DefaultVO;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.crs.crecrs.service.CrecrsService;
@@ -22,9 +60,24 @@ import knou.lms.crs.term.vo.TermVO;
 import knou.lms.erp.service.ErpService;
 import knou.lms.erp.vo.ErpEnrollmentVO;
 import knou.lms.exam.facade.QuizFacadeService;
-import knou.lms.exam.service.*;
-import knou.lms.exam.vo.*;
+import knou.lms.exam.service.ExamAbsentService;
+import knou.lms.exam.service.ExamDsblReqService;
+import knou.lms.exam.service.ExamOathService;
+import knou.lms.exam.service.ExamQstnService;
+import knou.lms.exam.service.ExamService;
+import knou.lms.exam.service.ExamStareService;
+import knou.lms.exam.service.TkexamRsltService;
+import knou.lms.exam.service.TkexamService;
+import knou.lms.exam.vo.ExamAbsentVO;
+import knou.lms.exam.vo.ExamBscVO;
+import knou.lms.exam.vo.ExamDsblReqVO;
+import knou.lms.exam.vo.ExamDtlVO;
+import knou.lms.exam.vo.ExamOathVO;
+import knou.lms.exam.vo.ExamStareVO;
+import knou.lms.exam.vo.ExamVO;
+import knou.lms.exam.vo.TkexamVO;
 import knou.lms.exam.web.view.QuizMainView;
+import knou.lms.file.service.AttachFileService;
 import knou.lms.file.vo.AtflVO;
 import knou.lms.forum.service.ForumJoinUserService;
 import knou.lms.forum.service.ForumService;
@@ -38,25 +91,9 @@ import knou.lms.std.service.StdService;
 import knou.lms.std.vo.StdVO;
 import knou.lms.sys.service.SysJobSchService;
 import knou.lms.sys.vo.SysJobSchVO;
+import knou.lms.team.service.TeamGrpMgrService;
 import knou.lms.user.service.UsrUserInfoService;
 import knou.lms.user.vo.UsrUserInfoVO;
-import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
-import org.egovframe.rte.psl.dataaccess.util.EgovMap;
-import org.springframework.context.MessageSource;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.*;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
 
 @Controller
 @RequestMapping(value="/exam")
@@ -103,6 +140,9 @@ public class ExamHomeController extends ControllerBase {
     @Resource(name="orgCodeService")
     private OrgCodeService orgCodeService;
 
+    @Resource(name="attachFileService")
+    private AttachFileService attachFileService;
+
     @Resource(name="messageSource")
     private MessageSource messageSource;
 
@@ -133,42 +173,56 @@ public class ExamHomeController extends ControllerBase {
     @Resource(name="lessonScheduleService")
     private LessonScheduleService lessonScheduleService;
 
+    @Resource(name="asmtFdbkService")
+    private AsmtFdbkService asmtFdbkService;
+
+    @Resource(name="teamGrpMgrService")
+    private TeamGrpMgrService teamGrpMgrService;
+
+    @Resource(name="orgService")
+    private OrgService orgService;
+
+    @Resource(name="usrDeptCdService")
+    private UsrDeptCdService usrDeptCdService;
+
+    @Resource(name="subjectService")
+    private SubjectService subjectService;
+
     /*****************************************************
      * 신규 작성 Controller 영역
      *****************************************************/
+
+    /************************ 교수 ************************/
     /*****************************************************
      * 시험 목록 페이지 (교수)
      * @param vo
      * @param model
      * @param request
      * @return view
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamListView.do")
     public String profExamListView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        // 사용자 접속상태 저장
-        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
-
+    	
         String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
-        String sbjctId = vo.getSbjctId() == null ? "SBJCT_OFRNG_ID2" : vo.getSbjctId();
+        String sbjctId = vo.getSbjctId() == null ? "SBJCT20260001" : vo.getSbjctId();
 
         if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
             throw new AccessDeniedException(getCommonNoAuthMessage()); // 페이지 접근 권한이 없습니다.
         }
 
-        model.addAttribute("vo", vo);
+        resetEncParam();
+        addEncParam("sbjctId", sbjctId);
 
-        LocalDateTime today = LocalDateTime.now();
-        model.addAttribute("today", today.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+        model.addAttribute("vo", vo);
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
         model.addAttribute("sbjctId", sbjctId);
+        model.addAttribute("encParams", getEncParams());
         model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
 
-        // 임시로 prof 경로 추가
         return "exam/prof/exam_list_view";
     }
 
@@ -178,20 +232,16 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return view
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamWriteView.do")
     public String profExamWriteView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        // 사용자 접속상태 저장
-        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
-
         String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
         String examBscId = StringUtil.nvl(vo.getExamBscId());
         String tkexamMthdCd = StringUtil.nvl(vo.getTkexamMthdCd());
         String byteamSubrexamUseyn = StringUtil.nvl(vo.getByteamSubrexamUseyn());
-        String sbjctId = vo.getSbjctId() == null ? "SBJCT_OFRNG_ID2" : vo.getSbjctId();
+        String sbjctId = vo.getSbjctId() == null ? "SBJCT20260001" : vo.getSbjctId();
         String isModify = null;
 
         ExamVO examVO = null;
@@ -216,13 +266,17 @@ public class ExamHomeController extends ControllerBase {
                             baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
                                     baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
                     );
-                    examVO.setLrnGrpSubsbjctUseyn(allSame ? "N" : "Y");
+                    examVO.setTeamGrpSubsbjctUseyn(allSame ? "N" : "Y");
                 }
             }
         }
         if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
             throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
         }
+
+        addEncParam("examBscId",            examBscId);
+        addEncParam("tkexamMthdCd",         tkexamMthdCd);
+        addEncParam("byteamSubrexamUseyn",  byteamSubrexamUseyn);
 
         model.addAttribute("vo", vo);
         model.addAttribute("examVO", examVO);
@@ -232,9 +286,9 @@ public class ExamHomeController extends ControllerBase {
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
         model.addAttribute("sbjctId", sbjctId);
+        model.addAttribute("encParams", getEncParams());
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
 
-        // 임시로 prof 경로 추가
         return "exam/prof/exam_write";
     }
 
@@ -244,7 +298,6 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return view
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamInfoEvlView.do")
     public String profExamInfoEvlView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
@@ -264,6 +317,11 @@ public class ExamHomeController extends ControllerBase {
 
         ExamVO examVO = examService.selectProfExamDtl(vo);
         List<ExamVO> examDtlInfoVO = null;
+        List<EgovMap> pprInfo = examService.selectExamppr(vo.getExamBscId());
+
+        // 퀴즈 ID 조회
+        vo.setQuizBscId(examService.selectExamQuizBscId(vo.getExamBscId()));
+
         if ("Y".equals(examVO.getByteamSubrexamUseyn())) {
             examDtlInfoVO = examService.selectProfExamTeamDtl(vo);
 
@@ -276,19 +334,25 @@ public class ExamHomeController extends ControllerBase {
                     baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
                     baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
                 );
-                examVO.setLrnGrpSubsbjctUseyn(allSame ? "N" : "Y");
+                examVO.setTeamGrpSubsbjctUseyn(allSame ? "N" : "Y");
             }
         }
+        addEncParam("examBscId",            examBscId);
+        addEncParam("tkexamMthdCd",         tkexamMthdCd);
+        addEncParam("byteamSubrexamUseyn",  byteamSubrexamUseyn);
+
         model.addAttribute("vo", vo);
         model.addAttribute("examVO", examVO);
         model.addAttribute("examDtlInfoVO", examDtlInfoVO);
+        model.addAttribute("pprInfo", pprInfo);
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
         model.addAttribute("sbjctId", StringUtil.nvl(vo.getSbjctId()));
+        model.addAttribute("encParams", getEncParams());
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
         examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
-        // 임시로 prof 경로 추가
+
         return "exam/prof/exam_info_evl";
     }
 
@@ -298,7 +362,6 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return view
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamSbstView.do")
     public String profExamSbstView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
@@ -318,6 +381,8 @@ public class ExamHomeController extends ControllerBase {
 
         ExamVO examVO = examService.selectProfExamDtl(vo);
         List<ExamVO> examDtlInfoVO = null;
+        List<EgovMap> pprInfo = examService.selectExamppr(vo.getExamBscId());
+
         if ("Y".equals(examVO.getByteamSubrexamUseyn())) {
             examDtlInfoVO = examService.selectProfExamTeamDtl(vo);
 
@@ -330,19 +395,25 @@ public class ExamHomeController extends ControllerBase {
                         baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
                                 baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
                 );
-                examVO.setLrnGrpSubsbjctUseyn(allSame ? "N" : "Y");
+                examVO.setTeamGrpSubsbjctUseyn(allSame ? "N" : "Y");
             }
         }
+        addEncParam("examBscId",            examBscId);
+        addEncParam("tkexamMthdCd",         tkexamMthdCd);
+        addEncParam("byteamSubrexamUseyn",  byteamSubrexamUseyn);
+
         model.addAttribute("vo", vo);
         model.addAttribute("examVO", examVO);
         model.addAttribute("examDtlInfoVO", examDtlInfoVO);
+        model.addAttribute("pprInfo", pprInfo);
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
         model.addAttribute("sbjctId", StringUtil.nvl(vo.getSbjctId()));
+        model.addAttribute("encParams", getEncParams());
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
         examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
-        // 임시로 prof 경로 추가
+
         return "exam/prof/exam_info_sbst";
     }
 
@@ -351,8 +422,7 @@ public class ExamHomeController extends ControllerBase {
      * @param ExamVO
      * @param model
      * @param request
-     * @return viewa
-     * @throws Exception
+     * @return view
      ******************************************************/
     @RequestMapping(value="/profExamSbstWrite.do")
     public String profExamSbstWriteView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
@@ -367,6 +437,8 @@ public class ExamHomeController extends ControllerBase {
 
         ExamVO sbstVO = null;
         List<ExamVO> examDtlInfoVO = null;
+        List<EgovMap> pprInfo = examService.selectExamppr(vo.getExamBscId());
+
         if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
             throw new AccessDeniedException(getCommonNoAuthMessage());/* 페이지 접근 권한이 없습니다. */
         }
@@ -391,20 +463,43 @@ public class ExamHomeController extends ControllerBase {
                         baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
                                 baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
                 );
-                examVO.setLrnGrpSubsbjctUseyn(allSame ? "N" : "Y");
+                examVO.setTeamGrpSubsbjctUseyn(allSame ? "N" : "Y");
             }
         }
+        String asmtUploadPath = "ASMT".equals(gbn) && sbstVO != null
+                ? RepoInfo.getAtflRepo(request, CommConst.REPO_ASMT, sbstVO.getAsmtId())
+                : RepoInfo.getAtflRepo(request, CommConst.REPO_ASMT);
+        String quizUploadPath = "QUIZ".equals(gbn) && sbstVO != null
+                ? RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, sbstVO.getExamBscId())
+                : RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM);
+
+        if ("ASMT".equals(gbn) && sbstVO != null && !StringUtil.nvl(sbstVO.getAsmtId()).isEmpty()) {
+            AtflVO atflVO = new AtflVO();
+            atflVO.setAtflRepoId(CommConst.REPO_ASMT);
+            atflVO.setRefId(sbstVO.getAsmtId());
+            sbstVO.setFileList(attachFileService.selectAtflListByRefId(atflVO));
+        } else if ("QUIZ".equals(gbn) && sbstVO != null && !StringUtil.nvl(sbstVO.getExamBscId()).isEmpty()) {
+            AtflVO atflVO = new AtflVO();
+            atflVO.setAtflRepoId(CommConst.REPO_EXAM);
+            atflVO.setRefId(sbstVO.getExamBscId());
+            sbstVO.setFileList(attachFileService.selectAtflListByRefId(atflVO));
+        }
+
         model.addAttribute("vo", vo);
         model.addAttribute("examVO", examVO);
         model.addAttribute("sbstVO", sbstVO);
         model.addAttribute("gbn", gbn);
         model.addAttribute("examDtlInfoVO", examDtlInfoVO);
+        model.addAttribute("pprInfo", pprInfo);
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("sbjctId", StringUtil.nvl(vo.getSbjctId()));
+        model.addAttribute("encParams", getEncParams());
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
+        model.addAttribute("asmtUploadPath", asmtUploadPath);
+        model.addAttribute("quizUploadPath", quizUploadPath);
         examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
-        // 임시로 prof 경로 추가
+
         return "exam/prof/exam_info_sbst_write";
     }
 
@@ -414,12 +509,9 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return view
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamAbsnceView.do")
     public String profExamAbsnceView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        // 사용자 접속상태 저장
-        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
         String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
@@ -434,6 +526,8 @@ public class ExamHomeController extends ControllerBase {
 
         ExamVO examVO = examService.selectProfExamDtl(vo);
         List<ExamVO> examDtlInfoVO = null;
+        List<EgovMap> pprInfo = examService.selectExamppr(vo.getExamBscId());
+
         if ("Y".equals(examVO.getByteamSubrexamUseyn())) {
             examDtlInfoVO = examService.selectProfExamTeamDtl(vo);
 
@@ -446,19 +540,25 @@ public class ExamHomeController extends ControllerBase {
                         baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
                                 baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
                 );
-                examVO.setLrnGrpSubsbjctUseyn(allSame ? "N" : "Y");
+                examVO.setTeamGrpSubsbjctUseyn(allSame ? "N" : "Y");
             }
         }
+        addEncParam("examBscId",            examBscId);
+        addEncParam("tkexamMthdCd",         tkexamMthdCd);
+        addEncParam("byteamSubrexamUseyn",  byteamSubrexamUseyn);
+
         model.addAttribute("vo", vo);
         model.addAttribute("examVO", examVO);
         model.addAttribute("examDtlInfoVO", examDtlInfoVO);
+        model.addAttribute("pprInfo", pprInfo);
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
         model.addAttribute("sbjctId", StringUtil.nvl(vo.getSbjctId()));
+        model.addAttribute("encParams", getEncParams());
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
         examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
-        // 임시로 prof 경로 추가
+
         return "exam/prof/exam_info_absnce";
     }
 
@@ -468,12 +568,9 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return view
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamDsblView.do")
     public String profExamDsblView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        // 사용자 접속상태 저장
-        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
         String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
@@ -488,6 +585,7 @@ public class ExamHomeController extends ControllerBase {
 
         ExamVO examVO = examService.selectProfExamDtl(vo);
         List<ExamVO> examDtlInfoVO = null;
+        List<EgovMap> pprInfo = examService.selectExamppr(vo.getExamBscId());
         if ("Y".equals(examVO.getByteamSubrexamUseyn())) {
             examDtlInfoVO = examService.selectProfExamTeamDtl(vo);
 
@@ -500,19 +598,25 @@ public class ExamHomeController extends ControllerBase {
                         baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
                                 baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
                 );
-                examVO.setLrnGrpSubsbjctUseyn(allSame ? "N" : "Y");
+                examVO.setTeamGrpSubsbjctUseyn(allSame ? "N" : "Y");
             }
         }
+        addEncParam("examBscId",            examBscId);
+        addEncParam("tkexamMthdCd",         tkexamMthdCd);
+        addEncParam("byteamSubrexamUseyn",  byteamSubrexamUseyn);
+
         model.addAttribute("vo", vo);
         model.addAttribute("examVO", examVO);
         model.addAttribute("examDtlInfoVO", examDtlInfoVO);
+        model.addAttribute("pprInfo", pprInfo);
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
         model.addAttribute("sbjctId", StringUtil.nvl(vo.getSbjctId()));
+        model.addAttribute("encParams", getEncParams());
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
         examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
-        // 임시로 prof 경로 추가
+
         return "exam/prof/exam_info_dsbl";
     }
 
@@ -522,12 +626,9 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return view
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamQuizMngView.do")
     public String profExamQuizMngView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        // 사용자 접속상태 저장
-        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
         String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
@@ -542,6 +643,10 @@ public class ExamHomeController extends ControllerBase {
 
         ExamVO examVO = examService.selectProfExamDtl(vo);
         List<ExamVO> examDtlInfoVO = null;
+
+        // 퀴즈 ID 조회
+        vo.setQuizBscId(examService.selectExamQuizBscId(vo.getExamBscId()));
+
         if ("Y".equals(examVO.getByteamSubrexamUseyn())) {
             examDtlInfoVO = examService.selectProfExamTeamDtl(vo);
 
@@ -554,9 +659,13 @@ public class ExamHomeController extends ControllerBase {
                         baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
                                 baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
                 );
-                examVO.setLrnGrpSubsbjctUseyn(allSame ? "N" : "Y");
+                examVO.setTeamGrpSubsbjctUseyn(allSame ? "N" : "Y");
             }
         }
+        addEncParam("examBscId",            examBscId);
+        addEncParam("tkexamMthdCd",         tkexamMthdCd);
+        addEncParam("byteamSubrexamUseyn",  byteamSubrexamUseyn);
+
         model.addAttribute("vo", vo);
         model.addAttribute("examVO", examVO);
         model.addAttribute("examDtlInfoVO", examDtlInfoVO);
@@ -564,24 +673,22 @@ public class ExamHomeController extends ControllerBase {
         model.addAttribute("orgId", orgId);
         model.addAttribute("authGrpCd", authGrpCd);
         model.addAttribute("sbjctId", StringUtil.nvl(vo.getSbjctId()));
+        model.addAttribute("encParams", getEncParams());
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
         examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
-        // 임시로 prof 경로 추가
+
         return "exam/prof/exam_info_quiz_mng";
     }
 
     /*****************************************************
-     * 시험 관리 페이지 (퀴즈관리 탭)
+     * 시험 관리 페이지 (퀴즈관리 탭 - 퀴즈 등록)
      * @param ExamVO
      * @param model
      * @param request
      * @return view
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamQuizMngWrite.do")
-    public String profExamQuizMngWrite(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        // 사용자 접속상태 저장
-        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+    public String profExamQuizMngWrite(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception{
         String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
         String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
         String examBscId = StringUtil.nvl(vo.getExamBscId());
@@ -609,7 +716,7 @@ public class ExamHomeController extends ControllerBase {
                         baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
                                 baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
                 );
-                examVO.setLrnGrpSubsbjctUseyn(allSame ? "N" : "Y");
+                examVO.setTeamGrpSubsbjctUseyn(allSame ? "N" : "Y");
             }
         }
         model.addAttribute("vo", vo);
@@ -620,9 +727,16 @@ public class ExamHomeController extends ControllerBase {
         model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
         model.addAttribute("orgId", orgId);
         model.addAttribute("sbjctId", StringUtil.nvl(vo.getSbjctId()));
+        model.addAttribute("encParams", getEncParams());
         model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
+        if (quizVO != null && !StringUtil.nvl(quizVO.getExamBscId()).isEmpty()) {
+            AtflVO atflVO = new AtflVO();
+            atflVO.setAtflRepoId(CommConst.REPO_EXAM);
+            atflVO.setRefId(quizVO.getExamBscId());
+            quizVO.setFileList(attachFileService.selectAtflListByRefId(atflVO));
+        }
         examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
-        // 임시로 prof 경로 추가
+
         return "exam/prof/exam_info_quiz_write";
     }
 
@@ -632,13 +746,10 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return view
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamUserTkexamStatusPieChartPopup.do")
-    public String selectUserTkexamStatusForPieChart(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-
+    public String selectUserTkexamStatusForPieChart(ExamVO vo, ModelMap model, HttpServletRequest request) {
         model.addAttribute("chartMap", examService.selectUserTkexamStatusForPieChart(vo.getExamBscId(), vo.getSbjctId()));
-
         return "exam/prof/popup/exam_user_tkexam_status_piechart_pop";
     }
 
@@ -648,14 +759,11 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return view
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamUserTkexamStatusHrChartPopup.do")
-    public String selectUserTkexamStatusForHrChart(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-
+    public String selectUserTkexamStatusForHrChart(ExamVO vo, ModelMap model, HttpServletRequest request) {
         model.addAttribute("chartMap", examService.selectUserTkexamStatusForPieChart(vo.getExamBscId(), vo.getSbjctId()));
         model.addAttribute("chartList", examService.selectUserTkexamStatusForHrChart(vo.getExamBscId(), vo.getSbjctId()));
-
         return "exam/prof/popup/exam_user_tkexam_status_hrchart_pop";
     }
 
@@ -665,16 +773,14 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return view
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamMemoPopup.do")
-    public String profQuizMemoPopup(@RequestParam Map<String, Object> params, ModelMap model, HttpServletRequest request) throws Exception {
+    public String profQuizMemoPopup(@RequestParam Map<String, Object> params, ModelMap model, HttpServletRequest request) {
         QuizMainView quizMainView = quizFacadeService.loadProfQuizMemoPopup(params);
 
         model.addAttribute("vo", quizMainView.getExamBscVO());
-        model.addAttribute("quizExamnee", quizMainView.getQuizExamnee());
-        model.addAttribute("profMemo", quizMainView.getProfMemo());
-
+        model.addAttribute("quizExamnee", quizMainView.geteMap().get("examnee"));
+        model.addAttribute("profMemo", quizMainView.geteMap().get("profMemo"));
         return "exam/prof/popup/prof_exam_memo_pop";
     }
 
@@ -684,15 +790,13 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return view
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamTkexamHstryPopup.do")
-    public String profExamTkexamHstryPopup(TkexamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-
+    public String profExamTkexamHstryPopup(TkexamVO vo, ModelMap model, HttpServletRequest request) {
         QuizMainView quizMainView = quizFacadeService.loadProfQuizTkexamHstryPopup(vo);
-        model.addAttribute("quizExamnee", quizMainView.getQuizExamnee());
-        model.addAttribute("tkexamHstryList", quizMainView.getTkexamHstryList());
 
+        model.addAttribute("quizExamnee", quizMainView.getEgovMap());
+        model.addAttribute("tkexamHstryList", quizMainView.getEgovList());
         return "exam/prof/popup/prof_exam_tkexam_hstry_pop";
     }
 
@@ -702,7 +806,6 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return view
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamExcelScrRegistPopup.do")
     public String profQuizExcelScrRegistPopup(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
@@ -713,7 +816,6 @@ public class ExamHomeController extends ControllerBase {
 
         model.addAttribute("vo", vo);
         model.addAttribute("userId", userId);
-
         return "exam/prof/popup/prof_exam_excel_scr_regist_pop";
     }
 
@@ -723,15 +825,15 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/examAbsnceUserRsltPopup.do")
-    public String selectAbsnceRslt(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String selectAbsnceRslt(ExamVO vo, ModelMap model, HttpServletRequest request) {
         String examBscId = vo.getExamBscId();
         String userId = vo.getUserId();
 
         vo.setExamBscId(examBscId);
         vo.setUserId(userId);
+
         ExamVO examVO = examService.selectAbsnceRslt(vo);
         model.addAttribute("absnceRslt", examVO);
         return "exam/prof/popup/prof_exam_absnce_rslt_pop";
@@ -743,10 +845,9 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/examAbsnceUserHstrPagingPopup.do")
-    public String listAbsnceUserHstrPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String listAbsnceUserHstrPaging(ExamVO vo, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String examBscId = vo.getExamBscId();
         String userId = vo.getUserId();
@@ -762,15 +863,15 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/examDsblUserDtlPopup.do")
-    public String selectDsblDtl(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String selectDsblDtl(ExamVO vo, ModelMap model, HttpServletRequest request) {
         String sbjctId = vo.getSbjctId();
         String userId = vo.getUserId();
 
         vo.setSbjctId(sbjctId);
         vo.setUserId(userId);
+
         ExamVO examVO = examService.selectDsblDtl(vo);
         model.addAttribute("dsblDtl", examVO);
         return "exam/prof/popup/prof_exam_dsbl_dtl_pop";
@@ -782,10 +883,9 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return view
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/tkexamStatListPopup.do")
-    public String selectTkexamStat(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String selectTkexamStat(ExamVO vo, ModelMap model, HttpServletRequest request) {
         String midBscId = null;
         String lstBscId = null;
         String sbjctId = vo.getSbjctId();
@@ -803,11 +903,9 @@ public class ExamHomeController extends ControllerBase {
         // 중간고사 (가로선) 차트 데이터 조회
         model.addAttribute("midChartMap", examService.selectUserTkexamStatusForPieChart(midBscId, sbjctId));
         model.addAttribute("midChartList", examService.selectUserTkexamStatusForHrChart(midBscId, sbjctId));
-
         // 기말고사 (가로선) 차트 데이터 조회
         model.addAttribute("lstChartMap", examService.selectUserTkexamStatusForPieChart(lstBscId, sbjctId));
         model.addAttribute("lstChartList", examService.selectUserTkexamStatusForHrChart(lstBscId, sbjctId));
-
         model.addAttribute("vo", vo);
         return "exam/prof/popup/exam_user_tkexam_status_list_pop";
     }
@@ -819,11 +917,10 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/examRegist.do", method = RequestMethod.POST)
     @ResponseBody
-    public ProcessResultVO<ExamBscVO> examRegist(ExamBscVO vo, @RequestParam(value = "dtlInfos", defaultValue = "[]") String dtlInfoStr, ModelMap model, HttpServletRequest request) throws Exception{
+    public ProcessResultVO<ExamBscVO> examRegist(ExamBscVO vo, @RequestParam(value = "dtlInfos", defaultValue = "[]") String dtlInfoStr, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamBscVO> resultVO = new ProcessResultVO<ExamBscVO>();
         ObjectMapper mapper = new ObjectMapper();
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
@@ -833,7 +930,6 @@ public class ExamHomeController extends ControllerBase {
                 throw new BadRequestUrlException("시스템 오류가 발생하였거나 비정상적인 접근입니다.<br><br>웹브라우저를 다시 시작하여 접속하세요.<br>오류가 지속되면 관리자에게 문의하세요.");
             }
 
-//            vo.setSbjctId("SBJCT_OFRNG_ID2");       // 과목 ID (임시 하드코딩 추후 vo 에서 가져오도록 설정)
             vo.setLctrWknoSchdlId(null);            // 강의주차 일정 아이디  (임시)
             vo.setExamGrpId(null);                  // 시험 그룹 ID (임시)
             vo.setQstnDsplyGbncd("WHOL");           // 문항 화면표시 구분코드 (임시)
@@ -845,7 +941,7 @@ public class ExamHomeController extends ControllerBase {
             vo.setQstnVwitmRndmyn("N");             // 문항보기 항목 무작위 여부 (임시)
             vo.setQstnCnddtUseyn("N");              // 문항후보 사용여부 (임시)
             vo.setMrkRfltrt(0);                     // 성적 반영비율 (임시)
-            vo.setLrnGrpSubasmtStngyn("N");         // 학습그룹 부과제 설정여부 (임시)
+            vo.setTeamGrpSubasmtStngyn("N");        // 학습그룹 부과제 설정여부 (임시)
             vo.setExamTycd("EXAM");                 // 시험 유형코드 (시험만 등록되므로 하드코딩)
 
             vo.setExamtmAllocGbncd("REMAINDER");    // 시험시간 배정 구분코드
@@ -869,82 +965,57 @@ public class ExamHomeController extends ControllerBase {
 
     /*****************************************************
      * 대체 시험 등록
-     * @param ExamBscVO
+     * @param ExamVO
      * @param RequestParam
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/examSbstRegist.do", method = RequestMethod.POST)
     @ResponseBody
-    public ProcessResultVO<ExamVO> examSbstRegist(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception{
+    public ProcessResultVO<ExamVO> examSbstRegist(ExamVO vo, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
 
         vo.setRgtrId(userId);
+        if(ValidationUtils.isEmpty(userId)) {
+            throw new BadRequestUrlException("시스템 오류가 발생하였거나 비정상적인 접근입니다.<br><br>웹브라우저를 다시 시작하여 접속하세요.<br>오류가 지속되면 관리자에게 문의하세요.");
+        }
+        resultVO.setReturnVO(examService.examSbstRegist(vo));
+        resultVO.setResultSuccess();
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 퀴즈 시험 등록
+     * @param ExamVO
+     * @param RequestParam
+     * @param model
+     * @param request
+     * @return resultVO
+     ******************************************************/
+    @RequestMapping(value = "/examQuizRegist.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<ExamVO> examQuizRegist(ExamVO vo, @RequestParam(value = "dtlInfos", defaultValue = "[]") String dtlInfoStr, ModelMap model, HttpServletRequest request) {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+        ObjectMapper mapper = new ObjectMapper();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
         try {
             if(ValidationUtils.isEmpty(userId)) {
                 throw new BadRequestUrlException("시스템 오류가 발생하였거나 비정상적인 접근입니다.<br><br>웹브라우저를 다시 시작하여 접속하세요.<br>오류가 지속되면 관리자에게 문의하세요.");
             }
-
-            resultVO.setReturnVO(examService.examSbstRegist(vo));
+            vo.setRgtrId(userId);
+            vo.setDtlInfos(mapper.readValue(dtlInfoStr, new TypeReference<List<Map<String, Object>>>() {
+            }));
+            resultVO.setReturnVO(examService.examQuizRegist(vo));
             resultVO.setResultSuccess();
         } catch (MediopiaDefineException e) {
             resultVO.setResultFailed();
             resultVO.setMessage(e.getMessage());
         } catch (Exception e) {
             resultVO.setResultFailed();
-            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
-        }
-        return resultVO;
-    }
-
-    /*****************************************************
-     * 교수 시험성적 엑셀 업로드&등록
-     * @param ExamBscVO
-     * @param model
-     * @param request
-     * @return resultVO
-     * @throws Exception
-     ******************************************************/
-    @RequestMapping(value="/profExamScrExcelUpload.do", method = RequestMethod.POST)
-    @ResponseBody
-    public ProcessResultVO<ExamBscVO> profExamScrExcelUpload(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
-        ProcessResultVO<ExamBscVO> resultVO = new ProcessResultVO<ExamBscVO>();
-        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
-        vo.setRgtrId(userId);
-        vo.setMdfrId(userId);
-
-        try {
-            List<AtflVO> uploadFileList = FileUtil.getUploadAtflList(vo.getUploadFiles(), vo.getUploadPath());
-
-            FileVO fileVO = new FileVO();
-            fileVO.setUploadFiles(vo.getUploadFiles());
-            fileVO.setCopyFiles(vo.getCopyFiles());
-            fileVO.setFilePath(vo.getUploadPath());
-            fileVO.setRepoCd(vo.getRepoCd());
-            fileVO.setRgtrId(vo.getRgtrId());
-
-            //엑셀 읽기위한 정보값 세팅
-            HashMap<String, Object> map = new HashMap<String, Object>();
-            map.put("startRaw", 5);
-            map.put("excelGrid", vo.getExcelGrid());
-            map.put("fileVO", fileVO);
-            map.put("searchKey", "excelUpload");
-
-            //엑셀 리더
-            ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
-            List<?> list = excelUtilPoi.simpleReadGrid(map);
-
-            //읽어온 값으로 update
-            //examStareService.updateExampleExcelStareScore(vo, list);
-            resultVO.setResult(1);
-            //resultVO.setMessage(getMessage("exam.alert.save.score"));/* 점수 저장이 완료되었습니다. */
-
-        } catch(Exception e) {
-            e.printStackTrace();
-            resultVO.setResult(-1);
+            resultVO.setMessage(getCommonFailMessage());
         }
         return resultVO;
     }
@@ -955,26 +1026,24 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamPaging.do")
     @ResponseBody
     public ProcessResultVO<ExamVO> listProfExamPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
-        String orgId = SessionInfo.getOrgId(request);
-        String examTtl = vo.getExamTtl();
-        String sbjctId = vo.getSbjctId() == null ? "SBJCT_OFRNG_ID2" : vo.getSbjctId();
+        String orgId    = SessionInfo.getOrgId(request);
+        String examTtl  = StringUtil.nvl(request.getParameter("examTtl"));
+        String sbjctId  = vo.getSbjctId() == null ? "SBJCT20260001" : vo.getSbjctId();
 
         vo.setOrgId(orgId);
         vo.setExamTtl(examTtl);
         vo.setSbjctId(sbjctId);
-        try {
-            resultVO = examService.listProfExamPaging(vo);
-            resultVO.setResultSuccess();
-        } catch(Exception e) {
-            resultVO.setResultFailed();
-            resultVO.setMessage(getCommonFailMessage());/* 리스트 조회 중 에러가 발생하였습니다. */
-        }
+
+        addEncParam("examTtl", examTtl);
+
+        resultVO = examService.listProfExamPaging(vo);
+        resultVO.setResultSuccess();
+        resultVO.setEncParams(getEncParams());
         return resultVO;
     }
 
@@ -984,36 +1053,28 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamDtl.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> selectProfExamDtl(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> selectProfExamDtl(ExamVO vo, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
-        try {
-            // 필수 파라미터 체크
-            String examBscId = vo.getExamBscId();
+        // 필수 파라미터 체크
+        String examBscId = vo.getExamBscId();
 
-            if (examBscId == null || examBscId.isEmpty()) {
-                resultVO.setResultFailed();
-                resultVO.setMessage("시험 ID가 필요합니다.");
-                return resultVO;
-            }
-
-            ExamVO examVO = examService.selectProfExamDtl(vo);
-
-            if(examVO == null) {
-                resultVO.setResultFailed();
-                resultVO.setMessage("해당 시험 정보를 찾을 수 없습니다.");
-            } else {
-                resultVO.setReturnVO(examVO);
-                resultVO.setResultSuccess();
-                resultVO.setMessage("성공 메시지");
-            }
-        } catch(Exception e) {
-            LOGGER.error("시험 상세 조회 실패", e);
+        if (examBscId == null || examBscId.isEmpty()) {
             resultVO.setResultFailed();
-            resultVO.setMessage(getCommonFailMessage());
+            resultVO.setMessage("시험 ID가 필요합니다.");
+            return resultVO;
+        }
+
+        ExamVO examVO = examService.selectProfExamDtl(vo);
+        if(examVO == null) {
+            resultVO.setResultFailed();
+            resultVO.setMessage("해당 시험 정보를 찾을 수 없습니다.");
+        } else {
+            resultVO.setReturnVO(examVO);
+            resultVO.setResultSuccess();
+            resultVO.setMessage("성공 메시지");
         }
         return resultVO;
     }
@@ -1024,26 +1085,20 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/tkexamUserPaging.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> listTkexamUserPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> listTkexamUserPaging(ExamVO vo, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String examBscId = vo.getExamBscId();
         String byteamSubrexamUseyn = vo.getByteamSubrexamUseyn();
-        String sbjctId = vo.getSbjctId() == null ? "SBJCT_OFRNG_ID2" : vo.getSbjctId();
+        String sbjctId = vo.getSbjctId() == null ? "SBJCT20260001" : vo.getSbjctId();
 
         vo.setExamBscId(examBscId);
         vo.setSbjctId(sbjctId);
-        try {
-            // 시험 평가대상자
-            resultVO = examService.listTkexamUserPaging(vo);
-            resultVO.setResultSuccess();
-        } catch(Exception e) {
-            resultVO.setResultFailed();
-            resultVO.setMessage(getCommonFailMessage());/* 리스트 조회 중 에러가 발생하였습니다. */
-        }
+        // 시험 평가대상자
+        resultVO = examService.listTkexamUserPaging(vo);
+        resultVO.setResultSuccess();
         return resultVO;
     }
 
@@ -1057,21 +1112,16 @@ public class ExamHomeController extends ControllerBase {
      ******************************************************/
     @RequestMapping(value="/tkexamUserCount.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> listTkexamUserCount(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> listTkexamUserCount(ExamVO vo, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String examBscId = vo.getExamBscId();
         String byteamSubrexamUseyn = vo.getByteamSubrexamUseyn();
-        String sbjctId = vo.getSbjctId() == null ? "SBJCT_OFRNG_ID2" : vo.getSbjctId();
+        String sbjctId = vo.getSbjctId() == null ? "SBJCT20260001" : vo.getSbjctId();
 
         vo.setExamBscId(examBscId);
         vo.setSbjctId(sbjctId);
-        try {
-            resultVO = examService.listTkexamUserPaging(vo);
-            resultVO.setResultSuccess();
-        } catch(Exception e) {
-            resultVO.setResultFailed();
-            resultVO.setMessage(getCommonFailMessage());/* 리스트 조회 중 에러가 발생하였습니다. */
-        }
+        resultVO = examService.listTkexamUserPaging(vo);
+        resultVO.setResultSuccess();
         return resultVO;
     }
 
@@ -1081,21 +1131,14 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
-    @RequestMapping(value="/examLrnGrpSubAsmtListAjax.do")
+    @RequestMapping(value="/examTeamGrpSubAsmtListAjax.do")
     @ResponseBody
-    public ProcessResultVO<ExamDtlVO> examLrnGrpSubAsmtListAjax(ExamDtlVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamDtlVO> examTeamGrpSubAsmtListAjax(ExamDtlVO vo, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamDtlVO> resultVO = new ProcessResultVO<ExamDtlVO>();
 
-        try {
-            resultVO.setReturnList(examService.quizLrnGrpSubAsmtList(vo));
-            resultVO.setResult(1);
-        } catch(Exception e) {
-            resultVO.setResult(-1);
-            resultVO.setMessage("리스트 조회 중 에러가 발생하였습니다.");
-        }
-
+        resultVO.setReturnList(examService.quizTeamGrpSubQuizList(vo));
+        resultVO.setResult(1);
         return resultVO;
     }
 
@@ -1105,22 +1148,16 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/examSbstPaging.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> listProfSbstPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> listProfSbstPaging(ExamVO vo, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String examBscId = vo.getExamBscId();
 
         vo.setExamBscId(examBscId);
-        try {
-            resultVO = examService.listProfSbstPaging(vo);
-            resultVO.setResultSuccess();
-        } catch(Exception e) {
-            resultVO.setResultFailed();
-            resultVO.setMessage(getCommonFailMessage());/* 리스트 조회 중 에러가 발생하였습니다. */
-        }
+        resultVO = examService.listProfSbstPaging(vo);
+        resultVO.setResultSuccess();
         return resultVO;
     }
 
@@ -1130,22 +1167,16 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/examSbstUserPaging.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> listProfSbstUserPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> listProfSbstUserPaging(ExamVO vo, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String examBscId = vo.getExamBscId();
 
         vo.setExamBscId(examBscId);
-        try {
-            resultVO = examService.listProfSbstUserPaging(vo);
-            resultVO.setResultSuccess();
-        } catch(Exception e) {
-            resultVO.setResultFailed();
-            resultVO.setMessage(getCommonFailMessage());/* 리스트 조회 중 에러가 발생하였습니다. */
-        }
+        resultVO = examService.listProfSbstUserPaging(vo);
+        resultVO.setResultSuccess();
         return resultVO;
     }
 
@@ -1155,22 +1186,16 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/examAbsnceUserPaging.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> listProfAbsnceUserPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> listProfAbsnceUserPaging(ExamVO vo, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String examBscId = vo.getExamBscId();
 
         vo.setExamBscId(examBscId);
-        try {
-            resultVO = examService.listProfAbsnceUserPaging(vo);
-            resultVO.setResultSuccess();
-        } catch(Exception e) {
-            resultVO.setResultFailed();
-            resultVO.setMessage(getCommonFailMessage());/* 리스트 조회 중 에러가 발생하였습니다. */
-        }
+        resultVO = examService.listProfAbsnceUserPaging(vo);
+        resultVO.setResultSuccess();
         return resultVO;
     }
 
@@ -1180,22 +1205,16 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/dsblUserPaging.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> listDsblUserPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> listDsblUserPaging(ExamVO vo, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String sbjctId = vo.getSbjctId();
 
         vo.setSbjctId(sbjctId);
-        try {
-            resultVO = examService.listDsblUserPaging(vo);
-            resultVO.setResultSuccess();
-        } catch(Exception e) {
-            resultVO.setResultFailed();
-            resultVO.setMessage(getCommonFailMessage());/* 리스트 조회 중 에러가 발생하였습니다. */
-        }
+        resultVO = examService.listDsblUserPaging(vo);
+        resultVO.setResultSuccess();
         return resultVO;
     }
 
@@ -1205,22 +1224,16 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/examQuizPaging.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> listExamQuizPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> listExamQuizPaging(ExamVO vo, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String examBscId = vo.getExamBscId();
 
         vo.setExamBscId(examBscId);
-        try {
-            resultVO = examService.listExamQuizPaging(vo);
-            resultVO.setResultSuccess();
-        } catch(Exception e) {
-            resultVO.setResultFailed();
-            resultVO.setMessage(getCommonFailMessage());/* 리스트 조회 중 에러가 발생하였습니다. */
-        }
+        resultVO = examService.listExamQuizPaging(vo);
+        resultVO.setResultSuccess();
         return resultVO;
     }
 
@@ -1230,22 +1243,16 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/tkexamStatPaging.do")
     @ResponseBody
-    public ProcessResultVO<ExamVO> listUserTkexamStatPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamVO> listUserTkexamStatPaging(ExamVO vo, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String sbjctId = vo.getSbjctId();
 
         vo.setSbjctId(sbjctId);
-        try {
-            resultVO = examService.listUserTkexamStatPaging(vo);
-            resultVO.setResultSuccess();
-        } catch(Exception e) {
-            resultVO.setResultFailed();
-            resultVO.setMessage(getCommonFailMessage());/* 리스트 조회 중 에러가 발생하였습니다. */
-        }
+        resultVO = examService.listUserTkexamStatPaging(vo);
+        resultVO.setResultSuccess();
         return resultVO;
     }
 
@@ -1253,28 +1260,19 @@ public class ExamHomeController extends ControllerBase {
      * 성적 공개여부 수정
      * @param ExamVO
      * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/editMrkOyn.do", method = RequestMethod.POST)
     @ResponseBody
-    public ProcessResultVO<ExamVO> updateMrkOyn(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception{
+    public ProcessResultVO<ExamVO> updateMrkOyn(ExamVO vo, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String mrkOyn = vo.getMrkOyn();
         String examBscId = vo.getExamBscId();
 
         vo.setMrkOyn(mrkOyn);
         vo.setExamBscId(examBscId);
-        try {
-            examService.updateMrkOyn(vo);
-            resultVO.setResultSuccess();
-            resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
-        } catch (MediopiaDefineException e) {
-            resultVO.setResultFailed();
-            resultVO.setMessage(e.getMessage());
-        } catch (Exception e) {
-            resultVO.setResultFailed();
-            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
-        }
+        examService.updateMrkOyn(vo);
+        resultVO.setResultSuccess();
+        resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
         return resultVO;
     }
 
@@ -1284,28 +1282,19 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/editMrkRfltrt.do")
     @ResponseBody
-    public ProcessResultVO<ExamBscVO> examMrkRfltrtModifyAjax(@RequestBody List<ExamBscVO> list, ModelMap model, HttpServletRequest request) throws Exception {
+    public ProcessResultVO<ExamBscVO> examMrkRfltrtModifyAjax(@RequestBody List<ExamBscVO> list, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamBscVO> resultVO = new ProcessResultVO<ExamBscVO>();
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
 
-        try {
-            for(ExamBscVO vo : list) {
-                vo.setMdfrId(userId);
-            }
-            examService.examMrkRfltrtListModify(list);
-            resultVO.setResultSuccess();
-            resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
-        }  catch (MediopiaDefineException e) {
-            resultVO.setResultFailed();
-            resultVO.setMessage(e.getMessage());
-        } catch(Exception e) {
-            resultVO.setResultFailed();
-            resultVO.setMessage("수정 중 에러가 발생하였습니다.");
+        for(ExamBscVO vo : list) {
+            vo.setMdfrId(userId);
         }
+        examService.examMrkRfltrtListModify(list);
+        resultVO.setResultSuccess();
+        resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
         return resultVO;
     }
 
@@ -1316,11 +1305,10 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/examModify.do", method = RequestMethod.POST)
     @ResponseBody
-    public ProcessResultVO<ExamVO> updateExamDtlInfo(ExamVO vo, @RequestParam(value = "dtlInfos", defaultValue = "[]") String dtlInfoStr, ModelMap model, HttpServletRequest request) throws Exception{
+    public ProcessResultVO<ExamVO> updateExamDtlInfo(ExamVO vo, @RequestParam(value = "dtlInfos", defaultValue = "[]") String dtlInfoStr, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
         ObjectMapper mapper = new ObjectMapper();
         String examBscId = vo.getExamBscId();
@@ -1353,54 +1341,35 @@ public class ExamHomeController extends ControllerBase {
     }
 
     /*****************************************************
-     * 교수 시험 평가점수 일괄 수정
-     * @param List<Map<String, Object>>
-     * @param model
-     * @param request
-     * @return resultVO
-     * @throws Exception
-     ******************************************************/
-    @RequestMapping(value="/profExamEvlScrBulkModifyAjax.do")
-    @ResponseBody
-    public ProcessResultVO<DefaultVO> profExamEvlScrBulkModifyAjax(@RequestBody List<Map<String, Object>> list, ModelMap model, HttpServletRequest request) throws Exception {
-        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
-        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
-
-        try {
-            for(Map<String, Object> map : list) {
-                map.put("rgtrId", userId);
-            }
-            tkexamRsltService.profQuizEvlScrBulkModify(list);
-            resultVO.setResult(1);
-        } catch(Exception e) {
-            resultVO.setResult(-1);
-            resultVO.setMessage("점수 수정 중 에러가 발생하였습니다.");
-        }
-        return resultVO;
-    }
-
-    /*****************************************************
-     * 대체 시험 수정
+     * 시험 수정
      * @param ExamVO
      * @param dtlInfoStr
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
-    @RequestMapping(value = "/examSbstModify.do", method = RequestMethod.POST)
+    @RequestMapping(value = "/examQuizModify.do", method = RequestMethod.POST)
     @ResponseBody
-    public ProcessResultVO<ExamVO> updateSbstAsmt(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception{
+    public ProcessResultVO<ExamVO> modifyExamQuizDtlInfo(ExamVO vo, @RequestParam(value = "dtlInfos", defaultValue = "[]") String dtlInfoStr, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+        ObjectMapper mapper = new ObjectMapper();
+        String examBscId = vo.getExamBscId();
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
 
-        vo.setMdfrId(userId);                   // 수정자 ID
         try {
             if(ValidationUtils.isEmpty(userId)) {
                 throw new BadRequestUrlException("시스템 오류가 발생하였거나 비정상적인 접근입니다.<br><br>웹브라우저를 다시 시작하여 접속하세요.<br>오류가 지속되면 관리자에게 문의하세요.");
             }
 
-            examService.updateExamSbst(vo);
+            vo.setExamBscId(examBscId);
+            vo.setRgtrId(userId);                   // 등록자 ID
+            vo.setMdfrId(userId);                   // 수정자 ID
+            vo.getExamDtlVO().setRgtrId(userId);    // 등록자 ID
+            vo.getExamDtlVO().setMdfrId(userId);    // 등록자 ID
+            vo.getExamDtlVO().setDtlInfos(mapper.readValue(dtlInfoStr, new TypeReference<List<Map<String, Object>>>() {
+            }));
+
+            examService.modifyExamQuizDtlInfo(vo);
             resultVO.setResultSuccess();
             resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
         }  catch (MediopiaDefineException e) {
@@ -1414,16 +1383,59 @@ public class ExamHomeController extends ControllerBase {
     }
 
     /*****************************************************
+     * 교수 시험 평가점수 일괄 수정
+     * @param List<Map<String, Object>>
+     * @param model
+     * @param request
+     * @return resultVO
+     ******************************************************/
+    @RequestMapping(value="/profExamEvlScrBulkModifyAjax.do")
+    @ResponseBody
+    public ProcessResultVO<DefaultVO> profExamEvlScrBulkModifyAjax(@RequestBody List<Map<String, Object>> list, ModelMap model, HttpServletRequest request) {
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+        ProcessResultVO<DefaultVO> resultVO = new ProcessResultVO<DefaultVO>();
+
+        for(Map<String, Object> map : list) {
+            map.put("rgtrId", userId);
+        }
+        tkexamRsltService.profQuizEvlScrBulkModify(list);
+        resultVO.setResult(1);
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 대체 시험 수정
+     * @param ExamVO
+     * @param dtlInfoStr
+     * @param model
+     * @param request
+     * @return resultVO
+     ******************************************************/
+    @RequestMapping(value = "/examSbstModify.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<ExamVO> updateSbstAsmt(ExamVO vo, ModelMap model, HttpServletRequest request) {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+        String userId = StringUtil.nvl(SessionInfo.getUserId(request));
+
+        vo.setMdfrId(userId);
+        if(ValidationUtils.isEmpty(userId)) {
+            throw new BadRequestUrlException("시스템 오류가 발생하였거나 비정상적인 접근입니다.<br><br>웹브라우저를 다시 시작하여 접속하세요.<br>오류가 지속되면 관리자에게 문의하세요.");
+        }
+        examService.updateExamSbst(vo);
+        resultVO.setResultSuccess();
+        resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
+        return resultVO;
+    }
+
+    /*****************************************************
      * 시험 삭제
      * @param ExamVO
      * @param model
      * @param request
-     * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/examDelete.do", method = RequestMethod.POST)
     @ResponseBody
-    public ProcessResultVO<ExamVO> deleteExamBsc(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception{
+    public ProcessResultVO<ExamVO> deleteExamBsc(ExamVO vo, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String mrkOyn = vo.getMrkOyn();
         String examBscId = vo.getExamBscId();
@@ -1432,17 +1444,10 @@ public class ExamHomeController extends ControllerBase {
         vo.setMrkOyn(mrkOyn);
         vo.setExamBscId(examBscId);
         vo.setByteamSubrexamUseyn(byteamSubrexamUseyn);
-        try {
-            examService.deleteExamBsc(vo);
-            resultVO.setResultSuccess();
-            resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
-        } catch (MediopiaDefineException e) {
-            resultVO.setResultFailed();
-            resultVO.setMessage(e.getMessage());
-        } catch (Exception e) {
-            resultVO.setResultFailed();
-            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
-        }
+
+        examService.deleteExamBsc(vo);
+        resultVO.setResultSuccess();
+        resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
         return resultVO;
     }
 
@@ -1452,26 +1457,35 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return resultVO
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value = "/examSbstDelete.do", method = RequestMethod.POST)
     @ResponseBody
-    public ProcessResultVO<ExamVO> examSbstDelete(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception{
+    public ProcessResultVO<ExamVO> examSbstDelete(ExamVO vo, ModelMap model, HttpServletRequest request) {
         ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
         String userId = StringUtil.nvl(SessionInfo.getUserId(request));
 
-        vo.setMdfrId(userId);                   // 수정자 ID
-        try {
-            examService.deleteExamSbst(vo);
-            resultVO.setResultSuccess();
-            resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
-        } catch (MediopiaDefineException e) {
-            resultVO.setResultFailed();
-            resultVO.setMessage(e.getMessage());
-        } catch (Exception e) {
-            resultVO.setResultFailed();
-            resultVO.setMessage(getCommonFailMessage()); // 에러가 발생했습니다!
-        }
+        vo.setMdfrId(userId);
+
+        examService.deleteExamSbst(vo);
+        resultVO.setResultSuccess();
+        resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 퀴즈 시험 삭제
+     * @param ExamVO
+     * @param model
+     * @param request
+     ******************************************************/
+    @RequestMapping(value = "/examQuizRemove.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<ExamVO> removeExamQuiz(ExamVO vo, ModelMap model, HttpServletRequest request) {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+
+        examService.removeExamQuiz(vo);
+        resultVO.setResultSuccess();
+        resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
         return resultVO;
     }
 
@@ -1481,10 +1495,9 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return excelView
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamTkexamStatusExcelDown.do")
-    public String profExamTkexamStatusExcelDown(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String profExamTkexamStatusExcelDown(ExamVO vo, ModelMap model, HttpServletRequest request) {
         HashMap<String, Object> map = new HashMap<>();
         String title = "시험대상자목록";
 
@@ -1503,7 +1516,6 @@ public class ExamHomeController extends ControllerBase {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         String currentDate = sdf.format(new Date());
 
-
         HashMap<String, Object> modelMap = new HashMap<>();
         modelMap.put("outFileName", title + "_" + currentDate);
 
@@ -1521,10 +1533,9 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return excelView
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profAbsnceStatusExcelDown.do")
-    public String profAbsnceStatusExcelDown(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String profAbsnceStatusExcelDown(ExamVO vo, ModelMap model, HttpServletRequest request) {
         HashMap<String, Object> map = new HashMap<>();
         String title = "결시대상자목록";
 
@@ -1541,7 +1552,6 @@ public class ExamHomeController extends ControllerBase {
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         String currentDate = sdf.format(new Date());
-
 
         HashMap<String, Object> modelMap = new HashMap<>();
         modelMap.put("outFileName", title + "_" + currentDate);
@@ -1560,10 +1570,9 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return excelView
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamScrRegistSampleExcelDown.do")
-    public String profExamScrRegistSampleExcelDown(ExamBscVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String profExamScrRegistSampleExcelDown(ExamBscVO vo, ModelMap model, HttpServletRequest request) {
         String title = getMessage("exam.label.std.list"); // 학습자목록
 
         Map<String, Object> searchMap = new HashMap<String, Object>();
@@ -1597,10 +1606,9 @@ public class ExamHomeController extends ControllerBase {
      * @param model
      * @param request
      * @return excelView
-     * @throws Exception
      ******************************************************/
     @RequestMapping(value="/profExamDsblStatusExcelDown.do")
-    public String profExamDsblStatusExcelDown(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+    public String profExamDsblStatusExcelDown(ExamVO vo, ModelMap model, HttpServletRequest request) {
         HashMap<String, Object> map = new HashMap<>();
         String title = "지원대상자목록";
 
@@ -1618,7 +1626,6 @@ public class ExamHomeController extends ControllerBase {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         String currentDate = sdf.format(new Date());
 
-
         HashMap<String, Object> modelMap = new HashMap<>();
         modelMap.put("outFileName", title + "_" + currentDate);
 
@@ -1627,6 +1634,857 @@ public class ExamHomeController extends ControllerBase {
 
         model.addAllAttributes(modelMap);
 
+        return "excelView";
+    }
+
+    /************************ 학습자 ************************/
+    /*****************************************************
+     * 시험 목록 페이지 (학습자)
+     * @param vo
+     * @param model
+     * @param request
+     * @return view
+     ******************************************************/
+    @RequestMapping(value="/stdntExamListView.do")
+    public String stdntExamListView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String sbjctId = vo.getSbjctId() == null ? "SBJCT20260001" : vo.getSbjctId();
+        String userId = vo.getUserId() == null ? "std1" : vo.getUserId();
+        String dsblYn = examService.stdntDsblSnrYn(userId);
+
+        addEncParam("sbjctId", sbjctId);
+        addEncParam("userId", userId);
+
+        model.addAttribute("vo", vo);
+        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("dsblYn", dsblYn);
+        model.addAttribute("authGrpCd", authGrpCd);
+        model.addAttribute("encParams", getEncParams());
+        model.addAttribute("userInfoPopUrl", CommConst.USER_INFO_POP_URL);
+
+        return "exam/stdnt/exam_list_view";
+    }
+
+    /*****************************************************
+     * 시험 응시 페이지 (시험정보 및 응시 탭)
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return view
+     ******************************************************/
+    @RequestMapping(value="/stdntExamInfoTkexamView.do")
+    public String stdntExamInfoTkexamView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String tabType = StringUtil.nvl(vo.getTabType());
+        String examBscId = StringUtil.nvl(vo.getExamBscId());
+        String tkexamMthdCd = StringUtil.nvl(vo.getTkexamMthdCd());
+        String byteamSubrexamUseyn = StringUtil.nvl(vo.getByteamSubrexamUseyn());
+        String absnceYn = StringUtil.nvl(vo.getAbsnceYn());
+        String dsblYn = StringUtil.nvl(vo.getDsblYn());
+        String tkexamYn = StringUtil.nvl(vo.getTkexamYn());
+        int stdntTkexamStat;
+
+        ExamVO examVO = examService.selectProfExamDtl(vo);
+        String nowDttm = new SimpleDateFormat("yyyyMMddHHmmss").format(new java.util.Date());
+        String examPsblSdttm = StringUtil.nvl(examVO.getExamPsblSdttm());
+        String examPsblEdttm = StringUtil.nvl(examVO.getExamPsblEdttm());
+
+        List<ExamVO> tkexamHstry = null;
+        ExamVO tkexamRslt = null;
+        if (nowDttm.compareTo(examPsblSdttm) >= 0 && nowDttm.compareTo(examPsblEdttm) <= 0) {
+            stdntTkexamStat = 2;    // 시험 진행 중 (시작 후 ~ 종료 전)
+            tkexamHstry = examService.selectStdntTkexamHist(vo);
+        } else if (nowDttm.compareTo(examPsblEdttm) > 0) {
+            stdntTkexamStat = 3;    // 시험 마감 후
+            tkexamRslt = examService.selectStdntTkexamRslt(vo);
+        } else {
+            stdntTkexamStat = 1;    // 시험 시작 전
+        }
+
+        List<ExamVO> examDtlInfoVO = null;
+        ExamVO stdntExamInfo = new ExamVO();    // 시험상세 ID, 팀 Id 를 담고있다.
+        if ("Y".equals(examVO.getByteamSubrexamUseyn())) {
+            examDtlInfoVO = examService.selectProfExamTeamDtl(vo);
+            stdntExamInfo = examService.selectStdntDtlIdAndTeamId(vo);
+
+            // examDtlInfoVO의 모든 항목이 examVO와 동일한 examCts, examTtl을 가질 경우 = 부 주제 미사용(N)
+            // 하나라도 다를 경우 = 부 주제 사용(Y)
+            if (examDtlInfoVO != null && !examDtlInfoVO.isEmpty()) {
+                String baseExamCts = StringUtil.nvl(examVO.getExamCts());
+                String baseExamTtl = StringUtil.nvl(examVO.getExamTtl());
+                boolean allSame = examDtlInfoVO.stream().allMatch(dtl ->
+                        baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
+                                baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
+                );
+                examVO.setTeamGrpSubsbjctUseyn(allSame ? "N" : "Y");
+            }
+        } else {
+            // 팀 시험 아닐경우.. DTL 이 무조건 1건이기에..
+            stdntExamInfo.setExamDtlId(examVO.getExamDtlId());
+        }
+        addEncParam("examBscId", examBscId);
+        addEncParam("tkexamMthdCd", tkexamMthdCd);
+        addEncParam("byteamSubrexamUseyn", byteamSubrexamUseyn);
+        addEncParam("absnceYn", absnceYn);
+        addEncParam("dsblYn", dsblYn);
+        addEncParam("tkexamYn", tkexamYn);
+
+        model.addAttribute("vo", vo);
+        model.addAttribute("examVO", examVO);
+        model.addAttribute("examDtlInfoVO", examDtlInfoVO);
+        model.addAttribute("stdntExamInfo", stdntExamInfo);
+        model.addAttribute("tkexamHstry", tkexamHstry);
+        model.addAttribute("tkexamRslt", tkexamRslt);
+        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("authGrpCd", authGrpCd);
+        model.addAttribute("encParams", getEncParams());
+        model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
+        model.addAttribute("stdntTkexamStat", stdntTkexamStat);
+        examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
+
+        return "exam/stdnt/exam_info_tkexam";
+    }
+
+    /*****************************************************
+     * 시험 시험대체 페이지 (시험대체 탭)
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return view
+     ******************************************************/
+    @RequestMapping(value="/stdntExamInfoSbstView.do")
+    public String stdntExamInfoSbstView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String tabType = StringUtil.nvl(vo.getTabType());
+        String examBscId = StringUtil.nvl(vo.getExamBscId());
+        String tkexamMthdCd = StringUtil.nvl(vo.getTkexamMthdCd());
+        String byteamSubrexamUseyn = StringUtil.nvl(vo.getByteamSubrexamUseyn());
+        String absnceYn = StringUtil.nvl(vo.getAbsnceYn());
+        String dsblYn = StringUtil.nvl(vo.getDsblYn());
+        String tkexamYn = StringUtil.nvl(vo.getTkexamYn());
+        int stdntTkexamStat;
+
+        ExamVO examVO = examService.selectProfExamDtl(vo);
+        ExamVO sbstVO = examService.selectStdntSbstInfo(vo);
+        String gbn = sbstVO.getGbn();
+        String nowDttm = new SimpleDateFormat("yyyyMMddHHmmss").format(new java.util.Date());
+        String examPsblSdttm;
+        String examPsblEdttm;
+
+        if (gbn.equals("ASMT")) {
+            examPsblSdttm = StringUtil.nvl(sbstVO.getAsmtSbmsnSdttm());
+            examPsblEdttm = StringUtil.nvl(sbstVO.getAsmtSbmsnEdttm());
+        } else {
+            examPsblSdttm = StringUtil.nvl(sbstVO.getExamPsblSdttm());
+            examPsblEdttm = StringUtil.nvl(sbstVO.getExamPsblEdttm());
+        }
+
+        List<ExamVO> asmtHstry = null;
+        ExamVO asmtRslt = null;
+        List<ExamVO> quizHstry = null;
+        ExamVO quizRslt = null;
+        if (nowDttm.compareTo(examPsblSdttm) >= 0 && nowDttm.compareTo(examPsblEdttm) <= 0) {
+            stdntTkexamStat = 2;    // 시험 진행 중 (시작 후 ~ 종료 전)
+            if (gbn.equals("ASMT")) {
+                // 대체 과제 제출이력 조회 List
+                ExamVO asmtVO = new ExamVO();
+                asmtVO.setAsmtId(sbstVO.getAsmtId());
+                asmtVO.setUserId(vo.getUserId());
+                asmtHstry = examService.selectStdntSbstAsmtSbmtHist(asmtVO);
+            } else {
+                // 대체 퀴즈 응시이력 조회 List
+                ExamVO quizVO = new ExamVO();
+                quizVO.setExamBscId(sbstVO.getQuizBscId());
+                quizVO.setUserId(vo.getUserId());
+                quizHstry = examService.selectStdntTkexamHist(quizVO);
+                quizRslt  = examService.selectStdntTkexamRslt(quizVO);
+            }
+        } else if (nowDttm.compareTo(examPsblEdttm) > 0) {
+            stdntTkexamStat = 3;    // 시험 마감 후
+            if (gbn.equals("ASMT")) {
+                // 대체 과제 평가결과 조회
+                ExamVO asmtVO = new ExamVO();
+                asmtVO.setAsmtId(sbstVO.getAsmtId());
+                asmtVO.setUserId(vo.getUserId());
+                asmtRslt = examService.selectStdntSbstAsmtRslt(asmtVO);
+            } else {
+                // 대체 퀴즈 응시결과 조회
+                ExamVO quizVO = new ExamVO();
+                quizVO.setExamBscId(sbstVO.getQuizBscId());
+                quizVO.setUserId(vo.getUserId());
+                quizRslt = examService.selectStdntTkexamRslt(quizVO);
+            }
+        } else {
+            stdntTkexamStat = 1;    // 시험 시작 전
+        }
+
+        List<ExamVO> examDtlInfoVO = null;
+        if ("Y".equals(examVO.getByteamSubrexamUseyn())) {
+            examDtlInfoVO = examService.selectProfExamTeamDtl(vo);
+
+            // examDtlInfoVO의 모든 항목이 examVO와 동일한 examCts, examTtl을 가질 경우 = 부 주제 미사용(N)
+            // 하나라도 다를 경우 = 부 주제 사용(Y)
+            if (examDtlInfoVO != null && !examDtlInfoVO.isEmpty()) {
+                String baseExamCts = StringUtil.nvl(examVO.getExamCts());
+                String baseExamTtl = StringUtil.nvl(examVO.getExamTtl());
+                boolean allSame = examDtlInfoVO.stream().allMatch(dtl ->
+                        baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
+                                baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
+                );
+                examVO.setTeamGrpSubsbjctUseyn(allSame ? "N" : "Y");
+            }
+        }
+        addEncParam("examBscId", examBscId);
+        addEncParam("tkexamMthdCd", tkexamMthdCd);
+        addEncParam("byteamSubrexamUseyn", byteamSubrexamUseyn);
+        addEncParam("absnceYn", absnceYn);
+        addEncParam("dsblYn", dsblYn);
+        addEncParam("tkexamYn", tkexamYn);
+
+        if ("QUIZ".equals(gbn)) {
+            addEncParam("examBscId", sbstVO.getQuizBscId());    // quiz ID로 임시 교체
+            model.addAttribute("quizEncParams", getEncParams());
+            addEncParam("examBscId", examBscId);                // main ID로 복원
+        }
+
+        model.addAttribute("vo", vo);
+        model.addAttribute("examVO", examVO);
+        model.addAttribute("examDtlInfoVO", examDtlInfoVO);
+        model.addAttribute("sbstVO", sbstVO);
+        model.addAttribute("asmtHstry", asmtHstry);
+        model.addAttribute("asmtRslt", asmtRslt);
+        model.addAttribute("quizHstry", quizHstry);
+        model.addAttribute("quizRslt", quizRslt);
+        model.addAttribute("stdntTkexamStat", stdntTkexamStat);
+        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("authGrpCd", authGrpCd);
+        model.addAttribute("encParams", getEncParams());
+        model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
+        String uploadPath;
+        if (gbn.equals("ASMT")) {
+            uploadPath = RepoInfo.getAtflRepo(request, CommConst.REPO_ASMT, sbstVO.getAsmtId());
+        } else {
+            uploadPath = RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId);
+        }
+        examVO.setUploadPath(uploadPath);
+        model.addAttribute("uploadPath", uploadPath);
+
+        return "exam/stdnt/exam_info_sbst";
+    }
+
+    /*****************************************************
+     * 시험 결시신청 및 결과 페이지 (결시신청 및 결과 탭)
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return view
+     ******************************************************/
+    @RequestMapping(value="/stdntExamInfoAbsnceRsltView.do")
+    public String stdntExamInfoAbsnceRsltView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String tabType = StringUtil.nvl(vo.getTabType());
+        String examBscId = StringUtil.nvl(vo.getExamBscId());
+        String tkexamMthdCd = StringUtil.nvl(vo.getTkexamMthdCd());
+        String byteamSubrexamUseyn = StringUtil.nvl(vo.getByteamSubrexamUseyn());
+        String absnceYn = StringUtil.nvl(vo.getAbsnceYn());
+        String dsblYn = StringUtil.nvl(vo.getDsblYn());
+        String tkexamYn = StringUtil.nvl(vo.getTkexamYn());
+
+        ExamVO examVO = examService.selectProfExamDtl(vo);
+        List<ExamVO> examDtlInfoVO = null;
+        if ("Y".equals(examVO.getByteamSubrexamUseyn())) {
+            examDtlInfoVO = examService.selectProfExamTeamDtl(vo);
+
+            // examDtlInfoVO의 모든 항목이 examVO와 동일한 examCts, examTtl을 가질 경우 = 부 주제 미사용(N)
+            // 하나라도 다를 경우 = 부 주제 사용(Y)
+            if (examDtlInfoVO != null && !examDtlInfoVO.isEmpty()) {
+                String baseExamCts = StringUtil.nvl(examVO.getExamCts());
+                String baseExamTtl = StringUtil.nvl(examVO.getExamTtl());
+                boolean allSame = examDtlInfoVO.stream().allMatch(dtl ->
+                        baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
+                                baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
+                );
+                examVO.setTeamGrpSubsbjctUseyn(allSame ? "N" : "Y");
+            }
+        }
+        addEncParam("examBscId", examBscId);
+        addEncParam("tkexamMthdCd", tkexamMthdCd);
+        addEncParam("byteamSubrexamUseyn", byteamSubrexamUseyn);
+        addEncParam("absnceYn", absnceYn);
+        addEncParam("dsblYn", dsblYn);
+        addEncParam("tkexamYn", tkexamYn);
+
+        model.addAttribute("vo", vo);
+        model.addAttribute("examVO", examVO);
+        model.addAttribute("examDtlInfoVO", examDtlInfoVO);
+        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("authGrpCd", authGrpCd);
+        model.addAttribute("encParams", getEncParams());
+        model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
+        examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
+
+        return "exam/stdnt/exam_info_absnce_rslt";
+    }
+
+    /*****************************************************
+     * 시험 장애인/고령자 지원 페이지 (장애인/고령자 지원 탭)
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return view
+     ******************************************************/
+    @RequestMapping(value="/stdntExamInfoDsblView.do")
+    public String stdntExamInfoDsblView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String tabType = StringUtil.nvl(vo.getTabType());
+        String examBscId = StringUtil.nvl(vo.getExamBscId());
+        String tkexamMthdCd = StringUtil.nvl(vo.getTkexamMthdCd());
+        String byteamSubrexamUseyn = StringUtil.nvl(vo.getByteamSubrexamUseyn());
+        String absnceYn = StringUtil.nvl(vo.getAbsnceYn());
+        String dsblYn = StringUtil.nvl(vo.getDsblYn());
+        String tkexamYn = StringUtil.nvl(vo.getTkexamYn());
+        String isAply;
+
+        ExamVO examVO = examService.selectProfExamDtl(vo);
+        List<ExamVO> examDtlInfoVO = null;
+        if ("Y".equals(examVO.getByteamSubrexamUseyn())) {
+            examDtlInfoVO = examService.selectProfExamTeamDtl(vo);
+
+            // examDtlInfoVO의 모든 항목이 examVO와 동일한 examCts, examTtl을 가질 경우 = 부 주제 미사용(N)
+            // 하나라도 다를 경우 = 부 주제 사용(Y)
+            if (examDtlInfoVO != null && !examDtlInfoVO.isEmpty()) {
+                String baseExamCts = StringUtil.nvl(examVO.getExamCts());
+                String baseExamTtl = StringUtil.nvl(examVO.getExamTtl());
+                boolean allSame = examDtlInfoVO.stream().allMatch(dtl ->
+                        baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
+                                baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
+                );
+                examVO.setTeamGrpSubsbjctUseyn(allSame ? "N" : "Y");
+            }
+        }
+        addEncParam("examBscId", examBscId);
+        addEncParam("tkexamMthdCd", tkexamMthdCd);
+        addEncParam("byteamSubrexamUseyn", byteamSubrexamUseyn);
+        addEncParam("absnceYn", absnceYn);
+        addEncParam("dsblYn", dsblYn);
+        addEncParam("tkexamYn", tkexamYn);
+
+        ExamVO sprtRsltVO = examService.selectStdntSprtAplyInfo(vo);
+
+        // Todo : 장애인/고령자 시험지원 신청 기간내인지 구분하는 로직 필요. (isAply 를 Y, N 으로 변경 하는 기능)
+        isAply = "Y";
+
+        model.addAttribute("vo", vo);
+        model.addAttribute("examVO", examVO);
+        model.addAttribute("examDtlInfoVO", examDtlInfoVO);
+        model.addAttribute("sprtRsltVO", sprtRsltVO);
+        model.addAttribute("isAply", isAply);
+        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("authGrpCd", authGrpCd);
+        model.addAttribute("encParams", getEncParams());
+        model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
+        examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, examBscId));
+
+        return "exam/stdnt/exam_info_dsbl";
+    }
+
+    /*****************************************************
+     * 시험 시험정보 및 응시(퀴즈) 페이지 (시험정보 및 응시(퀴즈) 탭)
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return view
+     ******************************************************/
+    @RequestMapping(value="/stdntExamInfoQuizView.do")
+    public String stdntExamInfoQuizView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        // 사용자 접속상태 저장
+        // logUserConnService.saveUserConnState(request, CommConst.CONN_EXAM);
+        String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
+        String orgId = StringUtil.nvl(SessionInfo.getOrgId(request));
+        String authGrpCd = StringUtil.nvl(SessionInfo.getAuthrtCd(request));
+        String tabType = StringUtil.nvl(vo.getTabType());
+        String examBscId = StringUtil.nvl(vo.getExamBscId());
+        String tkexamMthdCd = StringUtil.nvl(vo.getTkexamMthdCd());
+        String byteamSubrexamUseyn = StringUtil.nvl(vo.getByteamSubrexamUseyn());
+        String absnceYn = StringUtil.nvl(vo.getAbsnceYn());
+        String dsblYn = StringUtil.nvl(vo.getDsblYn());
+        String tkexamYn = StringUtil.nvl(vo.getTkexamYn());
+        int stdntTkexamStat;
+
+        ExamVO examVO = examService.selectProfExamDtl(vo);
+        String nowDttm = new SimpleDateFormat("yyyyMMddHHmmss").format(new java.util.Date());
+        String examPsblSdttm = StringUtil.nvl(examVO.getExamPsblSdttm());
+        String examPsblEdttm = StringUtil.nvl(examVO.getExamPsblEdttm());
+
+        // 퀴즈 ID 조회
+        vo.setQuizBscId(examService.selectExamQuizBscId(vo.getExamBscId()));
+        vo.setExamBscId(vo.getQuizBscId()); // 퀴즈에 대한 기록을 조회 해야 하므로..
+
+        List<ExamVO> tkexamHstry = null;
+        ExamVO tkexamRslt = null;
+        if (nowDttm.compareTo(examPsblSdttm) >= 0 && nowDttm.compareTo(examPsblEdttm) <= 0) {
+            stdntTkexamStat = 2;    // 시험 진행 중 (시작 후 ~ 종료 전)
+            tkexamHstry = examService.selectStdntTkexamHist(vo);
+        } else if (nowDttm.compareTo(examPsblEdttm) > 0) {
+            stdntTkexamStat = 3;    // 시험 마감 후
+            tkexamRslt = examService.selectStdntTkexamRslt(vo);
+        } else {
+            stdntTkexamStat = 1;    // 시험 시작 전
+        }
+
+        List<ExamVO> examDtlInfoVO = null;
+        ExamVO stdntExamInfo = new ExamVO();    // 시험상세 ID, 팀 Id 를 담고있다.
+        if ("Y".equals(examVO.getByteamSubrexamUseyn())) {
+            stdntExamInfo = examService.selectStdntDtlIdAndTeamId(vo);
+            vo.setExamBscId(examBscId); // 시험 원본의 상세조회를 해야 함.
+            examDtlInfoVO = examService.selectProfExamTeamDtl(vo);
+            vo.setExamBscId(vo.getQuizBscId()); // 페이지에 넘겨줄 땐, 퀴즈의 ID 를 넘김
+
+            // examDtlInfoVO의 모든 항목이 examVO와 동일한 examCts, examTtl을 가질 경우 = 부 주제 미사용(N)
+            // 하나라도 다를 경우 = 부 주제 사용(Y)
+            if (examDtlInfoVO != null && !examDtlInfoVO.isEmpty()) {
+                String baseExamCts = StringUtil.nvl(examVO.getExamCts());
+                String baseExamTtl = StringUtil.nvl(examVO.getExamTtl());
+                boolean allSame = examDtlInfoVO.stream().allMatch(dtl ->
+                        baseExamCts.equals(StringUtil.nvl(dtl.getExamCts())) &&
+                                baseExamTtl.equals(StringUtil.nvl(dtl.getExamTtl()))
+                );
+                examVO.setTeamGrpSubsbjctUseyn(allSame ? "N" : "Y");
+            }
+        } else {
+            // 팀 시험 아닐경우.. DTL 이 무조건 1건이기에..
+            stdntExamInfo.setExamDtlId(examService.selectStdntQuizDtlId(vo));
+        }
+        addEncParam("examBscId", vo.getQuizBscId());
+        addEncParam("tkexamMthdCd", tkexamMthdCd);
+        addEncParam("byteamSubrexamUseyn", byteamSubrexamUseyn);
+        addEncParam("absnceYn", absnceYn);
+        addEncParam("dsblYn", dsblYn);
+        addEncParam("tkexamYn", tkexamYn);
+
+        model.addAttribute("vo", vo);
+        model.addAttribute("examVO", examVO);
+        model.addAttribute("examDtlInfoVO", examDtlInfoVO);
+        model.addAttribute("stdntExamInfo", stdntExamInfo);
+        model.addAttribute("tkexamHstry", tkexamHstry);
+        model.addAttribute("tkexamRslt", tkexamRslt);
+        model.addAttribute("menuType", menuType.contains("USR") ? "USR" : "PROF");
+        model.addAttribute("orgId", orgId);
+        model.addAttribute("authGrpCd", authGrpCd);
+        model.addAttribute("encParams", getEncParams());
+        model.addAttribute("examType", StringUtil.nvl(vo.getExamType()));
+        model.addAttribute("stdntTkexamStat", stdntTkexamStat);
+        examVO.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM, vo.getQuizBscId()));
+
+        return "exam/stdnt/exam_info_quiz";
+    }
+
+    /*****************************************************
+     * 학습자 피드백 팝업
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return view
+     ******************************************************/
+    @RequestMapping(value="/sbstAsmtFdbkPopup.do")
+    public String sbstAsmtFdbkPopup(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        init(request, model, vo);
+
+        String asmtId = examService.selectStdntSbstAsmtId(vo);
+
+        AsmtFdbkVO asmtFdbkVO = new AsmtFdbkVO();
+        asmtFdbkVO.setAsmtId(asmtId);
+        asmtFdbkVO.setUserId(vo.getUserId());
+
+        ProcessResultVO<EgovMap> result = asmtFdbkService.asmtFdbkList(asmtFdbkVO);
+
+        vo.setAsmtId(asmtId);
+        ExamVO examUserInfo = examService.selectStdntSbstAsmtFdbkInfo(vo);
+        model.addAttribute("examUserInfo", examUserInfo);
+        model.addAttribute("fdbkList", result.getReturnList());
+
+        return "exam/stdnt/popup/stdnt_fdbk_pop";
+    }
+
+    /*****************************************************
+     * 학습자 팀 구성원 팝업
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return view
+     ******************************************************/
+    @RequestMapping(value="/stdntTeamMbrPopup.do")
+    public String stdntTeamMbrPopup(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        init(request, model, vo);
+
+        List<EgovMap> teamMbrList = teamGrpMgrService.listTeamMembers(vo.getTeamId());
+        model.addAttribute("teamMbrList", teamMbrList);
+
+        return "exam/stdnt/popup/stdnt_team_mbr_pop";
+    }
+
+    /*****************************************************
+     * 학습자 결시신청 팝업
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return resultVO
+     ******************************************************/
+    @RequestMapping(value="/stdntAbsnceApplyPopup.do")
+    public String stdntAbsnceApplyPopup(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String examBscId = vo.getExamBscId();
+        String userId = vo.getUserId();
+        String isReject;
+
+        vo.setExamBscId(examBscId);
+        vo.setUserId(userId);
+
+        if ("4".equals(vo.getAbsnceAplyStscd())) {
+            isReject = "Y";
+        } else {
+            isReject = "N";
+        }
+
+        ExamVO examVO = examService.selectStdntAbsnceInfo(vo);
+        model.addAttribute("vo", vo);
+        model.addAttribute("absnceRslt", examVO);
+        model.addAttribute("isReject", isReject);
+        vo.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM));
+        return "exam/stdnt/popup/stdnt_absnce_aply_pop";
+    }
+
+    /*****************************************************
+     * 학습자 결시신청 결과 팝업
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return resultVO
+     ******************************************************/
+    @RequestMapping(value="/stdntAbsnceRsltPopup.do")
+    public String stdntAbsnceRsltPopup(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        String examBscId = vo.getExamBscId();
+        String userId = vo.getUserId();
+
+        vo.setExamBscId(examBscId);
+        vo.setUserId(userId);
+
+        ExamVO examVO = examService.selectAbsnceRslt(vo);
+        model.addAttribute("absnceRslt", examVO);
+        vo.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM));
+        return "exam/stdnt/popup/stdnt_absnce_rslt_pop";
+    }
+
+    /*****************************************************
+     * 학습자 장애인/고령자 시험지원 신청 팝업
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return resultVO
+     ******************************************************/
+    @RequestMapping(value="/stdntSprtAplyPopup.do")
+    public String stdntSprtAplyPopup(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+//        String sbjctId = vo.getSbjctId();
+//        String userId = vo.getUserId();
+//
+//        vo.setSbjctId(sbjctId);
+//        vo.setUserId(userId);
+
+        ExamVO examVO = examService.selectStdntSprtAplyInfo(vo);
+        model.addAttribute("vo", vo);
+        model.addAttribute("stdntInfo", examVO);
+        vo.setUploadPath(RepoInfo.getAtflRepo(request, CommConst.REPO_EXAM));
+        return "exam/stdnt/popup/stdnt_sprt_aply_pop";
+    }
+
+    /*****************************************************
+     * 학습자 결시신청 등록
+     * @param ExamVO
+     * @param RequestParam
+     * @param model
+     * @param request
+     * @return resultVO
+     ******************************************************/
+    @RequestMapping(value = "/examStdntAbsnceApply.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<ExamVO> examStdntAbsnceRegist(ExamVO vo, ModelMap model, HttpServletRequest request) {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+
+        resultVO.setReturnVO(examService.registStdntAbsnce(vo));
+        resultVO.setResultSuccess();
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 학습자 장애인/고령자 시험지원 등록
+     * @param ExamVO
+     * @param RequestParam
+     * @param model
+     * @param request
+     * @return resultVO
+     ******************************************************/
+    @RequestMapping(value = "/examStdntSprtApply.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<ExamVO> examStdntSprtRegist(ExamVO vo, ModelMap model, HttpServletRequest request) {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+
+        resultVO.setReturnVO(examService.registStdntSprtAply(vo));
+        resultVO.setResultSuccess();
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 학습자 시험목록 페이징
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return resultVO
+     ******************************************************/
+    @RequestMapping(value="/stdntExamPaging.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> listStdntExamPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+        String orgId   = SessionInfo.getOrgId(request);
+        String examTtl = StringUtil.nvl(request.getParameter("examTtl"));
+//        String sbjctId = StringUtil.nvl(vo.getSbjctId(), "SBJCT20260001");
+//        String userId  = StringUtil.nvl(vo.getUserId(),  "std1");
+
+        vo.setOrgId(orgId);
+        vo.setExamTtl(examTtl);
+//        vo.setSbjctId(sbjctId);
+//        vo.setUserId(userId);
+
+        addEncParam("examTtl", examTtl);
+
+        resultVO = examService.listStdntExamPaging(vo);
+        resultVO.setResultSuccess();
+        resultVO.setEncParams(getEncParams());
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 학습자 결시목록 페이징
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return resultVO
+     ******************************************************/
+    @RequestMapping(value="/stdntAbsncePaging.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> listStdntAbsncePaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+//        String sbjctId = StringUtil.nvl(vo.getSbjctId(), "SBJCT20260001");
+//        String userId  = StringUtil.nvl(vo.getUserId(), "std1");
+//
+//        vo.setSbjctId(sbjctId);
+//        vo.setUserId(userId);
+
+        resultVO = examService.listStdntAbsncePaging(vo);
+        resultVO.setResultSuccess();
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 학습자 장애인/고령자 시험지원 신청 목록 페이징
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return resultVO
+     ******************************************************/
+    @RequestMapping(value="/stdntSprtAplyPaging.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> listStdntSprtAplyPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+//        String sbjctId = StringUtil.nvl(vo.getSbjctId(), "SBJCT20260001");
+//        String userId  = StringUtil.nvl(vo.getUserId(), "std1");
+//
+//        vo.setSbjctId(sbjctId);
+//        vo.setUserId(userId);
+
+        resultVO = examService.listStdntSprtAplyPaging(vo);
+        resultVO.setResultSuccess();
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 학습자 장애인/고령자 시험지원 취소
+     * @param ExamVO
+     * @param dtlInfoStr
+     * @param model
+     * @param request
+     * @return resultVO
+     ******************************************************/
+    @RequestMapping(value = "/examStdntSprtCnclApply.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<ExamVO> modifyStdntSprtCnclAply(ExamVO vo, ModelMap model, HttpServletRequest request) {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+
+        examService.modifyStdntSprtCnclAply(vo);
+        resultVO.setResultSuccess();
+        resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
+        return resultVO;
+    }
+
+    /************************ 관리자 ************************/
+
+    /*****************************************************
+     * 시험 장애인/고령자 지원 페이지 (장애인/고령자 지원 탭)
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return view
+     ******************************************************/
+    @RequestMapping(value="/admDsblSnrSprtView.do")
+    public String admDsblSnrSprtView(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+
+        PageInfo pageInfo = new PageInfo();
+        pageInfo.setOrgId(vo.getOrgId());
+        pageInfo.setDeptId(vo.getDeptId());
+
+        model.addAttribute("orgList", orgService.orgListSelect());
+//        model.addAttribute("deptList", usrDeptCdService.admByOrgDeptList(pageInfo));
+        model.addAttribute("sbjctList", subjectService.admByOrgByDeptSubjectSelect(pageInfo));
+
+        return "exam/adm/dsbl_snr_sprt_mng";
+    }
+
+    /*****************************************************
+     * 관리자 장애인/고령자 지원관리 신청 목록 페이징
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return resultVO
+     ******************************************************/
+    @RequestMapping(value="/admSprtAplyPaging.do")
+    @ResponseBody
+    public ProcessResultVO<ExamVO> listAdmSprtAplyPaging(ExamVO vo, ModelMap model, HttpServletRequest request) throws Exception {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<>();
+
+        resultVO = examService.listAdmSprtAplyPaging(vo);
+        resultVO.setResultSuccess();
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 관리자 장애인/고령자 지원관리 승인,반려 팝업
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return view
+     ******************************************************/
+    @RequestMapping(value="/admSprtAplyPopup.do")
+    public String admSprtAplyPopup(ExamVO vo, ModelMap model, HttpServletRequest request) {
+        ExamVO sprtAplyDtl = examService.selectAdmSprtAplyDtl(vo);
+
+        model.addAttribute("sprtAplyDtl", sprtAplyDtl);
+        return "exam/adm/popup/adm_exam_dsbl_aply_dtl_pop";
+    }
+
+    /*****************************************************
+     * 관리자 장애인/고령자 지원관리 취소 승인,반려 팝업
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return view
+     ******************************************************/
+    @RequestMapping(value="/admSprtAplyCnclPopup.do")
+    public String admSprtAplyCnclPopup(ExamVO vo, ModelMap model, HttpServletRequest request) {
+        model.addAttribute("vo", vo);
+        return "exam/adm/popup/adm_exam_dsbl_aply_cncl_pop";
+    }
+
+    /*****************************************************
+     * 관리자 장애인/고령자 지원관리 승인,반려 상태 수정
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return resultVO
+     ******************************************************/
+    @RequestMapping(value = "/admModifySprtAplyStat.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<ExamVO> modifySprtAplyStat(ExamVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+        String userId = userCtx.getUserId();
+
+        vo.setAutzrId(userId);
+        vo.setMdfrId(userId);
+        examService.modifySprtAplyStat(vo);
+        resultVO.setResultSuccess();
+        resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 관리자 장애인/고령자 지원관리 취소 승인,반려 상태 수정
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return resultVO
+     ******************************************************/
+    @RequestMapping(value = "/admModifySprtAplyCnclStat.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ProcessResultVO<ExamVO> modifySprtAplyCnclStat(ExamVO vo, @CurrentUser UserContext userCtx, ModelMap model, HttpServletRequest request) {
+        ProcessResultVO<ExamVO> resultVO = new ProcessResultVO<ExamVO>();
+        String userId = userCtx.getUserId();
+
+        vo.setAutzrId(userId);
+        vo.setMdfrId(userId);
+        examService.modifySprtAplyCnclStat(vo);
+        resultVO.setResultSuccess();
+        resultVO.setMessage(getMessage("success.common.save")); // 정상적으로 저장되었습니다.
+        return resultVO;
+    }
+
+    /*****************************************************
+     * 관리자 장애인/고령자 지원관리 엑셀 다운로드
+     * @param ExamVO
+     * @param model
+     * @param request
+     * @return excelView
+     ******************************************************/
+    @RequestMapping(value = "/admSprtAplyExcelDown.do")
+    public String admSprtAplyExcelDown(ExamVO vo, ModelMap model, HttpServletRequest request) {
+        HashMap<String, Object> map = new HashMap<>();
+        String title = "장애인고령자지원관리목록";
+
+        map.put("title",     title);
+        map.put("sheetName", title);
+        map.put("excelGrid", vo.getExcelGrid());
+        map.put("list",      examService.listAdmSprtAply(vo));
+        map.put("ext",       ".xlsx(big)");
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        String currentDate = sdf.format(new Date());
+
+        HashMap<String, Object> modelMap = new HashMap<>();
+        modelMap.put("outFileName", title + "_" + currentDate);
+
+        ExcelUtilPoi excelUtilPoi = new ExcelUtilPoi();
+        modelMap.put("workbook", excelUtilPoi.simpleGrid(map));
+
+        model.addAllAttributes(modelMap);
         return "excelView";
     }
 
@@ -1841,7 +2699,7 @@ public class ExamHomeController extends ControllerBase {
         return resultVO;
     }
 
-    /***************************************************** 
+    /*****************************************************
      * 시험 서약서 엑셀 다운로드
      * @param ExamOathVO
      * @return "excelView"
@@ -3344,7 +4202,7 @@ public class ExamHomeController extends ControllerBase {
 
         Locale locale = LocaleUtil.getLocale(request);
         String menuType = StringUtil.nvl(SessionInfo.getAuthrtGrpcd(request));
-        
+
         /*
         if(!(menuType.contains("PROF") || menuType.contains("ADM"))) {
             throw new AccessDeniedException(getCommonNoAuthMessage()); 페이지 접근 권한이 없습니다.

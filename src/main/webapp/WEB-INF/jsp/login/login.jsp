@@ -12,27 +12,21 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%//jsp/login/login.jsp-------------------------------------------------%>
 <%
 String homeUrl = "";
 String noSSO = "";
-String orgDomainNm = "";
+String orgnm = "";
 
 if (SessionInfo.isLogin(request)) {
 	homeUrl = "/dashboard/main.do";
 }
-else {
-	/*
-	String serverName = request.getServerName();
-	orgDomainNm = MainOrgInfo.getOrgDomain(request);
-	*/
-	// 외부기관 접속인 경우 전달 URI값(orgId) 확인 
-	noSSO = StringUtil.nvl((String)request.getSession().getAttribute("noSSO"));
-	orgDomainNm = StringUtil.nvl(SessionInfo.getOrgDomain(request));
+else {	
 	
 	if (!"".equals(noSSO)) {
 		request.getSession().removeAttribute("noSSO");
 		
-		if (!"".equals(orgDomainNm)) {
+		if (!"".equals(orgnm)) {
 			// 외부기관은 영문을 기본으로
 			LocaleUtil.setLocale(request, "en");
 			%>
@@ -71,7 +65,7 @@ String displayCountry = locale.getDisplayCountry();
 String country = locale.getCountry();
 
 %>
-<%@include file="/WEB-INF/jsp/common/common.jsp" %>
+<%@include file="/WEB-INF/jsp/common_new/common.jsp" %>
 <html lang="ko">
 <head>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
@@ -129,7 +123,7 @@ String country = locale.getCountry();
 	});
 
 	function doLogin(id){
-		if(id != null){
+		/* if(id != null){
 			$("#inputId").val(id);
 			$("#inputPwd").val("1111");
 		}
@@ -138,7 +132,25 @@ String country = locale.getCountry();
 		if($("#inputPwd").val().trim() == "") return false;
 
 		$("#orgNm").val($("#orgId option:selected").text());
-		$("#loginForm").submit();
+		$("#loginForm").submit(); */
+		
+		// 빈값 체크 시 알림(alert)을 주어 흐름을 명확히 확인
+	    if($("#inputId").val().trim() == "") {
+	        alert("아이디를 입력해주세요.");
+	        $("#inputId").focus();
+	        return false;
+	    }
+	    if($("#inputPwd").val().trim() == "") {
+	        alert("비밀번호를 입력해주세요.");
+	        $("#inputPwd").focus();
+	        return false;
+	    }
+
+	    // 대소문자 매칭 주의: id가 'orgnm'이므로 소문자로 선택해야 합니다.
+	    $("#orgnm").val($("#orgId option:selected").text());
+	    
+	    // 폼 전송 실행
+	    $("#loginForm").attr("action", "/loginProc.do").submit();
 	}
 	
 	function changeOrg() {
@@ -153,6 +165,14 @@ String country = locale.getCountry();
 			$("#ssoLoginBtn").css("visibility", "hidden");
 		}
 	}
+	
+	$(document).ready(function() {
+	    // [로그인 화면 진입 시 실행]
+	    // 브라우저가 기억하고 있던 과거 관리자 메뉴의 모든 잔재를 완벽하게 삭제합니다.
+	    sessionStorage.removeItem("LAST_ADMIN_TOP_MENU_ID");
+	    sessionStorage.removeItem("LAST_ADMIN_MENU_ID");
+	    sessionStorage.removeItem("LAST_ADMIN_TOP_MENU_NM");
+	});
 </script>
 <body class="<%=SessionInfo.getThemeMode(request)%>">
 	<%
@@ -196,7 +216,7 @@ String country = locale.getCountry();
 		            <form class="ui form lmsLogin" id="loginForm" method="POST" action="/loginProc.do" autocomplete="off">
 	                    <div class="loginHedaer">
 	                    	<%
-	                    	if (!"".equals(orgDomainNm)) {
+	                    	if (!"".equals(orgnm)) {
 	                    		%>
 	                    		<img src="/webdoc/img/login_logo_en.svg" alt="KNOU LOGO">
 	                    		<%
@@ -225,12 +245,12 @@ String country = locale.getCountry();
 				        %>
 		            
 		                <div>
-		                    <input type="hidden" id="orgNm" name="orgNm">
+		                    <input type="hidden" id="orgnm" name="orgnm">
 		                    <select id="orgId" name="orgId" onchange="changeOrg()">
 		                    	<%
 		                    	for (OrgInfoVO vo : orgList) {
 		                    		%>
-		                    		<option value="<%=vo.getOrgId()%>" <%=(vo.getDomainNm().equals(orgDomainNm) ? "selected='selected'" : "")%>><%=vo.getOrgNm()%></option>
+		                    		<option value="<%=vo.getOrgId()%>" <%=(vo.getDmnnm().equals(orgnm) ? "selected='selected'" : "")%>><%=vo.getOrgnm()%></option>
 		                    		<%
 		                    	}
 		                    	%>

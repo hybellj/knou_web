@@ -6,7 +6,7 @@
 <%@ include file="/WEB-INF/jsp/common/common_inc.jsp" %>
 <link rel="stylesheet" type="text/css" href="/webdoc/dm_assets/css/classroom.css" />
 
-<body class="class colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="class ${uiex:getTheme()} "><!-- 컬러선택시 클래스변경 -->
 	<div id="wrap" class="main">
 		<!-- common header -->
 			<jsp:include page="../dm_inc/class_header.jsp">
@@ -1454,7 +1454,7 @@
                                                     <span>지각<strong>3</strong></span>
                                                     <span>결석<strong>1</strong></span>
                                                 </div>
-                                                <button class="btn s_basic set">세미나관리</button>                                                
+                                                <button class="btn s_basic set">세미나관리</button>                                               
                                             </div>
 
                                             <div class="seminar_detail">

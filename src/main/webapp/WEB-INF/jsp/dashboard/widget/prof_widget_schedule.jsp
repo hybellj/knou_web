@@ -13,15 +13,6 @@
 	    </li>
 	    <li>
 	        <div class="item_box">
-	            <div class="s_date">03.05 ~ 03.12</div>
-	            <div class="s_txt">
-	                <p class="tit">결시원 승인</p>
-	                <p class="desc">[대학원] 경영수리와 통계1반</p>
-	            </div>
-	        </div>
-	    </li>
-	    <li>
-	        <div class="item_box">
 	            <div class="s_date">03.12 ~ 03.15</div>
 	            <div class="s_txt">
 	                <p class="tit">2026학년도 1학기 중간고사</p>

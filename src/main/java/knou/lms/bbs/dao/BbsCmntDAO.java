@@ -120,4 +120,12 @@ public interface BbsCmntDAO {
      * @throws Exception
      ******************************************************/
     public void updateBbsAtclCmntDelYn(BbsCmntVO vo) throws Exception;
+
+    /*****************************************************
+     * 부모 댓글 레벨 조회
+     * @param upAtclCmntId
+     * @return Integer
+     * @throws Exception
+     ******************************************************/
+    public Integer selectBbsAtclCmntLv(String upAtclCmntId) throws Exception;
 }

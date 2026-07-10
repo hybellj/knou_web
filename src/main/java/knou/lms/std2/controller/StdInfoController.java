@@ -61,16 +61,6 @@ public class StdInfoController extends ControllerBase {
             throw new AccessDeniedException(getMessage("common.system.error"));
         }
 
-        // 페이지 접근 권한 체크
-
-
-        // 과목정보 - 조회 없어도 될듯
-        /*SbjctVO sbjctVO = new SbjctVO();
-        sbjctVO.setSbjctId(sbjctId);
-        SubjectVO subjectVO = subjectService.subjectSelect(sbjctId);
-        model.addAttribute("sbjctVO", subjectVO);
-        */
-
         model.addAttribute("atndlcVO", atndlcVO);
 
         return "std2/info/prof_std_info_list_view";

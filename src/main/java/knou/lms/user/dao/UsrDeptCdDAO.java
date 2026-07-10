@@ -3,6 +3,9 @@ package knou.lms.user.dao;
 import java.util.List;
 
 import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
+
+import knou.framework.common.PageInfo;
 import knou.lms.user.vo.UsrDeptCdVO;
 
 @Mapper("usrDeptCdDAO")
@@ -22,8 +25,14 @@ public interface UsrDeptCdDAO {
      * @return List<UsrDeptCdVO>
      * @throws Exception
      ******************************************************/
-    public List<UsrDeptCdVO> list(UsrDeptCdVO vo) throws Exception;
+    public List<UsrDeptCdVO> list(UsrDeptCdVO vo);
     
+//    public List<EgovMap> admByOrgDeptList(PageInfo pageInfo);
+
+//    public List<EgovMap> profDeptList(PageInfo pageInfo);
+
+//    public List<EgovMap> stdntDeptList(PageInfo pageInfo);
+
     /*****************************************************
      * 학과(부서) 등록
      * @param UsrDeptCdVO

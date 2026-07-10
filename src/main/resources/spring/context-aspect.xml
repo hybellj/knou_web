@@ -20,6 +20,7 @@
 		</property>
 	</bean>
 
+	<!-- service.impl에서 발생하는 에러 처리 -->
 	<bean id="defaultExceptionHandleManager" class="org.egovframe.rte.fdl.cmmn.exception.manager.DefaultExceptionHandleManager">
 		<property name="reqExpMatcher" ref="antPathMater"/>
 		<property name="patterns">

@@ -10,7 +10,7 @@
     </jsp:include>
 </head>
 
-<body class="class colorA "><!-- 컬러선택시 클래스변경 -->
+<body class="class ${uiex:getTheme()} ${bodyClass}"><!-- 컬러선택시 클래스변경 -->
 <div id="wrap" class="main">
     <!-- common header -->
     <jsp:include page="/WEB-INF/jsp/common_new/class_header.jsp"/>
@@ -25,37 +25,35 @@
 
         <!-- content -->
         <div id="content" class="content-wrap common">
-            <jsp:include page="/WEB-INF/jsp/common_new/navi_bar_prof.jsp"/>
+            <!-- class_sub_top -->
+            <jsp:include page="/WEB-INF/jsp/common_new/class_sub_top.jsp"/>
+            <!-- //class_sub_top -->
+
             <div class="class_sub">
+                <!-- class_info -->
+                <jsp:include page="/WEB-INF/jsp/common_new/class_info.jsp"/>
+                <!-- //class_info -->
+
                 <div class="sub-content">
                     <div class="page-info">
-                        <h2 class="page-title">과제</h2>
+                        <h2 class="page-title"><spring:message code='asmt.label.asmt'/><%--과제--%></h2>
                     </div>
-                    <!-- search typeA -->
-                    <div class="search-typeA">
-                        <div class="item">
-                            <span class="item_tit"><label for="searchValue"><spring:message code="common.search.keyword"/></label></span>
-                            <div class="itemList">
-                                <input class="form-control wide" type="text" name="" id="searchValue" value="" placeholder="과제명 입력" autocomplete="off">
-                            </div>
-                        </div>
-                        <div class="button-area">
-                            <button type="button" class="btn search" onclick="listPaging(1)">검색</button>
-                        </div>
-                    </div>
-                    <%--//search typeA--%>
-
-
                     <div id="amstListArea">
                         <div class="board_top">
-                            <h3 class="board-title">목록</h3>
+                            <h3 class="board-title"><spring:message code='asmt.label.list'/><%--목록--%></h3>
                             <div class="right-area">
-                                <div class="mrkRfltrtFrmTrsfDiv" style="display:none;">
-                                    <button type="button" onclick="mrkRfltrtModify()" class="btn type2">성적반영비율저장</button>
-                                    <button type="button" onclick="mrkRfltrtFrmTrsf(2)" class="btn type2"><spring:message code="button.cancel"/></button>
+                                <!-- search small -->
+                                <div class="search-typeC">
+                                    <input class="form-control" type="text" name="" id="searchValue" value="" placeholder="<spring:message code='asmt.label.input.asmt_title'/><%--과제명 입력--%>" autocomplete="off">
+                                    <button type="button" class="btn basic icon search" aria-label="<spring:message code='asmt.label.search'/><%--조회--%>" onclick="listPaging(1)"><i class="icon-svg-search"></i></button>
                                 </div>
-                                <button onclick="mrkRfltrtFrmTrsf(1)" id="mrkRfltrtFrmTrsfBtn" type="button" class="btn type2">성적반영비율조정</button>
-                                <button onclick="moveAsmtRegistView()" type="button" class="btn type2">과제 등록</button>
+
+                                <div class="mrkRfltrtFrmTrsfDiv" style="display:none;">
+                                    <button type="button" onclick="mrkRfltrtModify()" class="btn basic"><spring:message code='asmt.button.score.ratio.save'/><%--성적반영비율 저장--%></button>
+                                    <button type="button" onclick="mrkRfltrtFrmTrsf(2)" class="btn type2"><spring:message code='asmt.button.cancel'/><%--취소--%></button>
+                                </div>
+                                <button onclick="mrkRfltrtFrmTrsf(1)" id="mrkRfltrtFrmTrsfBtn" type="button" class="btn basic"><spring:message code='asmt.button.score.ratio.chnage'/><%--성적반영비율 조정--%></button>
+                                <button onclick="moveAsmtRegistView()" type="button" class="btn type2"><spring:message code='asmt.button.asmt.add'/><%--과제등록--%></button>
 
                                 <%-- 리스트/카드 선택 버튼 --%>
                                 <span class="list-card-button"></span>
@@ -66,26 +64,23 @@
                         </div>
                         <%-- 과제 리스트 --%>
                         <div id="asmtList"></div>
-
                         <%-- 과제 카드 폼 --%>
-                        <div id="asmtList_cardForm" style="display:none">
+                        <div id="asmtList_cardForm" class="lecture_box" style="display:none">
                             <div class="card-header">
-                                <div class="board_tit">
-                                    <p class="labels">
-                                        <label class="label s_work">#[asmtGbnnm]</label>
-                                    </p>
+                                <label class="label s_c02">#[asmtGbnnm]</label>
+                                <div class=card-title">
                                     #[asmtTtl]
                                 </div>
 
                                 <div class="btn_right">
                                     <div class="dropdown">
-                                        <button type="button" class="btn basic icon set settingBtn" aria-label="과제 관리" onclick="this.nextElementSibling.classList.toggle('show')">
+                                        <button type="button" class="btn basic icon set settingBtn" aria-label="<spring:message code='asmt.button.asmt.manage'/><%--과제관리--%>" onclick="this.nextElementSibling.classList.toggle('show')">
                                             <i class="xi-ellipsis-v"></i>
                                         </button>
                                         <div class="option-wrap">
-                                            <div class="item"><a href="#0" onclick="moveAsmtEvlView('#[valAsmtId]')">과제평가</a></div>
-                                            <div class="item"><a href="#0" onclick="moveAsmtModifyView('#[valAsmtId]')">수정</a></div><!-- 수정 -->
-                                            <div class="item"><a href="#0" onclick="deleteAsmt('#[valAsmtId]')">삭제</a></div><!-- 삭제 -->
+                                            <div class="item"><a href="#0" onclick="moveAsmtEvlView('#[valAsmtId]')"><spring:message code='asmt.button.asmt.eval'/><%--과제평가--%></a></div>
+                                            <div class="item"><a href="#0" onclick="moveAsmtModifyView('#[valAsmtId]')"><spring:message code='asmt.button.modify'/><%--수정--%></a></div>
+                                            <div class="item"><a href="#0" onclick="deleteAsmt('#[valAsmtId]')"><spring:message code='asmt.button.delete'/><%--삭제--%></a></div>
                                         </div>
                                     </div>
                                 </div>
@@ -98,31 +93,30 @@
                                         <li class="bar-grey" style="width:80%;">#[nonSbmsnCntBar]</li>
                                     </ul>
                                     <div class="desc">
-                                        <p><label>제출기간</label><strong>#[sbmsnPeriod]</strong></p>
-                                        <p><label>연장제출마감</label><strong>#[extdSbmsnEdttm]</strong></p>
-                                        <p><label>성적반영비율</label><strong>#[mrkRfltrt]</strong></p>
-                                        <p><label>제출현황</label><strong>#[sbmsnStts]</strong></p>
-                                        <p><label>평가현황</label><strong>#[evlStts]</strong></p>
-                                        <p><label>성적공개</label><strong>#[mrkOyn]</strong></p>
+                                        <p><label><spring:message code='asmt.label.send.date'/><%--제출기간--%></label><strong>#[sbmsnPeriod]</strong></p>
+                                        <p><label><spring:message code='asmt.label.ext.send.deadline'/><%--연장제출마감--%></label><strong>#[extdSbmsnEdttm]</strong></p>
+                                        <p><label><spring:message code='asmt.label.score.ratio'/><%--성적반영비율--%></label><strong>#[mrkRfltrt]</strong></p>
+                                        <p><label><spring:message code='asmt.label.submit.status'/><%--제출현황--%></label><strong>#[sbmsnStts]</strong></p>
+                                        <p><label><spring:message code='asmt.label.eval.status'/><%--평가현황--%></label><strong>#[evlStts]</strong></p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <!--//table-type2-->
                     </div>
                 </div>
-
             </div>
-            <!-- //content -->
-
+        </div>
     </main>
     <!-- //classroom-->
 </div>
 <script type="text/javascript">
     let PAGE_INDEX = '<c:out value="${asmtVO.pageIndex}" />';
     let LIST_SCALE = '<c:out value="${asmtVO.listScale}" />';
+    let EPARAM = '<c:out value="${encParams}" />';
     const SBJCT_ID = '<c:out value="${asmtVO.sbjctId}" />';
+    const ORG_ID = '<c:out value="${asmtVO.orgId}" />';
+    let SEARCH_VALUE = '<c:out value="${param.searchValue}" />';
+
     let asmtListTable;
 
     $(function () {
@@ -133,7 +127,7 @@
         });
 
 
-        // 강의계획서 리스트 테이블
+        // 과제 리스트 테이블
         asmtListTable = UiTable("asmtList", {
             pageFunc: listPaging,
             changeFunc: changeModeEvent,
@@ -143,39 +137,35 @@
                     width: 60, minWidth: 60
                 }, // No
                 {
-                    title: "구분", field: "asmtGbnnm", headerHozAlign: "center", hozAlign: "center",
+                    title: "<spring:message code='asmt.label.type'/><%--구분--%>", field: "asmtGbnnm", headerHozAlign: "center", hozAlign: "center",
                     width: 120, minWidth: 120
                 }
                 , {
-                    title: "과제명", field: "asmtTtl", headerHozAlign: "center", hozAlign: "left",
+                    title: "<spring:message code='asmt.label.asmt.title'/><%--과제명--%>", field: "asmtTtl", headerHozAlign: "center", hozAlign: "left",
                     width: 0, minWidth: 220
                 }
                 , {
-                    title: "제출기간", field: "sbmsnPeriod", headerHozAlign: "center", hozAlign: "center",
+                    title: "<spring:message code='asmt.label.send.date'/><%--제출기간--%>", field: "sbmsnPeriod", headerHozAlign: "center", hozAlign: "center",
                     width: 280, minWidth: 280
                 }
                 , {
-                    title: "연장제출마감", field: "extdSbmsnEdttm", headerHozAlign: "center", hozAlign: "center",
+                    title: "<spring:message code='asmt.label.ext.send.deadline'/><%--연장제출마감--%>", field: "extdSbmsnEdttm", headerHozAlign: "center", hozAlign: "center",
                     width: 140, minWidth: 140
                 }
                 , {
-                    title: "반영비율", field: "mrkRfltrt", headerHozAlign: "center", hozAlign: "center",
+                    title: "<spring:message code='asmt.label.score.ratio'/><%--성적반영비율--%>", field: "mrkRfltrt", headerHozAlign: "center", hozAlign: "center",
                     width: 90, minWidth: 90
                 }
                 , {
-                    title: "제출현황", field: "sbmsnStts", headerHozAlign: "center", hozAlign: "center",
+                    title: "<spring:message code='asmt.label.submit.status'/><%--제출현황--%>", field: "sbmsnStts", headerHozAlign: "center", hozAlign: "center",
                     width: 100, minWidth: 100
                 }
                 , {
-                    title: "평가현황", field: "evlStts", headerHozAlign: "center", hozAlign: "center",
+                    title: "<spring:message code='asmt.label.eval.status'/><%--평가현황--%>", field: "evlStts", headerHozAlign: "center", hozAlign: "center",
                     width: 100, minWidth: 100
                 }
                 , {
-                    title: "성적공개", field: "mrkOyn", headerHozAlign: "center", hozAlign: "center",
-                    width: 90, minWidth: 90
-                }
-                , {
-                    title: "재제출자", field: "resbmsn", headerHozAlign: "center", hozAlign: "center",
+                    title: "<spring:message code='asmt.label.resubmit.user'/><%--재제출자--%>", field: "resbmsn", headerHozAlign: "center", hozAlign: "center",
                     width: 90, minWidth: 90
                 }
             ],
@@ -201,13 +191,17 @@
         list.forEach(function (v, i) {
             const lineNo = pageInfo.totalRecordCount - v.lineNo + 1;
             const asmtId = v.asmtId || "";
+            const trgtCnt = Number(v.trgtCnt || 0);
+            const sbmsnCnt = Number(v.sbmsnCnt || 0);
+            const evlCnt = Number(v.evlCnt || 0);
+            const resbmsnCnt = Number(v.resbmsnCnt || 0);
 
             // 과제제목 - 상세 이동 링크
             const asmtTtl = (v.asmtTtl || "").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
-            const linkAsmtTtl = "<a href='#0' class='link' onclick='moveAsmtView(\"" + asmtId + "\"); return false;'>" + asmtTtl + "</a>";
+            const startAsmtViewLink = "<a href='#0' class='link' onclick='moveAsmtView(\"" + asmtId + "\"); return false;'>"
+            const endAsmtViewLink = "</a>";
+            const linkAsmtTtl = startAsmtViewLink + asmtTtl + endAsmtViewLink;
 
-            // 성적공개여부
-            const mrkOynHtml = '<input type="checkbox" value="Y" id="mrkOyn_' + asmtId + '" class="switch small" onchange="modifyMrkOyn(this, \'' + asmtId + '\')"' + (v.mrkOyn === "Y" ? ' checked="checked">' : '>');
             dataList.push({
                 no: lineNo
                 , asmtGbnnm: v.asmtGbnnm
@@ -215,12 +209,11 @@
                 , sbmsnPeriod: UiComm.formatDate(v.asmtSbmsnSdttm, "datetime2") + " ~ " + UiComm.formatDate(v.asmtSbmsnEdttm, "datetime2")
                 , extdSbmsnEdttm: v.extdSbmsnEdttm ? UiComm.formatDate(v.extdSbmsnEdttm, "datetime2") : "-"
                 , mrkRfltrt: createMrkRfltrtHtml(v)
-                , sbmsnStts: (v.sbmsnCnt || 0) + "/" + (v.trgtCnt || 0)
-                , evlStts: (v.evlCnt || 0) + "/" + (v.sbmsnCnt || 0)
-                , mrkOyn: mrkOynHtml
-                , resbmsn: (v.resbmsnCnt || 0) + "명"
-                , sbmsnCntBar: (v.sbmsnCnt || 0) + "명"
-                , nonSbmsnCntBar: (v.trgtCnt || 0 - v.sbmsnCnt || 0) + "명"
+                , sbmsnStts: startAsmtViewLink + sbmsnCnt + "/" + trgtCnt + endAsmtViewLink
+                , evlStts: startAsmtViewLink + evlCnt + "/" + trgtCnt + endAsmtViewLink
+                , resbmsn: resbmsnCnt + "<spring:message code='asmt.label.person'/><%--명--%>"
+                , sbmsnCntBar: sbmsnCnt + "<spring:message code='asmt.label.person'/><%--명--%>"
+                , nonSbmsnCntBar: Math.max(trgtCnt - sbmsnCnt, 0) + "<spring:message code='asmt.label.person'/><%--명--%>"
                 , valAsmtId: v.valAsmtId
             });
         });
@@ -233,16 +226,27 @@
      * @param pageIndex
      */
     function listPaging(pageIndex) {
-        PAGE_INDEX = pageIndex;
-        const url = "/asmt2/profAsmtListAjax.do";
+        SEARCH_VALUE = $("#searchValue").val();
 
-        const param = {
-            sbjctId: SBJCT_ID
-            , pageIndex: PAGE_INDEX
+        const extData = {
+            orgId: ORG_ID
+            , pageIndex: pageIndex
             , listScale: LIST_SCALE
-            , searchValue: $('#searchValue').val()
+            , searchValue: SEARCH_VALUE
+            , sbjctId: SBJCT_ID
         };
+
+        const url = "/asmt2/profAsmtListAjax.do";
+        const param = {
+            encParams: EPARAM
+            , addParams: UiComm.makeEncParams(extData)
+        };
+
         ajaxCall(url, param, function (data) {
+            if (data.encParams != null && data.encParams != '') {
+                EPARAM = data.encParams;
+            }
+
             if (data.result > 0) {
                 let returnList = data.returnList || [];
 
@@ -254,8 +258,9 @@
             } else {
                 UiComm.showMessage(data.message, "error");
             }
+
         }, function (xhr, status, error) {
-            UiComm.showMessage("<spring:message code="fail.common.msg" />", "error");
+            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error");
         }, true);
 
     }
@@ -332,14 +337,14 @@
             const numValue = Number(value);
 
             if (value === "" || isNaN(numValue)) {
-                UiComm.showMessage("성적반영비율을 입력하세요.", "info");
+                UiComm.showMessage("<spring:message code='asmt.alert.input.score.ratio'/><%--성적반영비율을 입력하세요.--%>", "info");
                 $input.focus();
                 isValid = false;
                 return false;
             }
 
             if (numValue < 0 || numValue > 100) {
-                UiComm.showMessage("성적반영비율은 0~100까지만 입력 가능합니다.", "info");
+                UiComm.showMessage("<spring:message code='asmt.alert.score.ratio.range'/><%--성적반영비율은 0~100까지만 입력 가능합니다.--%>", "info");
                 $input.focus();
                 isValid = false;
                 return false;
@@ -356,7 +361,7 @@
         }
 
         if (sumMrkRfltrt !== 100) {
-            UiComm.showMessage("성적반영비율 합계는 100이어야 합니다. [현재: " + sumMrkRfltrt + "]", "info");
+            UiComm.showMessage("<spring:message code='asmt.alert.score.ratio.sum100'/><%--성적반영비율 합이 100%가 되어야 합니다.--%> [<spring:message code='asmt.label.current'/><%--현재--%>: " + sumMrkRfltrt + "]", "info");
             return;
         }
 
@@ -366,8 +371,11 @@
         }
 
         ajaxCall("/asmt2/profMrkRfltrtModifyAjax.do", param, function (data) {
+            if (data.encParams != null && data.encParams != '') {
+                EPARAM = data.encParams;
+            }
             if (data.result > 0) {
-                UiComm.showMessage(data.message || "저장되었습니다.", "success");
+                UiComm.showMessage(data.message || "<spring:message code='asmt.alert.save.success'/><%--정상적으로 저장되었습니다.--%>", "success");
                 mrkRfltrtFrmTrsf(2);
                 listPaging(1);
             } else {
@@ -386,9 +394,15 @@
     function createMrkRfltrtHtml(v) {
         const asmtId = v.asmtId || "";
         const mrkRfltrt = v.mrkRfltrt == null ? 0 : v.mrkRfltrt;
+        const asmtGbncd = v.asmtGbncd || "";
 
         if (v.mrkRfltyn === "N") {
             return "-";
+        }
+
+        // 대체과제는 조정 합산 대상에서 제외한다.
+        if (asmtGbncd.indexOf("SBST") > -1) {
+            return mrkRfltrt + "%";
         }
 
         let html = "";
@@ -400,53 +414,6 @@
         return html;
     }
 
-    /*
-    ==========================
-    ========성적공개여부========
-    ==========================
-    */
-    /**
-     * 성적공개여부 수정
-     * @param el 선택요소
-     * @param asmtId 과제아이디
-     */
-    function modifyMrkOyn(el, asmtId) {
-        const $el = $(el);
-        const isChecked = $el.is(":checked");
-        const param = {
-            asmtId: asmtId
-            , mrkOyn: isChecked ? 'Y' : 'N'
-        };
-
-        $el.prop("disabled", true);
-
-        ajaxCall('/asmt2/profAsmtMrkOynModifyAjax.do', param, function (data) {
-            $el.prop("disabled", false);
-            if (data.result > 0) {
-            } else {
-                toggleSwitch($el, !isChecked);
-                UiComm.showMessage(data.message || "<spring:message code='fail.common.msg'/>", "error"); // 에러 메세지
-            }
-        }, function (xhr, status, error) {
-            $el.prop("disabled", false);
-            toggleSwitch($el, !isChecked);
-            UiComm.showMessage("<spring:message code='fail.common.msg'/>", "error"); // 에러 메세지
-        }, true);
-    }
-
-    /**
-     * 스위치 변경
-     * @param $el 요소(id값 필수)
-     * @param state true/false
-     */
-    function toggleSwitch($el, state) {
-        const id = $el.attr("id");
-        if (id) {
-            state ? UiSwitcherOn(id) : UiSwitcherOff(id);
-        } else {
-            $el.prop("checked", state);
-        }
-    }
 
     // list scale 변경
     function changeListScale(scale) {
@@ -471,8 +438,13 @@
      * 과제등록화면 이동
      */
     function moveAsmtRegistView() {
+        const extData = {
+            sbjctId: SBJCT_ID,
+            asmtId: ""
+        };
         const kvArr = [];
-        kvArr.push({'key': 'sbjctId', 'val': SBJCT_ID});
+        kvArr.push({'key': 'encParams', 'val': EPARAM});
+        kvArr.push({'key': 'addParams', 'val': UiComm.makeEncParams(extData)});
 
         submitForm("/asmt2/profAsmtRegistView.do", "", kvArr);
     }
@@ -483,11 +455,16 @@
      * @param tab
      */
     function moveAsmtView(asmtId) {
+        const extData = {
+            sbjctId: SBJCT_ID,
+            asmtId: asmtId
+        };
         const kvArr = [];
-        kvArr.push({'key': 'sbjctId', 'val': SBJCT_ID});
-        kvArr.push({'key': 'asmtId', 'val': asmtId});
+        kvArr.push({'key': 'encParams', 'val': EPARAM});
+        kvArr.push({'key': 'addParams', 'val': UiComm.makeEncParams(extData)});
 
-        submitForm("/asmt2/profAsmtView.do", "", kvArr);
+        submitForm("/asmt2/profAsmtEvlMngView.do", "", kvArr);
+
     }
 
     /**
@@ -495,24 +472,17 @@
      * @param asmtId
      */
     function moveAsmtModifyView(asmtId) {
+        const extData = {
+            sbjctId: SBJCT_ID,
+            asmtId: asmtId
+        };
         const kvArr = [];
-        kvArr.push({'key': 'sbjctId', 'val': SBJCT_ID});
-        kvArr.push({'key': 'asmtId', 'val': asmtId});
+        kvArr.push({'key': 'encParams', 'val': EPARAM});
+        kvArr.push({'key': 'addParams', 'val': UiComm.makeEncParams(extData)});
 
         submitForm("/asmt2/profAsmtModifyView.do", "", kvArr);
     }
 
-    /**
-     * 과제 평가화면 이동
-     * @param asmtId
-     */
-    function moveAsmtEvlView(asmtId) {
-        const kvArr = [];
-        kvArr.push({'key': 'sbjctId', 'val': SBJCT_ID});
-        kvArr.push({'key': 'asmtId', 'val': asmtId});
-
-        submitForm("/asmt2/profAsmtEvlView.do", "", kvArr);
-    }
 
 </script>
 </body>

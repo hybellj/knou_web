@@ -41,4 +41,67 @@
          WHERE SMNR_ID = #{smnrId}
 	</delete>
 
+	<select id="smnrTrgtrCntnUrlSelect" parameterType="smnrVO" resultType="smnrTrgtrVO">
+		/*
+             SQL ID : SmnrTrgtrDAO.smnrTrgtrCntnUrlSelect
+             설  명 : 세미나대상자접속URL조회
+         */
+        SELECT
+			TRGTR.*
+		  FROM TB_LMS_ONLN_MEETNGRM MEETNGRM
+		  JOIN TB_LMS_SMNR_TRGTR TRGTR
+		    ON MEETNGRM.ONLN_MEETNGRM_ID = TRGTR.ONLN_MEETNGRM_ID
+		   AND TRGTR.PREREGYN = 'Y'
+		 WHERE MEETNGRM.SMNR_ID = #{smnrId}
+		   AND TRGTR.USER_ID = #{userId}
+	</select>
+
+	<insert id="smnrTrgtrRegist" parameterType="smnrTrgtrVO">
+		/*
+             SQL ID : SmnrTrgtrDAO.smnrTrgtrRegist
+             설  명 : 세미나대상자등록
+         */
+        MERGE INTO TB_LMS_SMNR_TRGTR TRGTR
+	    USING (
+	    	SELECT
+	    		  #{smnrTrgtrId} AS SMNR_TRGTR_ID
+	    		, #{smnrId} AS SMNR_ID
+	    		, #{userId} AS USER_ID
+	    		, #{onlnMeetngrmId} AS ONLN_MEETNGRM_ID
+	    		, #{trgtrCntnUrl} AS TRGTR_CNTN_URL
+	    		, #{preregyn} AS PREREGYN
+	    	  FROM DUAL
+	    ) USR
+	    ON (
+	    	    TRGTR.SMNR_TRGTR_ID = USR.SMNR_TRGTR_ID
+	     	AND TRGTR.SMNR_ID = USR.SMNR_ID
+	     	AND TRGTR.USER_ID = USR.USER_ID
+	    )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	        	  TRGTR.TRGTR_CNTN_URL = USR.TRGTR_CNTN_URL
+	        	, TRGTR.MDFR_ID = USR.USER_ID
+				, TRGTR.MOD_DTTM = FN_DTTM()
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	        	  SMNR_TRGTR_ID
+				, SMNR_ID
+				, USER_ID
+				, ONLN_MEETNGRM_ID
+				, TRGTR_CNTN_URL
+				, PREREGYN
+				, RGTR_ID
+				, REG_DTTM
+	        ) VALUES (
+	        	  USR.SMNR_TRGTR_ID
+				, USR.SMNR_ID
+				, USR.USER_ID
+				, USR.ONLN_MEETNGRM_ID
+				, USR.TRGTR_CNTN_URL
+				, USR.PREREGYN
+				, USR.USER_ID
+				, FN_DTTM()
+	        )
+	</insert>
+
 </mapper>

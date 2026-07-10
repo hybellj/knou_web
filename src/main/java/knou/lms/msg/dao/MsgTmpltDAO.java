@@ -8,15 +8,13 @@ import java.util.List;
 @Mapper("msgTmpltDAO")
 public interface MsgTmpltDAO {
 
-    int selectTmpltCnt(MsgTmpltVO vo);
-
     List<MsgTmpltVO> selectTmpltList(MsgTmpltVO vo);
 
     MsgTmpltVO selectTmplt(MsgTmpltVO vo);
 
-    int registTmplt(MsgTmpltVO vo);
+    int insertTmplt(MsgTmpltVO vo);
 
-    int modifyTmplt(MsgTmpltVO vo);
+    int updateTmplt(MsgTmpltVO vo);
 
     int deleteTmplt(MsgTmpltVO vo);
 

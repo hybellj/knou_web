@@ -5,8 +5,15 @@
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	version="1.1"
 	id="UIC-DEXTUPLOADX5-PROGRESSIVE"
+	lang="en"
+	xml:lang="en"
+    role="dialog"
+    aria-modal="true"
 	onload="onLoadHandler()" width="100%" height="100%">
-    <script type="application/ecmascript" xlink:href="../module/dextuploadx5-common.js"/>
+    <script type="application/ecmascript" xlink:href="./dextuploadx5-svg-common.js"/>
+    <script type="application/ecmascript" xlink:href="./dextuploadx5-svg-dom-common.js"/>
+    <script type="application/ecmascript" xlink:href="./dextuploadx5-svg-format.js"/>
+    <script type="application/ecmascript" xlink:href="./dextuploadx5-progress-common.js"/>
     <script type="application/ecmascript" xlink:href="./dextuploadx5-dn-0-app.js"/>
     <style type="text/css">
         * { font-family: 'Malgun Gothic', AppleGothic, Arial, 'sans-serif'; }
@@ -23,16 +30,17 @@
         </symbol>
     </defs>
     <svg id="UIC-MAIN-AREA" x="0" y="0" width="100%" height="100%">
+        <text id="UIC-A11Y-STATUS" x="-9999" y="-9999" role="status" aria-live="polite" aria-atomic="true"></text>
         <svg x="0" y="0" width="100%" height="40" class="css-txt-title">
             <rect x="0" y="0" width="100%" height="100%" stroke="none" fill="#465b70"/>
             <text id="UIC-TITLE-TXT" x="10" y="26">DOWNLOADING</text>
-            <use id="UIC-TITLE-BTN-CANCEL" xlink:href="#UIS-CANCEL" y="15" width="12" height="12" layout-dx5="x:100%-22px" style="cursor:pointer;" fill="#465b70"/>
+            <use id="UIC-TITLE-BTN-CANCEL" xlink:href="#UIS-CANCEL" y="15" width="12" height="12" layout-dx5="x:100%-22px" style="cursor:pointer;" fill="#465b70" role="button" tabindex="0" focusable="true" aria-label="Cancel"/>
         </svg>
         <svg x="0" y="40" width="100%" height="100">
             <rect x="0" y="0" width="100%" height="100%" stroke="none" fill="#ebebeb"/>
             <!-- progress area --><svg x="10" y="10" height="34" layout-dx5="width:100%-20px;" class="css-txt-progressive">
-                <!-- background --><rect x="0" y="0" width="100%" height="100%" stroke="none" fill="#d7d7d7"/>
-                <!-- progress bar --><rect id="UIC-PROGRESS-BAR" x="0" y="0" width="0%" height="100%" stroke="none" fill="#03A9F4"/>
+				<!-- background --><rect x="0" y="0" width="100%" height="100%" stroke="none" fill="#d7d7d7"/>
+				<!-- progress bar --><rect id="UIC-PROGRESS-BAR" x="0" y="0" width="0%" height="100%" stroke="none" fill="#03A9F4"/>
                 <g id="UIC-PROGRESS-INFO" style="display:block;">
                     <text x="10" y="22">
                         <tspan id="UIC-TXT-TOTAL-SEND">MB</tspan> / <tspan id="UIC-TXT-TOTAL-SIZE">MB</tspan> ( <tspan id="UIC-TXT-TOTAL-PERCENTAGE">0</tspan>% )
@@ -50,15 +58,15 @@
                 <text id="UIC-TXT-FILENAME" x="0" y="14">File Name.txt</text>
             </svg>
             <!-- button area --><svg x="0" y="64" width="100%" layout-dx5="height:100%-64px">
-                <svg id="UIC-BTN-ABORT" viewBox="0 0 64 24" class="css-btn" y="0" width="64" height="32" layout-dx5="x:50%-66px" style="visibility:visible">
+                <svg id="UIC-BTN-ABORT" viewBox="0 0 64 24" class="css-btn" y="0" width="64" height="32" layout-dx5="x:50%-66px" style="visibility:visible" role="button" tabindex="0" focusable="true" aria-label="Abort">
                     <rect class="btn-back" x="0" y="0" rx="3" ry="3" width="100%" height="100%" fill="#465b70"/>
                     <text class="btn-text" x="50%" y="17" text-anchor="middle" font-size="12px" fill="#fff" style="user-select:none;">Abort</text>
                 </svg>
-                <svg id="UIC-BTN-RETRY" viewBox="0 0 64 24" class="css-btn" y="0" width="64" height="32" layout-dx5="x:50%-66px" style="visibility:hidden">
+                <svg id="UIC-BTN-RETRY" viewBox="0 0 64 24" class="css-btn" y="0" width="64" height="32" layout-dx5="x:50%-66px" style="visibility:hidden" role="button" tabindex="-1" focusable="true" aria-hidden="true" aria-disabled="true" aria-label="Retry">
                     <rect class="btn-back" x="0" y="0" rx="3" ry="3" width="100%" height="100%" fill="#465b70"/>
                     <text class="btn-text" x="50%" y="17" text-anchor="middle" font-size="12px" fill="#fff" style="user-select:none;">Retry</text>
                 </svg>
-                <svg id="UIC-BTN-CANCEL" viewBox="0 0 64 24" class="css-btn" y="0" width="64" height="32" layout-dx5="x:50%+2px">
+                <svg id="UIC-BTN-CANCEL" viewBox="0 0 64 24" class="css-btn" y="0" width="64" height="32" layout-dx5="x:50%+2px" role="button" tabindex="0" focusable="true" aria-label="Cancel">
                     <rect class="btn-back" x="0" y="0" rx="3" ry="3" width="100%" height="100%" fill="#465b70"/>
                     <text class="btn-text" x="50%" y="17" text-anchor="middle" font-size="12px" fill="#fff" style="user-select:none;">Cancel</text>
                 </svg>

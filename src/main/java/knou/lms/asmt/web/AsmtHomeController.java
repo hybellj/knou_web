@@ -1,14 +1,51 @@
 package knou.lms.asmt.web;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+
+import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import knou.framework.common.CommConst;
 import knou.framework.common.ControllerBase;
 import knou.framework.common.IdPrefixType;
 import knou.framework.common.SessionInfo;
 import knou.framework.exception.AccessDeniedException;
+//import knou.framework.exception.AccessDeniedException;
 import knou.framework.exception.BadRequestUrlException;
 import knou.framework.exception.MediopiaDefineException;
-import knou.framework.util.*;
+import knou.framework.util.ExcelUtilPoi;
+import knou.framework.util.FileUtil;
+import knou.framework.util.IdGenUtil;
+import knou.framework.util.LocaleUtil;
+import knou.framework.util.StringUtil;
+import knou.framework.util.ValidationUtils;
 import knou.framework.vo.FileVO;
 import knou.lms.asmt.service.AsmtProService;
 import knou.lms.asmt.service.AsmtStuService;
@@ -34,29 +71,6 @@ import knou.lms.sys.vo.SysJobSchVO;
 import knou.lms.team.service.TeamMemberService;
 import knou.lms.user.service.UsrUserInfoService;
 import knou.lms.user.vo.UsrUserInfoVO;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
-import org.egovframe.rte.fdl.cmmn.exception.EgovBizException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.MessageSource;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-import javax.annotation.Resource;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileInputStream;
-import java.nio.charset.Charset;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
 
 @Controller
 // @RequestMapping(value={"/asmt/asmtHome","/asmt/asmtLect","/asmt/asmtPop"})
@@ -191,6 +205,7 @@ public class AsmtHomeController extends ControllerBase {
     // 과제 목록 조회
     @RequestMapping(value="/profAsmtList.do")
     @ResponseBody
+    @Deprecated
     public ProcessResultVO<AsmtVO> profAsmtList(HttpServletRequest request, ModelMap model, AsmtVO vo) throws Exception {
         ProcessResultVO<AsmtVO> resultVO = new ProcessResultVO<>();
         String sbjctId = vo.getSbjctId();

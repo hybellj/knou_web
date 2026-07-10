@@ -505,6 +505,7 @@ button.ui-button::-moz-focus-inner {
 	width: 90%;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	color:var(--surface-text);
 }
 .ui-dialog .ui-dialog-titlebar-close {
 	position: absolute;
@@ -898,15 +899,15 @@ body .ui-tooltip {
 	font-size: 1em;
 }
 .ui-widget.ui-widget-content {
-	border: 1px solid #c5c5c5;
+	border: 1px solid var(--surface-border,#c5c5c5);
 }
 .ui-widget-content {
-	border: 1px solid #dddddd;
-	background: #ffffff;
-	color: #333333;
+	border: 1px solid var(--surface-border, #dddddd);
+	background: var(--surface-card-bg, #ffffff);
+	color: var(--surface-text, #333333);
 }
 .ui-widget-content a {
-	color: #333333;
+	color: var(--surface-text, #333333);
 }
 .ui-widget-header {
 	border: 1px solid #dddddd;

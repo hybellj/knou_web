@@ -4,111 +4,232 @@ import java.util.List;
 import java.util.Map;
 
 import knou.framework.context2.UserContext;
-import knou.lms.common.vo.ProcessResultVO;
+import knou.lms.common.dto.ResultDTO;
+import knou.lms.srvy.vo.SrvyPtcpHstryVO;
 import knou.lms.srvy.vo.SrvyPtcpVO;
 import knou.lms.srvy.vo.SrvyQstnVO;
 import knou.lms.srvy.vo.SrvyVO;
 import knou.lms.srvy.vo.SrvypprVO;
 import knou.lms.srvy.web.view.SrvyMainView;
+import knou.lms.srvy.web.view.SrvyPageInfo;
 
 public interface SrvyFacadeService {
 
-	SrvyMainView getProfSrvyList(SrvyVO vo) throws Exception;
+	SrvyMainView getProfSrvyList(SrvyPageInfo pageInfo);
 
-	SrvyMainView loadProfSrvyRegistView(SrvyVO vo) throws Exception;
+	SrvyMainView loadProfSrvyRegistView(SrvyVO vo);
 
-	SrvyMainView srvyRegist(SrvyVO vo, Map<String, String> subMap) throws Exception;
+	SrvyMainView srvyRegist(SrvyVO vo, Map<String, String> subMap);
 
-	SrvyMainView loadProfSrvyModifyView(SrvyVO vo) throws Exception;
+	SrvyMainView loadProfSrvyModifyView(SrvyVO vo);
 
-	SrvyMainView srvyModify(SrvyVO vo, Map<String, String> subMap) throws Exception;
+	SrvyMainView srvyModify(SrvyVO vo, Map<String, String> subMap);
 
-	SrvyMainView getSbjctMrkOynSrvyCnt(SrvyVO vo) throws Exception;
+	SrvyMainView getSbjctMrkOynSrvyCnt(SrvyVO vo);
 
-	void srvyDtlModify(SrvyVO vo) throws Exception;
+	void srvyDtlModify(SrvyVO vo);
 
-	void srvyMrkRfltrtListModify(List<SrvyVO> list) throws Exception;
+	void srvyMrkRfltrtListModify(List<SrvyVO> list);
 
-	SrvyMainView getSrvyLrnGrpSubAsmtList(Map<String, Object> params) throws Exception;
+	SrvyMainView getSrvyTeamGrpSubSrvyList(Map<String, Object> params);
 
-	SrvyMainView loadProfBfrSrvyCopyPopup(SrvyVO vo) throws Exception;
+	SrvyMainView loadProfBfrSrvyCopyPopup(SrvyVO vo);
 
-	SrvyMainView getProfAuthrtSbjctSrvyList(Map<String, Object> params) throws Exception;
+	SrvyMainView getProfAuthrtSbjctSrvyList(SrvyVO vo);
 
-	SrvyMainView getSrvy(SrvyVO vo) throws Exception;
+	SrvyMainView getSrvy(SrvyVO vo);
 
-	void srvyDelete(SrvyVO vo) throws Exception;
+	void srvyDelete(SrvyVO vo);
 
-	SrvyMainView loadProfSrvypprPreviewPopup(SrvyVO vo) throws Exception;
+	SrvyMainView loadProfSrvypprPreviewPopup(SrvyVO vo);
 
-	SrvyMainView loadProfSrvyQstnMngView(SrvyVO vo, UserContext userCtx) throws Exception;
+	SrvyMainView loadProfSrvyQstnMngView(SrvyVO vo, UserContext userCtx);
 
-	SrvyMainView getSrvypprQstnList(SrvyVO vo) throws Exception;
+	SrvyMainView getSrvypprQstnList(SrvyVO vo);
 
-	void srvypprRegist(SrvypprVO vo) throws Exception;
+	void srvypprRegist(SrvypprVO vo);
 
-	SrvyMainView loadProfSrvypprModifyPopup(SrvypprVO vo) throws Exception;
+	SrvyMainView loadProfSrvypprModifyPopup(SrvypprVO vo);
 
-	Integer getSrvypprPtcpCntSelect(SrvypprVO vo) throws Exception;
+	Integer getSrvypprPtcpCntSelect(SrvypprVO vo);
 
-	void srvypprDelete(SrvypprVO vo) throws Exception;
+	void srvypprDelete(SrvypprVO vo);
 
-	SrvyMainView loadProfSrvyQstnCopyPopup(SrvyVO vo) throws Exception;
+	SrvyMainView loadProfSrvyQstnCopyPopup(SrvyVO vo);
 
-	SrvyMainView getQstnCopySrvyList(SrvyVO vo) throws Exception;
+	SrvyMainView getQstnCopySrvyList(SrvyVO vo);
 
-	SrvyMainView getQstnCopySrvypprList(SrvypprVO vo) throws Exception;
+	SrvyMainView getQstnCopySrvypprList(SrvypprVO vo);
 
-	SrvyMainView getQstnCopySrvyQstnList(SrvyQstnVO vo) throws Exception;
+	SrvyMainView getQstnCopySrvyQstnList(SrvyQstnVO vo);
 
-	void srvyQstnCopy(List<Map<String, Object>> list) throws Exception;
+	void srvyQstnCopy(List<Map<String, Object>> list);
 
-	void srvyQstnRegist(SrvyQstnVO vo, String qstnsStr, String lvlsStr) throws Exception;
+	void srvyQstnRegist(SrvyQstnVO vo, String qstnsStr, String lvlsStr);
 
-	void srvyQstnModify(SrvyQstnVO vo, String qstnsStr, String lvlsStr) throws Exception;
+	void srvyQstnModify(SrvyQstnVO vo, String qstnsStr, String lvlsStr);
 
-	void srvyQstnDelete(SrvyQstnVO vo) throws Exception;
+	void srvyQstnDelete(SrvyQstnVO vo);
 
-	SrvyMainView getSrvyQstn(SrvyQstnVO vo) throws Exception;
+	SrvyMainView getSrvyQstn(SrvyQstnVO vo);
 
-	void srvySeqnoModify(SrvypprVO vo) throws Exception;
+	void srvySeqnoModify(SrvypprVO vo);
 
-	void qstnSeqnoModify(SrvyQstnVO vo) throws Exception;
+	void qstnSeqnoModify(SrvyQstnVO vo);
 
-	void srvyQstnsCmptnModify(SrvyVO vo) throws Exception;
+	void srvyQstnsCmptnModify(SrvyVO vo);
 
-	SrvyMainView loadProfSrvyEvlMngView(SrvyVO vo) throws Exception;
+	SrvyMainView loadProfSrvyEvlMngView(SrvyVO vo);
 
-	SrvyMainView getSrvyPtcpList(Map<String, Object> params) throws Exception;
+	SrvyMainView getSrvyPtcpList(Map<String, Object> params);
 
-	SrvyMainView loadProfSrvypprEvlPopup(Map<String, Object> params) throws Exception;
+	SrvyMainView loadProfSrvypprEvlPopup(Map<String, Object> params);
 
-	SrvyMainView loadProfSrvyMemoPopup(Map<String, Object> params) throws Exception;
+	SrvyMainView loadProfSrvyMemoPopup(Map<String, Object> params);
 
-	void profMemoModify(Map<String, Object> params) throws Exception;
+	void profMemoModify(Map<String, Object> params);
 
-	void profSrvyEvlScrBulkModify(List<Map<String, Object>> list) throws Exception;
+	void profSrvyEvlScrBulkModify(List<Map<String, Object>> list);
 
-	SrvyMainView loadProfSrvyPtcpStatusPopup(SrvyVO vo, UserContext userCtx) throws Exception;
+	SrvyMainView loadSrvyPtcpStatusPopup(SrvyVO vo, UserContext userCtx);
 
-	SrvyMainView getSrvyPtcpStatusExcelDownList(SrvyVO vo) throws Exception;
+	SrvyMainView getSrvyPtcpStatusExcelDownList(SrvyVO vo);
 
-	SrvyMainView getSrvyRspnsStatusExcelDownList(SrvyVO vo) throws Exception;
+	SrvyMainView getSrvyRspnsStatusExcelDownList(SrvyVO vo);
 
-	SrvyMainView getSrvyQstnDistributionChart(Map<String, Object> params) throws Exception;
+	SrvyMainView getSrvyQstnDistributionChart(Map<String, Object> params);
 
-	SrvyMainView loadProfSrvypprPrintPopup(Map<String, Object> params) throws Exception;
+	SrvyMainView loadProfSrvypprPrintPopup(Map<String, Object> params);
 
-	SrvyMainView loadSrvyEzgraderPopup(SrvyVO vo) throws Exception;
+	SrvyMainView loadSrvyEzgraderPopup(SrvyVO vo);
 
-	SrvyMainView getSrvyPtcpListByEzGrader(SrvyVO vo) throws Exception;
+	SrvyMainView getSrvyPtcpListByEzGrader(SrvyVO vo);
 
-	SrvyMainView getProfSrvyRspnsListByEzGrader(SrvyPtcpVO vo) throws Exception;
+	SrvyMainView getProfSrvyRspnsListByEzGrader(SrvyPtcpVO vo);
 
-	void srvyScrExcelUpload(SrvyPtcpVO vo) throws Exception;
+	void srvyScrExcelUpload(SrvyPtcpVO vo);
 
-	SrvyMainView getSrvyQstnExcelSampleData(SrvyVO vo) throws Exception;
+	SrvyMainView getSrvyQstnExcelSampleData(SrvyVO vo);
 
-	ProcessResultVO<SrvyVO> srvyQstnExcelUpload(SrvyVO vo) throws Exception;
+	ResultDTO<SrvyVO> srvyQstnExcelUpload(SrvyVO vo);
 
+	void profMemoBulkModify(List<Map<String, Object>> list);
+
+	SrvyMainView getStdntSrvyList(SrvyPageInfo pageInfo);
+
+	SrvyMainView loadStdntSrvyInfoView(SrvyVO vo, UserContext userCtx);
+
+	SrvyMainView loadSrvyPtcpPopup(SrvyVO srvy, SrvyPtcpVO ptcp, UserContext userCtx);
+
+	void srvypprSbmsn(Map<String, Object> params);
+
+	SrvyMainView getSrvyPtcpHstryList(SrvyPtcpHstryVO vo);
+
+	SrvyMainView loadAdmSrvyLctrEvlListView();
+
+	SrvyMainView getAdmSrvyLctrEvlList(SrvyPageInfo pageInfo);
+
+	SrvyMainView loadAdmSrvyLctrEvlRegistView(SrvyVO vo);
+
+	SrvyMainView loadAdmSrvyLctrEvlModifyView(SrvyVO vo);
+
+	SrvyMainView getSrvyLctrEvlNRegistSbjctList(Map<String, Object> params);
+
+	SrvyMainView srvyLctrEvlRegist(SrvyVO vo, Map<String, String> subMap);
+
+	SrvyMainView srvyLctrEvlModify(SrvyVO vo, Map<String, String> subMap);
+
+	SrvyMainView loadAdmSrvyLctrEvlInfoView(SrvyVO vo);
+
+	SrvyMainView getSrvyLctrEvlRegistSbjctList(SrvyVO vo);
+
+	SrvyMainView loadAdmBfrSrvyLctrEvlCopyPopup();
+
+	SrvyMainView getAdmRegistSrvyLctrEvlList(Map<String, Object> params);
+
+	SrvyMainView getSrvyLctrEvlSelect(SrvyVO vo);
+
+	SrvyMainView loadAdmSrvyLctrEvlQstnMngView(SrvyVO vo);
+
+	SrvyMainView loadAdmSrvyLctrEvlQstnCopyPopup(SrvyVO vo);
+
+	SrvyMainView loadAdmSrvyLctrEvlMngPopup(SrvyVO vo);
+
+	SrvyMainView loadAdmSrvyLtclEvlRsltListView();
+
+	SrvyMainView loadAdmSrvyLctrEvlRsltMngView(SrvyVO vo);
+
+	SrvyMainView getAdmSrvyLctrEvlRsltList(SrvyPageInfo pageInfo);
+
+	SrvyMainView getAdmSrvyLctrEvlPtcpStatus(Map<String, Object> params);
+
+	SrvyMainView getLctrEvlRspnsStatusExcelDownList(SrvyVO vo);
+
+	SrvyMainView getLctrEvlPtcpStatusExcelDownList(SrvyVO vo);
+
+	SrvyMainView loadAdmSrvyListView(SrvyVO vo);
+
+	SrvyMainView getAdmSrvyList(SrvyPageInfo pageInfo);
+
+	SrvyMainView loadAdmSrvyRegistView(SrvyVO vo);
+
+	SrvyMainView admSrvyRegist(SrvyVO vo);
+
+	SrvyMainView loadAdmSrvyModifyView(SrvyVO vo);
+
+	SrvyMainView admSrvyModify(SrvyVO vo);
+
+	SrvyMainView loadAdmSrvyInfoView(SrvyVO vo);
+
+	SrvyMainView loadAdmBfrSrvyCopyPopup(SrvyVO vo);
+
+	SrvyMainView getAdmRegistSrvyList(Map<String, Object> params);
+
+	SrvyMainView getAdmSrvySelect(SrvyVO vo);
+
+	SrvyMainView loadAdmSrvyQstnMngView(SrvyVO vo);
+
+	SrvyMainView loadAdmSrvyQstnCopyPopup(SrvyVO vo);
+
+	SrvyMainView loadAdmSrvyRsltMngView(SrvyVO vo);
+
+	SrvyMainView getAdmSrvyRsltList(SrvyPageInfo pageInfo);
+
+	SrvyMainView getRspnsStatusExcelDownList(SrvyVO vo);
+
+	SrvyMainView getPtcpStatusExcelDownList(SrvyVO vo);
+
+	SrvyMainView getAdmSrvyPtcpStatus(Map<String, Object> params);
+
+	SrvyMainView loadStdntMainSrvyLctrEvlListView();
+
+	SrvyMainView getStdntMainSrvyLctrEvlList(Map<String, Object> params);
+
+	SrvyMainView loadSrvyPtcpInfoPopup(SrvyVO vo);
+
+	SrvyMainView loadSrvyLctrEvlPtcpPopup(SrvyVO vo, UserContext userCtx);
+
+	SrvyMainView loadSrvyLctrEvlPtcpStatusPopup(SrvyVO vo, UserContext userCtx);
+
+	SrvyMainView loadStdntWholSrvyListView(SrvyVO vo);
+
+	SrvyMainView getTrgtWholSrvyList(SrvyPageInfo pageInfo);
+
+	SrvyMainView loadWholSrvyPtcpPopup(SrvyVO vo, UserContext userCtx);
+
+	SrvyMainView loadWholSrvyPtcpStatusPopup(SrvyVO vo, UserContext userCtx);
+
+	SrvyMainView getStdntSrvyLctrEvlList(SrvyPageInfo pageInfo);
+
+	SrvyMainView loadStdntLectSrvyLctrEvlInfoView(SrvyVO vo, UserContext userCtx);
+
+	SrvyMainView loadAdmSbjctSrvyLctrEvlListView();
+
+	SrvyMainView loadAdmSbjctSrvyLctrEvlInfoView(SrvyVO vo);
+
+	SrvyMainView getSrvyLctrEvlSbjctPtcpList(SrvyVO vo);
+
+	SrvyMainView loadAdmSbjctSrvyLtclEvlRsltListView();
+
+	SrvyMainView loadAdmSbjctSrvyLtclEvlRsltMngView(SrvyVO vo);
 }

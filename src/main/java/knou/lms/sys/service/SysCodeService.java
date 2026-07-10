@@ -3,7 +3,6 @@ package knou.lms.sys.service;
 import knou.lms.common.vo.ProcessResultListVO;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.sys.vo.SysCodeVO;
-import knou.lms.sys.vo.SysJobSchVO;
 
 public interface SysCodeService {
 

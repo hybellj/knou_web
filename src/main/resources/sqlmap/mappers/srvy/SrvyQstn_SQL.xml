@@ -279,6 +279,7 @@
 				  JOIN TB_LMS_SRVY SRVY
 				    ON SRVYPPR.SRVY_ID = SRVY.SRVY_ID
 				 WHERE SRVY.SRVY_ID = #{srvyId}
+				    OR SRVY.UP_SRVY_ID = #{srvyId}
          )
 	</delete>
 

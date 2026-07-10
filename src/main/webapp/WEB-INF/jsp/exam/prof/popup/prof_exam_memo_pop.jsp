@@ -50,7 +50,7 @@
 	<body class="modal-page">
         <div id="wrap">
         	<div class="msg-box basic board_top">
-        		<span>${vo.sbjctnm } ${vo.dvclasNo }반</span>
+        		<span>${vo.sbjctnm } ${vo.dvclasNo }<spring:message code="exam.label.decls" /></span><!-- 반 -->
         		<div class="right-area fcBlue">
         			<b>${quizExamnee.deptnm } ${quizExamnee.stdntNo } ${quizExamnee.usernm } <span class="f150">${quizExamnee.totScr }<spring:message code="exam.label.score.point" /></span><!-- 점 --></b>
         		</div>

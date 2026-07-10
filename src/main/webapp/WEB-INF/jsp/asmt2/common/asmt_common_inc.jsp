@@ -147,33 +147,33 @@
         var modalClass = option.modalClass || "modal-lg";
 
         var typeMap = {
-            "Ap01": "<spring:message code='crs.label.eval_criteria_reg'/>",/* 평가기준 등록 */
-            "Ap02": "<spring:message code='asmnt.button.asmnt.prev'/>",/* 이전 과제 가져오기 */
-            "Ap03": "<spring:message code='asmnt.button.all.submit.list'/>",/* 전체제출과제보기 */
-            "Ap04": "<spring:message code='asmnt.label.mut.eval'/>",/* 상호평가 */
-            "Ap05": "<spring:message code='bbs.label.select_team_ctgr'/>",/* 팀 분류 선택 */
-            "Ap06": "<spring:message code='asmnt.label.team.config.view'/>",/*팀구성원 보기*/
-            "Ap07": "<spring:message code='asmnt.label.memo'/>",/* 메모 */
-            "Ap08": "<spring:message code='asmnt.button.reg.excel.score'/>",/* 엑셀 성적등록 */
-            "Ap09": "<spring:message code='asmnt.button.feedback.write'/>", /* 피드백 작성하기 */
-            "Ap10": "<spring:message code='forum.label.feedback'/>", /* 피드백 */
-            "Ap11": "<spring:message code='asmnt.label.submitted.work'/><spring:message code='asmnt.label.history'/>", /* 제출과제 이력 */
-            "Ap12": "<spring:message code='common.label.resubmit'/><spring:message code='common.mgr'/>", /* 재제출 관리 */
-            "Ap13": "<spring:message code='common.label.excellent.asmnt'/>", /* 우수과제 */
-            "Ap14": "<spring:message code='asmnt.button.cmnt' />",/* 댓글 */
-            "Ap15": "<spring:message code='exam.label.ins.target.set.ifm' />",/* 대체평가 대상자 설정 */
-            "Ap16": "<spring:message code='crs.label.eval.criteria' />",/* 평가기준 */
-            "Ap17": "<spring:message code='common.label.asmnt' /><spring:message code='common.submission' />",/* 과제제출 */
-            "Ap18": "<spring:message code='common.button.copy.rate.compare' />",/* 답안유사율 비교 */
-            "Ap19": "<spring:message code='common.label.eval.user.list' />",/* 평가자 목록 */
-            "Ap20": "<spring:message code='asmnt.label.submitted.work' />",/* 제출과제 */
+            "Ap01": "<spring:message code='asmt.label.eval.criteria.reg'/>",/* 평가기준 등록 */
+            "Ap02": "<spring:message code='asmt.button.asmt.prev'/>",/* 이전 과제 가져오기 */
+            "Ap03": "<spring:message code='asmt.button.all.submit.list'/>",/* 전체제출과제보기 */
+            "Ap04": "<spring:message code='asmt.label.mut.eval'/>",/* 상호평가 */
+            "Ap05": "<spring:message code='asmt.label.select.team.ctgr'/>",/* 팀 분류 선택 */
+            "Ap06": "<spring:message code='asmt.label.team.config.view'/>",/*팀구성원 보기*/
+            "Ap07": "<spring:message code='asmt.label.memo'/>",/* 메모 */
+            "Ap08": "<spring:message code='asmt.button.reg.excel.score'/>",/* 엑셀 성적등록 */
+            "Ap09": "<spring:message code='asmt.button.feedback.write'/>", /* 피드백 작성하기 */
+            "Ap10": "<spring:message code='asmt.label.feedback'/>", /* 피드백 */
+            "Ap11": "<spring:message code='asmt.label.submitted.work'/><spring:message code='asmt.label.history'/>", /* 제출과제 이력 */
+            "Ap12": "<spring:message code='asmt.label.resubmit.manage'/>", /* 재제출 관리 */
+            "Ap13": "<spring:message code='asmt.label.excellent.asmt'/>", /* 우수과제 */
+            "Ap14": "<spring:message code='asmt.button.cmnt' />",/* 댓글 */
+            "Ap15": "<spring:message code='asmt.label.alternative.eval.user.setting'/>",/* 대체평가 대상자 설정 */
+            "Ap16": "<spring:message code='asmt.label.eval.criteria'/>",/* 평가기준 */
+            "Ap17": "<spring:message code='asmt.label.asmt.submission'/>",/* 과제제출 */
+            "Ap18": "<spring:message code='asmt.label.copy.rate.compare'/>",/* 답안유사율 비교 */
+            "Ap19": "<spring:message code='asmt.label.eval.user.list'/>",/* 평가자 목록 */
+            "Ap20": "<spring:message code='asmt.label.submitted.work' />",/* 제출과제 */
         };
 
         var html = "<div class='modal fade' id='" + id + "Modal' tabindex='-1' role='dialog' aria-labelledby='" + typeMap[id] + "' aria-hidden='false'>";
         html += "	<div class='modal-dialog " + modalClass + "' role='document'>";
         html += "		<div class='modal-content'>";
         html += "			<div class='modal-header'>";
-        html += "				<button type='button' class='close' data-dismiss='modal' aria-label=\"<spring:message code='asmnt.button.close'/>\">";
+        html += "				<button type='button' class='close' data-dismiss='modal' aria-label=\"<spring:message code='asmt.button.close'/><%--닫기--%>\">";
         html += "					<span aria-hidden='true'>&times;</span>";
         html += "				</button>";
         html += "				<h4 class='modal-title'>" + typeMap[id] + "</h4>";
@@ -336,13 +336,13 @@
     // 달력 체크
     function calendarCheck(msg, dt, hh, mm) {
         if (dt == null || dt == '') {
-            alert(msg + "<spring:message code='asmnt.alert.input.eval.date' />");	/* 일을 입력하세요.*/
+            alert(msg + "<spring:message code='asmt.alert.input.eval.date' /><%--일을 입력하세요.--%>");	/* 일을 입력하세요.*/
             return true;
         } else if (hh == ' ') {
-            alert(msg + "<spring:message code='asmnt.alert.input.eval.hour' />");	/* 시간을 입력하세요.*/
+            alert(msg + "<spring:message code='asmt.alert.input.eval.hour' /><%--시간을 입력하세요.--%>");	/* 시간을 입력하세요.*/
             return true;
         } else if (mm == ' ') {
-            alert(msg + "<spring:message code='asmnt.alert.input.eval.min' />");	/* 분을 입력하세요.*/
+            alert(msg + "<spring:message code='asmt.alert.input.eval.min' /><%--분을 입력하세요.--%>");	/* 분을 입력하세요.*/
             return true;
         }
         return false;

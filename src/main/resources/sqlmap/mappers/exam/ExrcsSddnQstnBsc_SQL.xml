@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.exam.dao.ExrcsSddnQstnBscDAO">
+
+	<select id="profExrcsSddnQstnBscListPaging" parameterType="quizPageInfo" resultType="egovMap">
+		/*
+             SQL ID : ExrcsSddnQstnBscDAO.profExrcsSddnQstnBscListPaging
+             설  명  : 교수연습돌발문항기본목록페이징
+         */
+        <include refid="CommonSQL.pagePrefix2" />
+        SELECT
+        	  ROW_NUMBER() OVER(ORDER BY QSTN.REG_DTTM DESC) AS LINE_NO
+        	, QSTN.*
+        	, COUNT(QSTN.EXRCS_SDDN_QSTN_BSC_ID) OVER() AS TOTAL_CNT
+          FROM (
+			SELECT
+				  QSTN_BSC.EXRCS_SDDN_QSTN_BSC_ID
+				, CHRT.DGRS_YR
+				, CHRT.DGRS_SMSTR_CHRT
+				, QSTN_BSC.QSTN_TTL
+				, (SELECT COUNT(QSTN_ID) FROM TB_LMS_QSTN WHERE DELYN = 'N' AND EXRCS_SDDN_QSTN_BSC_ID = QSTN_BSC.EXRCS_SDDN_QSTN_BSC_ID AND QSTN_GBNCD = QSTN_BSC.QSTN_GBNCD) AS QSTN_CNT
+				, QSTN_BSC.QSTNS_CMPTNYN
+				, (SELECT LCTR_WKNO FROM TB_LMS_LCTR_WKNO_SCHDL WHERE LCTR_WKNO_SCHDL_ID = QSTN_BSC.LCTR_WKNO_SCHDL_ID) AS LCTR_WKNO
+				, (SELECT MIN(QSTN_SEQNO) FROM TB_LMS_QSTN WHERE EXRCS_SDDN_QSTN_BSC_ID = QSTN_BSC.EXRCS_SDDN_QSTN_BSC_ID) AS QSTN_SEQNO
+				, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = QSTN_BSC.RGTR_ID) AS RGTRNM
+				, QSTN_BSC.REG_DTTM
+			  FROM TB_LMS_EXRCS_SDDN_QSTN_BSC QSTN_BSC
+			  JOIN TB_LMS_SBJCT SBJCT
+			    ON QSTN_BSC.SBJCT_ID = SBJCT.SBJCT_ID
+			  JOIN TB_LMS_SMSTR_CHRT CHRT
+			    ON SBJCT.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+			 WHERE QSTN_BSC.SBJCT_ID = #{sbjctId}
+			   AND QSTN_BSC.QSTN_GBNCD = #{qstnGbncd}
+			 <if test="searchValue != null and searchValue != ''">
+			   AND LOWER(QSTN_BSC.QSTN_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			 </if>
+			 ORDER BY QSTN_BSC.REG_DTTM
+          ) QSTN
+          <include refid="CommonSQL.pageSuffix2" />
+	</select>
+
+	<select id="exrcsSddnQstnBscSelect" parameterType="exrcsSddnQstnBscVO" resultType="egovMap">
+		/*
+             SQL ID : ExrcsSddnQstnBscDAO.exrcsSddnQstnBscSelect
+             설  명 : 연습돌발문항기본조회
+         */
+        SELECT
+		 	  QSTN.EXRCS_SDDN_QSTN_BSC_ID
+			, QSTN.SBJCT_ID
+			, QSTN.QSTN_TTL
+			, DBMS_LOB.SUBSTR(QSTN.QSTN_CTS, 4000, 1) AS QSTN_CTS
+			, QSTN.QSTNS_CMPTNYN
+			, QSTN.QSTN_GRP_ID
+			, QSTN.LCTR_WKNO_SCHDL_ID
+			, (SELECT LISTAGG(SBJCT_ID, ',') WITHIN GROUP (ORDER BY SBJCT_ID) FROM TB_LMS_EXRCS_SDDN_QSTN_BSC WHERE QSTN_GRP_ID = QSTN.QSTN_GRP_ID GROUP BY QSTN_GRP_ID) AS SBJCT_IDS
+			, (SELECT QSTN_ID FROM TB_LMS_QSTN WHERE DELYN = 'N' AND EXRCS_SDDN_QSTN_BSC_ID = QSTN.EXRCS_SDDN_QSTN_BSC_ID AND ROWNUM = 1) AS QSTN_ID
+			, SBJCT.SBJCTNM
+			, SBJCT.DVCLAS_NO
+			, CHRT.DGRS_YR
+			, CHRT.SMSTR_CHRT_ID
+			, CHRT.SMSTR_CHRTNM
+			, CHRT.ORG_ID
+			, (SELECT ORGNM FROM TB_LMS_ORG WHERE ORG_ID = CHRT.ORG_ID) AS ORGNM
+		  FROM TB_LMS_EXRCS_SDDN_QSTN_BSC QSTN
+		  JOIN TB_LMS_SBJCT SBJCT
+		    ON QSTN.SBJCT_ID = SBJCT.SBJCT_ID
+		   AND SBJCT.USEYN = 'Y'
+		   AND SBJCT.DELYN = 'N'
+		  JOIN TB_LMS_SMSTR_CHRT CHRT
+		    ON SBJCT.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+		 WHERE QSTN.SBJCT_ID = #{sbjctId}
+		   AND QSTN.EXRCS_SDDN_QSTN_BSC_ID = #{exrcsSddnQstnBscId}
+		   AND QSTN.QSTN_GBNCD = #{qstnGbncd}
+	</select>
+
+	<insert id="exrcsSddnQstnBscBulkRegist" parameterType="java.util.List">
+		/*
+             SQL ID : ExrcsSddnQstnBscDAO.exrcsSddnQstnBscBulkRegist
+             설  명 : 연습돌발문항기본일괄등록
+         */
+        INSERT ALL
+		<foreach item="item" collection="list">
+			INTO TB_LMS_EXRCS_SDDN_QSTN_BSC (
+	         	  EXRCS_SDDN_QSTN_BSC_ID
+				, SBJCT_ID
+				, QSTN_TTL
+				, QSTN_CTS
+				, QSTN_GRP_ID
+				, LCTR_WKNO_SCHDL_ID
+				, QSTN_GBNCD
+				, RGTR_ID
+				, REG_DTTM
+	         ) VALUES (
+	         	  #{item.exrcsSddnQstnBscId}
+				, #{item.sbjctId}
+				, #{item.qstnTtl}
+				, #{item.qstnCts}
+				, #{item.qstnGrpId}
+				, #{item.lctrWknoSchdlId}
+				, #{item.qstnGbncd}
+				, #{item.rgtrId}
+				, FN_DTTM()
+	         )
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+
+	<update id="exrcsSddnQstnBscModify" parameterType="exrcsSddnQstnBscVO">
+		/*
+             SQL ID : ExrcsSddnQstnBscDAO.exrcsSddnQstnBscModify
+             설  명 : 연습돌발문항기본수정
+         */
+        UPDATE TB_LMS_EXRCS_SDDN_QSTN_BSC SET
+        	  MDFR_ID = #{mdfrId}
+        	, MOD_DTTM = FN_DTTM()
+        	, QSTN_TTL = #{qstnTtl}
+			, QSTN_CTS = #{qstnCts}
+			, LCTR_WKNO_SCHDL_ID = #{lctrWknoSchdlId}
+         WHERE EXRCS_SDDN_QSTN_BSC_ID = #{exrcsSddnQstnBscId}
+	</update>
+
+	<select id="exrcsSddnQstnBscListByGrpId" parameterType="String" resultType="exrcsSddnQstnBscVO">
+		/*
+             SQL ID : ExrcsSddnQstnBscDAO.exrcsSddnQstnBscListByGrpId
+             설  명 : 연습돌발문항기본동일그룹목록
+         */
+        SELECT *
+		  FROM TB_LMS_EXRCS_SDDN_QSTN_BSC
+		 WHERE DELYN = 'N'
+		   AND (
+		            EXRCS_SDDN_QSTN_BSC_ID = #{exrcsSddnQstnBscId}
+		         OR (
+			         	    QSTNS_CMPTNYN = 'N'
+			         	AND QSTN_GRP_ID = (
+			               SELECT QSTN_GRP_ID
+			                 FROM TB_LMS_EXRCS_SDDN_QSTN_BSC
+			                WHERE EXRCS_SDDN_QSTN_BSC_ID = #{exrcsSddnQstnBscId})
+		            )
+		       )
+	</select>
+
+	<select id="qstnCopyExrcsQstnList" parameterType="String" resultType="exrcsSddnQstnBscVO">
+		/*
+             SQL ID : ExrcsSddnQstnBscDAO.qstnCopyExrcsQstnList
+             설  명 : 문제가져오기연습문제목록조회
+         */
+		SELECT
+			  EXRCS.EXRCS_SDDN_QSTN_BSC_ID
+			, EXRCS.QSTN_TTL
+		  FROM TB_LMS_SBJCT SBJCT
+		  JOIN TB_LMS_EXRCS_SDDN_QSTN_BSC EXRCS
+		    ON SBJCT.SBJCT_ID = EXRCS.SBJCT_ID
+		   AND EXRCS.DELYN = 'N'
+		   AND EXRCS.QSTNS_CMPTNYN = 'Y'
+		 WHERE SBJCT.DELYN = 'N'
+		   AND SBJCT.USEYN = 'Y'
+		   AND SBJCT.SBJCT_ID = #{sbjctId}
+	</select>
+
+	<update id="exrcsQstnscmptnynBulkModify" parameterType="java.util.List">
+		/*
+             SQL ID : ExrcsSddnQstnBscDAO.exrcsQstnscmptnynBulkModify
+             설  명 : 연습문제출제완료여부일괄수정
+         */
+        <foreach item="item" collection="list" separator=";" open="BEGIN" close="; END;">
+         UPDATE TB_LMS_EXRCS_SDDN_QSTN_BSC SET
+         	  MDFR_ID = #{item.mdfrId}
+         	, MOD_DTTM = FN_DTTM()
+         	, QSTNS_CMPTNYN = #{item.qstnsCmptnyn}
+          WHERE EXRCS_SDDN_QSTN_BSC_ID = #{item.exrcsSddnQstnBscId}
+            AND DELYN = 'N'
+         </foreach>
+	</update>
+
+	<insert id="sddnQuizRegist" parameterType="exrcsSddnQstnBscVO">
+		/*
+             SQL ID : ExrcsSddnQstnBscDAO.sddnQuizRegist
+             설  명 : 돌발퀴즈등록
+         */
+        INSERT INTO TB_LMS_EXRCS_SDDN_QSTN_BSC (
+	    	  EXRCS_SDDN_QSTN_BSC_ID
+			, SBJCT_ID
+			, QSTN_TTL
+			, QSTN_CTS
+			, QSTNS_CMPTNYN
+			, LCTR_WKNO_SCHDL_ID
+			, QSTN_GBNCD
+			, RGTR_ID
+			, REG_DTTM
+	    ) VALUES (
+	    	  #{exrcsSddnQstnBscId}
+			, #{sbjctId}
+			, #{qstnTtl}
+			, #{qstnCts}
+			, 'Y'
+			, #{lctrWknoSchdlId}
+			, #{qstnGbncd}
+			, #{rgtrId}
+			, FN_DTTM()
+	    )
+	</insert>
+
+	<select id="admExrcsSddnQstnBscListPaging" parameterType="quizPageInfo" resultType="egovMap">
+		/*
+             SQL ID : ExrcsSddnQstnBscDAO.admExrcsSddnQstnBscListPaging
+             설  명  : 관리자연습돌발문항기본목록페이징
+         */
+        <include refid="CommonSQL.pagePrefix2" />
+        SELECT
+		  	  ROW_NUMBER() OVER(ORDER BY QSTN.REG_DTTM DESC) AS LINE_NO
+		  	, QSTN.*
+		  	, COUNT(QSTN.EXRCS_SDDN_QSTN_BSC_ID) OVER() AS TOTAL_CNT
+		  FROM (
+			SELECT
+				  QSTN_BSC.EXRCS_SDDN_QSTN_BSC_ID
+				, QSTN_BSC.SBJCT_ID
+				, ORG.ORGNM
+				, CHRT.DGRS_YR
+				, CHRT.DGRS_SMSTR_CHRT
+				, SBJCT.SBJCTNM
+				, QSTN_BSC.QSTN_TTL
+				, (SELECT COUNT(QSTN_ID) FROM TB_LMS_QSTN WHERE DELYN = 'N' AND EXRCS_SDDN_QSTN_BSC_ID = QSTN_BSC.EXRCS_SDDN_QSTN_BSC_ID AND QSTN_GBNCD = QSTN_BSC.QSTN_GBNCD) AS QSTN_CNT
+				, QSTN_BSC.QSTNS_CMPTNYN
+				, (SELECT LCTR_WKNO FROM TB_LMS_LCTR_WKNO_SCHDL WHERE LCTR_WKNO_SCHDL_ID = QSTN_BSC.LCTR_WKNO_SCHDL_ID) AS LCTR_WKNO
+				, (SELECT MIN(QSTN_SEQNO) FROM TB_LMS_QSTN WHERE EXRCS_SDDN_QSTN_BSC_ID = QSTN_BSC.EXRCS_SDDN_QSTN_BSC_ID) AS QSTN_SEQNO
+				, (SELECT USERNM FROM TB_LMS_USER WHERE USER_ID = QSTN_BSC.RGTR_ID) AS RGTRNM
+				, QSTN_BSC.REG_DTTM
+			  FROM TB_LMS_EXRCS_SDDN_QSTN_BSC QSTN_BSC
+			  JOIN TB_LMS_SBJCT SBJCT
+			    ON QSTN_BSC.SBJCT_ID = SBJCT.SBJCT_ID
+			  JOIN TB_LMS_SMSTR_CHRT CHRT
+			    ON SBJCT.SMSTR_CHRT_ID = CHRT.SMSTR_CHRT_ID
+			  JOIN TB_LMS_ORG ORG
+			    ON CHRT.ORG_ID = ORG.ORG_ID
+			   AND ORG.USEYN = 'Y'
+			 WHERE QSTN_BSC.QSTN_GBNCD = #{qstnGbncd}
+			   AND ORG.ORG_ID = #{orgId}
+			   <if test="smstrChrtId != null and smstrChrtId != ''">
+				   	AND CHRT.SMSTR_CHRT_ID = #{smstrChrtId}
+			   </if>
+			   <if test="dgrsYr != null and dgrsYr != ''">
+			   		AND CHRT.DGRS_YR = #{dgrsYr}
+			   </if>
+			   <if test="sbjctId != null and sbjctId != ''">
+					AND QSTN_BSC.SBJCT_ID = #{sbjctId}
+			   </if>
+			   <if test="searchValue != null and searchValue != ''">
+			   		AND LOWER(QSTN_BSC.QSTN_TTL) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+			   </if>
+			 ORDER BY QSTN_BSC.REG_DTTM
+		) QSTN
+        <include refid="CommonSQL.pageSuffix2" />
+	</select>
+
+</mapper>

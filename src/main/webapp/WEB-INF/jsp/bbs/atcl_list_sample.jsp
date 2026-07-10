@@ -291,7 +291,7 @@
 		
 		// 빈내용 생성
 		function createEmptyListHtml() {
-			var bbsTycd = '<c:out value="${bbsInfoVO.bbsTycd}" />';
+			var bbsTycd = '<c:out value="${bbsVO.bbsTycd}" />';
 			
 			var html = '';
 			
@@ -306,7 +306,7 @@
 				html += '			<th class="tc w100"><spring:message code="bbs.label.reg_date" /></th>';
 				html += '			<th class="tc w100"><spring:message code="bbs.label.reg_user" /></th>'; // 작성일/작성자
 				html += '			<th class="tc w60"><spring:message code="bbs.label.attach" /></th>'; // 첨부
-				if("${bbsInfoVO.bbsTycd}" == "" || "${bbsInfoVO.bbsId}" == "PDS") {
+				if("${bbsVO.bbsTycd}" == "" || "${bbsVO.bbsId}" == "PDS") {
 				html += '			<th class="tc w70"><spring:message code="bbs.label.good" /></th>'; // 좋아요
 				}
 				html += '           <th class="tc w60"><spring:message code="bbs.label.view" /></th>'; // 조회
@@ -334,7 +334,7 @@
 			if(atclList.length == 0) {
 				return createEmptyListHtml();
 			} else {
-				var bbsTycd = '<c:out value="${bbsInfoVO.bbsTycd}" />';
+				var bbsTycd = '<c:out value="${bbsVO.bbsTycd}" />';
 				
 				if(bbsTycd == "ALBUM") {
 					var html = '';
@@ -561,7 +561,7 @@
 							html += '	<a href="javascript:fileDown(\'' + v.atclId + '\', \'' + fileName + '\')" alt="Download" title="<spring:message code="filebox.button.download" />"><i class="xi-file-o f120"></i><span class="hide">file</span></a>';
 						}
 						html += '	</td>';
-						if("${bbsInfoVO.bbsTycd}" == "" || "${bbsInfoVO.bbsId}" == "PDS") {
+						if("${bbsVO.bbsTycd}" == "" || "${bbsVO.bbsId}" == "PDS") {
 							html += '	<td class="tl">' + (v.goodUseYn == 'Y' ? '<i class="xi-thumbs-up f120 mr5"></i><span class="opacity7">' + v.goodCnt + '</span>' : '') + '</td>';
 						}
 						
@@ -587,7 +587,7 @@
 						htmlData += '			<th class="tc w100"><spring:message code="bbs.label.reg_date" /></th>'; // 작성일
 						htmlData += '			<th class="tc w100"><spring:message code="bbs.label.reg_user" /></th>'; // 작성자
 						htmlData += '			<th class="tc w60"><spring:message code="bbs.label.attach" /></th>'; // 첨부
-						if("${bbsInfoVO.bbsTycd}" == "" || "${bbsInfoVO.bbsId}" == "PDS") {
+						if("${bbsVO.bbsTycd}" == "" || "${bbsVO.bbsId}" == "PDS") {
 							htmlData +=  '		<th class="tc w70" style=""><spring:message code="bbs.label.good" /></th>'; // 좋아요
 						}
 						htmlData += '			<th class="tc w60"><spring:message code="bbs.label.view" /></th>'; // 조회
@@ -773,7 +773,7 @@
 					
 					var bbsSubTitle;
 					var bbsId = '<c:out value="${param.bbsId}" />';
-					var bbsNm = '<c:out value="${bbsInfoVO.bbsnm}" />';
+					var bbsNm = '<c:out value="${bbsVO.bbsnm}" />';
 					var tab = '<c:out value="${param.tab}" />';
 					
 					if(bbsId == "TEAM") {
@@ -822,7 +822,7 @@
 										<spring:message code="bbs.label.alarm.bbs" /><!-- 통합게시판 -->
 									</c:when>
 									<c:otherwise>
-										<c:out value="${bbsInfoVO.bbsnm}" />
+										<c:out value="${bbsVO.bbsnm}" />
 									</c:otherwise>
 								</c:choose>
 							</c:when>
@@ -841,12 +841,12 @@
 				<!-- 영역1 -->
 				<div class="row">
 					<div class="col">
-						<c:if test="${templateUrl eq 'bbsLect' and bbsInfoVO.bbsId eq 'QNA' and STUDENT_YN eq 'Y'}">
+						<c:if test="${templateUrl eq 'bbsLect' and bbsVO.bbsId eq 'QNA' and STUDENT_YN eq 'Y'}">
 							<div class="ui message bcLYellow">
 								<b class=""><spring:message code="bbs.label.qna.guide" /><!-- ※강의 관련 문의사항을 등록하는 게시판입니다. 수강생 전체에게 내용이 공유됩니다. --></b>
 							</div>
 						</c:if>
-						<c:if test="${templateUrl eq 'bbsLect' and bbsInfoVO.bbsId eq 'SECRET' and STUDENT_YN eq 'Y'}">
+						<c:if test="${templateUrl eq 'bbsLect' and bbsVO.bbsId eq 'SECRET' and STUDENT_YN eq 'Y'}">
 							<div class="ui message bcLYellow">
 								<b class=""><spring:message code="bbs.label.secret.guide" /><!-- ※교수자와 1:1로 상담을 요청하는 게시판입니다. 작성자와 답변자만 내용을 볼 수 있습니다. 강의 및 행정 관련 문의는 강의 Q&A에 올려주시기 바랍니다. --></b>
 							</div>
@@ -879,7 +879,7 @@
 							</c:if>
 							
 							<!-- 전체공지 -->
-							<c:if test="${bbsInfoVO.sysUseYn eq 'Y' && bbsInfoVO.sysDefaultYn eq 'Y' && bbsInfoVO.bbsId eq 'NOTICE'}">
+							<c:if test="${bbsVO.sysUseYn eq 'Y' && bbsVO.sysDefaultYn eq 'Y' && bbsVO.bbsId eq 'NOTICE'}">
 								<label for="haksaYear" class="hide"><spring:message code="common.year" /></label>
 								<select id="haksaYear" class="ui dropdown mr5" onchange="changeBbsTerm()">
 									<c:forEach var="item" items="${yearList }">

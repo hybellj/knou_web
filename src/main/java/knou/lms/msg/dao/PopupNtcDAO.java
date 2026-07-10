@@ -9,21 +9,19 @@ import knou.lms.msg.vo.PopupNtcVO;
 @Mapper("popupNtcDAO")
 public interface PopupNtcDAO {
 
-    int selectPopupNtcCnt(PopupNtcVO vo);
-
     List<PopupNtcVO> selectPopupNtcList(PopupNtcVO vo);
 
     PopupNtcVO selectPopupNtc(PopupNtcVO vo);
 
-    int registPopupNtc(PopupNtcVO vo);
+    int insertPopupNtc(PopupNtcVO vo);
 
-    int registPopupNtcPstnSz(PopupNtcVO vo);
+    int insertPopupNtcPstnSz(PopupNtcVO vo);
 
-    int modifyPopupNtc(PopupNtcVO vo);
+    int updatePopupNtc(PopupNtcVO vo);
 
-    int modifyPopupNtcPstnSz(PopupNtcVO vo);
+    int updatePopupNtcPstnSz(PopupNtcVO vo);
 
-    int modifyPopupNtcUseyn(PopupNtcVO vo);
+    int updatePopupNtcUseyn(PopupNtcVO vo);
 
     int deletePopupNtcPstnSz(PopupNtcVO vo);
 

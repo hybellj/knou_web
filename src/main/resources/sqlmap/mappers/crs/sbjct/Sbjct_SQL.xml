@@ -4,125 +4,123 @@
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="knou.lms.crs.sbjct.dao.SbjctDAO">
-     <sql id="listQuery">
+
+    <!-- 과목개설 목록/엑셀 공통 조회 -->
+    <sql id="ofringListQuery">
         SELECT
-            A.SBJCT_MSTR_ID
-         ,  A.SBJCTNM
-         ,  A.SBJCT_YR
-         ,  A.SBJCT_SMSTR
-         ,  A.DEPT_ID
-         ,  A.SBJCT_GBNCD
-         ,  A.SBJCT_TYCD
-         ,  A.USEYN
-         ,  A.DELYN
-         ,  B.SMSTR_CHRT_ID
-         ,  B.ORG_ID
-         ,  B.DGRS_YR
-         ,  B.DGRS_SMSTR_CHRT
-         ,  ROW_NUMBER() OVER(ORDER BY A.REG_DTTM DESC) AS LINE_NO
-         ,  COUNT(*) OVER() AS TOTAL_CNT
-        FROM DEV_LMS.TB_LMS_SBJCT_MSTR A
-            INNER JOIN DEV_LMS.TB_LMS_SMSTR_CHRT B
+            ROW_NUMBER() OVER(ORDER BY A.REG_DTTM DESC) AS LINE_NO
+          , COUNT(*) OVER() AS TOTAL_CNT
+          , A.SBJCT_ID
+          , A.CRCLMN_NO AS SBJCT_CD
+          , A.PROF_ID
+          , A.SBJCTNM
+          , A.SMSTR_CHRT_ID
+          , A.SBJCT_YR
+          , A.SBJCT_SMSTR
+          , A.CRS_GBNCD
+          , A.SBJCT_TYCD
+          , A.LCTR_GBNCD
+          , A.CMCRS_GBNCD
+          , A.EVL_GBNCD
+          , A.DVCLAS_NO
+          , A.CRDTS
+          , A.USEYN
+          , A.ATNDLC_CERT_STSCD
+          , A.REG_DTTM
+          , ORG.ORGNM
+          , CRS_GBNCD_CD.CDNM AS CRS_GBNCDNM
+          , SBJCT_TYCD_CD.CDNM AS SBJCT_TYCDNM
+          , LCTR_GBNCD_CD.CDNM AS LCTR_GBNCDNM
+          , CMCRS_GBNCD_CD.CDNM AS CMCRS_GBNCDNM
+          , EVL_GBNCD_CD.CDNM AS EVL_GBNCDNM
+          , NVL(ADM.PROF_USERNM, '-') AS PROF_USERNM
+          , NVL(ADM.TUT_USERNM, '-') AS TUT_USERNM
+          , NVL(ATNDLC.ATNDLC_CNT, 0) AS ATNDLC_CNT
+          , NVL(ATNDLC.AUDIT_CNT, 0) AS AUDIT_CNT
+        FROM TB_LMS_SBJCT A
+            INNER JOIN TB_LMS_SMSTR_CHRT B
             ON B.SMSTR_CHRT_ID = A.SMSTR_CHRT_ID
+            LEFT JOIN TB_LMS_ORG ORG
+            ON ORG.ORG_ID = B.ORG_ID
+            LEFT JOIN TB_LMS_CMMN_CD CRS_GBNCD_CD
+            ON CRS_GBNCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND CRS_GBNCD_CD.UP_CD = 'CRS_GBNCD'
+            AND CRS_GBNCD_CD.CD = A.CRS_GBNCD
+            LEFT JOIN TB_LMS_CMMN_CD SBJCT_TYCD_CD
+            ON SBJCT_TYCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND SBJCT_TYCD_CD.UP_CD = 'SBJCT_TYCD'
+            AND SBJCT_TYCD_CD.CD = A.SBJCT_TYCD
+            LEFT JOIN TB_LMS_CMMN_CD LCTR_GBNCD_CD
+            ON LCTR_GBNCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND LCTR_GBNCD_CD.UP_CD = 'LCTR_GBNCD'
+            AND LCTR_GBNCD_CD.CD = A.LCTR_GBNCD
+            LEFT JOIN TB_LMS_CMMN_CD CMCRS_GBNCD_CD
+            ON CMCRS_GBNCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND CMCRS_GBNCD_CD.UP_CD = 'CMCRS_GBNCD'
+            AND CMCRS_GBNCD_CD.CD = A.CMCRS_GBNCD
+            LEFT JOIN TB_LMS_CMMN_CD EVL_GBNCD_CD
+            ON EVL_GBNCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND EVL_GBNCD_CD.UP_CD = 'EVL_GBNCD'
+            AND EVL_GBNCD_CD.CD = A.EVL_GBNCD
+            LEFT JOIN (
+                SELECT
+                    T1.SBJCT_ID
+                  , MAX(CASE WHEN T1.SBJCT_ADM_TYCD = 'PROF' THEN T2.USERNM END) AS PROF_USERNM
+                  , MAX(CASE WHEN T1.SBJCT_ADM_TYCD = 'TUT' THEN T2.USERNM END) AS TUT_USERNM
+                FROM TB_LMS_SBJCT_ADM T1
+                    JOIN TB_LMS_USER T2
+                    ON T2.USER_ID = T1.USER_ID
+                GROUP BY T1.SBJCT_ID
+            ) ADM
+            ON ADM.SBJCT_ID = A.SBJCT_ID
+            LEFT JOIN (
+                SELECT
+                    SBJCT_ID
+                  , SUM(CASE WHEN ATNDLC_STSCD = 'APPROVE' AND NVL(AUDITYN, 'N') = 'N' THEN 1 ELSE 0 END) AS ATNDLC_CNT
+                  , SUM(CASE WHEN ATNDLC_STSCD = 'APPROVE' AND AUDITYN = 'Y' THEN 1 ELSE 0 END) AS AUDIT_CNT
+                FROM TB_LMS_ATNDLC
+                GROUP BY SBJCT_ID
+            ) ATNDLC
+            ON ATNDLC.SBJCT_ID = A.SBJCT_ID
         WHERE 1 = 1
             AND A.DELYN = 'N'
-            <if test="orgId != null and orgId != ''">
-                AND B.ORG_ID = #{orgId}
-            </if>
-            <!-- 년도 -->
-            <if test="sbjctYr != null and sbjctYr != ''">
-                AND A.SBJCT_YR = #{sbjctYr}
-            </if>
-            <!-- 과목학기 -->
-            <if test="sbjctSmstr != null and sbjctSmstr != ''">
-                AND TRIM(A.SBJCT_SMSTR) = #{sbjctSmstr}
+            AND B.ORG_ID = #{orgId}
+            AND NVL(A.CRS_GBNCD, ' ') != 'OPEN_CRS'
+            AND NVL(A.SBJCT_TYCD, ' ') != 'OPEN_LCTR_SYSTEM'
+            <choose>
+                <when test="smstrChrtId != null and smstrChrtId != ''">
+                AND A.SMSTR_CHRT_ID = #{smstrChrtId}
+                </when>
+                <otherwise>
+                    <!-- 년도 -->
+                    <if test="sbjctYr != null and sbjctYr != ''">
+                        AND A.SBJCT_YR = #{sbjctYr}
+                    </if>
+                    <!-- 과목학기 -->
+                    <if test="sbjctSmstr != null and sbjctSmstr != ''">
+                        AND TRIM(A.SBJCT_SMSTR) = #{sbjctSmstr}
+                    </if>
+                </otherwise>
+            </choose>
+            <!-- 과정구분 -->
+            <if test="crsGbncd != null and crsGbncd != ''">
+                AND A.CRS_GBNCD = #{crsGbncd}
             </if>
             <!-- 과목분류 -->
-            <if test="sbjctTycd != null and sbjctTycd != 'all'">
+            <if test="sbjctTycd != null and sbjctTycd != ''">
                 AND A.SBJCT_TYCD = #{sbjctTycd}
             </if>
             <!-- 검색어 -->
             <if test="searchValue != null and searchValue != ''">
                 AND A.SBJCTNM LIKE FN_LIKE_VAL(#{searchValue})
             </if>
-         ORDER BY A.REG_DTTM DESC
+        ORDER BY A.REG_DTTM DESC
     </sql>
-
-    <!-- 과목목록조회(페이징) -->
-    <select id="selectSbjctList"
-            parameterType="knou.lms.crs.sbjct.vo.SbjctListVO"
-            resultType="knou.lms.crs.sbjct.vo.SbjctListVO">
-        /*
-            SQL ID : SbjctDAO.selectSbjctList
-            설명 : 과목목록조회(페이징)
-        */
-        <include refid="CommonSQL.pagePrefix" />
-        <include refid="listQuery" />
-        <include refid="CommonSQL.pageSubfix" />
-    </select>
-
-    <!-- 학위년도/학위차수 조회 -->
-    <select id="selectDgrsYrChrtList"
-            parameterType="map"
-            resultType="knou.lms.crs.sbjct.vo.DgrsYrChrtVO">
-        /*
-            SQL ID : SbjctDAO.selectDgrsYrChrtList
-            설  명 : 학위년도/학위차수 조회
-        */
-        SELECT * FROM (
-            SELECT
-                ROW_NUMBER() OVER (ORDER BY A.REG_DTTM DESC) AS RNUM,
-                A.SMSTR_CHRT_ID,
-                A.ORG_ID,
-                A.DGRS_YR,
-                A.DGRS_SMSTR_CHRT,
-                A.SMSTR_CHRTNM,
-                A.NOW_SMSTRYN
-                FROM TB_LMS_SMSTR_CHRT A
-            WHERE 1=1
-                AND A.ORG_ID = #{orgId}
-                AND A.NOW_SMSTRYN = 'Y'
-        )
-        WHERE RNUM = 1
-        <!-- LIMIT 1 -->
-    </select>
-
-    <!-- 과목사용여부 수정 -->
-    <update id="updateSbjctUseYn"
-            parameterType="knou.lms.crs.sbjct.vo.SbjctListVO">
-        /*
-            SQL ID : SbjctDAO.updateSbjctUseYn
-            설명 : 과목사용여부 수정
-        */
-
-        UPDATE TB_LMS_SBJCT_MSTR
-           SET USEYN    = #{useYn},
-               MDFR_ID  = #{mdfrId},
-               MOD_DTTM = #{modDttm}
-         WHERE SBJCT_MSTR_ID = #{sbjctMstrId}
-           AND DELYN = 'N'
-    </update>
-
-    <!-- 과목삭제 : 논리삭제(DELYN='Y') -->
-    <update id="deleteSbjct"
-            parameterType="knou.lms.crs.sbjct.vo.SbjctListVO">
-        /*
-            SQL ID : SbjctDAO.ProcessVo
-            설명 : 과목삭제(논리삭제)
-        */
-
-        UPDATE TB_LMS_SBJCT_MSTR
-           SET DELYN    = 'Y',
-               MDFR_ID  = #{mdfrId},
-               MOD_DTTM = #{modDttm}
-         WHERE SBJCT_MSTR_ID = #{sbjctMstrId}
-           AND DELYN = 'N'
-    </update>
 
 	<select id="list" parameterType="sbjctVO" resultType="sbjctVO">
 		/*
-             SQL ID : SbjctDAO.list
-             	설  명 : 과목 조회
+            SQL ID : SbjctDAO.list
+            설  명 : 과목 조회
          */
         SELECT
             SBJCT_ID
@@ -139,5 +137,1105 @@
             AND CRS_ID = #{haksaTerm}
             </if>
 	</select>
+
+    <select id="selectSbjctOfringList" parameterType="sbjctOfringPageInfo" resultType="SbjctListVO">
+        /*
+            SQL ID : SbjctDAO.selectSbjctOfringList
+            설  명 : 과목개설목록조회(페이징)
+        */
+        <include refid="CommonSQL.pagePrefix2" />
+        <include refid="ofringListQuery" />
+        <include refid="CommonSQL.pageSuffix2" />
+    </select>
+
+    <select id="selectSbjctOfringListExcelDown" parameterType="sbjctOfringPageInfo" resultType="SbjctListVO">
+        /*
+            SQL ID : SbjctDAO.selectSbjctOfringListExcelDown
+            설  명 : 과목개설목록 엑셀 다운로드
+        */
+        <include refid="ofringListQuery" />
+    </select>
+
+    <!-- 공개강좌개설 목록/엑셀 공통 조회 -->
+    <sql id="openLctrOfringListQuery">
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY A.REG_DTTM DESC) AS LINE_NO
+          , COUNT(*) OVER() AS TOTAL_CNT
+          , A.SBJCT_ID
+          , A.CRCLMN_NO AS SBJCT_CD
+          , A.PROF_ID
+          , A.SBJCTNM
+          , A.SMSTR_CHRT_ID
+          , A.SBJCT_YR
+          , A.SBJCT_SMSTR
+          , A.CRS_GBNCD
+          , A.SBJCT_TYCD
+          , A.LCTR_GBNCD
+          , A.USEYN
+          , A.SBJCT_LCTR_SDTTM
+          , A.SBJCT_LCTR_EDTTM
+          , A.REG_DTTM
+          , ORG.ORGNM
+          , CRS_GBNCD_CD.CDNM AS CRS_GBNCDNM
+          , SBJCT_TYCD_CD.CDNM AS SBJCT_TYCDNM
+          , LCTR_GBNCD_CD.CDNM AS LCTR_GBNCDNM
+          , NVL(ADM.PROF_USERNM, '-') AS PROF_USERNM
+          /* 공개강좌 목록의 미리보기 버튼에서 사용할 콘텐츠 URL을 조회한다. */
+          , (
+                SELECT MAX(C.CONTS_URL)
+                  FROM TB_LMS_LCTR_WKNO_SCHDL W
+                    JOIN TB_LMS_LCTR L
+                    ON L.LCTR_WKNO_SCHDL_ID = W.LCTR_WKNO_SCHDL_ID
+                    AND NVL(L.DELYN, 'N') = 'N'
+                    JOIN TB_LMS_LCTR_CONTS C
+                    ON C.LCTR_ID = L.LCTR_ID
+                 WHERE W.SBJCT_ID = A.SBJCT_ID
+                   AND NVL(W.DELYN, 'N') = 'N'
+                   AND C.CONTS_URL IS NOT NULL
+            ) AS LESSON_CNTS_URL
+        FROM TB_LMS_SBJCT A
+            INNER JOIN TB_LMS_SMSTR_CHRT B
+            ON B.SMSTR_CHRT_ID = A.SMSTR_CHRT_ID
+            LEFT JOIN TB_LMS_ORG ORG
+            ON ORG.ORG_ID = B.ORG_ID
+            LEFT JOIN TB_LMS_CMMN_CD CRS_GBNCD_CD
+            ON CRS_GBNCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND CRS_GBNCD_CD.UP_CD = 'CRS_GBNCD'
+            AND CRS_GBNCD_CD.CD = A.CRS_GBNCD
+            LEFT JOIN TB_LMS_CMMN_CD SBJCT_TYCD_CD
+            ON SBJCT_TYCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND SBJCT_TYCD_CD.UP_CD = 'SBJCT_TYCD'
+            AND SBJCT_TYCD_CD.CD = A.SBJCT_TYCD
+            LEFT JOIN TB_LMS_CMMN_CD LCTR_GBNCD_CD
+            ON LCTR_GBNCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND LCTR_GBNCD_CD.UP_CD = 'LCTR_GBNCD'
+            AND LCTR_GBNCD_CD.CD = A.LCTR_GBNCD
+            LEFT JOIN (
+                SELECT
+                    T1.SBJCT_ID
+                  , MAX(CASE WHEN T1.SBJCT_ADM_TYCD = 'PROF' THEN T2.USERNM END) AS PROF_USERNM
+                FROM TB_LMS_SBJCT_ADM T1
+                    JOIN TB_LMS_USER T2
+                    ON T2.USER_ID = T1.USER_ID
+                GROUP BY T1.SBJCT_ID
+            ) ADM
+            ON ADM.SBJCT_ID = A.SBJCT_ID
+        WHERE A.DELYN = 'N'
+          AND B.ORG_ID = #{orgId}
+          /* 공개강좌개설 목록은 과목개설 데이터 중 공개강좌 시스템 유형만 조회한다. */
+          AND A.CRS_GBNCD = 'OPEN_CRS'
+          AND A.SBJCT_TYCD = 'OPEN_LCTR_SYSTEM'
+            <choose>
+                <when test="smstrChrtId != null and smstrChrtId != ''">
+                        AND A.SMSTR_CHRT_ID = #{smstrChrtId}
+                </when>
+                <otherwise>
+                    <if test="sbjctYr != null and sbjctYr != ''">
+                        AND A.SBJCT_YR = #{sbjctYr}
+                    </if>
+                    <if test="sbjctSmstr != null and sbjctSmstr != ''">
+                        AND TRIM(A.SBJCT_SMSTR) = #{sbjctSmstr}
+                    </if>
+                </otherwise>
+            </choose>
+            <if test="crsGbncd != null and crsGbncd != ''">
+          AND A.CRS_GBNCD = #{crsGbncd}
+            </if>
+            <if test="lctrGbncd != null and lctrGbncd != ''">
+          AND A.LCTR_GBNCD = #{lctrGbncd}
+            </if>
+            <if test="searchValue != null and searchValue != ''">
+          AND A.SBJCTNM LIKE FN_LIKE_VAL(#{searchValue})
+            </if>
+        ORDER BY A.REG_DTTM DESC
+    </sql>
+
+    <select id="selectOpenLctrOfringList" parameterType="sbjctOfringPageInfo" resultType="SbjctListVO">
+        /*
+            SQL ID : SbjctDAO.selectOpenLctrOfringList
+            설  명 : 공개강좌개설 목록 조회(페이징)
+        */
+        <include refid="CommonSQL.pagePrefix2" />
+        <include refid="openLctrOfringListQuery" />
+        <include refid="CommonSQL.pageSuffix2" />
+    </select>
+
+    <select id="selectOpenLctrOfringListExcelDown" parameterType="sbjctOfringPageInfo" resultType="SbjctListVO">
+        /*
+            SQL ID : SbjctDAO.selectOpenLctrOfringListExcelDown
+            설  명 : 공개강좌개설 목록 엑셀 다운로드
+        */
+        <include refid="openLctrOfringListQuery" />
+    </select>
+
+    <select id="selectSbjctOfringAccess" parameterType="SbjctVO" resultType="SbjctVO">
+        /*
+            SQL ID : SbjctDAO.selectSbjctOfringAccess
+            설  명 : 과목개설 접근 권한 체크용 조회
+        */
+        SELECT
+            A.SBJCT_ID
+          , B.ORG_ID
+          , A.PROF_ID
+          , A.ATNDLC_CERT_STSCD
+          , A.SBJCT_TYCD
+        FROM TB_LMS_SBJCT A
+            INNER JOIN TB_LMS_SMSTR_CHRT B
+            ON B.SMSTR_CHRT_ID = A.SMSTR_CHRT_ID
+        WHERE A.SBJCT_ID = #{sbjctId}
+          AND A.DELYN = 'N'
+    </select>
+
+    <select id="selectSbjctOfring" parameterType="SbjctVO" resultType="SbjctVO">
+        /*
+            SQL ID : SbjctDAO.selectSbjctOfring
+            설  명 : 과목개설 상세 조회
+        */
+        SELECT
+            A.SBJCT_ID
+          , A.PROF_ID
+          , A.SBJCT_REF_TYCD
+          , A.CRS_MSTR_ID
+          , A.SMSTR_CHRT_ID
+          , A.SBJCT_GBNCD
+          , A.CRS_GBNCD
+          , A.SBJCT_TYCD
+          , A.EDU_MTHD_TYCD
+          , A.RGLRYN
+          , A.CRCLMN_NO
+          , A.SBJCTNM
+          , A.SBJCT_EXPLN
+          , A.SBJCT_ENNM
+          , A.SBJCT_YR
+          , A.SBJCT_SMSTR
+          , A.CRDTS
+          , A.RVW_PSBL_GBNCD
+          , A.RVW_SDTTM
+          , A.RVW_EDTTM
+          , A.DVCLAS_GRPCD
+          , A.DVCLAS_NO
+          , A.DVCLAS_NCKNM
+          , A.WHOL_WK_CNT
+          , A.CMCRS_GBNCD
+          , A.EVL_GBNCD
+          , A.LRN_CNTRL_GBNCD
+          , A.FNSH_PROC_MTHD_CD
+          , A.FNSH_SCR
+          , A.FNSH_SCR_DELRT
+          , A.ETC_DELRT
+          , A.ATNDC_DELRT
+          , A.ASMT_DELRT
+          , A.DSCS_DELRT
+          , A.EXAM_DELRT
+          , A.TEAM_ACTV_DELRT
+          , A.SBJCT_LCTR_SDTTM
+          , A.SBJCT_LCTR_EDTTM
+          , A.ATNDLC_APLY_MTHD_CD
+          , A.ATNDLC_QUOTA
+          , A.ATNDLC_CERT_STSCD
+          , A.ATNDLC_APLY_SDTTM
+          , A.ATNDLC_APLY_EDTTM
+          , A.ATNDLC_SDTTM
+          , A.ATNDLC_EDTTM
+          , A.AUDIT_SDTTM
+          , A.AUDIT_EDTTM
+          , A.SBJCT_LATE_RECG_DTTM
+          , A.MRK_PROC_SDTTM
+          , A.MRK_PROC_EDTTM
+          , A.MRK_EVL_GBNCD
+          , A.MRK_INQ_SRVY_ID
+          , A.USEYN
+          , A.DELYN
+          , A.KYWD
+          , A.LCTR_FRMT_GBNCD
+          , A.RGTR_ID
+          , A.REG_DTTM
+          , A.MDFR_ID
+          , A.MOD_DTTM
+          , A.LCTR_GBNCD
+          , A.CRCLMN_NO AS SBJCT_CD
+          , A.LCTR_EVLYN
+          , A.LCTR_PRVW_WKNO
+          , A.PASSFAIL_SCR
+          , B.ORG_ID
+          , B.SMSTR_CHRTNM AS TERM_NM
+          , ORG.ORGNM
+          , CRS_GBNCD_CD.CDNM AS CRS_GBNCDNM
+          , SBJCT_TYCD_CD.CDNM AS SBJCT_TYCDNM
+          , LCTR_GBNCD_CD.CDNM AS LCTR_GBNCDNM
+          , CMCRS_GBNCD_CD.CDNM AS CMCRS_GBNNM
+          , EVL_GBNCD_CD.CDNM AS EVL_GBNCDNM
+          , LCTR_FRMT_GBNCD_CD.CDNM AS LCTR_FRMT_GBNCDNM
+          , LRN_CNTRL_GBNCD_CD.CDNM AS LRN_CNTRL_GBNCDNM
+          , ATNDLC_APLY_MTHD_CD.CDNM AS ATNDLC_APLY_MTHD_CDNM
+          , ATNDLC_CERT_STSCD_CD.CDNM AS ATNDLC_CERT_STSCDNM
+          , RVW_PSBL_GBNCD_CD.CDNM AS RVW_PSBL_GBNCDNM
+          /* 공개강좌 기본정보 팝업의 미리보기 버튼에서 사용할 콘텐츠 URL을 조회한다. */
+          , (
+                SELECT MAX(C.CONTS_URL)
+                  FROM TB_LMS_LCTR_WKNO_SCHDL W
+                    JOIN TB_LMS_LCTR L
+                    ON L.LCTR_WKNO_SCHDL_ID = W.LCTR_WKNO_SCHDL_ID
+                    AND NVL(L.DELYN, 'N') = 'N'
+                    JOIN TB_LMS_LCTR_CONTS C
+                    ON C.LCTR_ID = L.LCTR_ID
+                 WHERE W.SBJCT_ID = A.SBJCT_ID
+                   AND NVL(W.DELYN, 'N') = 'N'
+                   AND C.CONTS_URL IS NOT NULL
+            ) AS LESSON_CNTS_URL
+        FROM TB_LMS_SBJCT A
+            INNER JOIN TB_LMS_SMSTR_CHRT B
+            ON B.SMSTR_CHRT_ID = A.SMSTR_CHRT_ID
+            LEFT JOIN TB_LMS_ORG ORG
+            ON ORG.ORG_ID = B.ORG_ID
+            LEFT JOIN TB_LMS_CMMN_CD CRS_GBNCD_CD
+            ON CRS_GBNCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND CRS_GBNCD_CD.UP_CD = 'CRS_GBNCD'
+            AND CRS_GBNCD_CD.CD = A.CRS_GBNCD
+            LEFT JOIN TB_LMS_CMMN_CD SBJCT_TYCD_CD
+            ON SBJCT_TYCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND SBJCT_TYCD_CD.UP_CD = 'SBJCT_TYCD'
+            AND SBJCT_TYCD_CD.CD = A.SBJCT_TYCD
+            LEFT JOIN TB_LMS_CMMN_CD LCTR_GBNCD_CD
+            ON LCTR_GBNCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND LCTR_GBNCD_CD.UP_CD = 'LCTR_GBNCD'
+            AND LCTR_GBNCD_CD.CD = A.LCTR_GBNCD
+            LEFT JOIN TB_LMS_CMMN_CD CMCRS_GBNCD_CD
+            ON CMCRS_GBNCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND CMCRS_GBNCD_CD.UP_CD = 'CMCRS_GBNCD'
+            AND CMCRS_GBNCD_CD.CD = A.CMCRS_GBNCD
+            LEFT JOIN TB_LMS_CMMN_CD EVL_GBNCD_CD
+            ON EVL_GBNCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND EVL_GBNCD_CD.UP_CD = 'EVL_GBNCD'
+            AND EVL_GBNCD_CD.CD = A.EVL_GBNCD
+            LEFT JOIN TB_LMS_CMMN_CD LCTR_FRMT_GBNCD_CD
+            ON LCTR_FRMT_GBNCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND LCTR_FRMT_GBNCD_CD.UP_CD = 'LCTR_FRMT_GBNCD'
+            AND LCTR_FRMT_GBNCD_CD.CD = A.LCTR_FRMT_GBNCD
+            LEFT JOIN TB_LMS_CMMN_CD LRN_CNTRL_GBNCD_CD
+            ON LRN_CNTRL_GBNCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND LRN_CNTRL_GBNCD_CD.UP_CD = 'LRN_CNTRL_GBNCD'
+            AND LRN_CNTRL_GBNCD_CD.CD = A.LRN_CNTRL_GBNCD
+            LEFT JOIN TB_LMS_CMMN_CD ATNDLC_APLY_MTHD_CD
+            ON ATNDLC_APLY_MTHD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND ATNDLC_APLY_MTHD_CD.UP_CD = 'ATNDLC_APLY_MTHD_CD'
+            AND ATNDLC_APLY_MTHD_CD.CD = A.ATNDLC_APLY_MTHD_CD
+            LEFT JOIN TB_LMS_CMMN_CD ATNDLC_CERT_STSCD_CD
+            ON ATNDLC_CERT_STSCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND ATNDLC_CERT_STSCD_CD.UP_CD = 'ATNDLC_CERT_STSCD'
+            AND ATNDLC_CERT_STSCD_CD.CD = A.ATNDLC_CERT_STSCD
+            LEFT JOIN TB_LMS_CMMN_CD RVW_PSBL_GBNCD_CD
+            ON RVW_PSBL_GBNCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND RVW_PSBL_GBNCD_CD.UP_CD = 'RVW_PSBL_GBNCD'
+            AND RVW_PSBL_GBNCD_CD.CD = A.RVW_PSBL_GBNCD
+        WHERE A.SBJCT_ID = #{sbjctId}
+          AND A.DELYN = 'N'
+    </select>
+
+    <select id="selectSbjctOfringSchdlList" parameterType="SbjctVO" resultType="SbjctSchdlVO">
+        /*
+            SQL ID : SbjctDAO.selectSbjctOfringSchdlList
+            설  명 : 과목개설 주차 기간 설정 목록 조회
+        */
+        SELECT *
+        FROM (
+            SELECT
+                S.SBJCT_SCHDL_ID
+              , A.SBJCT_ID
+              , S.SMSTR_CHRT_SCHDL_ID
+              , S.SBJCT_SCHDL_WKNO
+              , S.TOC_SEQNO
+              , S.SBJCT_SYMD
+              , S.SBJCT_EYMD
+              , S.SBJCT_ATNDC_RCG_SYMD
+              , S.SBJCT_ATNDC_RCG_EYMD
+              , S.RGTR_ID
+              , S.REG_DTTM
+              , S.MDFR_ID
+              , S.MOD_DTTM
+              , S.SBJCT_SCHDL_WKNONM
+            FROM TB_LMS_SBJCT A
+                INNER JOIN TB_LMS_SMSTR_CHRT B
+                ON B.SMSTR_CHRT_ID = A.SMSTR_CHRT_ID
+                INNER JOIN TB_LMS_SBJCT_SCHDL S
+                ON S.SBJCT_ID = A.SBJCT_ID
+            WHERE A.SBJCT_ID = #{sbjctId}
+              AND A.DELYN = 'N'
+              <if test="orgId != null and orgId != ''">
+              AND B.ORG_ID = #{orgId}
+              </if>
+            UNION ALL
+            SELECT
+                CAST(NULL AS VARCHAR2(30)) AS SBJCT_SCHDL_ID
+              , A.SBJCT_ID
+              , C.SMSTR_CHRT_SCHDL_ID
+              , C.SCHDL_WKNO AS SBJCT_SCHDL_WKNO
+              , C.TOC_SEQNO
+              , C.SMSTR_CHRT_SYMD AS SBJCT_SYMD
+              , C.SMSTR_CHRT_EYMD AS SBJCT_EYMD
+              , C.SMSTR_CHRT_ATNDC_RCG_SYMD AS SBJCT_ATNDC_RCG_SYMD
+              , C.SMSTR_CHRT_ATNDC_RCG_EYMD AS SBJCT_ATNDC_RCG_EYMD
+              , CAST(NULL AS VARCHAR2(30)) AS RGTR_ID
+              , CAST(NULL AS VARCHAR2(14)) AS REG_DTTM
+              , CAST(NULL AS VARCHAR2(30)) AS MDFR_ID
+              , CAST(NULL AS VARCHAR2(14)) AS MOD_DTTM
+              , C.SCHDL_WKNONM AS SBJCT_SCHDL_WKNONM
+            FROM TB_LMS_SBJCT A
+                INNER JOIN TB_LMS_SMSTR_CHRT B
+                ON B.SMSTR_CHRT_ID = A.SMSTR_CHRT_ID
+                INNER JOIN TB_LMS_SMSTR_CHRT_SCHDL C
+                ON C.SMSTR_CHRT_ID = A.SMSTR_CHRT_ID
+            WHERE A.SBJCT_ID = #{sbjctId}
+              AND A.DELYN = 'N'
+              <if test="orgId != null and orgId != ''">
+              AND B.ORG_ID = #{orgId}
+              </if>
+              AND NOT EXISTS (
+                    SELECT 1
+                    FROM TB_LMS_SBJCT_SCHDL S
+                    WHERE S.SBJCT_ID = A.SBJCT_ID
+                  )
+        )
+        ORDER BY TOC_SEQNO, SBJCT_SCHDL_WKNO
+    </select>
+
+    <insert id="insertSbjctOfring" parameterType="SbjctVO">
+        /*
+            SQL ID : SbjctDAO.insertSbjctOfring
+            설  명 : 과목개설 등록
+        */
+        INSERT INTO TB_LMS_SBJCT (
+            SBJCT_ID
+          , SBJCT_REF_TYCD
+          , SMSTR_CHRT_ID
+          , SBJCT_GBNCD
+          , CRS_GBNCD
+          , SBJCT_TYCD
+          , SBJCTNM
+          , SBJCT_EXPLN
+          , SBJCT_ENNM
+          , SBJCT_YR
+          , SBJCT_SMSTR
+          , CRDTS
+          , RVW_PSBL_GBNCD
+          , RVW_SDTTM
+          , RVW_EDTTM
+          , DVCLAS_NO
+          , DVCLAS_NCKNM
+          , DEPT_ID
+          , CMCRS_GBNCD
+          , LRN_CNTRL_GBNCD
+          , SBJCT_LCTR_SDTTM
+          , SBJCT_LCTR_EDTTM
+          , ATNDLC_APLY_MTHD_CD
+          , ATNDLC_QUOTA
+          , ATNDLC_CERT_STSCD
+          , ATNDLC_APLY_SDTTM
+          , ATNDLC_APLY_EDTTM
+          , AUDIT_SDTTM
+          , AUDIT_EDTTM
+          , SBJCT_LATE_RECG_DTTM
+          , MRK_PROC_SDTTM
+          , MRK_PROC_EDTTM
+          , USEYN
+          , DELYN
+          , LCTR_FRMT_GBNCD
+          , RGTR_ID
+          , REG_DTTM
+          , LCTR_GBNCD
+          , CRCLMN_NO
+          , LCTR_EVLYN
+          , LCTR_PRVW_WKNO
+          , EVL_GBNCD
+          , PASSFAIL_SCR
+        ) VALUES (
+            #{sbjctId}
+          , #{sbjctRefTycd}
+          , #{smstrChrtId}
+          , #{sbjctGbncd}
+          , #{crsGbncd}
+          , #{sbjctTycd}
+          , #{sbjctnm}
+          , #{sbjctExpln}
+          , #{sbjctEnnm}
+          , #{sbjctYr}
+          , #{sbjctSmstr}
+          , #{crdts}
+          , #{rvwPsblGbncd}
+          , #{rvwSdttm}
+          , #{rvwEdttm}
+          , #{dvclasNo}
+          , #{dvclasNcknm}
+          , #{cmcrsGbncd}
+          , #{lrnCntrlGbncd}
+          , #{sbjctLctrSdttm}
+          , #{sbjctLctrEdttm}
+          , #{atndlcAplyMthdCd}
+          , #{atndlcQuota}
+          , #{atndlcCertStscd}
+          , #{atndlcAplySdttm}
+          , #{atndlcAplyEdttm}
+          , #{auditSdttm}
+          , #{auditEdttm}
+          , #{sbjctLateRecgDttm}
+          , #{mrkProcSdttm}
+          , #{mrkProcEdttm}
+          , #{useyn}
+          , #{delyn}
+          , #{lctrFrmtGbncd}
+          , #{rgtrId}
+          , FN_DTTM()
+          , #{lctrGbncd}
+          , #{sbjctCd}
+          , #{lctrEvlyn}
+          , #{lctrPrvwWkno}
+          , #{evlGbncd}
+          , #{passfailScr}
+        )
+    </insert>
+
+    <update id="updateSbjctOfring" parameterType="SbjctVO">
+        /*
+            SQL ID : SbjctDAO.updateSbjctOfring
+            설  명 : 과목개설 수정
+        */
+        UPDATE TB_LMS_SBJCT
+        SET
+            SBJCT_REF_TYCD = #{sbjctRefTycd}
+          , SMSTR_CHRT_ID = #{smstrChrtId}
+          , CRS_GBNCD = #{crsGbncd}
+          , SBJCT_TYCD = #{sbjctTycd}
+          , SBJCTNM = #{sbjctnm}
+          , SBJCT_EXPLN = #{sbjctExpln}
+          , SBJCT_ENNM = #{sbjctEnnm}
+          , SBJCT_YR = #{sbjctYr}
+          , SBJCT_SMSTR = #{sbjctSmstr}
+          , CRDTS = #{crdts}
+          , RVW_PSBL_GBNCD = #{rvwPsblGbncd}
+          , RVW_SDTTM = #{rvwSdttm}
+          , RVW_EDTTM = #{rvwEdttm}
+          , DVCLAS_NO = #{dvclasNo}
+          , DVCLAS_NCKNM = #{dvclasNcknm}
+          , CMCRS_GBNCD = #{cmcrsGbncd}
+          , LRN_CNTRL_GBNCD = #{lrnCntrlGbncd}
+          , SBJCT_LCTR_SDTTM = #{sbjctLctrSdttm}
+          , SBJCT_LCTR_EDTTM = #{sbjctLctrEdttm}
+          , ATNDLC_APLY_MTHD_CD = #{atndlcAplyMthdCd}
+          , ATNDLC_QUOTA = #{atndlcQuota}
+          , ATNDLC_CERT_STSCD = #{atndlcCertStscd}
+          , ATNDLC_APLY_SDTTM = #{atndlcAplySdttm}
+          , ATNDLC_APLY_EDTTM = #{atndlcAplyEdttm}
+          , AUDIT_EDTTM = #{auditEdttm}
+          , SBJCT_LATE_RECG_DTTM = #{sbjctLateRecgDttm}
+          , MRK_PROC_SDTTM = #{mrkProcSdttm}
+          , MRK_PROC_EDTTM = #{mrkProcEdttm}
+          , USEYN = #{useyn}
+          , LCTR_FRMT_GBNCD = #{lctrFrmtGbncd}
+          , MDFR_ID = #{mdfrId}
+          , MOD_DTTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+          , LCTR_GBNCD = #{lctrGbncd}
+          , CRCLMN_NO = #{sbjctCd}
+          , LCTR_EVLYN = #{lctrEvlyn}
+          , LCTR_PRVW_WKNO = #{lctrPrvwWkno}
+          , EVL_GBNCD = #{evlGbncd}
+          , PASSFAIL_SCR = #{passfailScr}
+        WHERE SBJCT_ID = #{sbjctId}
+          AND DELYN = 'N'
+    </update>
+
+    <update id="deleteSbjctOfring" parameterType="SbjctVO">
+        /*
+            SQL ID : SbjctDAO.deleteSbjctOfring
+            설  명 : 과목개설 삭제(논리삭제)
+        */
+        UPDATE TB_LMS_SBJCT
+        SET
+            DELYN = 'Y'
+          , MDFR_ID = #{mdfrId}
+          , MOD_DTTM = FN_DTTM()
+        WHERE SBJCT_ID = #{sbjctId}
+          AND DELYN = 'N'
+    </update>
+
+    <update id="updateSbjctOfringUseyn" parameterType="SbjctVO">
+        /*
+            SQL ID : SbjctDAO.updateSbjctOfringUseyn
+            설  명 : 과목개설 목록에서 사용여부만 수정
+        */
+        UPDATE TB_LMS_SBJCT
+           SET USEYN = #{useyn}
+             , MDFR_ID = #{mdfrId}
+             , MOD_DTTM = FN_DTTM()
+         WHERE SBJCT_ID = #{sbjctId}
+           AND NVL(SBJCT_TYCD, ' ') != 'OPEN_LCTR_SYSTEM'
+           AND DELYN = 'N'
+    </update>
+
+    <update id="updateOpenLctrOfringUseyn" parameterType="SbjctVO">
+        /*
+            SQL ID : SbjctDAO.updateOpenLctrOfringUseyn
+            설  명 : 공개강좌개설 목록에서 사용여부만 수정
+        */
+        UPDATE TB_LMS_SBJCT
+           SET USEYN = #{useyn}
+             , MDFR_ID = #{mdfrId}
+             , MOD_DTTM = FN_DTTM()
+         WHERE SBJCT_ID = #{sbjctId}
+           /* 과목개설 일반 데이터가 목록 토글로 수정되지 않도록 공개강좌 유형으로 제한한다. */
+           AND SBJCT_TYCD = 'OPEN_LCTR_SYSTEM'
+           AND DELYN = 'N'
+    </update>
+
+    <insert id="insertSbjctOfringSchdlList" parameterType="SbjctSchdlVO">
+        /*
+            SQL ID : SbjctDAO.insertSbjctOfringSchdlList
+            설  명 : 과목개설 주차 기간 설정 목록 벌크 등록
+        */
+        INSERT INTO TB_LMS_SBJCT_SCHDL (
+            SBJCT_SCHDL_ID
+          , SBJCT_ID
+          , SMSTR_CHRT_SCHDL_ID
+          , SBJCT_SCHDL_WKNO
+          , TOC_SEQNO
+          , SBJCT_SYMD
+          , SBJCT_EYMD
+          , SBJCT_ATNDC_RCG_SYMD
+          , SBJCT_ATNDC_RCG_EYMD
+          , RGTR_ID
+          , REG_DTTM
+          , MDFR_ID
+          , MOD_DTTM
+          , SBJCT_SCHDL_WKNONM
+        )
+        SELECT
+            SRC.SBJCT_SCHDL_ID
+          , SRC.SBJCT_ID
+          , SRC.SMSTR_CHRT_SCHDL_ID
+          , SRC.SBJCT_SCHDL_WKNO
+          , SRC.TOC_SEQNO
+          , SRC.SBJCT_SYMD
+          , SRC.SBJCT_EYMD
+          , SRC.SBJCT_ATNDC_RCG_SYMD
+          , SRC.SBJCT_ATNDC_RCG_EYMD
+          , SRC.RGTR_ID
+          , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+          , SRC.MDFR_ID
+          , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+          , SRC.SBJCT_SCHDL_WKNONM
+        FROM (
+            <foreach collection="schdlList" item="item" separator=" UNION ALL ">
+            SELECT
+                #{item.sbjctSchdlId, jdbcType=VARCHAR} AS SBJCT_SCHDL_ID
+              , #{item.sbjctId, jdbcType=VARCHAR} AS SBJCT_ID
+              , #{item.smstrChrtSchdlId, jdbcType=VARCHAR} AS SMSTR_CHRT_SCHDL_ID
+              , #{item.sbjctSchdlWkno, jdbcType=NUMERIC} AS SBJCT_SCHDL_WKNO
+              , #{item.tocSeqno, jdbcType=NUMERIC} AS TOC_SEQNO
+              , #{item.sbjctSymd, jdbcType=VARCHAR} AS SBJCT_SYMD
+              , #{item.sbjctEymd, jdbcType=VARCHAR} AS SBJCT_EYMD
+              , #{item.sbjctAtndcRcgSymd, jdbcType=VARCHAR} AS SBJCT_ATNDC_RCG_SYMD
+              , #{item.sbjctAtndcRcgEymd, jdbcType=VARCHAR} AS SBJCT_ATNDC_RCG_EYMD
+              , #{item.rgtrId, jdbcType=VARCHAR} AS RGTR_ID
+              , #{item.mdfrId, jdbcType=VARCHAR} AS MDFR_ID
+              , #{item.sbjctSchdlWknonm, jdbcType=VARCHAR} AS SBJCT_SCHDL_WKNONM
+            FROM DUAL
+            </foreach>
+        ) SRC
+            INNER JOIN TB_LMS_SBJCT A
+            ON A.SBJCT_ID = SRC.SBJCT_ID
+            AND A.DELYN = 'N'
+    </insert>
+
+    <delete id="deleteSbjctOfringSchdlList" parameterType="SbjctSchdlVO">
+        /*
+            SQL ID : SbjctDAO.deleteSbjctOfringSchdlList
+            설  명 : 과목개설 주차 기간 설정 목록 삭제
+        */
+        DELETE FROM TB_LMS_SBJCT_SCHDL
+        WHERE SBJCT_ID = #{sbjctId}
+    </delete>
+
+    <select id="admSbjctOfringAdmUserList" parameterType="SbjctAdmVO" resultType="SbjctAdmVO">
+        /*
+            SQL ID : SbjctDAO.admSbjctOfringAdmUserList
+            설  명 : 과목개설 과목관리자 등록용 사용자 목록 조회
+        */
+        WITH BASE_USER AS (
+            SELECT
+                U.USER_ID
+              , U.STDNT_NO
+              , U.USERNM
+              , U.USER_TYCD
+            FROM TB_LMS_USER U
+            WHERE U.USER_TYCD IN ('PROF', 'COPROF', 'TUT', 'ASSI')
+              AND U.USERNM LIKE FN_LIKE_VAL(#{searchValue})
+        )
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY U.USERNM, U.USER_ID) AS LINE_NO
+          , U.USER_ID
+          , U.STDNT_NO
+          , U.USERNM
+          , U.USER_TYCD
+          , USER_TYCD_CD.CDNM AS USER_TYCDNM
+          , CNTCT.MBL_PHN
+          , CNTCT.EML
+        FROM BASE_USER U
+            LEFT JOIN TB_LMS_CMMN_CD USER_TYCD_CD
+            ON USER_TYCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND USER_TYCD_CD.UP_CD = 'USER_TYCD'
+            AND USER_TYCD_CD.CD = U.USER_TYCD
+            LEFT JOIN (
+                SELECT
+                    UC.USER_ID
+                  , MAX(CASE WHEN UC.CNTCT_TYCD = 'MBL_PHN' THEN UC.CNTCT END) AS MBL_PHN
+                  , MAX(CASE WHEN UC.CNTCT_TYCD = 'INDV_EML' THEN UC.CNTCT END) AS EML
+                FROM TB_LMS_USER_CNTCT UC
+                WHERE UC.CNTCT_TYCD IN ('MBL_PHN', 'INDV_EML')
+                  AND EXISTS (
+                        SELECT 1
+                        FROM BASE_USER BU
+                        WHERE BU.USER_ID = UC.USER_ID
+                      )
+                GROUP BY UC.USER_ID
+            ) CNTCT
+            ON CNTCT.USER_ID = U.USER_ID
+        ORDER BY U.USERNM, U.USER_ID
+    </select>
+
+    <select id="admSbjctOfringAdmList" parameterType="SbjctAdmVO" resultType="SbjctAdmVO">
+        /*
+            SQL ID : SbjctDAO.admSbjctOfringAdmList
+            설  명 : 과목개설 과목관리자 목록 조회
+        */
+        WITH BASE_ADM AS (
+            SELECT
+                ADM.SBJCT_ADM_ID
+              , ADM.SBJCT_ID
+              , ADM.USER_ID
+              , ADM.SBJCT_ADM_TYCD
+              , ADM.RGTR_ID
+              , ADM.REG_DTTM
+              , ADM.MDFR_ID
+              , ADM.MOD_DTTM
+              , ADM.SBJCT_ADM_SEQNO
+              , U.USERNM
+              , U.STDNT_NO
+              , U.USER_TYCD
+            FROM TB_LMS_SBJCT_ADM ADM
+                INNER JOIN TB_LMS_SBJCT CUR
+                ON CUR.SBJCT_ID = ADM.SBJCT_ID
+                AND CUR.DELYN = 'N'
+                INNER JOIN TB_LMS_USER U
+                ON U.USER_ID = ADM.USER_ID
+            WHERE ADM.SBJCT_ID = #{sbjctId}
+        )
+        SELECT
+            ADM.SBJCT_ADM_ID
+          , ADM.SBJCT_ID
+          , ADM.USER_ID
+          , ADM.SBJCT_ADM_TYCD
+          , ADM.RGTR_ID
+          , ADM.REG_DTTM
+          , ADM.MDFR_ID
+          , ADM.MOD_DTTM
+          , ADM.SBJCT_ADM_SEQNO
+          , ADM.USERNM
+          , ADM.STDNT_NO
+          , ADM.USER_TYCD
+          , USER_TYCD_CD.CDNM AS USER_TYCDNM
+          , CNTCT.MBL_PHN
+          , CNTCT.EML
+        FROM BASE_ADM ADM
+            LEFT JOIN TB_LMS_CMMN_CD USER_TYCD_CD
+            ON USER_TYCD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            AND USER_TYCD_CD.UP_CD = 'USER_TYCD'
+            AND USER_TYCD_CD.CD = ADM.USER_TYCD
+            LEFT JOIN (
+                SELECT
+                    UC.USER_ID
+                  , MAX(CASE WHEN UC.CNTCT_TYCD = 'MBL_PHN' THEN UC.CNTCT END) AS MBL_PHN
+                  , MAX(CASE WHEN UC.CNTCT_TYCD = 'INDV_EML' THEN UC.CNTCT END) AS EML
+                FROM TB_LMS_USER_CNTCT UC
+                WHERE UC.CNTCT_TYCD IN ('MBL_PHN', 'INDV_EML')
+                  AND EXISTS (
+                        SELECT 1
+                        FROM BASE_ADM BA
+                        WHERE BA.USER_ID = UC.USER_ID
+                      )
+                GROUP BY UC.USER_ID
+            ) CNTCT
+            ON CNTCT.USER_ID = ADM.USER_ID
+        ORDER BY ADM.SBJCT_ADM_SEQNO, ADM.REG_DTTM, ADM.SBJCT_ADM_ID
+    </select>
+
+    <delete id="deleteSbjctOfringAdmList" parameterType="SbjctAdmVO">
+        /*
+            SQL ID : SbjctDAO.deleteSbjctOfringAdmList
+            설  명 : 과목개설 과목관리자 목록 삭제
+        */
+        DELETE FROM TB_LMS_SBJCT_ADM
+        WHERE SBJCT_ID = #{sbjctId}
+    </delete>
+
+    <insert id="insertSbjctOfringAdmList" parameterType="SbjctAdmVO">
+        /*
+            SQL ID : SbjctDAO.insertSbjctOfringAdmList
+            설  명 : 과목개설 과목관리자 벌크 등록
+        */
+        INSERT INTO TB_LMS_SBJCT_ADM (
+            SBJCT_ADM_ID
+          , SBJCT_ID
+          , USER_ID
+          , SBJCT_ADM_TYCD
+          , RGTR_ID
+          , REG_DTTM
+          , MDFR_ID
+          , MOD_DTTM
+          , SBJCT_ADM_SEQNO
+        )
+        SELECT
+            SRC.SBJCT_ADM_ID
+          , SRC.SBJCT_ID
+          , SRC.USER_ID
+          , SRC.SBJCT_ADM_TYCD
+          , SRC.RGTR_ID
+          , FN_DTTM()
+          , SRC.MDFR_ID
+          , FN_DTTM()
+          , SRC.SBJCT_ADM_SEQNO
+        FROM (
+            <foreach collection="admList" item="item" separator=" UNION ALL ">
+            SELECT
+                #{item.sbjctAdmId} AS SBJCT_ADM_ID
+              , #{item.sbjctId} AS SBJCT_ID
+              , #{item.userId} AS USER_ID
+              , #{item.sbjctAdmTycd} AS SBJCT_ADM_TYCD
+              , #{item.rgtrId} AS RGTR_ID
+              , #{item.mdfrId} AS MDFR_ID
+              , #{item.sbjctAdmSeqno} AS SBJCT_ADM_SEQNO
+            FROM DUAL
+            </foreach>
+        ) SRC
+            INNER JOIN TB_LMS_SBJCT CUR
+            ON CUR.SBJCT_ID = SRC.SBJCT_ID
+            AND CUR.DELYN = 'N'
+            INNER JOIN TB_LMS_USER U
+            ON U.USER_ID = SRC.USER_ID
+            AND U.USER_TYCD IN ('PROF', 'COPROF', 'TUT', 'ASSI')
+    </insert>
+
+    <update id="updateSbjctOfringProfId" parameterType="SbjctAdmVO">
+        /*
+            SQL ID : SbjctDAO.updateSbjctOfringProfId
+            설  명 : 과목개설 대표 교수아이디 수정
+        */
+        UPDATE TB_LMS_SBJCT
+        SET
+            PROF_ID = #{userId}
+          , MDFR_ID = #{mdfrId}
+          , MOD_DTTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        WHERE SBJCT_ID = #{sbjctId}
+          AND DELYN = 'N'
+    </update>
+
+    <select id="admSbjctOfringStdntUserList" parameterType="SbjctAtndlcVO" resultType="SbjctAtndlcVO">
+        /*
+            SQL ID : SbjctDAO.admSbjctOfringStdntUserList
+            설  명 : 과목개설 수강생 등록용 학생 목록 조회
+        */
+        WITH CUR_SBJCT AS (
+            SELECT
+                CUR.SBJCT_ID
+              , CUR.SMSTR_CHRT_ID
+              , CUR.CRCLMN_NO
+              , CUR_SC.ORG_ID
+            FROM TB_LMS_SBJCT CUR
+                INNER JOIN TB_LMS_SMSTR_CHRT CUR_SC
+                ON CUR_SC.SMSTR_CHRT_ID = CUR.SMSTR_CHRT_ID
+            WHERE CUR.SBJCT_ID = #{sbjctId}
+              AND CUR.DELYN = 'N'
+        ),
+        BASE_USER AS (
+            SELECT
+                U.USER_ID
+              , U.USERNM
+              , U.STDNT_NO
+            FROM TB_LMS_USER U
+                INNER JOIN CUR_SBJCT CUR
+                ON 1 = 1
+            WHERE U.USER_TYCD = 'STDNT'
+              AND U.USERNM LIKE FN_LIKE_VAL(#{searchValue})
+              AND NOT EXISTS (
+                    SELECT 1
+                    FROM TB_LMS_ATNDLC ATNDLC
+                        INNER JOIN TB_LMS_SBJCT S
+                        ON S.SBJCT_ID = ATNDLC.SBJCT_ID
+                        AND S.DELYN = 'N'
+                        INNER JOIN TB_LMS_SMSTR_CHRT SC
+                        ON SC.SMSTR_CHRT_ID = S.SMSTR_CHRT_ID
+                    WHERE ATNDLC.USER_ID = U.USER_ID
+                      AND S.SBJCT_ID != CUR.SBJCT_ID
+                      AND SC.ORG_ID = CUR.ORG_ID
+                      AND S.SMSTR_CHRT_ID = CUR.SMSTR_CHRT_ID
+                      AND S.CRCLMN_NO = CUR.CRCLMN_NO
+                  )
+        )
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY U.USERNM, U.STDNT_NO, U.USER_ID) AS LINE_NO
+          , U.USER_ID
+          , U.USERNM
+          , U.STDNT_NO
+          , CNTCT.MBL_PHN
+          , CNTCT.EML
+        FROM BASE_USER U
+            LEFT JOIN (
+                SELECT
+                    UC.USER_ID
+                  , MAX(CASE WHEN UC.CNTCT_TYCD = 'MBL_PHN' THEN UC.CNTCT END) AS MBL_PHN
+                  , MAX(CASE WHEN UC.CNTCT_TYCD = 'INDV_EML' THEN UC.CNTCT END) AS EML
+                FROM TB_LMS_USER_CNTCT UC
+                WHERE UC.CNTCT_TYCD IN ('MBL_PHN', 'INDV_EML')
+                  AND EXISTS (
+                        SELECT 1
+                        FROM BASE_USER BU
+                        WHERE BU.USER_ID = UC.USER_ID
+                      )
+                GROUP BY UC.USER_ID
+            ) CNTCT
+            ON CNTCT.USER_ID = U.USER_ID
+        ORDER BY U.USERNM, U.STDNT_NO, U.USER_ID
+    </select>
+
+    <select id="admSbjctOfringStdntList" parameterType="SbjctAtndlcVO" resultType="SbjctAtndlcVO">
+        /*
+            SQL ID : SbjctDAO.admSbjctOfringStdntList
+            설  명 : 과목개설 수강생 목록 조회
+        */
+        WITH BASE_ATNDLC AS (
+            SELECT
+                ATNDLC.ATNDLC_ID
+              , ATNDLC.SBJCT_ID
+              , ATNDLC.USER_ID
+              , ATNDLC.RPTYN
+              , ATNDLC.ATNDLC_STSCD
+              , ATNDLC.RGTR_ID
+              , ATNDLC.REG_DTTM
+              , ATNDLC.MDFR_ID
+              , ATNDLC.MOD_DTTM
+              , U.USERNM
+              , U.STDNT_NO
+            FROM TB_LMS_ATNDLC ATNDLC
+                INNER JOIN TB_LMS_SBJCT CUR
+                ON CUR.SBJCT_ID = ATNDLC.SBJCT_ID
+                AND CUR.DELYN = 'N'
+                INNER JOIN TB_LMS_USER U
+                ON U.USER_ID = ATNDLC.USER_ID
+                AND U.USER_TYCD = 'STDNT'
+            WHERE ATNDLC.SBJCT_ID = #{sbjctId}
+        )
+        SELECT
+            ROW_NUMBER() OVER(ORDER BY U.USERNM, U.STDNT_NO, U.USER_ID) AS LINE_NO
+          , U.ATNDLC_ID
+          , U.SBJCT_ID
+          , U.USER_ID
+          , U.RPTYN
+          , U.ATNDLC_STSCD
+          , U.RGTR_ID
+          , U.REG_DTTM
+          , U.MDFR_ID
+          , U.MOD_DTTM
+          , U.USERNM
+          , U.STDNT_NO
+          , CNTCT.MBL_PHN
+          , CNTCT.EML
+        FROM BASE_ATNDLC U
+            LEFT JOIN (
+                SELECT
+                    UC.USER_ID
+                  , MAX(CASE WHEN UC.CNTCT_TYCD = 'MBL_PHN' THEN UC.CNTCT END) AS MBL_PHN
+                  , MAX(CASE WHEN UC.CNTCT_TYCD = 'INDV_EML' THEN UC.CNTCT END) AS EML
+                FROM TB_LMS_USER_CNTCT UC
+                WHERE UC.CNTCT_TYCD IN ('MBL_PHN', 'INDV_EML')
+                  AND EXISTS (
+                        SELECT 1
+                        FROM BASE_ATNDLC BA
+                        WHERE BA.USER_ID = UC.USER_ID
+                      )
+                GROUP BY UC.USER_ID
+            ) CNTCT
+            ON CNTCT.USER_ID = U.USER_ID
+        ORDER BY U.USERNM, U.STDNT_NO, U.USER_ID
+    </select>
+
+    <select id="admSbjctOfringStdntExcelList" parameterType="SbjctAtndlcVO" resultType="SbjctAtndlcVO">
+        /*
+            SQL ID : SbjctDAO.admSbjctOfringStdntExcelList
+            설  명 : 과목개설 수강생 엑셀 업로드 학생 목록 조회
+        */
+        SELECT
+            U.USER_ID
+          , U.USERNM
+          , U.STDNT_NO
+          , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'MBL_PHN') AS MBL_PHN
+          , (SELECT MAX(UC.CNTCT) FROM TB_LMS_USER_CNTCT UC WHERE UC.USER_ID = U.USER_ID AND UC.CNTCT_TYCD = 'INDV_EML') AS EML
+        FROM TB_LMS_USER U
+        WHERE U.USER_TYCD = 'STDNT'
+          AND U.STDNT_NO IN
+          <foreach collection="atndlcList" item="item" open="(" close=")" separator=",">
+              #{item.stdntNo}
+          </foreach>
+        ORDER BY U.USERNM, U.STDNT_NO, U.USER_ID
+    </select>
+
+    <delete id="deleteSbjctOfringStdntList" parameterType="SbjctAtndlcVO">
+        /*
+            SQL ID : SbjctDAO.deleteSbjctOfringStdntList
+            설  명 : 과목개설 수강생 목록 삭제
+        */
+        DELETE FROM TB_LMS_ATNDLC ATNDLC
+        WHERE ATNDLC.SBJCT_ID = #{sbjctId}
+          AND EXISTS (
+                SELECT 1
+                FROM TB_LMS_USER U
+                WHERE U.USER_ID = ATNDLC.USER_ID
+                  AND U.USER_TYCD = 'STDNT'
+              )
+    </delete>
+
+    <insert id="insertSbjctOfringStdntList" parameterType="SbjctAtndlcVO">
+        /*
+            SQL ID : SbjctDAO.insertSbjctOfringStdntList
+            설  명 : 과목개설 수강생 목록 벌크 등록
+        */
+        INSERT INTO TB_LMS_ATNDLC (
+            ATNDLC_ID
+          , SBJCT_ID
+          , USER_ID
+          , DEPT_ID
+          , STDNT_NO
+          , RPTYN
+          , ATNDLC_APLY_DTTM
+          , ATNDLC_CERT_DTTM
+          , AUDITYN
+          , RGTR_ID
+          , REG_DTTM
+          , MDFR_ID
+          , MOD_DTTM
+          , ATNDLC_STSCD
+        )
+        SELECT
+            SRC.ATNDLC_ID
+          , SRC.SBJCT_ID
+          , SRC.USER_ID
+          , NVL(U.DEPT_ID, '')
+          , NVL(U.STDNT_NO, '')
+          , SRC.RPTYN
+          , FN_DTTM()
+          , FN_DTTM()
+          , 'N'
+          , SRC.RGTR_ID
+          , FN_DTTM()
+          , SRC.MDFR_ID
+          , FN_DTTM()
+          , SRC.ATNDLC_STSCD
+        FROM (
+            <foreach collection="atndlcList" item="item" separator=" UNION ALL ">
+            SELECT
+                #{item.atndlcId} AS ATNDLC_ID
+              , #{item.sbjctId} AS SBJCT_ID
+              , #{item.userId} AS USER_ID
+              , #{item.rptyn} AS RPTYN
+              , #{item.rgtrId} AS RGTR_ID
+              , #{item.mdfrId} AS MDFR_ID
+              , #{item.atndlcStscd} AS ATNDLC_STSCD
+            FROM DUAL
+            </foreach>
+        ) SRC
+            INNER JOIN TB_LMS_USER U
+            ON U.USER_ID = SRC.USER_ID
+            AND U.USER_TYCD = 'STDNT'
+    </insert>
+
+    <select id="admSbjctList" resultType="egovMap">
+        /*
+            SQL ID : SbjctDAO.admSbjctList
+            설  명 : 과목 목록 조회
+        */
+        SELECT SBJ.SBJCT_ID , SBJ.SBJCTNM
+        FROM TB_LMS_SBJCT SBJ
+        JOIN TB_LMS_SMSTR_CHRT SMSTR ON SBJ.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+        WHERE 1=1
+        <if test="orgId != null and orgId != ''">
+            AND SMSTR.ORG_ID = #{orgId}
+        </if>
+        <if test="dgrsYr != null and dgrsYr != ''">
+            AND SMSTR.DGRS_YR = #{dgrsYr}
+        </if>
+        <if test="dgrsSmstrChrt != null and dgrsSmstrChrt != ''">
+            AND SMSTR.DGRS_SMSTR_CHRT = #{dgrsSmstrChrt}
+        </if>
+        AND SBJ.USEYN = 'Y'
+        AND SBJ.DELYN = 'N'
+        ORDER BY SBJ.SBJCTNM ASC
+    </select>
+
+    <select id="profSbjctList" resultType="egovMap">
+        /*
+            SQL ID : SbjctDAO.profSbjctList
+            설  명 : 과목 목록 조회
+        */
+        SELECT SBJ.SBJCT_ID, SBJ.SBJCTNM
+        FROM TB_LMS_SBJCT_ADM PRF
+        JOIN TB_LMS_SBJCT SBJ ON PRF.SBJCT_ID = SBJ.SBJCT_ID
+        JOIN TB_LMS_SMSTR_CHRT SMSTR ON SBJ.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+        WHERE 1=1
+        AND PRF.USER_ID = #{rprsId}
+        <!--  AND PRF.USER_ID IN (
+            SELECT USER_ID
+            FROM TB_LMS_USER X
+            WHERE X.USER_RPRS_ID = #{rprsId}
+        )-->
+        <if test="orgId != null and orgId != ''">
+            AND SMSTR.ORG_ID = #{orgId}
+        </if>
+        <if test="dgrsYr != null and dgrsYr != ''">
+            AND SMSTR.DGRS_YR = #{dgrsYr}
+        </if>
+        <if test="dgrsSmstrChrt != null and dgrsSmstrChrt != ''">
+            AND SMSTR.DGRS_SMSTR_CHRT = #{dgrsSmstrChrt}
+        </if>
+          AND SBJ.USEYN = 'Y'
+          AND SBJ.DELYN = 'N'
+        ORDER BY SBJ.SBJCTNM ASC
+    </select>
+
+    <select id="stdntSbjctList" resultType="egovMap">
+        /*
+            SQL ID : SbjctDAO.stdntSbjctList
+            설  명 : 과목 목록 조회
+        */
+        SELECT SBJ.SBJCT_ID, SBJ.SBJCTNM
+        FROM TB_LMS_ATNDLC STD
+        JOIN TB_LMS_SBJCT SBJ ON STD.SBJCT_ID = SBJ.SBJCT_ID
+        JOIN TB_LMS_SMSTR_CHRT SMSTR ON SBJ.SMSTR_CHRT_ID = SMSTR.SMSTR_CHRT_ID
+        WHERE 1=1
+          AND STD.USER_ID IN (
+            SELECT USER_ID
+            FROM TB_LMS_USER X
+            WHERE X.USER_RPRS_ID = #{rprsId}
+        )
+        <if test="orgId != null and orgId != ''">
+            AND SMSTR.ORG_ID = #{orgId}
+        </if>
+        <if test="dgrsYr != null and dgrsYr != ''">
+            AND SMSTR.DGRS_YR = #{dgrsYr}
+        </if>
+        <if test="dgrsSmstrChrt != null and dgrsSmstrChrt != ''">
+            AND SMSTR.DGRS_SMSTR_CHRT = #{dgrsSmstrChrt}
+        </if>
+        AND SBJ.USEYN = 'Y'
+        AND SBJ.DELYN = 'N'
+        ORDER BY SBJ.SBJCTNM ASC
+    </select>
+
 
 </mapper>

@@ -348,11 +348,12 @@ var synapEditorConfig = {
      */
     'editor.fontFamily': {
         'ko': [
-            '돋움', '굴림', '바탕', '궁서', '맑은 고딕',
+            '돋움', '굴림', '바탕', '궁서', '맑은 고딕', 'Pretendard',
             'Arial', 'Comic Sans MS', 'Courier New', 'Georgia',
             'Lucida Sans Unicode', 'Tahoma', 'Times New Roman', 'Trebuchet MS', 'Verdana'
         ],
         'en': [
+			'Pretendard',
             'Arial', 'Comic Sans MS', 'Courier New', 'Georgia',
             'Lucida Sans Unicode', 'Tahoma', 'Times New Roman', 'Trebuchet MS', 'Verdana'
         ]

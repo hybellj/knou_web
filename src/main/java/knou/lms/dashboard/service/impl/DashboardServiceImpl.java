@@ -1,7 +1,6 @@
 package knou.lms.dashboard.service.impl;
 
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -14,19 +13,18 @@ import org.springframework.stereotype.Service;
 
 import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+
 import knou.framework.common.CommConst;
 import knou.framework.common.ServiceBase;
 import knou.framework.common.SessionInfo;
 import knou.framework.util.IdGenerator;
 import knou.framework.util.LocaleUtil;
 import knou.framework.util.StringUtil;
-import knou.lms.bbs.vo.BbsAtclVO;
 import knou.lms.common.vo.DefaultVO;
 import knou.lms.common.vo.ProcessResultVO;
 import knou.lms.crs.crecrs.dao.CrecrsDAO;
 import knou.lms.crs.crecrs.vo.CreCrsVO;
 import knou.lms.crs.crecrs.vo.HpIntchVO;
-import knou.lms.crs.crs.vo.CrsVO;
 import knou.lms.crs.term.dao.TermDAO;
 import knou.lms.crs.term.vo.TermVO;
 import knou.lms.dashboard.dao.DashboardDAO;
@@ -134,18 +132,8 @@ public class DashboardServiceImpl extends ServiceBase implements DashboardServic
      * 수강생 학기목록 조회
      */
     @Override
-    public ProcessResultVO<TermVO> listStdTerm(TermVO vo) throws Exception {
-        ProcessResultVO<TermVO> processResultVO = new ProcessResultVO<>();
-
-        try {
-            List<TermVO> resultList = dashboardDAO.listStdTerm(vo);
-            processResultVO.setReturnList(resultList);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
-
-        return processResultVO;
+    public ProcessResultVO<EgovMap> listStdTerm(TermVO vo) throws Exception {
+        return new ProcessResultVO<EgovMap>().setReturnList(dashboardDAO.listStdTerm(vo)).setResultSuccess();
     }
 
     /**
@@ -556,8 +544,8 @@ public class DashboardServiceImpl extends ServiceBase implements DashboardServic
      * 교수학기목록조회 - ASIS
      */
     @Override
-    public ProcessResultVO<TermVO> listProfTerm(TermVO vo) throws Exception {
-        return profSmstrList(vo);
+    public ProcessResultVO<EgovMap> listProfTerm(TermVO vo) {
+        return new ProcessResultVO<EgovMap>().setReturnList(dashboardDAO.profSmstrList(vo));
     }
 
     /**
@@ -568,8 +556,8 @@ public class DashboardServiceImpl extends ServiceBase implements DashboardServic
      * @author 260123 jinkoon
      */
     @Override
-    public ProcessResultVO<TermVO> profSmstrList(TermVO vo) throws Exception {
-        return new ProcessResultVO<TermVO>(dashboardDAO.profSmstrList(vo));
+    public ProcessResultVO<EgovMap> profSmstrList(TermVO vo) {
+        return new ProcessResultVO<EgovMap>().setReturnList(dashboardDAO.profSmstrList(vo));
     }
 
     /**
@@ -780,7 +768,7 @@ public class DashboardServiceImpl extends ServiceBase implements DashboardServic
      */
     @Override
     public EgovMap selectLessonManageInfo(HttpServletRequest request, UsrUserInfoVO vo) throws Exception {
-        String userType = SessionInfo.getAuthrtCd(request);
+        String usertAuthrtCd = SessionInfo.getAuthrtCd(request);
         EgovMap returnMap = new EgovMap();
         String[] sqlForeach = vo.getSqlForeach();
 
@@ -793,14 +781,14 @@ public class DashboardServiceImpl extends ServiceBase implements DashboardServic
             EgovMap bbsAnsStatusMap = dashboardDAO.selectBbsAnsStatus(vo);
             returnMap.putAll(bbsAnsStatusMap);
 
-            if(userType.contains("PFS")) {
+            if( CommConst.AUTHRT_CD_PROF.equals(usertAuthrtCd)) {
                 // 수업운영 점수 현황 (교수)
                 EgovMap OprScoreStatusMap = dashboardDAO.selectOprScoreProfStatus(vo);
 
                 if(OprScoreStatusMap != null) {
                     returnMap.putAll(OprScoreStatusMap);
                 }
-            } else if(userType.contains("TUT")) {
+            } else if(CommConst.AUTHRT_CD_TUT.equals(usertAuthrtCd)) {
                 // 수업운영 점수 현황 (조교)
                 EgovMap OprScoreStatusMap = dashboardDAO.selectOprScoreAssistStatus(vo);
                 if(OprScoreStatusMap != null) {
@@ -813,30 +801,13 @@ public class DashboardServiceImpl extends ServiceBase implements DashboardServic
     }
 
     /*****************************************************
-     * 관리자 메인 > 과목별 학습현황
+     * 관리자 대시보드 > 과목별 학습현황
      * @param vo
      * @return List<EgovMap>
      * @throws Exception
      ******************************************************/
-    public List<EgovMap> listLessonStatusByCrs(DashboardVO vo) throws Exception {
-        List<EgovMap> list = dashboardDAO.listLessonStatusByCrs(vo);
-
-        for(EgovMap map : list) {
-            String crsCd = StringUtil.nvl(map.get("crsCd"));
-            String declsNo = StringUtil.nvl(map.get("declsNo"));
-            String creYear = StringUtil.nvl(map.get("creYear"));
-            String creTerm = StringUtil.nvl(map.get("creTerm"));
-
-            // 수업계획서 링크생성
-            String sSmt = creTerm.length() < 2 ? creTerm+"0" : creTerm;
-            String sCuriCls = declsNo.length() < 2 ? "0"+declsNo : declsNo;
-            String plnParam = "{\"sYear\":\""+creYear+"\",\"sSmt\":\""+sSmt+"\",\"sCuriNum\":\""+crsCd+"\",\"sCuriCls\":\""+sCuriCls+"\"}";
-            String lsnPlanUrl = CommConst.LSNPLAN_POP_URL_STD + new String((Base64.getEncoder()).encode(plnParam.getBytes()));
-
-            map.put("lsnPlanUrl", lsnPlanUrl);
-        }
-
-        return list;
+    public List<EgovMap> lrnStsListBySbjct(DefaultVO vo) {
+        return dashboardDAO.lrnStsListBySbjct(vo);
     }
 
     /*****************************************************
@@ -847,7 +818,7 @@ public class DashboardServiceImpl extends ServiceBase implements DashboardServic
      ******************************************************/
     public List<EgovMap> listLessonStatusByCrsExcel(HttpServletRequest request, DashboardVO vo) throws Exception {
         Locale locale = LocaleUtil.getLocale(request);
-        List<EgovMap> list = dashboardDAO.listLessonStatusByCrs(vo);
+        List<EgovMap> list = dashboardDAO.lrnStsListBySbjct(vo);
 
         String etcText = messageSource.getMessage("dashboard.cor.etc", null, locale); // 기타
         String asmntText = messageSource.getMessage("dashboard.cor.asmnt", null, locale); // 과제
@@ -941,8 +912,9 @@ public class DashboardServiceImpl extends ServiceBase implements DashboardServic
      * @return List<EgovMap>
      * @throws Exception
      ******************************************************/
-    public List<EgovMap> listLessonStatusByStd(DashboardVO vo) throws Exception {
-        return dashboardDAO.listLessonStatusByStd(vo);
+    public List<EgovMap> lrnStsListByStd(DashboardVO vo) {
+
+        return dashboardDAO.lrnStsListByStd(vo);
     }
 
     /*****************************************************
@@ -951,32 +923,11 @@ public class DashboardServiceImpl extends ServiceBase implements DashboardServic
      * @return ProcessResultVO<EgovMap>
      * @throws Exception
      ******************************************************/
-    public ProcessResultVO<EgovMap> listAdminDashUser(DashboardVO vo) throws Exception {
-        ProcessResultVO<EgovMap> processResultVO = new ProcessResultVO<>();
+    public List<EgovMap> userList(DashboardVO vo) {
 
-        try {
-            PaginationInfo paginationInfo = new PaginationInfo();
-            paginationInfo.setCurrentPageNo(vo.getPageIndex());
-            paginationInfo.setRecordCountPerPage(vo.getListScale());
-            paginationInfo.setPageSize(vo.getPageScale());
+        List<EgovMap> resultList = dashboardDAO.userList(vo);
 
-            vo.setFirstIndex(paginationInfo.getFirstRecordIndex());
-            vo.setLastIndex(paginationInfo.getLastRecordIndex());
-
-            int totCnt = dashboardDAO.countAdminDashUser(vo);
-
-            paginationInfo.setTotalRecordCount(totCnt);
-
-            List<EgovMap> resultList = dashboardDAO.listPagingAdminDashUser(vo);
-
-            processResultVO.setReturnList(resultList);
-            processResultVO.setPageInfo(paginationInfo);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
-
-        return processResultVO;
+        return resultList;
     }
 
     /**

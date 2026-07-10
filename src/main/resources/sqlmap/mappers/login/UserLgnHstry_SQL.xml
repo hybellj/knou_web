@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="knou.lms.login.dao.UserLgnHstryDAO">
+
+    <sql id="userLgnHstryBaseQuery">
+        WITH BASE AS (
+            SELECT
+                  ROW_NUMBER() OVER(ORDER BY LGN.LGN_DTTM DESC, LGN.USER_LGN_HSTRY_ID DESC) AS LINE_NO
+                , LGN.USER_LGN_HSTRY_ID
+                , LGN.ORG_ID
+                , ORG.ORGNM
+                , LGN.DEPT_ID
+                , DEPT.DEPTNM
+                , LGN.USER_ID
+                , USR.STDNT_NO
+                , USR.USERNM
+                , LGN.USER_SNS_ID
+                , LGN.ACSR_TYCD
+                , ACSR_CD.CDNM AS ACSR_TYNM
+                , LGN.CERT_MTHD_CD
+                , CERT_MTHD_CD.CDNM AS CERT_MTHDNM
+                , LGN.LGN_IP
+                , LGN.LGN_DTTM
+                , LGN.LGT_DTTM
+                , LGN.LGN_SCSYN
+                , LGN.CNTN_DVC_TYCD
+                , LGN.LGN_CNTN_BRWSR
+                , LGN.SESS_ID
+                , LGN.TRACE_ID
+            FROM TB_LMS_USER_LGN_HSTRY LGN
+            JOIN TB_LMS_USER USR
+            	ON USR.USER_ID = LGN.USER_ID
+            LEFT JOIN TB_LMS_ORG ORG
+            	ON ORG.ORG_ID = LGN.ORG_ID
+            LEFT JOIN TB_LMS_DEPT DEPT
+            	ON DEPT.ORG_ID = LGN.ORG_ID
+            	AND DEPT.DEPT_ID = LGN.DEPT_ID
+            LEFT JOIN TB_LMS_CMMN_CD ACSR_CD
+            	ON ACSR_CD.ORG_ID = LGN.ORG_ID
+            	AND ACSR_CD.UP_CD = 'ACSR_TYCD'
+            	AND ACSR_CD.CD = LGN.ACSR_TYCD
+            	AND ACSR_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            	AND ACSR_CD.USEYN = 'Y'
+            LEFT JOIN TB_LMS_CMMN_CD CERT_MTHD_CD
+            	ON CERT_MTHD_CD.ORG_ID = LGN.ORG_ID
+            	AND CERT_MTHD_CD.UP_CD = 'CERT_MTHD_CD'
+            	AND CERT_MTHD_CD.CD = LGN.CERT_MTHD_CD
+            	AND CERT_MTHD_CD.LANG_CD = NVL(#{langCd}, 'ko')
+            	AND CERT_MTHD_CD.USEYN = 'Y'
+            WHERE 1 = 1
+            	AND LGN.LGN_SCSYN = 'Y'
+            <if test="orgId != null and orgId != ''">
+            	AND LGN.ORG_ID = #{orgId}
+            </if>
+            <if test="deptId != null and deptId != ''">
+            	AND LGN.DEPT_ID = #{deptId}
+            </if>
+            <if test="searchSdttm != null and searchSdttm != ''">
+            	AND LGN.LGN_DTTM &gt;= #{searchSdttm}
+            </if>
+            <if test="searchEdttm != null and searchEdttm != ''">
+            	AND LGN.LGN_DTTM &lt;= #{searchEdttm}
+            </if>
+            <if test="acsrTycds != null and acsrTycds != ''">
+            	AND INSTR(',' || #{acsrTycds} || ',', ',' || LGN.ACSR_TYCD || ',') &gt; 0
+            </if>
+            <if test="searchValue != null and searchValue != ''">
+            	AND (
+            		LOWER(USR.STDNT_NO) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            		OR LOWER(LGN.USER_ID) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            		OR LOWER(USR.USERNM) LIKE FN_LIKE_VAL(LOWER(#{searchValue}))
+            	)
+            </if>
+        )
+        SELECT
+              BASE.LINE_NO
+            , BASE.USER_LGN_HSTRY_ID
+            , BASE.ORG_ID
+            , BASE.ORGNM
+            , BASE.DEPT_ID
+            , BASE.DEPTNM
+            , BASE.USER_ID
+            , BASE.STDNT_NO
+            , BASE.USERNM
+            , BASE.USER_SNS_ID
+            , BASE.ACSR_TYCD
+            , BASE.ACSR_TYNM
+            , BASE.CERT_MTHD_CD
+            , BASE.CERT_MTHDNM
+            , BASE.LGN_IP
+            , BASE.LGN_DTTM
+            , BASE.LGT_DTTM
+            , BASE.LGN_SCSYN
+            , BASE.CNTN_DVC_TYCD
+            , BASE.LGN_CNTN_BRWSR
+            , BASE.SESS_ID
+            , BASE.TRACE_ID
+        FROM BASE
+    </sql>
+
+    <select id="countUserLgnHstry" parameterType="userLgnHstryPageInfoVO" resultType="Integer">
+        /*
+            SQL ID : UserLgnHstryDAO.countUserLgnHstry
+            내용 : 사용자로그인이력 목록 건수 조회
+        */
+        SELECT COUNT(1)
+        FROM (
+            <include refid="userLgnHstryBaseQuery"/>
+        ) A
+    </select>
+
+    <select id="listUserLgnHstryPaging" parameterType="userLgnHstryPageInfoVO" resultType="egovMap">
+        /*
+            SQL ID : UserLgnHstryDAO.listUserLgnHstryPaging
+            내용 : 사용자로그인이력 목록 페이징 조회
+        */
+        <include refid="CommonSQL.pagePrefix2"/>
+        <include refid="userLgnHstryBaseQuery"/>
+        <include refid="CommonSQL.pageSuffix2"/>
+        ORDER BY A.LINE_NO
+    </select>
+
+    <select id="listUserLgnHstry" parameterType="userLgnHstryPageInfoVO" resultType="egovMap">
+        /*
+            SQL ID : UserLgnHstryDAO.listUserLgnHstry
+            내용 : 사용자로그인이력 목록 전체 조회
+        */
+        SELECT A.*
+        FROM (
+            <include refid="userLgnHstryBaseQuery"/>
+        ) A
+        ORDER BY A.LINE_NO
+    </select>
+</mapper>
